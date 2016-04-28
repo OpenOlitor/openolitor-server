@@ -29,6 +29,29 @@ import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.scalax.Tuple23
 
+/**
+ *        +
+ *        |
+ *   +----v-----+
+ *   | ERSTELLT |
+ *   +----+-----+
+ *        |
+ *   +----v-------+
+ *   | VERSCHICKT +-----------+
+ *   +----+-------+           |
+ *        |                   |
+ *   +----v----+              |
+ *   | BEZAHLT |              |
+ *   +---------+              |
+ *                            |
+ *   +--------------------+   |
+ *   | MAHNUNG_VERSCHICKT <---+
+ *   +--------------------+   |
+ *                            |
+ *   +-----------+            |
+ *   | STORNIERT <------------+
+ *   +-----------+
+ */
 sealed trait RechnungStatus
 case object Erstellt extends RechnungStatus
 case object Verschickt extends RechnungStatus
@@ -141,6 +164,7 @@ case class RechnungModify(
   rechnungsDatum: DateTime,
   faelligkeitsDatum: DateTime,
   eingangsDatum: Option[DateTime],
+  status: RechnungStatus,
   strasse: String,
   hausNummer: Option[String],
   adressZusatz: Option[String],
