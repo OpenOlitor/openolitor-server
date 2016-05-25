@@ -155,7 +155,7 @@ object Anrede {
   }
 }
 
-sealed trait Rolle
+sealed trait Rolle extends Product
 case object AdministratorZugang extends Rolle
 case object KundenZugang extends Rolle
 
@@ -256,7 +256,7 @@ case class PersonCreate(
   def fullName = vorname + ' ' + name
 }
 
-sealed trait PendenzStatus
+sealed trait PendenzStatus extends Product
 case object Ausstehend extends PendenzStatus
 case object Erledigt extends PendenzStatus
 case object NichtErledigt extends PendenzStatus

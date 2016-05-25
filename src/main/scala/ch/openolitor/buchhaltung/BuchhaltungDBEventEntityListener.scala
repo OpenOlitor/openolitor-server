@@ -31,11 +31,12 @@ import ch.openolitor.core.db._
 import scalikejdbc._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.Boot
-import ch.openolitor.core.repositories.SqlBinder
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.stammdaten.models.AboId
 import ch.openolitor.stammdaten.models.{ DepotlieferungAbo, HeimlieferungAbo, PostlieferungAbo }
+import ch.openolitor.core.repositories.DBEventEntityListener
+import ch.openolitor.buchhaltung.repositories._
 
 object BuchhaltungDBEventEntityListener extends DefaultJsonProtocol {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultBuchhaltungDBEventEntityListener], sysConfig, system)
@@ -46,9 +47,11 @@ class DefaultBuchhaltungDBEventEntityListener(sysConfig: SystemConfig, override 
 /**
  * Listen on DBEvents and adjust calculated fields within this module
  */
-class BuchhaltungDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with BuchhaltungDBMappings with AsyncConnectionPoolContextAware {
+class BuchhaltungDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with BuchhaltungDBMappings with AsyncConnectionPoolContextAware with DBEventEntityListener[BuchhaltungWriteRepository] {
   this: BuchhaltungWriteRepositoryComponent =>
   import BuchhaltungDBEventEntityListener._
+
+  val repository = buchhaltungWriteRepository
 
   override def preStart() {
     super.preStart()
@@ -88,17 +91,6 @@ class BuchhaltungDBEventEntityListener(override val sysConfig: SystemConfig) ext
         modifyEntity[ZahlungsImport, ZahlungsImportId](entity.zahlungsImportId, { zahlungsImport =>
           zahlungsImport.copy(anzahlZahlungsEingaengeErledigt = zahlungsImport.anzahlZahlungsEingaengeErledigt - 1)
         })
-      }
-    }
-  }
-
-  def modifyEntity[E <: BaseEntity[I], I <: BaseId](
-    id: I, mod: E => E
-  )(implicit syntax: BaseEntitySQLSyntaxSupport[E], binder: SqlBinder[I], personId: PersonId) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(syntax, id) map { result =>
-        val copy = mod(result)
-        buchhaltungWriteRepository.updateEntity[E, I](copy)
       }
     }
   }

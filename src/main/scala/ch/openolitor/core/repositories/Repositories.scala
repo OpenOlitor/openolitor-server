@@ -31,9 +31,10 @@ import ch.openolitor.core.EventStream
 import scala.util._
 import ch.openolitor.core.scalax._
 
-case class ParameterBindMapping[A](cl: Class[A], binder: ParameterBinder[A])
+//case class ParameterBindMapping[A](cl: Class[A], binder: ParameterBinderFactory[A])
 
 trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E] with LazyLogging with DBMappings {
+  import ParameterBinderFactory._
 
   //override def columnNames 
   def apply(p: SyntaxProvider[E])(rs: WrappedResultSet): E = apply(p.resultName)(rs)
@@ -54,19 +55,12 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
   /**
    * Declare update parameters for this entity used on update. Is by default an empty set
    */
-  def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, Any]] = Seq(
-    column.erstelldat -> parameter(entity.erstelldat),
-    column.ersteller -> parameter(entity.ersteller),
-    column.modifidat -> parameter(entity.modifidat),
-    column.modifikator -> parameter(entity.modifikator)
+  def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] = Seq(
+    column.erstelldat -> entity.erstelldat,
+    column.ersteller -> entity.ersteller,
+    column.modifidat -> entity.modifidat,
+    column.modifikator -> entity.modifikator
   )
-}
-
-trait ParameterBinderMapping[A] {
-  def bind(value: A): ParameterBinder[A]
-}
-
-trait SqlBinder[-T] extends (T => Any) {
 }
 
 object BaseRepository extends LazyLogging {
@@ -80,20 +74,20 @@ trait BaseWriteRepository extends DBMappings with LazyLogging {
 
   def getById[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], id: I)(implicit
     session: DBSession,
-    binder: SqlBinder[I]): Option[E] = {
+    binder: ParameterBinderFactory[I]): Option[E] = {
     val alias = syntax.syntax("x")
     val idx = alias.id
     withSQL {
       select
         .from(syntax as alias)
-        .where.eq(alias.id, parameter(id))
+        .where.eq(alias.id, id)
     }.map(syntax.apply(alias)).single.apply()
   }
 
   def insertEntity[E <: BaseEntity[I], I <: BaseId](entity: E)(implicit
     session: DBSession,
+    binder: ParameterBinderFactory[I],
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: SqlBinder[I],
     user: PersonId) = {
     val params = syntaxSupport.parameterMappings(entity)
     logger.debug(s"create entity with values:$entity")
@@ -109,14 +103,14 @@ trait BaseWriteRepository extends DBMappings with LazyLogging {
   }
   def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E)(implicit
     session: DBSession,
+    binder: ParameterBinderFactory[I],
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: SqlBinder[I],
     user: PersonId) = {
     getById(syntaxSupport, entity.id).map { orig =>
       val alias = syntaxSupport.syntax("x")
       val id = alias.id
       val updateParams = syntaxSupport.updateParameters(entity)
-      withSQL(update(syntaxSupport as alias).set(updateParams: _*).where.eq(id, parameter(entity.id))).update.apply()
+      withSQL(update(syntaxSupport as alias).set(updateParams: _*).where.eq(id, entity.id)).update.apply()
 
       //publish event to stream
       publish(EntityModified(user, entity, orig))
@@ -127,23 +121,23 @@ trait BaseWriteRepository extends DBMappings with LazyLogging {
 
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Validator[E])(implicit
     session: DBSession,
+    binder: ParameterBinderFactory[I],
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: SqlBinder[I],
     user: PersonId): Option[E] = {
     deleteEntity[E, I](id, Some(validator))
   }
 
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Option[Validator[E]] = None)(implicit
     session: DBSession,
+    binder: ParameterBinderFactory[I],
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: SqlBinder[I],
     user: PersonId): Option[E] = {
     logger.debug(s"delete from ${syntaxSupport.tableName}: $id")
     getById(syntaxSupport, id).map { entity =>
       val validation = validator.getOrElse(TrueValidator)
       validation(entity) match {
         case true =>
-          withSQL(deleteFrom(syntaxSupport).where.eq(syntaxSupport.column.id, parameter(id))).update.apply()
+          withSQL(deleteFrom(syntaxSupport).where.eq(syntaxSupport.column.id, id)).update.apply()
 
           //publish event to stream
           publish(EntityDeleted(user, entity))

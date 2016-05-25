@@ -35,6 +35,7 @@ import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.buchhaltung.models._
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models.PersonId
+import ch.openolitor.buchhaltung.repositories._
 
 object BuchhaltungDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungDeleteService = new DefaultBuchhaltungDeleteService(sysConfig, system)

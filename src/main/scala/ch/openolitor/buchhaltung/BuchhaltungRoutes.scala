@@ -56,6 +56,8 @@ import scala.io.Source
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.core.security.Subject
+import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryComponent
+import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryComponent
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
     with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging

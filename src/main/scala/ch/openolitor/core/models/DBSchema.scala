@@ -26,7 +26,7 @@ import java.util.UUID
 import org.joda.time.DateTime
 import scala.util.Random
 
-sealed trait EvolutionStatus
+sealed trait EvolutionStatus extends Product
 case object Applying extends EvolutionStatus
 case object Done extends EvolutionStatus
 

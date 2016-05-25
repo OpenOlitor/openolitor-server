@@ -23,16 +23,15 @@
 package ch.openolitor.buchhaltung
 
 import java.util.UUID
+
 import ch.openolitor.core.models._
 import ch.openolitor.core.repositories.BaseRepository
 import ch.openolitor.core.repositories.BaseRepository._
-import ch.openolitor.core.repositories.ParameterBinderMapping
 import ch.openolitor.buchhaltung.models._
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.repositories.DBMappings
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.repositories.SqlBinder
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.scalax._
 import ch.openolitor.stammdaten.StammdatenDBMappings
@@ -41,24 +40,13 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
   import TypeBinder._
 
-  // DB type binders for read operations
-  implicit val rechnungIdBinder: TypeBinder[RechnungId] = baseIdTypeBinder(RechnungId.apply _)
-  implicit val zahlungsImportIdBinder: TypeBinder[ZahlungsImportId] = baseIdTypeBinder(ZahlungsImportId.apply _)
-  implicit val zahlungsEingangIdBinder: TypeBinder[ZahlungsEingangId] = baseIdTypeBinder(ZahlungsEingangId.apply _)
+  //DB binders
+  implicit val rechnungStatusBinder: Binders[RechnungStatus] = Binders.string.xmap(RechnungStatus.apply, _.productPrefix)
+  implicit val zahlungsEingangStatusBinder: Binders[ZahlungsEingangStatus] = Binders.string.xmap(ZahlungsEingangStatus.apply, _.productPrefix)
 
-  implicit val rechnungStatusTypeBinder: TypeBinder[RechnungStatus] = string.map(RechnungStatus.apply)
-  implicit val optionRechnungIdBinder: TypeBinder[Option[RechnungId]] = optionBaseIdTypeBinder(RechnungId.apply _)
-
-  implicit val zahlungsEingangStatusTypeBinder: TypeBinder[ZahlungsEingangStatus] = string.map(ZahlungsEingangStatus.apply)
-
-  //DB parameter binders for write and query operationsit
-  implicit val rechnungStatusBinder = toStringSqlBinder[RechnungStatus]
-  implicit val zahlungsEingangStatusBinder = toStringSqlBinder[ZahlungsEingangStatus]
-
-  implicit val rechnungIdSqlBinder = baseIdSqlBinder[RechnungId]
-  implicit val optionRechnungIdSqlBinder = optionSqlBinder[RechnungId]
-  implicit val zahlungsEingangIdSqlBinder = baseIdSqlBinder[ZahlungsEingangId]
-  implicit val zahlungsImportIdSqlBinder = baseIdSqlBinder[ZahlungsImportId]
+  implicit val rechnungIdSqlBinder = baseIdParameterBinderFactory[RechnungId](RechnungId.apply)
+  implicit val zahlungsEingangIdSqlBinder = baseIdParameterBinderFactory[ZahlungsEingangId](ZahlungsEingangId.apply)
+  implicit val zahlungsImportIdSqlBinder = baseIdParameterBinderFactory[ZahlungsImportId](ZahlungsImportId.apply)
 
   implicit val rechnungMapping = new BaseEntitySQLSyntaxSupport[Rechnung] {
     override val tableName = "Rechnung"
@@ -73,24 +61,24 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
 
     override def updateParameters(entity: Rechnung) = {
       super.updateParameters(entity) ++ Seq(
-        column.kundeId -> parameter(entity.kundeId),
-        column.aboId -> parameter(entity.aboId),
-        column.titel -> parameter(entity.titel),
-        column.anzahlLieferungen -> parameter(entity.anzahlLieferungen),
-        column.waehrung -> parameter(entity.waehrung),
-        column.betrag -> parameter(entity.betrag),
-        column.einbezahlterBetrag -> parameter(entity.einbezahlterBetrag),
-        column.rechnungsDatum -> parameter(entity.rechnungsDatum),
-        column.faelligkeitsDatum -> parameter(entity.faelligkeitsDatum),
-        column.eingangsDatum -> parameter(entity.eingangsDatum),
-        column.status -> parameter(entity.status),
-        column.referenzNummer -> parameter(entity.referenzNummer),
-        column.esrNummer -> parameter(entity.esrNummer),
-        column.strasse -> parameter(entity.strasse),
-        column.hausNummer -> parameter(entity.hausNummer),
-        column.adressZusatz -> parameter(entity.adressZusatz),
-        column.plz -> parameter(entity.plz),
-        column.ort -> parameter(entity.ort)
+        column.kundeId -> entity.kundeId,
+        column.aboId -> entity.aboId,
+        column.titel -> entity.titel,
+        column.anzahlLieferungen -> entity.anzahlLieferungen,
+        column.waehrung -> entity.waehrung,
+        column.betrag -> entity.betrag,
+        column.einbezahlterBetrag -> entity.einbezahlterBetrag,
+        column.rechnungsDatum -> entity.rechnungsDatum,
+        column.faelligkeitsDatum -> entity.faelligkeitsDatum,
+        column.eingangsDatum -> entity.eingangsDatum,
+        column.status -> entity.status,
+        column.referenzNummer -> entity.referenzNummer,
+        column.esrNummer -> entity.esrNummer,
+        column.strasse -> entity.strasse,
+        column.hausNummer -> entity.hausNummer,
+        column.adressZusatz -> entity.adressZusatz,
+        column.plz -> entity.plz,
+        column.ort -> entity.ort
       )
     }
   }
@@ -108,9 +96,9 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
 
     override def updateParameters(entity: ZahlungsImport) = {
       super.updateParameters(entity) ++ Seq(
-        column.file -> parameter(entity.file),
-        column.anzahlZahlungsEingaenge -> parameter(entity.anzahlZahlungsEingaenge),
-        column.anzahlZahlungsEingaengeErledigt -> parameter(entity.anzahlZahlungsEingaengeErledigt)
+        column.file -> entity.file,
+        column.anzahlZahlungsEingaenge -> entity.anzahlZahlungsEingaenge,
+        column.anzahlZahlungsEingaengeErledigt -> entity.anzahlZahlungsEingaengeErledigt
       )
     }
   }
@@ -128,8 +116,8 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
 
     override def updateParameters(entity: ZahlungsEingang) = {
       super.updateParameters(entity) ++ Seq(
-        column.erledigt -> parameter(entity.erledigt),
-        column.bemerkung -> parameter(entity.bemerkung)
+        column.erledigt -> entity.erledigt,
+        column.bemerkung -> entity.bemerkung
       )
     }
   }

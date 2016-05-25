@@ -41,6 +41,7 @@ import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import ch.openolitor.buchhaltung.models.RechnungModifyBezahlt
 import scala.concurrent.Future
+import ch.openolitor.buchhaltung.repositories._
 
 object BuchhaltungAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system)

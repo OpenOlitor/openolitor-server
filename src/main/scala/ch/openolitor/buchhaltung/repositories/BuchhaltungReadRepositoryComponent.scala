@@ -20,8 +20,12 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.repositories
+package ch.openolitor.buchhaltung.repositories
 
-trait BaseParameter {
-  def parameter[V](value: V)(implicit binder: SqlBinder[V]): Any = binder.apply(value)
+trait BuchhaltungReadRepositoryComponent {
+  val buchhaltungReadRepository: BuchhaltungReadRepository
+}
+
+trait DefaultBuchhaltungReadRepositoryComponent extends BuchhaltungReadRepositoryComponent {
+  override val buchhaltungReadRepository: BuchhaltungReadRepository = new BuchhaltungReadRepositoryImpl
 }

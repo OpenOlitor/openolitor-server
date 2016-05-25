@@ -20,14 +20,16 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung
+package ch.openolitor.buchhaltung.repositories
 
 import akka.actor.ActorSystem
 
-trait BuchhaltungReadRepositoryComponent {
-  val buchhaltungReadRepository: BuchhaltungReadRepository
+trait BuchhaltungWriteRepositoryComponent {
+  val buchhaltungWriteRepository: BuchhaltungWriteRepository
 }
 
-trait DefaultBuchhaltungReadRepositoryComponent extends BuchhaltungReadRepositoryComponent {
-  override val buchhaltungReadRepository: BuchhaltungReadRepository = new BuchhaltungReadRepositoryImpl
+trait DefaultBuchhaltungWriteRepositoryComponent extends BuchhaltungWriteRepositoryComponent {
+  val system: ActorSystem
+
+  override val buchhaltungWriteRepository: BuchhaltungWriteRepository = new BuchhaltungWriteRepositoryImpl(system)
 }

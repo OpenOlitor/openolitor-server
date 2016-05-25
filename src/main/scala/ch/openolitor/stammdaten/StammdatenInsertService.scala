@@ -44,6 +44,7 @@ import scala.util.Random
 import scala.collection.immutable.Nil
 import ch.openolitor.stammdaten.models.LieferpositionenCreate
 import scalikejdbc.DBSession
+import ch.openolitor.stammdaten.repositories._
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)

@@ -20,16 +20,21 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung
+package ch.openolitor.core.repositories
 
-import akka.actor.ActorSystem
+import ch.openolitor.core.models._
+import scalikejdbc._
 
-trait BuchhaltungWriteRepositoryComponent {
-  val buchhaltungWriteRepository: BuchhaltungWriteRepository
-}
+trait DBEventEntityListener[R <: BaseWriteRepository] {
+  val repository: R
 
-trait DefaultBuchhaltungWriteRepositoryComponent extends BuchhaltungWriteRepositoryComponent {
-  val system: ActorSystem
+  def modifyEntity[E <: BaseEntity[I], I <: BaseId](
+    id: I, mod: E => E
+  )(implicit session: DBSession, syntax: BaseEntitySQLSyntaxSupport[E], binder: ParameterBinderFactory[I], personId: PersonId) = {
 
-  override val buchhaltungWriteRepository: BuchhaltungWriteRepository = new BuchhaltungWriteRepositoryImpl(system)
+    repository.getById(syntax, id) map { result =>
+      val copy = mod(result)
+      repository.updateEntity[E, I](copy)
+    }
+  }
 }

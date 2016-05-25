@@ -20,11 +20,9 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten
+package ch.openolitor.stammdaten.repositories
 
 import akka.actor.ActorSystem
-import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
-import ch.openolitor.stammdaten.repositories.StammdatenWriteRepository
 
 trait StammdatenWriteRepositoryComponent {
   val stammdatenWriteRepository: StammdatenWriteRepository

@@ -27,7 +27,7 @@ import ch.openolitor.core.models._
 import java.util.UUID
 import ch.openolitor.core.JSONSerializable
 
-sealed trait LieferungStatus
+sealed trait LieferungStatus extends Product
 
 case object Ungeplant extends LieferungStatus
 case object Offen extends LieferungStatus
@@ -40,7 +40,7 @@ object LieferungStatus {
   }
 }
 
-sealed trait KorbStatus
+sealed trait KorbStatus extends Product
 
 case object WirdGeliefert extends KorbStatus
 case object Geliefert extends KorbStatus

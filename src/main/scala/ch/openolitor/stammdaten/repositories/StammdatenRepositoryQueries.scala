@@ -1,3 +1,25 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
 import ch.openolitor.core.models._
@@ -80,7 +102,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
-        .where.eq(kunde.id, parameter(id))
+        .where.eq(kunde.id, id)
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
       .toManies(
@@ -102,7 +124,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(personMapping as person)
-        .where.eq(person.kundeId, parameter(kundeId))
+        .where.eq(person.kundeId, kundeId)
         .orderBy(person.sort)
     }.map(personMapping(person)).list
   }
@@ -111,7 +133,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(abotypMapping as aboTyp)
-        .where.eq(aboTyp.id, parameter(id))
+        .where.eq(aboTyp.id, id)
     }.map(abotypMapping(aboTyp)).single
   }
 
@@ -120,7 +142,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(depotlieferungMapping as depotlieferung)
         .leftJoin(depotMapping as depot).on(depotlieferung.depotId, depot.id)
-        .where.eq(depotlieferung.vertriebId, parameter(vertriebId))
+        .where.eq(depotlieferung.vertriebId, vertriebId)
     }.one(depotlieferungMapping(depotlieferung)).toOne(depotMapping.opt(depot)).map { (vertriebsart, depot) =>
       val depotSummary = DepotSummary(depot.head.id, depot.head.name)
       copyTo[Depotlieferung, DepotlieferungDetail](vertriebsart, "depot" -> depotSummary)
@@ -132,7 +154,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(heimlieferungMapping as heimlieferung)
         .leftJoin(tourMapping as tour).on(heimlieferung.tourId, tour.id)
-        .where.eq(heimlieferung.vertriebId, parameter(vertriebId))
+        .where.eq(heimlieferung.vertriebId, vertriebId)
     }.one(heimlieferungMapping(heimlieferung)).toOne(tourMapping.opt(tour)).map { (vertriebsart, tour) =>
       copyTo[Heimlieferung, HeimlieferungDetail](vertriebsart, "tour" -> tour.get)
     }.list
@@ -142,7 +164,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(postlieferungMapping as postlieferung)
-        .where.eq(postlieferung.vertriebId, parameter(vertriebId))
+        .where.eq(postlieferung.vertriebId, vertriebId)
     }.map { rs =>
       val pl = postlieferungMapping(postlieferung)(rs)
       copyTo[Postlieferung, PostlieferungDetail](pl)
@@ -154,7 +176,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(depotlieferungMapping as depotlieferung)
         .leftJoin(depotMapping as depot).on(depotlieferung.depotId, depot.id)
-        .where.eq(depotlieferung.id, parameter(vertriebsartId))
+        .where.eq(depotlieferung.id, vertriebsartId)
     }.one(depotlieferungMapping(depotlieferung)).toOne(depotMapping.opt(depot)).map { (vertriebsart, depot) =>
       val depotSummary = DepotSummary(depot.head.id, depot.head.name)
       copyTo[Depotlieferung, DepotlieferungDetail](vertriebsart, "depot" -> depotSummary)
@@ -166,7 +188,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(heimlieferungMapping as heimlieferung)
         .leftJoin(tourMapping as tour).on(heimlieferung.tourId, tour.id)
-        .where.eq(heimlieferung.id, parameter(vertriebsartId))
+        .where.eq(heimlieferung.id, vertriebsartId)
     }.one(heimlieferungMapping(heimlieferung)).toOne(tourMapping.opt(tour)).map { (vertriebsart, tour) =>
       copyTo[Heimlieferung, HeimlieferungDetail](vertriebsart, "tour" -> tour.get)
     }.single
@@ -176,7 +198,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(postlieferungMapping as postlieferung)
-        .where.eq(postlieferung.id, parameter(vertriebsartId))
+        .where.eq(postlieferung.id, vertriebsartId)
     }.map { rs =>
       val pl = postlieferungMapping(postlieferung)(rs)
       copyTo[Postlieferung, PostlieferungDetail](pl)
@@ -188,7 +210,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(lieferungMapping as lieferung)
         .leftJoin(vertriebMapping as vertrieb).on(lieferung.vertriebId, vertrieb.id)
-        .where.eq(vertrieb.abotypId, parameter(abotypId)).and.eq(lieferung.vertriebId, parameter(vertriebId)).and.isNull(lieferung.lieferplanungId)
+        .where.eq(vertrieb.abotypId, abotypId).and.eq(lieferung.vertriebId, vertriebId).and.isNull(lieferung.lieferplanungId)
         .orderBy(lieferung.datum)
     }.map(lieferungMapping(lieferung)).list
   }
@@ -197,7 +219,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferungMapping as lieferung)
-        .where.eq(lieferung.abotypId, parameter(abotypId)).and.isNull(lieferung.lieferplanungId)
+        .where.eq(lieferung.abotypId, abotypId).and.isNull(lieferung.lieferplanungId)
         .orderBy(lieferung.datum)
     }.map(lieferungMapping(lieferung)).list
   }
@@ -214,7 +236,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(depotMapping as depot)
-        .where.eq(depot.id, parameter(id))
+        .where.eq(depot.id, id)
     }.map(depotMapping(depot)).single
   }
 
@@ -248,7 +270,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(vertriebMapping as vertrieb).on(vertrieb.abotypId, aboTyp.id)
-        .where.eq(depotlieferungAbo.id, parameter(id))
+        .where.eq(depotlieferungAbo.id, id)
         .and.isNull(lieferung.lieferplanungId)
     }
       .one(depotlieferungAboMapping(depotlieferungAbo))
@@ -273,7 +295,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferungMapping as lieferung).on(heimlieferungAbo.abotypId, lieferung.abotypId)
         .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(vertriebMapping as vertrieb).on(vertrieb.abotypId, aboTyp.id)
-        .where.eq(heimlieferungAbo.id, parameter(id)).and.isNull(lieferung.lieferplanungId)
+        .where.eq(heimlieferungAbo.id, id).and.isNull(lieferung.lieferplanungId)
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
@@ -296,7 +318,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferungMapping as lieferung).on(postlieferungAbo.abotypId, lieferung.abotypId)
         .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(vertriebMapping as vertrieb).on(vertrieb.abotypId, aboTyp.id)
-        .where.eq(postlieferungAbo.id, parameter(id)).and.isNull(lieferung.lieferplanungId)
+        .where.eq(postlieferungAbo.id, id).and.isNull(lieferung.lieferplanungId)
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
@@ -324,7 +346,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
-        .where.eq(depotlieferungAbo.vertriebId, parameter(vertriebId)).and.withRoundBracket { _.isNull(depotlieferungAbo.ende).or.gt(depotlieferungAbo.ende, parameter(lieferdatum)) }
+        .where.eq(depotlieferungAbo.vertriebId, vertriebId).and.withRoundBracket { _.isNull(depotlieferungAbo.ende).or.gt(depotlieferungAbo.ende, lieferdatum) }
     }.map(depotlieferungAboMapping(depotlieferungAbo)).list
   }
 
@@ -332,7 +354,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
-        .where.eq(heimlieferungAbo.vertriebId, parameter(vertriebId)).and.withRoundBracket { _.isNull(heimlieferungAbo.ende).or.gt(heimlieferungAbo.ende, parameter(lieferdatum)) }
+        .where.eq(heimlieferungAbo.vertriebId, vertriebId).and.withRoundBracket { _.isNull(heimlieferungAbo.ende).or.gt(heimlieferungAbo.ende, lieferdatum) }
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
@@ -340,7 +362,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
-        .where.eq(postlieferungAbo.vertriebId, parameter(vertriebId)).and.withRoundBracket { _.isNull(postlieferungAbo.ende).or.gt(postlieferungAbo.ende, parameter(lieferdatum)) }
+        .where.eq(postlieferungAbo.vertriebId, vertriebId).and.withRoundBracket { _.isNull(postlieferungAbo.ende).or.gt(postlieferungAbo.ende, lieferdatum) }
     }.map(postlieferungAboMapping(postlieferungAbo)).list
   }
 
@@ -356,7 +378,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(pendenzMapping as pendenz)
-        .where.eq(pendenz.kundeId, parameter(id))
+        .where.eq(pendenz.kundeId, id)
     }.map(pendenzMapping(pendenz)).list
   }
 
@@ -364,7 +386,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(pendenzMapping as pendenz)
-        .where.eq(pendenz.id, parameter(id))
+        .where.eq(pendenz.id, id)
     }.map(pendenzMapping(pendenz)).single
   }
 
@@ -393,7 +415,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(produzentMapping as produzent)
-        .where.eq(produzent.id, parameter(id))
+        .where.eq(produzent.id, id)
     }.map(produzentMapping(produzent)).single
   }
 
@@ -415,7 +437,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(produktProduzentMapping as produktProduzent)
-        .where.eq(produktProduzent.produktId, parameter(id))
+        .where.eq(produktProduzent.produktId, id)
     }.map(produktProduzentMapping(produktProduzent)).list
   }
 
@@ -423,7 +445,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(produktProduktekategorieMapping as produktProduktekategorie)
-        .where.eq(produktProduktekategorie.produktId, parameter(id))
+        .where.eq(produktProduktekategorie.produktId, id)
     }.map(produktProduktekategorieMapping(produktProduktekategorie)).list
   }
 
@@ -431,7 +453,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(produzentMapping as produzent)
-        .where.eq(produzent.kurzzeichen, parameter(kurzzeichen))
+        .where.eq(produzent.kurzzeichen, kurzzeichen)
     }.map(produzentMapping(produzent)).single
   }
 
@@ -439,7 +461,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(produktekategorieMapping as produktekategorie)
-        .where.eq(produktekategorie.beschreibung, parameter(bezeichnung))
+        .where.eq(produktekategorie.beschreibung, bezeichnung)
     }.map(produktekategorieMapping(produktekategorie)).single
   }
 
@@ -471,7 +493,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferplanungMapping as lieferplanung)
-        .where.eq(lieferplanung.id, parameter(id))
+        .where.eq(lieferplanung.id, id)
     }.map(lieferplanungMapping(lieferplanung)).single
   }
 
@@ -498,7 +520,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferungMapping as lieferung)
-        .where.eq(lieferung.abotypId, parameter(abotypId)).and.not.eq(lieferung.status, parameter(Ungeplant))
+        .where.eq(lieferung.abotypId, abotypId).and.not.eq(lieferung.status, Ungeplant.asInstanceOf[LieferungStatus])
         .orderBy(lieferung.datum).desc
         .limit(1)
     }.map(lieferungMapping(lieferung)).single
@@ -510,7 +532,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .from(lieferungMapping as lieferung)
         .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
         .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
-        .where.eq(lieferung.lieferplanungId, parameter(id))
+        .where.eq(lieferung.lieferplanungId, id)
     }.one(lieferungMapping(lieferung))
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
@@ -525,7 +547,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferungMapping as lieferung)
-        .where.eq(lieferung.lieferplanungId, parameter(id))
+        .where.eq(lieferung.lieferplanungId, id)
     }.map(lieferungMapping(lieferung)).list
   }
 
@@ -562,7 +584,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(bestellungMapping as bestellung)
-        .where.eq(bestellung.lieferplanungId, parameter(id))
+        .where.eq(bestellung.lieferplanungId, id)
     }.map(bestellungMapping(bestellung)).list
   }
 
@@ -570,9 +592,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(bestellungMapping as bestellung)
-        .where.eq(bestellung.produzentId, parameter(produzentId))
-        .and.eq(bestellung.lieferplanungId, parameter(lieferplanungId))
-        .and.eq(bestellung.datum, parameter(datum))
+        .where.eq(bestellung.produzentId, produzentId)
+        .and.eq(bestellung.lieferplanungId, lieferplanungId)
+        .and.eq(bestellung.datum, datum)
     }.map(bestellungMapping(bestellung)).single
   }
 
@@ -580,7 +602,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(bestellpositionMapping as bestellposition)
-        .where.eq(bestellposition.bestellungId, parameter(id))
+        .where.eq(bestellposition.bestellungId, id)
     }.map(bestellpositionMapping(bestellposition)).list
   }
 
@@ -589,7 +611,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(bestellpositionMapping as bestellposition)
         .leftJoin(bestellungMapping as bestellung).on(bestellposition.bestellungId, bestellung.id)
-        .where.eq(bestellung.lieferplanungId, parameter(id))
+        .where.eq(bestellung.lieferplanungId, id)
     }.map(bestellpositionMapping(bestellposition)).list
   }
 
@@ -597,7 +619,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferpositionMapping as lieferposition)
-        .where.eq(lieferposition.lieferungId, parameter(id))
+        .where.eq(lieferposition.lieferungId, id)
     }.map(lieferpositionMapping(lieferposition)).list
   }
 
@@ -605,7 +627,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferpositionMapping as lieferposition)
-        .where.eq(lieferposition.produzentId, parameter(id))
+        .where.eq(lieferposition.produzentId, id)
     }.map(lieferpositionMapping(lieferposition)).list
   }
 
@@ -613,8 +635,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(bestellpositionMapping as bestellposition)
-        .where.eq(bestellposition.bestellungId, parameter(bestellungId))
-        .and.eq(bestellposition.produktId, parameter(produktId))
+        .where.eq(bestellposition.bestellungId, bestellungId)
+        .and.eq(bestellposition.produktId, produktId)
     }.map(bestellpositionMapping(bestellposition)).single
   }
 
@@ -623,7 +645,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(lieferpositionMapping as lieferposition)
         .leftJoin(lieferungMapping as lieferung).on(lieferposition.lieferungId, lieferung.id)
-        .where.eq(lieferung.lieferplanungId, parameter(id))
+        .where.eq(lieferung.lieferplanungId, id)
     }.map(lieferpositionMapping(lieferposition)).list
   }
 
@@ -631,8 +653,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(korbMapping as korb)
-        .where.eq(korb.lieferungId, parameter(lieferungId))
-        .and.eq(korb.aboId, parameter(aboId)).and.not.eq(korb.status, parameter(Geliefert))
+        .where.eq(korb.lieferungId, lieferungId)
+        .and.eq(korb.aboId, aboId).and.not.eq(korb.status, Geliefert)
     }.map(korbMapping(korb)).single
   }
 
@@ -640,7 +662,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(vertriebMapping as vertrieb)
-        .where.eq(vertrieb.id, parameter(vertriebId))
+        .where.eq(vertrieb.id, vertriebId)
     }.map(vertriebMapping(vertrieb)).single
   }
 
@@ -653,7 +675,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(heimlieferungMapping as heimlieferung).on(heimlieferung.vertriebId, vertrieb.id)
         .leftJoin(tourMapping as tour).on(heimlieferung.tourId, tour.id)
         .leftJoin(postlieferungMapping as postlieferung).on(postlieferung.vertriebId, vertrieb.id)
-        .where.eq(vertrieb.abotypId, parameter(abotypId))
+        .where.eq(vertrieb.abotypId, abotypId)
     }.one(vertriebMapping(vertrieb))
       .toManies(
         rs => postlieferungMapping.opt(postlieferung)(rs),
@@ -683,7 +705,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       delete
         .from(lieferpositionMapping)
-        .where.eq(lieferpositionShort.lieferungId, parameter(id))
+        .where.eq(lieferpositionShort.lieferungId, id)
     }
   }
 
@@ -691,7 +713,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       delete
         .from(korbMapping)
-        .where.eq(korbShort.lieferungId, parameter(id))
+        .where.eq(korbShort.lieferungId, id)
     }
   }
 

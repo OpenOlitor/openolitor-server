@@ -23,7 +23,6 @@
 package ch.openolitor.stammdaten
 
 import akka.actor._
-
 import ch.openolitor.core.models._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.ws._
@@ -33,13 +32,14 @@ import ch.openolitor.core.db._
 import scalikejdbc._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.Boot
-import ch.openolitor.core.repositories.SqlBinder
-import scala.concurrent.ExecutionContext.Implicits.global;
+import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.buchhaltung.models._
 import org.joda.time.DateTime
 import scala.util.Random
 import scala.concurrent.Future
+import ch.openolitor.core.repositories.DBEventEntityListener
+import ch.openolitor.stammdaten.repositories._
 
 object StammdatenDBEventEntityListener extends DefaultJsonProtocol {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenDBEventEntityListener], sysConfig, system)
@@ -50,10 +50,12 @@ class DefaultStammdatenDBEventEntityListener(sysConfig: SystemConfig, override v
 /**
  * Listen on DBEvents and adjust calculated fields within this module
  */
-class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with StammdatenDBMappings with AsyncConnectionPoolContextAware {
+class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with StammdatenDBMappings with AsyncConnectionPoolContextAware with DBEventEntityListener[StammdatenWriteRepository] {
   this: StammdatenWriteRepositoryComponent =>
   import StammdatenDBEventEntityListener._
   import SystemEvents._
+
+  val repository = stammdatenWriteRepository
 
   override def preStart() {
     super.preStart()
@@ -527,16 +529,6 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       case (Some(abw), gut) if abw > 0 => FaelltAusAbwesend
       case (_, gut) if gut > minGuthaben => WirdGeliefert
       case (_, gut) if gut <= minGuthaben => FaelltAusSaldoZuTief
-    }
-  }
-
-  def modifyEntity[E <: BaseEntity[I], I <: BaseId](
-    id: I, mod: E => E
-  )(implicit session: DBSession, syntax: BaseEntitySQLSyntaxSupport[E], binder: SqlBinder[I], personId: PersonId) = {
-
-    stammdatenWriteRepository.getById(syntax, id) map { result =>
-      val copy = mod(result)
-      stammdatenWriteRepository.updateEntity[E, I](copy)
     }
   }
 }

@@ -9,7 +9,7 @@ object BuildSettings {
   val specs2V = "2.4.17" // based on spray 1.3.x built in support 
   val akkaV = "2.4.+"
   val sprayV = "1.3.+"
-  val scalalikeV = "2.3.+"
+  val scalalikeV = "2.4.+"
  
   val buildSettings = SbtScalariform.scalariformSettings ++ Seq(
     organization := "ch.openolitor.scalamacros",
@@ -47,8 +47,8 @@ object BuildSettings {
 	    "com.typesafe.scala-logging" %% "scala-logging"				         % "3.1.0",
 	    //akka persistence journal driver
 	    "com.okumin" 		      %% "akka-persistence-sql-async" 	       % "0.3.+",
-	    "org.scalikejdbc"     %% "scalikejdbc-async"                   % "0.5.+",
-	    "com.github.mauricio" %% "mysql-async" 						             % "0.2.16",
+	    "org.scalikejdbc"     %% "scalikejdbc-async"                   % "0.6.+",
+	    "com.github.mauricio" %% "mysql-async" 						             % "0.2.19",
 	    //
 	    "org.scalikejdbc" 	  %% "scalikejdbc-config"				           % scalalikeV,
 	    "org.scalikejdbc"     %% "scalikejdbc-test"                    % scalalikeV   % "test",

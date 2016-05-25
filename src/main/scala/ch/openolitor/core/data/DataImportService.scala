@@ -23,29 +23,28 @@
 package ch.openolitor.core.data
 
 import akka.actor._
+
 import ch.openolitor.stammdaten._
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
 import java.util.Date
-import ch.openolitor.stammdaten.models._
 import java.util.UUID
 import ch.openolitor.core.models._
 import ch.openolitor.core.domain.EventService
 import java.io.File
 import ch.openolitor.core.db.evolution.scripts.V1Scripts
 import scalikejdbc._
-import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.core.repositories.BaseWriteRepository
 import ch.openolitor.core.Boot
-import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
-import ch.openolitor.core.repositories.SqlBinder
+import ch.openolitor.core.repositories._
 import java.io.InputStream
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.SystemConfig
-import ch.openolitor.buchhaltung.BuchhaltungWriteRepositoryComponent
-import ch.openolitor.buchhaltung.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.domain.EntityStore
 import ch.openolitor.core.NoPublishEventStream
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.buchhaltung.repositories._
+import ch.openolitor.stammdaten.repositories._
+import ch.openolitor.stammdaten.models._
 
 object DataImportService {
   case class ImportData(clearDatabaseBeforeImport: Boolean, document: InputStream)
@@ -178,7 +177,7 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
   def importEntityList[E <: BaseEntity[I], I <: BaseId](name: String, entities: List[E], result: Map[String, Int])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: SqlBinder[I]) = {
+    binder: ParameterBinderFactory[I]) = {
     log.debug(s"Import ${entities.length} $name...")
     entities.map { entity =>
       insertEntity[E, I](entity)

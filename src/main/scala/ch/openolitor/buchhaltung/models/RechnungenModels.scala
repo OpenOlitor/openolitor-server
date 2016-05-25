@@ -52,7 +52,7 @@ import ch.openolitor.core.scalax.Tuple23
  *   | STORNIERT <------------+
  *   +-----------+
  */
-sealed trait RechnungStatus
+sealed trait RechnungStatus extends Product
 case object Erstellt extends RechnungStatus
 case object Verschickt extends RechnungStatus
 case object Bezahlt extends RechnungStatus

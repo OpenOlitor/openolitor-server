@@ -39,6 +39,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
 import ch.openolitor.util.ConfigUtil._
+import ch.openolitor.buchhaltung.repositories._
 
 object BuchhaltungInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungInsertService = new DefaultBuchhaltungInsertService(sysConfig, system)

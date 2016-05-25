@@ -29,7 +29,7 @@ import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 
-sealed trait ZahlungsEingangStatus
+sealed trait ZahlungsEingangStatus extends Product
 case object Ok extends ZahlungsEingangStatus
 case object Storno extends ZahlungsEingangStatus
 case object AbgelehntFinanzinstitut extends ZahlungsEingangStatus

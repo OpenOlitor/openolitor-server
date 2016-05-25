@@ -33,6 +33,7 @@ import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.Macros._
 import com.fasterxml.jackson.databind.JsonSerializable
+import ch.openolitor.stammdaten.repositories._
 
 object StammdatenCommandHandler {
   case class LieferplanungAbschliessenCommand(originator: PersonId, id: LieferplanungId) extends UserCommand

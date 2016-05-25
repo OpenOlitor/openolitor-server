@@ -51,7 +51,7 @@ object Wochentag {
   }
 }
 
-sealed trait Rhythmus
+sealed trait Rhythmus extends Product
 case object Woechentlich extends Rhythmus
 case object Zweiwoechentlich extends Rhythmus
 case object Monatlich extends Rhythmus
@@ -76,7 +76,7 @@ object Preiseinheit {
   }
 }
 
-sealed trait Laufzeiteinheit
+sealed trait Laufzeiteinheit extends Product
 case object Lieferungen extends Laufzeiteinheit
 case object Monate extends Laufzeiteinheit
 case object Unbeschraenkt extends Laufzeiteinheit

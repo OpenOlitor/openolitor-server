@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-sealed trait Waehrung
+sealed trait Waehrung extends Product
 case object CHF extends Waehrung
 case object EUR extends Waehrung
 case object USD extends Waehrung

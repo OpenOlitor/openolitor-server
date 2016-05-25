@@ -42,6 +42,7 @@ import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import ch.openolitor.stammdaten.models.Verrechnet
 import ch.openolitor.stammdaten.models.Abgeschlossen
 import org.joda.time.DateTime
+import ch.openolitor.stammdaten.repositories._
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system)

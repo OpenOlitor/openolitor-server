@@ -142,7 +142,7 @@ class StammdatenReadRepositoryImpl extends StammdatenReadRepository with LazyLog
     withSQL {
       select
         .from(personMapping as person)
-        .where.eq(person.email, parameter(email))
+        .where.eq(person.email, email)
     }.map(personMapping(person)).single.future
   }
 
@@ -150,7 +150,7 @@ class StammdatenReadRepositoryImpl extends StammdatenReadRepository with LazyLog
     withSQL {
       select
         .from(personMapping as person)
-        .where.eq(person.id, parameter(id))
+        .where.eq(person.id, id)
     }.map(personMapping(person)).single.future
   }
 

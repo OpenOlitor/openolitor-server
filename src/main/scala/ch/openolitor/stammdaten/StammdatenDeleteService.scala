@@ -23,7 +23,6 @@
 package ch.openolitor.stammdaten
 
 import akka.persistence.PersistentView
-
 import akka.actor._
 import ch.openolitor.core._
 import ch.openolitor.core.models._
@@ -36,6 +35,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.stammdaten.models._
 import scala.concurrent.ExecutionContext.Implicits.global
+import ch.openolitor.stammdaten.repositories._
 
 object StammdatenDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenDeleteService = new DefaultStammdatenDeleteService(sysConfig, system)
