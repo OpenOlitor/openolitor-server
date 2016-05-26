@@ -77,9 +77,6 @@ trait DBMappings
 
   implicit val stringSeqSqlBinder = seqParameterBinderFactory[String](identity, identity)
 
-  // Just for convenience so NoConversion does not escape the scope.
-  private case object DefaultSqlConverter extends ParameterBinderFactory[Any] { def apply(value: Any): Any = value }
-  private def defaultSqlConversion: ParameterBinderFactory[Any] = DefaultSqlConverter
   implicit val personIdParameterBinderFactory = baseIdParameterBinderFactory[PersonId](PersonId.apply)
 
   implicit val charArrayTypeBinder: Binders[Array[Char]] = Binders.string.xmap(_.toCharArray, x => new String(x))

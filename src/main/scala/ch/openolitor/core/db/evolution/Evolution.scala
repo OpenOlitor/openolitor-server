@@ -181,7 +181,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script] = V1Scripts.script
     withSQL {
       select(max(schema.revision))
         .from(dbSchemaMapping as schema)
-        .where.eq(schema.status, Applying)
+        .where.eq(schema.status, Applying.asInstanceOf[EvolutionStatus])
     }.map(_.intOpt(1).getOrElse(0)).single.apply().getOrElse(0)
   }
 
@@ -189,7 +189,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script] = V1Scripts.script
     withSQL {
       select
         .from(dbSchemaMapping as schema)
-        .where.eq(schema.status, Applying)
+        .where.eq(schema.status, Applying.asInstanceOf[EvolutionStatus])
     }.map(dbSchemaMapping(schema)).list.apply()
   }
 }
