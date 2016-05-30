@@ -30,8 +30,15 @@ import ch.openolitor.core.models.PersonId
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.models.PersonId
 
+trait ParameterMapping {
+  implicit def parameter[X](value: X)(implicit binder: ParameterBinderFactory[X]): ParameterBinder = {
+    binder(value)
+  }
+}
+
 trait DBMappings
-    extends Parameters23
+    extends ParameterMapping
+    with Parameters23
     with Parameters24
     with Parameters25
     with Parameters26
@@ -84,19 +91,19 @@ trait DBMappings
   def parameters[A](params: Tuple1[A])(
     implicit
     binder0: ParameterBinderFactory[A]
-  ) = {
-    Tuple1(params._1).productIterator.toSeq
+  ): Seq[ParameterBinder] = {
+    Seq(params._1)
   }
 
   def parameters[A, B](params: Tuple2[A, B])(
     implicit
     binder0: ParameterBinderFactory[A],
     binder1: ParameterBinderFactory[B]
-  ) = {
-    Tuple2(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C](params: Tuple3[A, B, C])(
@@ -104,12 +111,12 @@ trait DBMappings
     binder0: ParameterBinderFactory[A],
     binder1: ParameterBinderFactory[B],
     binder2: ParameterBinderFactory[C]
-  ) = {
-    Tuple3(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D](params: Tuple4[A, B, C, D])(
@@ -118,13 +125,13 @@ trait DBMappings
     binder1: ParameterBinderFactory[B],
     binder2: ParameterBinderFactory[C],
     binder3: ParameterBinderFactory[D]
-  ) = {
-    Tuple4(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
       params._4
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E](params: Tuple5[A, B, C, D, E])(
@@ -134,14 +141,14 @@ trait DBMappings
     binder2: ParameterBinderFactory[C],
     binder3: ParameterBinderFactory[D],
     binder4: ParameterBinderFactory[E]
-  ) = {
-    Tuple5(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
       params._4,
       params._5
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F](params: Tuple6[A, B, C, D, E, F])(
@@ -152,15 +159,15 @@ trait DBMappings
     binder3: ParameterBinderFactory[D],
     binder4: ParameterBinderFactory[E],
     binder5: ParameterBinderFactory[F]
-  ) = {
-    Tuple6(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
       params._4,
       params._5,
       params._6
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G](params: Tuple7[A, B, C, D, E, F, G])(
@@ -172,8 +179,8 @@ trait DBMappings
     binder4: ParameterBinderFactory[E],
     binder5: ParameterBinderFactory[F],
     binder6: ParameterBinderFactory[G]
-  ) = {
-    Tuple7(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -181,7 +188,7 @@ trait DBMappings
       params._5,
       params._6,
       params._7
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H](params: Tuple8[A, B, C, D, E, F, G, H])(
@@ -194,8 +201,8 @@ trait DBMappings
     binder5: ParameterBinderFactory[F],
     binder6: ParameterBinderFactory[G],
     binder7: ParameterBinderFactory[H]
-  ) = {
-    Tuple8(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -204,7 +211,7 @@ trait DBMappings
       params._6,
       params._7,
       params._8
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I](params: Tuple9[A, B, C, D, E, F, G, H, I])(
@@ -218,8 +225,8 @@ trait DBMappings
     binder6: ParameterBinderFactory[G],
     binder7: ParameterBinderFactory[H],
     binder8: ParameterBinderFactory[I]
-  ) = {
-    Tuple9(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -229,7 +236,7 @@ trait DBMappings
       params._7,
       params._8,
       params._9
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J](params: Tuple10[A, B, C, D, E, F, G, H, I, J])(
@@ -244,8 +251,8 @@ trait DBMappings
     binder7: ParameterBinderFactory[H],
     binder8: ParameterBinderFactory[I],
     binder9: ParameterBinderFactory[J]
-  ) = {
-    Tuple10(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -256,7 +263,7 @@ trait DBMappings
       params._8,
       params._9,
       params._10
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K](params: Tuple11[A, B, C, D, E, F, G, H, I, J, K])(
@@ -272,8 +279,8 @@ trait DBMappings
     binder8: ParameterBinderFactory[I],
     binder9: ParameterBinderFactory[J],
     binder10: ParameterBinderFactory[K]
-  ) = {
-    Tuple11(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -285,7 +292,7 @@ trait DBMappings
       params._9,
       params._10,
       params._11
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L](params: Tuple12[A, B, C, D, E, F, G, H, I, J, K, L])(
@@ -302,8 +309,8 @@ trait DBMappings
     binder9: ParameterBinderFactory[J],
     binder10: ParameterBinderFactory[K],
     binder11: ParameterBinderFactory[L]
-  ) = {
-    Tuple12(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -316,7 +323,7 @@ trait DBMappings
       params._10,
       params._11,
       params._12
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M](params: Tuple13[A, B, C, D, E, F, G, H, I, J, K, L, M])(
@@ -334,8 +341,8 @@ trait DBMappings
     binder10: ParameterBinderFactory[K],
     binder11: ParameterBinderFactory[L],
     binder12: ParameterBinderFactory[M]
-  ) = {
-    Tuple13(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -349,7 +356,7 @@ trait DBMappings
       params._11,
       params._12,
       params._13
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N](params: Tuple14[A, B, C, D, E, F, G, H, I, J, K, L, M, N])(
@@ -368,8 +375,8 @@ trait DBMappings
     binder11: ParameterBinderFactory[L],
     binder12: ParameterBinderFactory[M],
     binder13: ParameterBinderFactory[N]
-  ) = {
-    Tuple14(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -384,7 +391,7 @@ trait DBMappings
       params._12,
       params._13,
       params._14
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](params: Tuple15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O])(
@@ -404,8 +411,8 @@ trait DBMappings
     binder12: ParameterBinderFactory[M],
     binder13: ParameterBinderFactory[N],
     binder14: ParameterBinderFactory[O]
-  ) = {
-    Tuple15(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -421,7 +428,7 @@ trait DBMappings
       params._13,
       params._14,
       params._15
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](params: Tuple16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P])(
@@ -442,8 +449,8 @@ trait DBMappings
     binder13: ParameterBinderFactory[N],
     binder14: ParameterBinderFactory[O],
     binder15: ParameterBinderFactory[P]
-  ) = {
-    Tuple16(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -460,7 +467,7 @@ trait DBMappings
       params._14,
       params._15,
       params._16
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](params: Tuple17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q])(
@@ -482,8 +489,8 @@ trait DBMappings
     binder14: ParameterBinderFactory[O],
     binder15: ParameterBinderFactory[P],
     binder16: ParameterBinderFactory[Q]
-  ) = {
-    Tuple17(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -501,7 +508,7 @@ trait DBMappings
       params._15,
       params._16,
       params._17
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](params: Tuple18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R])(
@@ -524,8 +531,8 @@ trait DBMappings
     binder15: ParameterBinderFactory[P],
     binder16: ParameterBinderFactory[Q],
     binder17: ParameterBinderFactory[R]
-  ) = {
-    Tuple18(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -544,7 +551,7 @@ trait DBMappings
       params._16,
       params._17,
       params._18
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](params: Tuple19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S])(
@@ -568,8 +575,8 @@ trait DBMappings
     binder16: ParameterBinderFactory[Q],
     binder17: ParameterBinderFactory[R],
     binder18: ParameterBinderFactory[S]
-  ) = {
-    Tuple19(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -589,7 +596,7 @@ trait DBMappings
       params._17,
       params._18,
       params._19
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](params: Tuple20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T])(
@@ -614,8 +621,8 @@ trait DBMappings
     binder17: ParameterBinderFactory[R],
     binder18: ParameterBinderFactory[S],
     binder19: ParameterBinderFactory[T]
-  ) = {
-    Tuple20(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -636,7 +643,7 @@ trait DBMappings
       params._18,
       params._19,
       params._20
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](params: Tuple21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U])(
@@ -662,8 +669,8 @@ trait DBMappings
     binder18: ParameterBinderFactory[S],
     binder19: ParameterBinderFactory[T],
     binder20: ParameterBinderFactory[U]
-  ) = {
-    Tuple21(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -685,7 +692,7 @@ trait DBMappings
       params._19,
       params._20,
       params._21
-    ).productIterator.toSeq
+    )
   }
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](params: Tuple22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V])(
@@ -712,8 +719,8 @@ trait DBMappings
     binder19: ParameterBinderFactory[T],
     binder20: ParameterBinderFactory[U],
     binder21: ParameterBinderFactory[V]
-  ) = {
-    Tuple22(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -736,6 +743,6 @@ trait DBMappings
       params._20,
       params._21,
       params._22
-    ).productIterator.toSeq
+    )
   }
 }

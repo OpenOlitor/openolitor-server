@@ -24,8 +24,9 @@ package ch.openolitor.core.repositories
 
 import ch.openolitor.core.scalax._
 import scalikejdbc.ParameterBinderFactory
+import scalikejdbc.ParameterBinder
 
-trait Parameters24 {
+trait Parameters24 extends ParameterMapping {
   def parameters[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24](params: Tuple24[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24])(
     implicit
     binder1: ParameterBinderFactory[T1],
@@ -52,8 +53,8 @@ trait Parameters24 {
     binder22: ParameterBinderFactory[T22],
     binder23: ParameterBinderFactory[T23],
     binder24: ParameterBinderFactory[T24]
-  ) = {
-    Tuple24(
+  ): Seq[ParameterBinder] = {
+    Seq(
       params._1,
       params._2,
       params._3,
@@ -78,6 +79,6 @@ trait Parameters24 {
       params._22,
       params._23,
       params._24
-    ).productIterator.toSeq
+    )
   }
 }

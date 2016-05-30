@@ -56,7 +56,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[Rechnung])(rs: WrappedResultSet): Rechnung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Rechnung): Seq[Any] =
+    def parameterMappings(entity: Rechnung): Seq[ParameterBinder] =
       parameters(Rechnung.unapply(entity).get)
 
     override def updateParameters(entity: Rechnung) = {
@@ -91,7 +91,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[ZahlungsImport])(rs: WrappedResultSet): ZahlungsImport =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: ZahlungsImport): Seq[Any] =
+    def parameterMappings(entity: ZahlungsImport): Seq[ParameterBinder] =
       parameters(ZahlungsImport.unapply(entity).get)
 
     override def updateParameters(entity: ZahlungsImport) = {
@@ -111,7 +111,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[ZahlungsEingang])(rs: WrappedResultSet): ZahlungsEingang =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: ZahlungsEingang): Seq[Any] =
+    def parameterMappings(entity: ZahlungsEingang): Seq[ParameterBinder] =
       parameters(ZahlungsEingang.unapply(entity).get)
 
     override def updateParameters(entity: ZahlungsEingang) = {

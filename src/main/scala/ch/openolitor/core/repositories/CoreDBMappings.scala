@@ -25,12 +25,16 @@ package ch.openolitor.core.repositories
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.models._
+import com.typesafe.scalalogging.LazyLogging
 
-trait CoreDBMappings extends DBMappings {
+trait CoreDBMappings extends DBMappings with LazyLogging {
   import ParameterBinderFactory._
 
   implicit val dbSchemaIdSqlBinder = baseIdParameterBinderFactory[DBSchemaId](DBSchemaId.apply)
-  implicit val evolutionStatusBinder: Binders[EvolutionStatus] = Binders.string.xmap(EvolutionStatus.apply, _.productPrefix)
+  implicit val evolutionStatusBinder: Binders[EvolutionStatus] = Binders.string.xmap(EvolutionStatus.apply, { x =>
+    logger.error(s"*************** Bind data:$x")
+    x.productPrefix
+  })
 
   implicit val dbSchemaMapping = new BaseEntitySQLSyntaxSupport[DBSchema] {
     override val tableName = "DBSchema"
@@ -40,14 +44,15 @@ trait CoreDBMappings extends DBMappings {
     def apply(rn: ResultName[DBSchema])(rs: WrappedResultSet): DBSchema =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: DBSchema): Seq[Any] =
+    def parameterMappings(entity: DBSchema): Seq[ParameterBinder] =
       parameters(DBSchema.unapply(entity).get)
 
     override def updateParameters(schema: DBSchema) = {
-      Seq(
-        column.revision -> schema.revision,
-        column.status -> schema.status
-      )
+      super.updateParameters(schema) ++
+        Seq(
+          column.revision -> schema.revision,
+          column.status -> schema.status
+        )
     }
   }
 }

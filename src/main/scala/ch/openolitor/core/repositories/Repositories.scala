@@ -50,7 +50,7 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
   /**
    * Declare parameter mappings for all parameters used on insert
    */
-  def parameterMappings(entity: E): Seq[Any]
+  def parameterMappings(entity: E): Seq[ParameterBinder]
 
   /**
    * Declare update parameters for this entity used on update. Is by default an empty set

@@ -110,7 +110,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def apply(rn: ResultName[Abotyp])(rs: WrappedResultSet): Abotyp = autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Abotyp): Seq[Any] =
+    def parameterMappings(entity: Abotyp): Seq[ParameterBinder] =
       parameters(Abotyp.unapply(entity).get)
 
     override def updateParameters(abotyp: Abotyp) = {
@@ -144,7 +144,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[CustomKundentyp])(rs: WrappedResultSet): CustomKundentyp =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: CustomKundentyp): Seq[Any] =
+    def parameterMappings(entity: CustomKundentyp): Seq[ParameterBinder] =
       parameters(CustomKundentyp.unapply(entity).get)
 
     override def updateParameters(typ: CustomKundentyp) = {
@@ -164,7 +164,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Kunde])(rs: WrappedResultSet): Kunde =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Kunde): Seq[Any] =
+    def parameterMappings(entity: Kunde): Seq[ParameterBinder] =
       parameters(Kunde.unapply(entity).get)
 
     override def updateParameters(kunde: Kunde) = {
@@ -200,7 +200,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Person])(rs: WrappedResultSet): Person =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Person): Seq[Any] =
+    def parameterMappings(entity: Person): Seq[ParameterBinder] =
       parameters(Person.unapply(entity).get)
 
     override def updateParameters(person: Person) = {
@@ -232,7 +232,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Pendenz])(rs: WrappedResultSet): Pendenz =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Pendenz): Seq[Any] =
+    def parameterMappings(entity: Pendenz): Seq[ParameterBinder] =
       parameters(Pendenz.unapply(entity).get)
 
     override def updateParameters(pendenz: Pendenz) = {
@@ -255,7 +255,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Lieferung])(rs: WrappedResultSet): Lieferung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Lieferung): Seq[Any] =
+    def parameterMappings(entity: Lieferung): Seq[ParameterBinder] =
       parameters(Lieferung.unapply(entity).get)
 
     override def updateParameters(lieferung: Lieferung) = {
@@ -287,7 +287,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Lieferplanung])(rs: WrappedResultSet): Lieferplanung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Lieferplanung): Seq[Any] = parameters(Lieferplanung.unapply(entity).get)
+    def parameterMappings(entity: Lieferplanung): Seq[ParameterBinder] = parameters(Lieferplanung.unapply(entity).get)
 
     override def updateParameters(lieferplanung: Lieferplanung) = {
       super.updateParameters(lieferplanung) ++ Seq(
@@ -307,7 +307,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Lieferposition])(rs: WrappedResultSet): Lieferposition =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Lieferposition): Seq[Any] = parameters(Lieferposition.unapply(entity).get)
+    def parameterMappings(entity: Lieferposition): Seq[ParameterBinder] = parameters(Lieferposition.unapply(entity).get)
 
     override def updateParameters(lieferposition: Lieferposition) = {
       super.updateParameters(lieferposition) ++ Seq(
@@ -332,7 +332,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Bestellung])(rs: WrappedResultSet): Bestellung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Bestellung): Seq[Any] = parameters(Bestellung.unapply(entity).get)
+    def parameterMappings(entity: Bestellung): Seq[ParameterBinder] = parameters(Bestellung.unapply(entity).get)
 
     override def updateParameters(bestellung: Bestellung) = {
       super.updateParameters(bestellung) ++ Seq(
@@ -356,7 +356,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Bestellposition])(rs: WrappedResultSet): Bestellposition =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Bestellposition): Seq[Any] = parameters(Bestellposition.unapply(entity).get)
+    def parameterMappings(entity: Bestellposition): Seq[ParameterBinder] = parameters(Bestellposition.unapply(entity).get)
 
     override def updateParameters(bestellposition: Bestellposition) = {
       super.updateParameters(bestellposition) ++ Seq(
@@ -379,7 +379,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Tour])(rs: WrappedResultSet): Tour =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Tour): Seq[Any] = parameters(Tour.unapply(entity).get)
+    def parameterMappings(entity: Tour): Seq[ParameterBinder] = parameters(Tour.unapply(entity).get)
 
     override def updateParameters(tour: Tour) = {
       super.updateParameters(tour) ++ Seq(
@@ -397,7 +397,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Depot])(rs: WrappedResultSet): Depot =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Depot): Seq[Any] = parameters(Depot.unapply(entity).get)
+    def parameterMappings(entity: Depot): Seq[ParameterBinder] = parameters(Depot.unapply(entity).get)
 
     override def updateParameters(depot: Depot) = {
       super.updateParameters(depot) ++ Seq(
@@ -435,7 +435,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Vertrieb])(rs: WrappedResultSet): Vertrieb =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Vertrieb): Seq[Any] = parameters(Vertrieb.unapply(entity).get)
+    def parameterMappings(entity: Vertrieb): Seq[ParameterBinder] = parameters(Vertrieb.unapply(entity).get)
 
     override def updateParameters(vertrieb: Vertrieb) = {
       super.updateParameters(vertrieb) ++ Seq(
@@ -464,7 +464,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Heimlieferung])(rs: WrappedResultSet): Heimlieferung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Heimlieferung): Seq[Any] = parameters(Heimlieferung.unapply(entity).get)
+    def parameterMappings(entity: Heimlieferung): Seq[ParameterBinder] = parameters(Heimlieferung.unapply(entity).get)
 
     override def updateParameters(lieferung: Heimlieferung) = {
       super.updateParameters(lieferung) ++ Seq(
@@ -481,7 +481,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Depotlieferung])(rs: WrappedResultSet): Depotlieferung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Depotlieferung): Seq[Any] =
+    def parameterMappings(entity: Depotlieferung): Seq[ParameterBinder] =
       parameters(Depotlieferung.unapply(entity).get)
 
     override def updateParameters(lieferung: Depotlieferung) = {
@@ -499,7 +499,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Postlieferung])(rs: WrappedResultSet): Postlieferung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Postlieferung): Seq[Any] = parameters(Postlieferung.unapply(entity).get)
+    def parameterMappings(entity: Postlieferung): Seq[ParameterBinder] = parameters(Postlieferung.unapply(entity).get)
 
     override def updateParameters(lieferung: Postlieferung) = {
       super.updateParameters(lieferung)
@@ -534,7 +534,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def apply(rn: ResultName[DepotlieferungAbo])(rs: WrappedResultSet): DepotlieferungAbo = autoConstruct(rs, rn)
 
-    def parameterMappings(entity: DepotlieferungAbo): Seq[Any] = parameters(DepotlieferungAbo.unapply(entity).get)
+    def parameterMappings(entity: DepotlieferungAbo): Seq[ParameterBinder] = parameters(DepotlieferungAbo.unapply(entity).get)
 
     override def updateParameters(depotlieferungAbo: DepotlieferungAbo) = {
       super.updateParameters(depotlieferungAbo) ++ Seq(
@@ -552,7 +552,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[HeimlieferungAbo])(rs: WrappedResultSet): HeimlieferungAbo =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: HeimlieferungAbo): Seq[Any] = parameters(HeimlieferungAbo.unapply(entity).get)
+    def parameterMappings(entity: HeimlieferungAbo): Seq[ParameterBinder] = parameters(HeimlieferungAbo.unapply(entity).get)
 
     override def updateParameters(heimlieferungAbo: HeimlieferungAbo) = {
       super.updateParameters(heimlieferungAbo) ++ Seq(
@@ -570,7 +570,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[PostlieferungAbo])(rs: WrappedResultSet): PostlieferungAbo =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: PostlieferungAbo): Seq[Any] = parameters(PostlieferungAbo.unapply(entity).get)
+    def parameterMappings(entity: PostlieferungAbo): Seq[ParameterBinder] = parameters(PostlieferungAbo.unapply(entity).get)
 
     override def updateParameters(postlieferungAbo: PostlieferungAbo) = {
       super.updateParameters(postlieferungAbo)
@@ -585,7 +585,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Produkt])(rs: WrappedResultSet): Produkt =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Produkt): Seq[Any] = parameters(Produkt.unapply(entity).get)
+    def parameterMappings(entity: Produkt): Seq[ParameterBinder] = parameters(Produkt.unapply(entity).get)
 
     override def updateParameters(produkt: Produkt) = {
       super.updateParameters(produkt) ++ Seq(
@@ -609,7 +609,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Produzent])(rs: WrappedResultSet): Produzent =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Produzent): Seq[Any] = parameters(Produzent.unapply(entity).get)
+    def parameterMappings(entity: Produzent): Seq[ParameterBinder] = parameters(Produzent.unapply(entity).get)
 
     override def updateParameters(produzent: Produzent) = {
       super.updateParameters(produzent) ++ Seq(
@@ -643,7 +643,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Produktekategorie])(rs: WrappedResultSet): Produktekategorie =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Produktekategorie): Seq[Any] = parameters(Produktekategorie.unapply(entity).get)
+    def parameterMappings(entity: Produktekategorie): Seq[ParameterBinder] = parameters(Produktekategorie.unapply(entity).get)
 
     override def updateParameters(produktekategorie: Produktekategorie) = {
       super.updateParameters(produktekategorie) ++ Seq(
@@ -660,7 +660,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Projekt])(rs: WrappedResultSet): Projekt =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Projekt): Seq[Any] = parameters(Projekt.unapply(entity).get)
+    def parameterMappings(entity: Projekt): Seq[ParameterBinder] = parameters(Projekt.unapply(entity).get)
 
     override def updateParameters(projekt: Projekt) = {
       super.updateParameters(projekt) ++ Seq(
@@ -689,7 +689,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[ProduktProduzent])(rs: WrappedResultSet): ProduktProduzent =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: ProduktProduzent): Seq[Any] = parameters(ProduktProduzent.unapply(entity).get)
+    def parameterMappings(entity: ProduktProduzent): Seq[ParameterBinder] = parameters(ProduktProduzent.unapply(entity).get)
 
     override def updateParameters(projekt: ProduktProduzent) = {
       super.updateParameters(projekt) ++ Seq(
@@ -707,7 +707,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[ProduktProduktekategorie])(rs: WrappedResultSet): ProduktProduktekategorie =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: ProduktProduktekategorie): Seq[Any] = parameters(ProduktProduktekategorie.unapply(entity).get)
+    def parameterMappings(entity: ProduktProduktekategorie): Seq[ParameterBinder] = parameters(ProduktProduktekategorie.unapply(entity).get)
 
     override def updateParameters(produktkat: ProduktProduktekategorie) = {
       super.updateParameters(produktkat) ++ Seq(
@@ -725,7 +725,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Abwesenheit])(rs: WrappedResultSet): Abwesenheit =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Abwesenheit): Seq[Any] = parameters(Abwesenheit.unapply(entity).get)
+    def parameterMappings(entity: Abwesenheit): Seq[ParameterBinder] = parameters(Abwesenheit.unapply(entity).get)
 
     override def updateParameters(entity: Abwesenheit) = {
       super.updateParameters(entity) ++ Seq(
@@ -745,7 +745,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def apply(rn: ResultName[Korb])(rs: WrappedResultSet): Korb =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Korb): Seq[Any] = parameters(Korb.unapply(entity).get)
+    def parameterMappings(entity: Korb): Seq[ParameterBinder] = parameters(Korb.unapply(entity).get)
 
     override def updateParameters(entity: Korb) = {
       super.updateParameters(entity) ++ Seq(
