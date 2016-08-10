@@ -98,7 +98,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       )
       .map({ (kunde, pl, hl, dl, personen, pendenzen) =>
         val abos = pl ++ hl ++ dl
-        val personenWihoutPwd = personen.map(p => copyTo[Person, PersonDetail](p))
+        val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
 
         copyTo[Kunde, KundeDetail](kunde, "abos" -> abos, "pendenzen" -> pendenzen, "ansprechpersonen" -> personenWihoutPwd)
       }).single
@@ -639,11 +639,11 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         INNER JOIN
 		      (SELECT ${lieferung.abotypId} AS abotypId, MIN(${lieferung.datum}) AS MinDateTime
 		       FROM ${lieferungMapping as lieferung}
-		       INNER JOIN ${abotypMapping as aboTyp}
-		       ON ${lieferung.abotypId} = ${aboTyp.id}
+		       INNER JOIN ${vertriebMapping as vertrieb}
+		       ON ${lieferung.vertriebId} = ${vertrieb.id}
 		       AND ${lieferung.lieferplanungId} IS NULL
-		       AND ${aboTyp.id} NOT IN (
-		         SELECT DISTINCT ${lieferung.abotypId}
+		       AND ${vertrieb.id} NOT IN (
+		         SELECT DISTINCT ${lieferung.vertriebId}
 		         FROM ${lieferungMapping as lieferung}
 		         WHERE ${lieferung.lieferplanungId} = ${id.id}
 		       )
