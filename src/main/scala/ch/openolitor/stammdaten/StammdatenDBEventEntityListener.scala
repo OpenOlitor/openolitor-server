@@ -577,8 +577,6 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             val koerbe = stammdatenWriteRepository.getKoerbe(lieferung.datum, vertriebsart.id, WirdGeliefert)
 
             if (!koerbe.isEmpty) {
-              val auslieferungId = AuslieferungId(IdUtil.positiveRandomId)
-
               val auslieferung = createAuslieferung(lieferung, vertriebsart, koerbe.size)
 
               koerbe map { korb =>
