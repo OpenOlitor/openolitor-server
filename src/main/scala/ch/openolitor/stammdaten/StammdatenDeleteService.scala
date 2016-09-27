@@ -230,12 +230,14 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
   }
 
   def deleteTour(meta: EventMetadata, id: TourId)(implicit personId: PersonId = meta.originator) = {
-    DB localTx { implicit session =>
+    // TODO put withPublisher into EventService
+    stammdatenWriteRepository.withPublisher { implicit session => implicit publisher => {
       stammdatenWriteRepository.deleteEntity[Tour, TourId](id, { tour: Tour => tour.anzahlAbonnenten == 0 }) map { tour =>
         stammdatenWriteRepository.getHeimlieferung(tour.id) map { hl =>
           stammdatenWriteRepository.deleteEntity[Heimlieferung, VertriebsartId](hl.id, { vertriebsart: Vertriebsart => vertriebsart.anzahlAbos == 0 && vertriebsart.anzahlAbosAktiv == 0 })
         }
       }
+    }
     }
   }
 

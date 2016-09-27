@@ -179,14 +179,15 @@ trait BaseWriteRepository extends BaseRepositoryQueries {
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: SqlBinder[I],
     user: PersonId): Option[E] = {
-    deleteEntity[E, I](id, Some(validator))
+    deleteEntity[E, I](id, Some(validator))(session, syntaxSupport, binder, user, InstantEventPublisher(this))
   }
 
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Option[Validator[E]] = None)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: SqlBinder[I],
-    user: PersonId): Option[E] = {
+    user: PersonId,
+    eventPublisher: EventPublisher = InstantEventPublisher(this)): Option[E] = {
     logger.debug(s"delete from ${syntaxSupport.tableName}: $id")
     getById(syntaxSupport, id).map { entity =>
       val validation = validator.getOrElse(TrueValidator)
@@ -195,12 +196,20 @@ trait BaseWriteRepository extends BaseRepositoryQueries {
           withSQL(deleteFrom(syntaxSupport).where.eq(syntaxSupport.column.id, parameter(id))).update.apply()
 
           //publish event to stream
-          publish(EntityDeleted(user, entity))
+          eventPublisher.registerPublish(EntityDeleted(user, entity))
           Some(entity)
         case false =>
           logger.debug(s"Couldn't delete from ${syntaxSupport.tableName}: $id, validation didn't succeed")
           None
       }
     }.getOrElse(None)
+  }
+
+  def withPublisher[R](block: DBSession => EventPublisher => R) = {
+    val publisher = new PostEventPublisher(this)
+    DB localTx { session =>
+      block(session)(publisher)
+    }
+    publisher.publishEvents()
   }
 }
