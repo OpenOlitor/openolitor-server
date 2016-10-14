@@ -75,6 +75,7 @@ import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
 import ch.openolitor.util.ZipBuilder
 import ch.openolitor.kundenportal.KundenportalRoutes
 import ch.openolitor.kundenportal.DefaultKundenportalRoutes
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzRoutes
 import ch.openolitor.stammdaten.models.ProjektVorlageId
 import spray.can.server.Response
 import ch.openolitor.core.ws.ExportFormat
@@ -112,6 +113,7 @@ trait RouteServiceComponent extends ActorReferences {
   val stammdatenRouteService: StammdatenRoutes
   val buchhaltungRouteService: BuchhaltungRoutes
   val kundenportalRouteService: KundenportalRoutes
+  val arbeitseinsatzRouteService: ArbeitseinsatzRoutes
   val systemRouteService: SystemRouteService
   val loginRouteService: LoginRouteService
   val nonAuthRessourcesRouteService: NonAuthRessourcesRouteService
@@ -121,6 +123,7 @@ trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache
   override lazy val stammdatenRouteService = new DefaultStammdatenRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
   override lazy val buchhaltungRouteService = new DefaultBuchhaltungRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
   override lazy val kundenportalRouteService = new DefaultKundenportalRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
+  override lazy val arbeitseinsatzRouteService = new DefaultArbeitseinsatzRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
   override lazy val systemRouteService = new DefaultSystemRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
   override lazy val loginRouteService = new DefaultLoginRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, loginTokenCache)
   override lazy val nonAuthRessourcesRouteService = new DefaultNonAuthRessourcesRouteService(sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
@@ -141,7 +144,7 @@ trait RouteServiceActor
     with AirbrakeNotifierReference {
   self: RouteServiceComponent =>
 
-  //initially run db evolution  
+  //initially run db evolution
   override def preStart() = {
     runDBEvolution()
   }
@@ -176,6 +179,7 @@ trait RouteServiceActor
           authorize(hasRole(AdministratorZugang)) {
             stammdatenRouteService.stammdatenRoute ~
               buchhaltungRouteService.buchhaltungRoute ~
+              arbeitseinsatzRouteService.arbeitseinsatzRoute ~
               fileStoreRoute
           } ~
           authorize(hasRole(KundenZugang) || hasRole(AdministratorZugang)) {

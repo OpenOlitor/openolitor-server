@@ -30,6 +30,19 @@ import scala.collection.immutable.TreeMap
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 
+sealed trait EinsatzEinheit extends Product
+
+object EinsatzEinheit {
+  def apply(value: String): EinsatzEinheit = {
+    Vector(Stunden, Halbtage, Tage, Punkte) find (_.toString == value) getOrElse (Stunden)
+  }
+}
+
+case object Stunden extends EinsatzEinheit
+case object Halbtage extends EinsatzEinheit
+case object Tage extends EinsatzEinheit
+case object Punkte extends EinsatzEinheit
+
 case class ProjektId(id: Long) extends BaseId
 
 case class Geschaeftsjahr(monat: Int, tag: Int) {
@@ -80,6 +93,7 @@ case class Projekt(
     geschaeftsjahrTag: Int,
     twoFactorAuthentication: Map[Rolle, Boolean],
     sprache: Locale,
+    einsatzEinheit: EinsatzEinheit,
     //modification flags
     erstelldat: DateTime,
     ersteller: PersonId,

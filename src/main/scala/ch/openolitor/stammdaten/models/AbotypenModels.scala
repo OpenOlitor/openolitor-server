@@ -28,8 +28,7 @@ import ch.openolitor.core.models._
 import scalikejdbc._
 import java.util.UUID
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple25
-import ch.openolitor.core.scalax.Tuple26
+import ch.openolitor.core.scalax.Tuple27
 
 sealed trait Lieferzeitpunkt extends Product
 sealed trait Wochentag extends Lieferzeitpunkt
@@ -121,6 +120,7 @@ case class Abotyp(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
+  anzahlEinsaetze: Option[Int],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,
@@ -140,7 +140,7 @@ case class Abotyp(
 
 object Abotyp {
   def unapply(a: Abotyp) = {
-    Some(Tuple26(
+    Some(Tuple27(
       a.id,
       a.name,
       a.beschreibung,
@@ -154,6 +154,7 @@ object Abotyp {
       a.vertragslaufzeit,
       a.kuendigungsfrist,
       a.anzahlAbwesenheiten,
+      a.anzahlEinsaetze,
       a.farbCode,
       a.zielpreis,
       a.guthabenMindestbestand,
@@ -186,6 +187,7 @@ case class AbotypModify(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
+  anzahlEinsaetze: Option[Int],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,

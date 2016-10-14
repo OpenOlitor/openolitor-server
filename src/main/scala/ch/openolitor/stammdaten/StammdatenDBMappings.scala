@@ -95,6 +95,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
   implicit val liefersaisonTypeBinder: TypeBinder[Liefersaison] = string.map(Liefersaison.apply)
   implicit val vorlageTypeTypeBinder: TypeBinder[VorlageTyp] = string.map(VorlageTyp.apply)
   implicit val anredeTypeBinder: TypeBinder[Option[Anrede]] = string.map(Anrede.apply)
+  implicit val einsatzEinheitTypeBinder: TypeBinder[EinsatzEinheit] = string.map(EinsatzEinheit.apply)
   implicit val fristOptionTypeBinder: TypeBinder[Option[Frist]] = string.map {
     case fristeinheitPattern(wert, "W") => Some(Frist(wert.toInt, Wochenfrist))
     case fristeinheitPattern(wert, "M") => Some(Frist(wert.toInt, Monatsfrist))
@@ -127,6 +128,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
   implicit val anredeSqlBinder = toStringSqlBinder[Anrede]
   implicit val optionAnredeSqlBinder = optionSqlBinder[Anrede]
   implicit val vorlageTypeSqlBinder = toStringSqlBinder[VorlageTyp]
+  implicit val einsatzEinheitTypeSqlBinder = toStringSqlBinder[EinsatzEinheit]
 
   implicit val abotypIdSqlBinder = baseIdSqlBinder[AbotypId]
   implicit val depotIdSqlBinder = baseIdSqlBinder[DepotId]
@@ -772,7 +774,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
         column.geschaeftsjahrMonat -> parameter(projekt.geschaeftsjahrMonat),
         column.geschaeftsjahrTag -> parameter(projekt.geschaeftsjahrTag),
         column.twoFactorAuthentication -> parameter(projekt.twoFactorAuthentication),
-        column.sprache -> parameter(projekt.sprache)
+        column.sprache -> parameter(projekt.sprache),
+        column.einsatzEinheit -> parameter(projekt.einsatzEinheit)
       )
     }
   }
