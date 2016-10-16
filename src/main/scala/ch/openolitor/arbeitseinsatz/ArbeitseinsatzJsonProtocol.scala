@@ -36,7 +36,7 @@ import ch.openolitor.stammdaten.StammdatenJsonProtocol
 trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] with StammdatenJsonProtocol {
 
   //enum formats
-  implicit val rhythmusFormat = enumFormat(ArbeitseinsatzStatus.apply)
+  implicit val arbeitseinsatzStatusFormat = enumFormat(ArbeitseinsatzStatus.apply)
 
   //id formats
   implicit val arbeitskategorieIdFormat = baseIdFormat(ArbeitskategorieId)
