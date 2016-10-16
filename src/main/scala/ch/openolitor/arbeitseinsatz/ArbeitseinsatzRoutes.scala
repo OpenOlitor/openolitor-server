@@ -67,15 +67,24 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
     with Defaults {
   self: ArbeitseinsatzReadRepositoryComponent =>
 
+  implicit val arbeitskategorieIdPath = long2BaseIdPathMatcher(ArbeitskategorieId.apply)
   implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
   implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
 
   import EntityStore._
 
   def arbeitseinsatzRoute(implicit subject: Subject) =
-    path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
-      get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze))
+    path("arbeitskategorien" ~ exportFormatPath.?) { exportFormat =>
+      get(list(arbeitseinsatzReadRepository.getArbeitskategorien, exportFormat)) ~
+        post(create[ArbeitskategorieModify, ArbeitskategorieId](ArbeitskategorieId.apply _))
     } ~
+      path("arbeitskategorien" / arbeitskategorieIdPath) { id =>
+        (put | post)(update[ArbeitskategorieModify, ArbeitskategorieId](id)) ~
+          delete(remove(id))
+      } ~
+      path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze))
+      } ~
       path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze))
       }

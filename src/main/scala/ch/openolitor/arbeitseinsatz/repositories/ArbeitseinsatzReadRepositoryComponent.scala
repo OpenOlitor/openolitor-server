@@ -23,9 +23,9 @@
 package ch.openolitor.arbeitseinsatz.repositories
 
 trait ArbeitseinsatzReadRepositoryComponent {
-  val ArbeitseinsatzReadRepository: ArbeitseinsatzReadRepository
+  val arbeitseinsatzReadRepository: ArbeitseinsatzReadRepository
 }
 
 trait DefaultArbeitseinsatzReadRepositoryComponent extends ArbeitseinsatzReadRepositoryComponent {
-  override val ArbeitseinsatzReadRepository: ArbeitseinsatzReadRepository = new ArbeitseinsatzReadRepositoryImpl
+  override val arbeitseinsatzReadRepository: ArbeitseinsatzReadRepository = new ArbeitseinsatzReadRepositoryImpl
 }

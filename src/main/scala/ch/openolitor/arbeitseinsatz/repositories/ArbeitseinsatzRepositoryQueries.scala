@@ -41,23 +41,32 @@ import org.joda.time.LocalDate
 
 trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings {
 
+  lazy val arbeitskategorieTyp = arbeitskategorieMapping.syntax("arbeitskategorie")
   lazy val arbeitsangebotTyp = arbeitsangebotMapping.syntax("arbeitsangebot")
   lazy val arbeitseinsatzTyp = arbeitseinsatzMapping.syntax("arbeitseinsatz")
 
-  protected def getArbeitseinsaetze = {
+  protected def getArbeitskategorienQuery = {
     withSQL {
       select
-        .from(abotypMapping as aboTyp)
-        .orderBy(aboTyp.name)
-    }.map(abotypMapping(aboTyp)).list
+        .from(arbeitskategorieMapping as arbeitskategorieTyp)
+    }.map(arbeitskategorieMapping(arbeitskategorieTyp)).list
   }
 
-  protected def getFutureArbeitseinsaetze = {
+  protected def getFutureArbeitseinsaetzeQuery = {
     withSQL {
       select
-        .from(abotypMapping as aboTyp)
-        .orderBy(aboTyp.name)
-    }.map(abotypMapping(aboTyp)).list
+        .from(arbeitseinsatzMapping as arbeitseinsatzTyp)
+        .where.ge(arbeitseinsatzTyp.zeitVon, new DateTime())
+        .orderBy(arbeitseinsatzTyp.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatzTyp)).list
+  }
+
+  protected def getArbeitseinsaetzeQuery = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatzTyp)
+        .orderBy(arbeitseinsatzTyp.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatzTyp)).list
   }
 
 }

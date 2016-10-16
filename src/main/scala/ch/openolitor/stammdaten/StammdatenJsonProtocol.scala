@@ -110,6 +110,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   }
 
   implicit val waehrungFormat = enumFormat(Waehrung.apply)
+  implicit val einsatzEinheitFormat = enumFormat(EinsatzEinheit.apply)
   implicit val laufzeiteinheitFormat = enumFormat(Laufzeiteinheit.apply)
   implicit val lieferungStatusFormat = enumFormat(LieferungStatus.apply)
   implicit val korbStatusFormat = enumFormat(KorbStatus.apply)
@@ -253,7 +254,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
     }
   }
 
-  // json formatter which adds calculated boolean field  
+  // json formatter which adds calculated boolean field
   def enhanceWithBooleanFlag[E <: AktivRange](flag: String)(implicit defaultFormat: JsonFormat[E]): RootJsonFormat[E] = new RootJsonFormat[E] {
     def write(obj: E): JsValue = {
       JsObject(defaultFormat.write(obj)

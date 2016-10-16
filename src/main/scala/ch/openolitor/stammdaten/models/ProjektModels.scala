@@ -114,7 +114,8 @@ case class ProjektPublik(
   preiseSichtbar: Boolean,
   waehrung: Waehrung,
   geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int
+  geschaeftsjahrTag: Int,
+  einsatzEinheit: EinsatzEinheit
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -165,7 +166,8 @@ case class ProjektModify(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
-  sprache: Locale
+  sprache: Locale,
+  einsatzEinheit: EinsatzEinheit
 ) extends JSONSerializable
 
 case class KundentypId(id: String) extends BaseStringId

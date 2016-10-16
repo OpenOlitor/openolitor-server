@@ -81,7 +81,7 @@ object V1Scripts {
       sql"""create table ${vertriebMapping.table}  (
         id BIGINT not null,
         abotyp_id BIGINT not null,
-        liefertag varchar(10),      	
+        liefertag varchar(10),
         beschrieb varchar(2000),
       	anzahl_abos int not null,
         anzahl_abos_aktiv int not null,
@@ -592,6 +592,7 @@ object V1Scripts {
         geschaeftsjahrTag = 1,
         twoFactorAuthentication = Map(AdministratorZugang -> false, KundenZugang -> true),
         sprache = Locale.forLanguageTag("de-CH"),
+        einsatzEinheit = Stunden,
         //modification flags
         erstelldat = DateTime.now,
         ersteller = personId,

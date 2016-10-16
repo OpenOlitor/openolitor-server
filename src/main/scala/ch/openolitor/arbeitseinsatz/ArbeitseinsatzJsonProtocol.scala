@@ -39,9 +39,11 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
   implicit val rhythmusFormat = enumFormat(ArbeitseinsatzStatus.apply)
 
   //id formats
+  implicit val arbeitskategorieIdFormat = baseIdFormat(ArbeitskategorieId)
   implicit val arbeitsangebotIdFormat = baseIdFormat(ArbeitsangebotId)
   implicit val arbeitseinsatzIdFormat = baseIdFormat(ArbeitseinsatzId)
 
+  implicit val arbeitskategorieFormat = autoProductFormat[Arbeitskategorie]
   implicit val arbeitsangebotFormat = autoProductFormat[Arbeitsangebot]
   implicit val arbeitseinsatzFormat = autoProductFormat[Arbeitseinsatz]
 

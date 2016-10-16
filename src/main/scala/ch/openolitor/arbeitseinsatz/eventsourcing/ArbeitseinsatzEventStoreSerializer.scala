@@ -33,8 +33,11 @@ import ch.openolitor.core.JSONSerializable
 
 trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
   // V1 persisters
-  //implicit val rechnungCreatePersister = persister[RechnungCreate]("rechnung-create")
+  implicit val arbeitskategorieModifyPersister = persister[ArbeitskategorieModify]("arbeitskategorie-modify")
+  implicit val arbeitskategorieIdPersister = persister[ArbeitskategorieId]("arbeitskategorie-id")
 
-  val arbeitseinsatzPersisters = List( //rechnungCreatePersister,
+  val arbeitseinsatzPersisters = List(
+    arbeitskategorieModifyPersister,
+    arbeitskategorieIdPersister
   )
 }

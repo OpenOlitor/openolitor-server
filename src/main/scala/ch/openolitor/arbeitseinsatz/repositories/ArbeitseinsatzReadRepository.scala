@@ -40,11 +40,16 @@ import org.joda.time.DateTime
 import ch.openolitor.util.parsing.FilterExpr
 
 trait ArbeitseinsatzReadRepository {
+  def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]]
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
 }
 
 class ArbeitseinsatzReadRepositoryImpl extends BaseReadRepository with ArbeitseinsatzReadRepository with LazyLogging with ArbeitseinsatzRepositoryQueries {
+  def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]] = {
+    getArbeitskategorienQuery.future
+  }
+
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
     getArbeitseinsaetzeQuery.future
   }

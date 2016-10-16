@@ -28,10 +28,10 @@ import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
 import akka.actor.ActorSystem
 
 trait ArbeitseinsatzWriteRepositoryComponent extends BaseWriteRepositoryComponent {
-  val ArbeitseinsatzWriteRepository: ArbeitseinsatzWriteRepository
+  val arbeitseinsatzWriteRepository: ArbeitseinsatzWriteRepository
 }
 
 trait DefaultArbeitseinsatzWriteRepositoryComponent extends ArbeitseinsatzWriteRepositoryComponent {
   val system: ActorSystem
-  override val ArbeitseinsatzWriteRepository: ArbeitseinsatzWriteRepository = new DefaultActorSystemReference(system) with ArbeitseinsatzWriteRepositoryImpl with AkkaEventStream
+  override val arbeitseinsatzWriteRepository: ArbeitseinsatzWriteRepository = new DefaultActorSystemReference(system) with ArbeitseinsatzWriteRepositoryImpl with AkkaEventStream
 }

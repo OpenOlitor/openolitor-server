@@ -25,6 +25,7 @@ package ch.openolitor.arbeitseinsatz.models
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
 import org.joda.time.DateTime
+import ch.openolitor.core.JSONSerializable
 
 sealed trait ArbeitseinsatzStatus extends Product
 
@@ -38,6 +39,21 @@ case object InVorbereitung extends ArbeitseinsatzStatus
 case object Offen extends ArbeitseinsatzStatus
 case object Abgesagt extends ArbeitseinsatzStatus
 
+case class ArbeitskategorieId(id: Long) extends BaseId
+
+case class Arbeitskategorie(
+    id: ArbeitskategorieId,
+    beschreibung: String,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
+) extends BaseEntity[ArbeitskategorieId] {
+}
+
+case class ArbeitskategorieModify(beschreibung: String) extends JSONSerializable
+
 case class ArbeitsangebotId(id: Long) extends BaseId
 
 trait IArbeitsangebot extends BaseEntity[Arbeitsangebot] {
@@ -48,6 +64,7 @@ trait IArbeitsangebot extends BaseEntity[Arbeitsangebot] {
   val ort: Option[String]
   val zeitVon: DateTime
   val zeitBis: DateTime
+  val arbeitskategorien: Seq[String]
   val anzahlPersonen: Option[Int]
   val mehrPersonenOk: Boolean
   val einsatzZeit: Option[Int]
@@ -62,6 +79,7 @@ case class Arbeitsangebot(
   ort: Option[String],
   zeitVon: DateTime,
   zeitBis: DateTime,
+  arbeitskategorien: Seq[String],
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
   einsatzZeit: Option[Int],
@@ -72,6 +90,10 @@ case class ArbeitseinsatzId(id: Long) extends BaseId
 
 trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
   val id: ArbeitseinsatzId
+  val arbeitsangebotId: ArbeitsangebotId
+  val arbeitsangebotTitel: String
+  val zeitVon: DateTime
+  val zeitBis: DateTime
   val kundeId: KundeId
   val kundeBezeichnung: String
   val aboId: AboId
@@ -82,6 +104,10 @@ trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
 
 case class Arbeitseinsatz(
   id: ArbeitseinsatzId,
+  arbeitsangebotId: ArbeitsangebotId,
+  arbeitsangebotTitel: String,
+  zeitVon: DateTime,
+  zeitBis: DateTime,
   kundeId: KundeId,
   kundeBezeichnung: String,
   aboId: AboId,

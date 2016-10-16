@@ -42,13 +42,14 @@ trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzWriteRepository wi
 
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
-      sql"truncate table ${arbeitsagebotMapping.table}".execute.apply()
+      sql"truncate table ${arbeitskategorieMapping.table}".execute.apply()
+      sql"truncate table ${arbeitsangebotMapping.table}".execute.apply()
       sql"truncate table ${arbeitseinsatzMapping.table}".execute.apply()
     }
   }
 
-  def deleteLieferpositionen(id: LieferungId)(implicit session: DBSession): Int = {
-    deleteLieferpositionenQuery(id).update.apply
-  }
+  //def deleteLieferpositionen(id: LieferungId)(implicit session: DBSession): Int = {
+  //  deleteLieferpositionenQuery(id).update.apply
+  //}
 
 }

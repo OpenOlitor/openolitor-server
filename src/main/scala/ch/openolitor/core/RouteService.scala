@@ -76,6 +76,7 @@ import ch.openolitor.util.ZipBuilder
 import ch.openolitor.kundenportal.KundenportalRoutes
 import ch.openolitor.kundenportal.DefaultKundenportalRoutes
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzRoutes
+import ch.openolitor.arbeitseinsatz.DefaultArbeitseinsatzRoutes
 import ch.openolitor.stammdaten.models.ProjektVorlageId
 import spray.can.server.Response
 import ch.openolitor.core.ws.ExportFormat

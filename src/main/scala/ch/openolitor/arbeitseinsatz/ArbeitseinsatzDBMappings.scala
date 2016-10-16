@@ -44,6 +44,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
   import TypeBinder._
 
   // DB type binders for read operations
+  implicit val arbeitskategorieIdBinder: TypeBinder[ArbeitskategorieId] = baseIdTypeBinder(ArbeitskategorieId.apply _)
   implicit val arbeitsangebotIdBinder: TypeBinder[ArbeitsangebotId] = baseIdTypeBinder(ArbeitsangebotId.apply _)
   implicit val arbeitseinsatzIdBinder: TypeBinder[ArbeitseinsatzId] = baseIdTypeBinder(ArbeitseinsatzId.apply _)
 
@@ -54,10 +55,28 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
   //DB parameter binders for write and query operationsit
   implicit val arbeitseinsatzStatusBinder = toStringSqlBinder[ArbeitseinsatzStatus]
 
+  implicit val arbeitskategorieIdSqlBinder = baseIdSqlBinder[ArbeitskategorieId]
   implicit val arbeitsangebotIdSqlBinder = baseIdSqlBinder[ArbeitsangebotId]
   implicit val arbeiteinsatzIdSqlBinder = baseIdSqlBinder[ArbeitseinsatzId]
 
   implicit val arbeitsangebotIdOptionSqlBinder = optionSqlBinder[ArbeitsangebotId]
+
+  implicit val arbeitskategorieMapping = new BaseEntitySQLSyntaxSupport[Arbeitskategorie] {
+    override val tableName = "Arbeitskategorie"
+
+    override lazy val columns = autoColumns[Arbeitskategorie]()
+
+    def apply(rn: ResultName[Arbeitskategorie])(rs: WrappedResultSet): Arbeitskategorie = autoConstruct(rs, rn)
+
+    def parameterMappings(entity: Arbeitskategorie): Seq[Any] =
+      parameters(Arbeitskategorie.unapply(entity).get)
+
+    override def updateParameters(ak: Arbeitskategorie) = {
+      super.updateParameters(ak) ++ Seq(
+        column.beschreibung -> parameter(ak.beschreibung)
+      )
+    }
+  }
 
   implicit val arbeitsangebotMapping = new BaseEntitySQLSyntaxSupport[Arbeitsangebot] {
     override val tableName = "Arbeitsangebot"
@@ -97,6 +116,10 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
 
     override def updateParameters(ae: Arbeitseinsatz) = {
       super.updateParameters(ae) ++ Seq(
+        column.arbeitsangebotId -> parameter(ae.arbeitsangebotId),
+        column.arbeitsangebotTitel -> parameter(ae.arbeitsangebotTitel),
+        column.zeitVon -> parameter(ae.zeitVon),
+        column.zeitBis -> parameter(ae.zeitBis),
         column.kundeId -> parameter(ae.kundeId),
         column.kundeBezeichnung -> parameter(ae.kundeBezeichnung),
         column.aboId -> parameter(ae.aboId),
