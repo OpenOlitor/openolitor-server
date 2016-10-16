@@ -30,7 +30,6 @@ import ch.openolitor.core.repositories._
 import ch.openolitor.core.repositories.BaseRepository._
 import ch.openolitor.arbeitseinsatz.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.util.DateTimeUtil._
 import org.joda.time.DateTime
