@@ -21,7 +21,7 @@ object AboParser extends EntityParser {
         //match column indexes
         val Seq(kundeIdIndex, vertriebsartIdIndex, startIndex, endeIndex,
           guthabenVertraglichIndex, guthabenIndex, guthabenInRechnungIndex, indexLetzteLieferung, indexAnzahlAbwesenheiten, lieferungenIndex,
-          einsaetzeIndex, depotIdIndex, tourIdIndex) = indexes take (12)
+          einsaetzeIndex, depotIdIndex, tourIdIndex) = indexes take (13)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
         val kundeIdInt = row.value[Long](kundeIdIndex)

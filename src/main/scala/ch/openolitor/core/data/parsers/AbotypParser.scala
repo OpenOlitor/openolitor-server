@@ -22,7 +22,7 @@ object AbotypParser extends EntityParser {
       val Seq(indexName, indexBeschreibung, indexlieferrhytmus, indexPreis, indexPreiseinheit, indexAktivVon,
         indexAktivBis, indexLaufzeit, indexLaufzeiteinheit, indexFarbCode, indexZielpreis, indexAnzahlAbwesenheiten, indexAnzahlEinsaetze,
         indexGuthabenMindestbestand, indexAdminProzente, indexWirdGeplant, indexKuendigungsfrist, indexVertrag,
-        indexAnzahlAbonnenten, indexAnzahlAbonnentenAktiv, indexLetzteLieferung, indexWaehrung) = indexes take (21)
+        indexAnzahlAbonnenten, indexAnzahlAbonnentenAktiv, indexLetzteLieferung, indexWaehrung) = indexes take (22)
       val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
       val fristeinheitPattern = """(\d+)(M|W)""".r

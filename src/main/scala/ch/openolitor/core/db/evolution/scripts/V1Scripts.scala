@@ -28,6 +28,7 @@ import scala.util._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import org.mindrot.jbcrypt.BCrypt
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
@@ -170,7 +171,9 @@ object V1Scripts {
         laufzeiteinheit varchar(50),
         vertragslaufzeit varchar(50),
         kuendigungsfrist varchar(50),
-        anzahl_abwesenheiten int, farb_code varchar(20),
+        anzahl_abwesenheiten int,
+        anzahl_einsaetze int,
+        farb_code varchar(20),
         zielpreis DECIMAL(7,2),
         guthaben_mindestbestand int,
         admin_prozente DECIMAL(5,2),
@@ -273,6 +276,7 @@ object V1Scripts {
         letzte_lieferung datetime,
         anzahl_abwesenheiten varchar(500),
         anzahl_lieferungen varchar(500),
+        anzahl_einsaetze varchar(500),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -296,6 +300,7 @@ object V1Scripts {
         letzte_lieferung datetime,
         anzahl_abwesenheiten varchar(500),
         anzahl_lieferungen varchar(500),
+        anzahl_einsaetze varchar(500),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -317,6 +322,7 @@ object V1Scripts {
         letzte_lieferung datetime,
         anzahl_abwesenheiten varchar(500),
         anzahl_lieferungen varchar(500),
+        anzahl_einsaetze varchar(500),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -473,6 +479,10 @@ object V1Scripts {
         geschaeftsjahr_tag DECIMAL(2,0) not null,
         two_factor_authentication varchar(100),
         sprache varchar(10),
+        generierte_mails_senden varchar(1) not null,
+        einsatz_einheit varchar(20) not null,
+        einsatz_absage_vorlauf_tage DECIMAL(2,0) not null,
+        einsatz__show_liste_kunde varchar(1) not null,
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -592,7 +602,10 @@ object V1Scripts {
         geschaeftsjahrTag = 1,
         twoFactorAuthentication = Map(AdministratorZugang -> false, KundenZugang -> true),
         sprache = Locale.forLanguageTag("de-CH"),
+        generierteMailsSenden = false,
         einsatzEinheit = Stunden,
+        einsatzAbsageVorlaufTage = 3,
+        einsatzShowListeKunde = true,
         //modification flags
         erstelldat = DateTime.now,
         ersteller = personId,
@@ -680,9 +693,70 @@ object V1Scripts {
     }
   }
 
+  val ArbeitseinsatzDBInitializationScript = new Script with LazyLogging with ArbeitseinsatzDBMappings {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      //drop all tables
+      logger.debug(s"oo-system: cleanupDatabase - drop tables - arbeitseinsatz")
+
+      sql"drop table if exists ${arbeitskategorieMapping.table}".execute.apply()
+      sql"drop table if exists ${arbeitsangebotMapping.table}".execute.apply()
+      sql"drop table if exists ${arbeitseinsatzMapping.table}".execute.apply()
+
+      logger.debug(s"oo-system: cleanupDatabase - create tables - arbeitseinsatz")
+      //create tables
+
+      sql"""create table ${arbeitskategorieMapping.table} (
+        id BIGINT not null,
+        beschreibung varchar(200),
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null)""".execute.apply()
+
+      sql"""create table ${arbeitsangebotMapping.table} (
+        id BIGINT not null,
+        kopie_von BIGINT,
+        titel varchar(200) not null,
+        bezeichnung varchar(200),
+        ort varchar(500),
+        zeit_von datetime not null,
+        zeit_bis datetime,
+        arbeitskategorien varchar(500),
+        anzahl_personen DECIMAL(3,0),
+        mehr_personen_ok varchar(1) not null,
+        einsatz_zeit DECIMAL(3,0),
+        status varchar(20) not null,
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null)""".execute.apply()
+
+      sql"""create table ${arbeitseinsatzMapping.table} (
+        id BIGINT not null,
+        arbeitsangebot_id BIGINT,
+        arbeitsangebot_titel varchar(200) not null,
+        zeit_von datetime not null,
+        zeit_bis datetime,
+        kunde_id BIGINT not null,
+        kunde_bezeichnung varchar(50),
+        abo_id BIGINT not null,
+        abo_bezeichnung varchar(50),
+        anzahl_personen DECIMAL(3,0),
+        bemerkungen varchar(300),
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null)""".execute.apply()
+
+      logger.debug(s"oo-system: cleanupDatabase - end - arbeitseinsatz")
+      Success(true)
+    }
+  }
+
   val dbInitializationScripts = Seq(
     StammdatenDBInitializationScript,
     BuchhaltungDBInitializationScript,
+    ArbeitseinsatzDBInitializationScript,
     InitialDataScript
   )
 

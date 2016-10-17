@@ -93,7 +93,10 @@ case class Projekt(
     geschaeftsjahrTag: Int,
     twoFactorAuthentication: Map[Rolle, Boolean],
     sprache: Locale,
+    generierteMailsSenden: Boolean,
     einsatzEinheit: EinsatzEinheit,
+    einsatzAbsageVorlaufTage: Int,
+    einsatzShowListeKunde: Boolean,
     //modification flags
     erstelldat: DateTime,
     ersteller: PersonId,
@@ -115,7 +118,9 @@ case class ProjektPublik(
   waehrung: Waehrung,
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
-  einsatzEinheit: EinsatzEinheit
+  einsatzEinheit: EinsatzEinheit,
+  einsatzAbsageVorlaufTage: Int,
+  einsatzShowListeKunde: Boolean
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -167,7 +172,10 @@ case class ProjektModify(
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
   sprache: Locale,
-  einsatzEinheit: EinsatzEinheit
+  generierteMailsSenden: Boolean,
+  einsatzEinheit: EinsatzEinheit,
+  einsatzAbsageVorlaufTage: Int,
+  einsatzShowListeKunde: Boolean
 ) extends JSONSerializable
 
 case class KundentypId(id: String) extends BaseStringId

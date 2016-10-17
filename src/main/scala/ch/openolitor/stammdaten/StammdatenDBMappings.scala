@@ -775,7 +775,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
         column.geschaeftsjahrTag -> parameter(projekt.geschaeftsjahrTag),
         column.twoFactorAuthentication -> parameter(projekt.twoFactorAuthentication),
         column.sprache -> parameter(projekt.sprache),
-        column.einsatzEinheit -> parameter(projekt.einsatzEinheit)
+        column.generierteMailsSenden -> parameter(projekt.generierteMailsSenden),
+        column.einsatzEinheit -> parameter(projekt.einsatzEinheit),
+        column.einsatzAbsageVorlaufTage -> parameter(projekt.einsatzAbsageVorlaufTage),
+        column.einsatzShowListeKunde -> parameter(projekt.einsatzShowListeKunde)
       )
     }
   }
