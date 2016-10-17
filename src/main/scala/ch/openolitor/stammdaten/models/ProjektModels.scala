@@ -29,6 +29,7 @@ import ch.openolitor.core.JSONSerializable
 import scala.collection.immutable.TreeMap
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.scalax.Tuple23
 
 sealed trait EinsatzEinheit extends Product
 
@@ -104,6 +105,36 @@ case class Projekt(
     modifikator: PersonId
 ) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
+}
+
+object Projekt {
+  def unapply(o: Projekt) = {
+    Some(Tuple23(
+      o.id,
+      o.bezeichnung,
+      o.strasse,
+      o.hausNummer,
+      o.adressZusatz,
+      o.plz,
+      o.ort,
+      o.preiseSichtbar,
+      o.preiseEditierbar,
+      o.emailErforderlich,
+      o.waehrung,
+      o.geschaeftsjahrMonat,
+      o.geschaeftsjahrTag,
+      o.twoFactorAuthentication,
+      o.sprache,
+      o.generierteMailsSenden,
+      o.einsatzEinheit,
+      o.einsatzAbsageVorlaufTage,
+      o.einsatzShowListeKunde,
+      o.erstelldat,
+      o.ersteller,
+      o.modifidat,
+      o.modifikator
+    ))
+  }
 }
 
 case class ProjektPublik(
