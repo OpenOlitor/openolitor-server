@@ -1,3 +1,25 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
 import ch.openolitor.core.models._
@@ -162,6 +184,30 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(personMapping(person)).list
   }
 
+  protected def getPersonenUebersichtQuery(filter: Option[FilterExpr]) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(kundeMapping as kunde).on(person.kundeId, kunde.id)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, person))
+        .orderBy(person.name)
+    }.one(personMapping(person))
+      .toOne(
+        rs => kundeMapping(kunde)(rs)
+      ).map { (person, kunde) =>
+          copyTo[Person, PersonUebersicht](
+            person,
+            "strasse" -> kunde.strasse,
+            "hausNummer" -> kunde.hausNummer,
+            "adressZusatz" -> kunde.adressZusatz,
+            "plz" -> kunde.plz,
+            "ort" -> kunde.ort,
+            "kundentypen" -> kunde.typen,
+            "kundenBemerkungen" -> kunde.bemerkungen
+          )
+        }.list
+  }
+
   protected def getAbotypDetailQuery(id: AbotypId) = {
     withSQL {
       select
@@ -191,6 +237,30 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .where.eq(postlieferungAbo.abotypId, parameter(abotypId))
+    }.map(postlieferungAboMapping(postlieferungAbo)).list
+  }
+
+  protected def getDepotlieferungAbosByVertriebQuery(vertriebId: VertriebId) = {
+    withSQL {
+      select
+        .from(depotlieferungAboMapping as depotlieferungAbo)
+        .where.eq(depotlieferungAbo.vertriebId, parameter(vertriebId))
+    }.map(depotlieferungAboMapping(depotlieferungAbo)).list
+  }
+
+  protected def getHeimlieferungAbosByVertriebQuery(vertriebId: VertriebId) = {
+    withSQL {
+      select
+        .from(heimlieferungAboMapping as heimlieferungAbo)
+        .where.eq(heimlieferungAbo.vertriebId, parameter(vertriebId))
+    }.map(heimlieferungAboMapping(heimlieferungAbo)).list
+  }
+
+  protected def getPostlieferungAbosByVertriebQuery(vertriebId: VertriebId) = {
+    withSQL {
+      select
+        .from(postlieferungAboMapping as postlieferungAbo)
+        .where.eq(postlieferungAbo.vertriebId, parameter(vertriebId))
     }.map(postlieferungAboMapping(postlieferungAbo)).list
   }
 
@@ -712,7 +782,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 		       WHERE ${aboTyp.wirdGeplant} = true
 		       AND ${lieferung.lieferplanungId} IS NULL
 		       GROUP BY ${lieferung.abotypId}) groupedLieferung
-		    ON ${lieferung.abotypId} = groupedLieferung.abotypId 
+		    ON ${lieferung.abotypId} = groupedLieferung.abotypId
 		    AND ${lieferung.datum} = groupedLieferung.MinDateTime
       """.map(lieferungMapping(lieferung)).list
   }
@@ -754,6 +824,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(lieferungMapping as lieferung)
         .where.eq(lieferung.lieferplanungId, parameter(id))
+        .orderBy(lieferung.datum).desc
     }.map(lieferungMapping(lieferung)).list
   }
 
@@ -784,7 +855,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 		         WHERE ${lieferung.lieferplanungId} = ${id.id}
 		       )
 		       GROUP BY ${lieferung.abotypId}) groupedLieferung
-		    ON ${lieferung.abotypId} = groupedLieferung.abotypId 
+		    ON ${lieferung.abotypId} = groupedLieferung.abotypId
 		    AND ${lieferung.datum} = groupedLieferung.MinDateTime
       """.one(lieferungMapping(lieferung))
       .toOne(abotypMapping.opt(aboTyp))
@@ -1297,5 +1368,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             .and.eq(postlieferungAbo.aktiv, parameter(true))
         )
     }.map(res => AboId(res.long(1))).list
+  }
+
+  protected def getLieferungenOffenByAbotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, parameter(abotypId))
+        .and.eq(lieferung.status, parameter(Offen))
+    }.map(lieferungMapping(lieferung)).list
   }
 }
