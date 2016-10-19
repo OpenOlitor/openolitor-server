@@ -58,6 +58,7 @@ import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.core.security.RequestFailed
+import ch.openolitor.stammdaten.models.KundeId
 import ch.openolitor.arbeitseinsatz.models._
 
 trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
@@ -66,6 +67,8 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
     with ArbeitseinsatzEventStoreSerializer
     with Defaults {
   self: ArbeitseinsatzReadRepositoryComponent =>
+
+  implicit val kundeIdPath = long2BaseIdPathMatcher(KundeId.apply)
 
   implicit val arbeitskategorieIdPath = long2BaseIdPathMatcher(ArbeitskategorieId.apply)
   implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
@@ -82,11 +85,23 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
         (put | post)(update[ArbeitskategorieModify, ArbeitskategorieId](id)) ~
           delete(remove(id))
       } ~
+      path("arbeitsangebote" ~ exportFormatPath.?) { exportFormat =>
+        get(list(arbeitseinsatzReadRepository.getArbeitsangebote))
+      } ~
+      path("arbeitsangebote" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
+        get(list(arbeitseinsatzReadRepository.getFutureArbeitsangebote))
+      } ~
       path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze))
       } ~
+      path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) { (kunedId, exportFormat) =>
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kunedId)))
+      } ~
       path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze))
+      } ~
+      path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>
+        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId)))
       }
 }
 

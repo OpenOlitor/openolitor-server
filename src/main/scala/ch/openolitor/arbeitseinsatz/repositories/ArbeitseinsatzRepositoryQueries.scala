@@ -37,35 +37,72 @@ import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.FilterExpr
 import org.joda.time.LocalDate
+import ch.openolitor.stammdaten.models.KundeId
 
 trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings {
 
-  lazy val arbeitskategorieTyp = arbeitskategorieMapping.syntax("arbeitskategorie")
-  lazy val arbeitsangebotTyp = arbeitsangebotMapping.syntax("arbeitsangebot")
-  lazy val arbeitseinsatzTyp = arbeitseinsatzMapping.syntax("arbeitseinsatz")
+  lazy val arbeitskategorie = arbeitskategorieMapping.syntax("arbeitskategorie")
+  lazy val arbeitsangebot = arbeitsangebotMapping.syntax("arbeitsangebot")
+  lazy val arbeitseinsatz = arbeitseinsatzMapping.syntax("arbeitseinsatz")
 
   protected def getArbeitskategorienQuery = {
     withSQL {
       select
-        .from(arbeitskategorieMapping as arbeitskategorieTyp)
-    }.map(arbeitskategorieMapping(arbeitskategorieTyp)).list
+        .from(arbeitskategorieMapping as arbeitskategorie)
+    }.map(arbeitskategorieMapping(arbeitskategorie)).list
   }
 
-  protected def getFutureArbeitseinsaetzeQuery = {
+  protected def getArbeitsangeboteQuery = {
     withSQL {
       select
-        .from(arbeitseinsatzMapping as arbeitseinsatzTyp)
-        .where.ge(arbeitseinsatzTyp.zeitVon, new DateTime())
-        .orderBy(arbeitseinsatzTyp.zeitVon)
-    }.map(arbeitseinsatzMapping(arbeitseinsatzTyp)).list
+        .from(arbeitsangebotMapping as arbeitsangebot)
+        .orderBy(arbeitsangebot.zeitVon)
+    }.map(arbeitsangebotMapping(arbeitsangebot)).list
+  }
+
+  protected def getFutureArbeitsangeboteQuery = {
+    withSQL {
+      select
+        .from(arbeitsangebotMapping as arbeitsangebot)
+        .where.ge(arbeitsangebot.zeitVon, new DateTime())
+        .orderBy(arbeitsangebot.zeitVon)
+    }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
 
   protected def getArbeitseinsaetzeQuery = {
     withSQL {
       select
-        .from(arbeitseinsatzMapping as arbeitseinsatzTyp)
-        .orderBy(arbeitseinsatzTyp.zeitVon)
-    }.map(arbeitseinsatzMapping(arbeitseinsatzTyp)).list
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .orderBy(arbeitseinsatz.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+  }
+
+  protected def getArbeitseinsaetzeQuery(kundeId: KundeId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .where.eq(arbeitseinsatz.kundeId, parameter(kundeId))
+        .orderBy(arbeitseinsatz.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+  }
+
+  protected def getFutureArbeitseinsaetzeQuery = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .where.ge(arbeitseinsatz.zeitVon, new DateTime())
+        .orderBy(arbeitseinsatz.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+  }
+
+  protected def getFutureArbeitseinsaetzeQuery(kundeId: KundeId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .where.ge(arbeitseinsatz.zeitVon, new DateTime())
+        .and.eq(arbeitseinsatz.kundeId, parameter(kundeId))
+        .orderBy(arbeitseinsatz.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
   }
 
 }

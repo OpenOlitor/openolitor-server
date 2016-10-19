@@ -38,11 +38,17 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.util.DateTimeUtil._
 import org.joda.time.DateTime
 import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.stammdaten.models.KundeId
 
 trait ArbeitseinsatzReadRepository {
   def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]]
+
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
+  def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
+  def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
+  def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
 }
 
 class ArbeitseinsatzReadRepositoryImpl extends BaseReadRepository with ArbeitseinsatzReadRepository with LazyLogging with ArbeitseinsatzRepositoryQueries {
@@ -50,11 +56,27 @@ class ArbeitseinsatzReadRepositoryImpl extends BaseReadRepository with Arbeitsei
     getArbeitskategorienQuery.future
   }
 
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
+    getArbeitsangeboteQuery.future
+  }
+
+  def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
+    getFutureArbeitsangeboteQuery.future
+  }
+
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
     getArbeitseinsaetzeQuery.future
   }
 
+  def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
+    getArbeitseinsaetzeQuery(kundeId).future
+  }
+
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
     getFutureArbeitseinsaetzeQuery.future
+  }
+
+  def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
+    getFutureArbeitseinsaetzeQuery(kundeId).future
   }
 }
