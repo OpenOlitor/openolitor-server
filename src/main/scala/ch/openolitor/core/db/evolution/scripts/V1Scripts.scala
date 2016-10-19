@@ -482,7 +482,7 @@ object V1Scripts {
         generierte_mails_senden varchar(1) not null,
         einsatz_einheit varchar(20) not null,
         einsatz_absage_vorlauf_tage DECIMAL(2,0) not null,
-        einsatz__show_liste_kunde varchar(1) not null,
+        einsatz_show_liste_kunde varchar(1) not null,
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
