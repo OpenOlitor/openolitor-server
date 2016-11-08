@@ -20,33 +20,46 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.arbeitseinsatz.eventsourcing
+package ch.openolitor.arbeitseinsatz
 
-import stamina._
-import stamina.json._
-import ch.openolitor.arbeitseinsatz._
-import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import zangelo.spray.json.AutoProductFormats
-import ch.openolitor.core.JSONSerializable
+import akka.actor._
+import ch.openolitor.core.domain._
+import ch.openolitor.core._
+import ch.openolitor.core.db.ConnectionPoolContextAware
+import ch.openolitor.arbeitseinsatz.repositories._
 
-trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
-  // V1 persisters
-  implicit val arbeitskategorieModifyPersister = persister[ArbeitskategorieModify]("arbeitskategorie-modify")
-  implicit val arbeitskategorieIdPersister = persister[ArbeitskategorieId]("arbeitskategorie-id")
+object ArbeitseinsatzEntityStoreView {
+  def props(mailService: ActorRef, entityStore: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultArbeitseinsatzEntityStoreView], mailService, entityStore, sysConfig, system)
+}
 
-  implicit val arbeitseinsatzModifyPersister = persister[ArbeitseinsatzModify]("arbeitseinsatz-modify")
-  implicit val arbeitseinsatzIdPersister = persister[ArbeitseinsatzId]("arbeitseinsatz-id")
-  implicit val arbeitsangebotModifyPersister = persister[ArbeitsangebotModify]("arbeitsangebot-modify")
-  implicit val arbeitsangebotIdPersister = persister[ArbeitsangebotId]("arbeitsangebot-id")
+class DefaultArbeitseinsatzEntityStoreView(override val mailService: ActorRef, override val entityStore: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem) extends ArbeitseinsatzEntityStoreView
+  with DefaultArbeitseinsatzWriteRepositoryComponent
 
-  val arbeitseinsatzPersisters = List(
-    arbeitskategorieModifyPersister,
-    arbeitskategorieIdPersister,
-    arbeitseinsatzModifyPersister,
-    arbeitseinsatzIdPersister,
-    arbeitsangebotModifyPersister,
-    arbeitsangebotIdPersister
-  )
+/**
+ * Zusammenfügen des Componenten (cake pattern) zu der persistentView
+ */
+trait ArbeitseinsatzEntityStoreView extends EntityStoreView
+    with ArbeitseinsatzEntityStoreViewComponent with ConnectionPoolContextAware {
+  self: ArbeitseinsatzWriteRepositoryComponent =>
+
+  override val module = "arbeitseinsatz"
+
+  def initializeEntityStoreView = {
+  }
+}
+
+/**
+ * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
+ */
+trait ArbeitseinsatzEntityStoreViewComponent extends EntityStoreViewComponent {
+  import EntityStore._
+  val mailService: ActorRef
+  val sysConfig: SystemConfig
+  val system: ActorSystem
+
+  override val insertService = ArbeitseinsatzInsertService(sysConfig, system)
+  override val updateService = ArbeitseinsatzUpdateService(sysConfig, system)
+  override val deleteService = ArbeitseinsatzDeleteService(sysConfig, system)
+
+  override val aktionenService = ArbeitseinsatzAktionenService(sysConfig, system, mailService)
 }

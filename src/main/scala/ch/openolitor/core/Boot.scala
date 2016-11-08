@@ -68,6 +68,7 @@ import ch.openolitor.buchhaltung.BuchhaltungReportEventListener
 import ch.openolitor.core.calculations.OpenOlitorCalculations
 import ch.openolitor.core.calculations.Calculations.InitializeCalculation
 import ch.openolitor.util.AirbrakeNotifier
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
 
@@ -111,7 +112,7 @@ object Boot extends App with LazyLogging {
 
   lazy val rootInterface = config.getStringOption("openolitor.interface").getOrElse("0.0.0.0")
   val proxyService = config.getBooleanOption("openolitor.run-proxy-service").getOrElse(false)
-  //start proxy service 
+  //start proxy service
   if (proxyService) {
     startProxyService(mandanten, ooConfig)
   }
@@ -195,6 +196,8 @@ object Boot extends App with LazyLogging {
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
+      val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, entityStore), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
+
       //start websocket service
       val clientMessages = Await.result(system ? SystemActor.Child(ClientMessagesServer.props(loginTokenCache), "ws-client-messages"), duration).asInstanceOf[ActorRef]
 
@@ -208,6 +211,7 @@ object Boot extends App with LazyLogging {
       eventStore ? DefaultMessages.Startup
       stammdatenEntityStoreView ? DefaultMessages.Startup
       buchhaltungEntityStoreView ? DefaultMessages.Startup
+      arbeitseinsatzEntityStoreView ? DefaultMessages.Startup
 
       // create and start our service actor
       val service = Await.result(system ? SystemActor.Child(RouteServiceActor.props(entityStore, eventStore, mailService, reportSystem, fileStoreComponent.fileStore, airbrakeNotifier, loginTokenCache), "route-service"), duration).asInstanceOf[ActorRef]

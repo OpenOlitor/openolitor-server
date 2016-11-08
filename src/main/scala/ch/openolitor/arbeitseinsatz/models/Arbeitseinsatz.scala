@@ -91,6 +91,20 @@ case class Arbeitsangebot(
   modifikator: PersonId
 ) extends BaseEntity[ArbeitsangebotId]
 
+case class ArbeitsangebotModify(
+  kopieVon: Option[ArbeitsangebotId],
+  titel: String,
+  bezeichnung: Option[String],
+  ort: Option[String],
+  zeitVon: DateTime,
+  zeitBis: DateTime,
+  arbeitskategorien: Seq[String],
+  anzahlPersonen: Option[Int],
+  mehrPersonenOk: Boolean,
+  einsatzZeit: Option[Int],
+  status: ArbeitseinsatzStatus
+) extends JSONSerializable
+
 case class ArbeitseinsatzId(id: Long) extends BaseId
 
 trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
@@ -125,3 +139,16 @@ case class Arbeitseinsatz(
   modifidat: DateTime,
   modifikator: PersonId
 ) extends BaseEntity[ArbeitseinsatzId]
+
+case class ArbeitseinsatzModify(
+  arbeitsangebotId: ArbeitsangebotId,
+  arbeitsangebotTitel: String,
+  zeitVon: DateTime,
+  zeitBis: DateTime,
+  kundeId: KundeId,
+  kundeBezeichnung: String,
+  aboId: AboId,
+  aboBezeichnung: String,
+  anzahlPersonen: Int,
+  bemerkungen: Option[String]
+) extends JSONSerializable
