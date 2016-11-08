@@ -91,7 +91,6 @@ import org.odftoolkit.simple.style.StyleTypeDefinitions
 import scala.None
 import scala.collection.Iterable
 import collection.JavaConverters._
-import ch.openolitor.util.AirbrakeNotifier.AirbrakeNotification
 
 sealed trait ResponseType
 case object Download extends ResponseType
@@ -150,13 +149,9 @@ trait RouteServiceActor
     runDBEvolution()
   }
 
-  implicit val openolitorRejectionHandler: RejectionHandler = OpenOlitorRejectionHandler()
+  implicit val openolitorRejectionHandler: RejectionHandler = OpenOlitorRejectionHandler(this)
 
-  implicit def exceptionHandler = ExceptionHandler {
-    case th => ctx =>
-      airbrakeNotifier ! AirbrakeNotification(th, Some(ctx.request))
-      ctx.complete(StatusCodes.InternalServerError)
-  }
+  implicit def exceptionHandler: ExceptionHandler = OpenOlitorExceptionHandler(this)
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test
@@ -229,7 +224,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     with FileStoreComponent
     with LazyLogging
     with SprayDeserializers
-    with ReportJsonProtocol {
+    with ReportJsonProtocol
+    with DateFormats {
 
   implicit val timeout = Timeout(5.seconds)
 
@@ -570,9 +566,9 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
               case ZipReportResult(_, errors, zip) if zip.isDefined =>
                 //TODO: send error to client as well
                 errors.map(error => logger.warn(s"Coulnd't generate report document: $error"))
-                zip.map(result => streamZip("Report_" + System.currentTimeMillis + ".zip", result)) getOrElse (complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden, es wurden keine Dateien erzeugt"))
+                zip.map(result => streamZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", result)) getOrElse (complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden, es wurden keine Dateien erzeugt"))
               case BatchStoredPdfReportResult(_, errors, results) if downloadFile =>
-                downloadAsZip("Report_" + System.currentTimeMillis + ".zip", results)
+                downloadAsZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", results)
               case result: BatchStoredPdfReportResult =>
                 //complete(result)
                 complete("")

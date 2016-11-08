@@ -478,6 +478,22 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   implicit val enhancedDepotReportFormat: RootJsonFormat[DepotReport] = enhancedDepotReportFormatDef(autoProductFormat[DepotReport])
   implicit val enhancedDepotDetailReportFormat: RootJsonFormat[DepotDetailReport] = enhancedDepotReportFormatDef(autoProductFormat[DepotDetailReport])
 
+  def enhancedProduzentReportFormatDef[D <: IProduzentReport](defaultFormat: JsonFormat[D]): RootJsonFormat[D] = new RootJsonFormat[D] {
+    def write(obj: D): JsValue = {
+      JsObject(defaultFormat.write(obj)
+        .asJsObject.fields +
+        (
+          "strasseUndNummer" -> JsString(obj.strasseUndNummer.getOrElse("")),
+          "plzOrt" -> JsString(obj.plzOrt),
+          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)
+        ))
+    }
+
+    def read(json: JsValue): D = defaultFormat.read(json)
+  }
+
+  implicit val enhancedProduzentDetailReportFormat: RootJsonFormat[ProduzentDetailReport] = enhancedProduzentReportFormatDef(autoProductFormat[ProduzentDetailReport])
+
   implicit val depotAuslieferungReportFormat = autoProductFormat[DepotAuslieferungReport]
   implicit val tourAuslieferungReportFormat = autoProductFormat[TourAuslieferungReport]
   implicit val postAuslieferungReportFormat = autoProductFormat[PostAuslieferungReport]

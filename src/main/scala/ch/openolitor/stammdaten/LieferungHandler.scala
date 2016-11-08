@@ -20,29 +20,15 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.models
+package ch.openolitor.stammdaten
 
-import ch.openolitor.core.filestore._
-import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.stammdaten.models._
 
-trait VorlageTyp extends FileType
-
-object VorlageTyp extends LazyLogging {
-  val AlleVorlageTypen = List(
-    VorlageRechnung,
-    VorlageDepotLieferschein,
-    VorlageTourLieferschein,
-    VorlagePostLieferschein,
-    VorlageDepotLieferetiketten,
-    VorlageTourLieferetiketten,
-    VorlagePostLieferetiketten,
-    VorlageKundenbrief,
-    VorlageDepotbrief,
-    VorlageProduzentenbrief
-  )
-
-  def apply(value: String): VorlageTyp = {
-    logger.debug(s"Vorlagetyp.apply:$value")
-    AlleVorlageTypen.find(_.toString.toLowerCase == value.toLowerCase).getOrElse(UnknownFileType)
-  }
+trait LieferungHandler {
+  def calcDurchschnittspreis(durchschnittspreis: BigDecimal, anzahlLieferungen: Int, neuerPreis: BigDecimal): BigDecimal =
+    if (anzahlLieferungen == 0) {
+      0
+    } else {
+      ((durchschnittspreis * (anzahlLieferungen - 1)) + neuerPreis) / anzahlLieferungen
+    }
 }
