@@ -86,19 +86,29 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           delete(remove(id))
       } ~
       path("arbeitsangebote" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitsangebote))
+        get(list(arbeitseinsatzReadRepository.getArbeitsangebote)) ~
+          post(create[ArbeitsangebotModify, ArbeitsangebotId](ArbeitsangebotId.apply _))
       } ~
       path("arbeitsangebote" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitsangebote))
       } ~
+      path("arbeitsangebote" / arbeitsangebotIdPath) { id =>
+        (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
+          delete(remove(id))
+      } ~
       path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze))
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze)) ~
+          post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
       } ~
       path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) { (kunedId, exportFormat) =>
         get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kunedId)))
       } ~
       path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze))
+      } ~
+      path("arbeitseinsaetze" / arbeitseinsatzIdPath) { id =>
+        (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](id)) ~
+          delete(remove(id))
       } ~
       path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId)))

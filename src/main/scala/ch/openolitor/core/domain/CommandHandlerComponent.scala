@@ -25,6 +25,7 @@ package ch.openolitor.core.domain
 import ch.openolitor.buchhaltung.DefaultBuchhaltungCommandHandler
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.kundenportal.DefaultKundenportalCommandHandler
+import ch.openolitor.arbeitseinsatz.DefaultArbeitseinsatzCommandHandler
 import ch.openolitor.stammdaten.DefaultStammdatenCommandHandler
 
 import akka.actor.ActorSystem
@@ -32,6 +33,7 @@ import akka.actor.ActorSystem
 trait CommandHandlerComponent {
   val stammdatenCommandHandler: CommandHandler
   val buchhaltungCommandHandler: CommandHandler
+  val arbeitseinsatzCommandHandler: CommandHandler
   val kundenportalCommandHandler: CommandHandler
   val baseCommandHandler: CommandHandler
 }
@@ -42,6 +44,7 @@ trait DefaultCommandHandlerComponent extends CommandHandlerComponent {
 
   override val stammdatenCommandHandler = new DefaultStammdatenCommandHandler(sysConfig, system)
   override val buchhaltungCommandHandler = new DefaultBuchhaltungCommandHandler(sysConfig, system)
+  override val arbeitseinsatzCommandHandler = new DefaultArbeitseinsatzCommandHandler(sysConfig, system)
   override val kundenportalCommandHandler = new DefaultKundenportalCommandHandler(sysConfig, system)
   override val baseCommandHandler = new BaseCommandHandler()
 }

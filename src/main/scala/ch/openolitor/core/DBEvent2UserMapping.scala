@@ -32,6 +32,8 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepository
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
 
 object DBEvent2UserMapping extends DefaultJsonProtocol {
   def props(): Props = Props(classOf[DBEvent2UserMapping])
@@ -54,6 +56,7 @@ class DBEvent2UserMapping extends Actor
     with ClientReceiver
     with StammdatenJsonProtocol
     with BuchhaltungJsonProtocol
+    with ArbeitseinsatzJsonProtocol
     with AkkaEventStream {
   import DBEvent2UserMapping._
 
@@ -171,6 +174,18 @@ class DBEvent2UserMapping extends Actor
     case e @ EntityModified(userId, entity: DepotAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[DepotAuslieferung]])
     case e @ EntityModified(userId, entity: TourAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[TourAuslieferung]])
     case e @ EntityModified(userId, entity: PostAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[PostAuslieferung]])
+
+    case e @ EntityCreated(userId, entity: Arbeitskategorie) => send(userId, e.asInstanceOf[DBEvent[Arbeitskategorie]])
+    case e @ EntityModified(userId, entity: Arbeitskategorie, _) => send(userId, e.asInstanceOf[DBEvent[Arbeitskategorie]])
+    case e @ EntityDeleted(userId, entity: Arbeitskategorie) => send(userId, e.asInstanceOf[DBEvent[Arbeitskategorie]])
+
+    case e @ EntityCreated(userId, entity: Arbeitsangebot) => send(userId, e.asInstanceOf[DBEvent[Arbeitsangebot]])
+    case e @ EntityModified(userId, entity: Arbeitsangebot, _) => send(userId, e.asInstanceOf[DBEvent[Arbeitsangebot]])
+    case e @ EntityDeleted(userId, entity: Arbeitsangebot) => send(userId, e.asInstanceOf[DBEvent[Arbeitsangebot]])
+
+    case e @ EntityCreated(userId, entity: Arbeitseinsatz) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
+    case e @ EntityModified(userId, entity: Arbeitseinsatz, _) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
+    case e @ EntityDeleted(userId, entity: Arbeitseinsatz) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
 
     case x => log.debug(s"receive unknown event $x")
   }

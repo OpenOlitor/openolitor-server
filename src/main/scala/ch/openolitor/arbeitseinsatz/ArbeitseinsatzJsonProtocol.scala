@@ -47,4 +47,8 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
   implicit val arbeitsangebotFormat = autoProductFormat[Arbeitsangebot]
   implicit val arbeitseinsatzFormat = autoProductFormat[Arbeitseinsatz]
 
+  implicit val arbeitskategorieModifyFormat = autoProductFormat[ArbeitskategorieModify]
+  implicit val arbeitsangebotModifyFormat = autoProductFormat[ArbeitsangebotModify]
+  implicit val arbeitseinsatzModifyFormat = autoProductFormat[ArbeitseinsatzModify]
+
 }

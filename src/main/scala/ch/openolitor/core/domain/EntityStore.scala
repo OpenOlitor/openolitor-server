@@ -112,6 +112,7 @@ trait EntityStore extends AggregateRoot
   lazy val moduleCommandHandlers: List[CommandHandler] = List(
     stammdatenCommandHandler,
     buchhaltungCommandHandler,
+    arbeitseinsatzCommandHandler,
     kundenportalCommandHandler,
     baseCommandHandler
   )
@@ -127,7 +128,7 @@ trait EntityStore extends AggregateRoot
   def updateId[E, I <: BaseId](clOf: Class[_ <: BaseId], id: Long) = {
     if (state.dbSeeds.get(clOf).map(_ < id).getOrElse(true)) {
       log.debug(s"updateId:$clOf -> $id")
-      //only update if current id is smaller than new one or no id did exist 
+      //only update if current id is smaller than new one or no id did exist
       state = state.copy(dbSeeds = state.dbSeeds + (clOf -> id))
     }
   }
