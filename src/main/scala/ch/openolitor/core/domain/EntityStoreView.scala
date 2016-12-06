@@ -39,6 +39,8 @@ import akka.pattern.ask
 import scala.util._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.repositories.PostEventPublishing
+import ch.openolitor.core.repositories.PostEventPublishing
 
 trait EventService[E <: PersistentEvent] {
   type Handle = (E => Unit)

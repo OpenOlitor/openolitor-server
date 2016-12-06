@@ -113,7 +113,7 @@ trait BaseReadRepository extends BaseRepositoryQueries {
   }
 }
 
-trait BaseWriteRepository extends BaseRepositoryQueries {
+trait BaseWriteRepository extends BaseRepositoryQueries with PostEventPublishing {
   self: EventStream =>
 
   type Validator[E] = E => Boolean
@@ -204,13 +204,5 @@ trait BaseWriteRepository extends BaseRepositoryQueries {
           None
       }
     }.getOrElse(None)
-  }
-
-  def withPublisher[R](block: DBSession => EventPublisher => R) = {
-    val publisher = new PostEventPublisher(this)
-    DB localTx { session =>
-      block(session)(publisher)
-    }
-    publisher.publishEvents()
   }
 }

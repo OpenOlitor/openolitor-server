@@ -24,6 +24,9 @@ package ch.openolitor.core.repositories
 
 import ch.openolitor.core.EventStream
 import scala.collection.mutable.ArrayBuffer
+import scalikejdbc.DBSession
+import scalikejdbc.DB
+import com.typesafe.scalalogging.LazyLogging
 
 trait EventPublisher {
 
@@ -43,7 +46,7 @@ class InstantEventPublisher(eventStream: EventStream) extends EventPublisher {
   }
 }
 
-class PostEventPublisher(eventStream: EventStream) extends EventPublisher {
+class PostEventPublisher(eventStream: EventStream) extends EventPublisher with LazyLogging {
   val events = ArrayBuffer.empty[Object]
 
   override def registerPublish(msg: Object) = {
@@ -51,6 +54,23 @@ class PostEventPublisher(eventStream: EventStream) extends EventPublisher {
   }
 
   def publishEvents(): Unit = {
-    events map (eventStream.publish)
+    try {
+      events map (eventStream.publish)
+    } catch {
+      case e: Exception =>
+        logger.error(s"Failed to publish events after operation. ${e.getMessage}", e)
+    }
+  }
+}
+
+trait PostEventPublishing {
+  self: EventStream =>
+
+  def withPostEventPublisher[R](block: DBSession => EventPublisher => R) = {
+    val publisher = new PostEventPublisher(this)
+    DB localTx { session =>
+      block(session)(publisher)
+    }
+    publisher.publishEvents()
   }
 }
