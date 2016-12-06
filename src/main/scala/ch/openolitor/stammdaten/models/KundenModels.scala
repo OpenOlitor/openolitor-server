@@ -211,6 +211,35 @@ object Kunde {
   ))
 }
 
+case class KundeUebersicht(
+  id: KundeId,
+  bezeichnung: String,
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  bemerkungen: Option[String],
+  abweichendeLieferadresse: Boolean,
+  bezeichnungLieferung: Option[String],
+  strasseLieferung: Option[String],
+  hausNummerLieferung: Option[String],
+  adressZusatzLieferung: Option[String],
+  plzLieferung: Option[String],
+  ortLieferung: Option[String],
+  zusatzinfoLieferung: Option[String],
+  typen: Set[KundentypId],
+  //Zusatzinformationen
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  ansprechpersonen: Seq[PersonSummary],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
+
 case class KundeDetail(
   id: KundeId,
   bezeichnung: String,
@@ -231,6 +260,7 @@ case class KundeDetail(
   typen: Set[KundentypId],
   //Zusatzinformationen
   anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
   abos: Seq[Abo],
@@ -344,6 +374,35 @@ case class PersonSummary(
   email: Option[String],
   emailAlternative: Option[String],
   letzteAnmeldung: Option[DateTime]
+) extends JSONSerializable
+
+case class PersonUebersicht(
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String],
+  loginAktiv: Boolean,
+  letzteAnmeldung: Option[DateTime],
+  rolle: Option[Rolle],
+  // kundendaten
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  kundentypen: Set[KundentypId],
+  kundenBemerkungen: Option[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends JSONSerializable
 
 case class KundeSummary(id: KundeId, kunde: String) extends Product

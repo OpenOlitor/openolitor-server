@@ -26,8 +26,6 @@ import org.joda.time.DateTime
 import ch.openolitor.core.models._
 import java.util.UUID
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.JSONSerializable
 
 sealed trait LieferungStatus
 
@@ -48,11 +46,10 @@ case object WirdGeliefert extends KorbStatus
 case object Geliefert extends KorbStatus
 case object FaelltAusAbwesend extends KorbStatus
 case object FaelltAusSaldoZuTief extends KorbStatus
-case object FaelltAusGekuendigt extends KorbStatus
 
 object KorbStatus {
   def apply(value: String): KorbStatus = {
-    Vector(WirdGeliefert, Geliefert, FaelltAusAbwesend, FaelltAusSaldoZuTief, FaelltAusGekuendigt) find (_.toString == value) getOrElse (WirdGeliefert)
+    Vector(WirdGeliefert, Geliefert, FaelltAusAbwesend, FaelltAusSaldoZuTief) find (_.toString == value) getOrElse (WirdGeliefert)
   }
 }
 
@@ -96,6 +93,7 @@ case class LieferungOnLieferplanungId(id: Long) extends BaseLieferungId {
 
 case class LieferplanungCreated(id: LieferplanungId) extends Product with JSONSerializable
 
+// datum entspricht einem Zeitpunkt
 case class Lieferung(
   id: LieferungId,
   abotypId: AbotypId,
@@ -135,6 +133,7 @@ case class LieferungDetail(
   lieferplanungId: Option[LieferplanungId],
   abotyp: Option[Abotyp],
   lieferpositionen: Seq[Lieferposition],
+  lieferplanungBemerkungen: Option[String],
   //value for actual geschaeftsjahr
   durchschnittspreis: BigDecimal,
   anzahlLieferungen: Int,
@@ -152,8 +151,6 @@ case class LieferungModify(
   vertriebsartBeschrieb: Option[String],
   status: LieferungStatus,
   datum: DateTime,
-  durchschnittspreis: BigDecimal,
-  anzahlLieferungen: Int,
   preisTotal: BigDecimal,
   lieferplanungId: Option[LieferplanungId]
 ) extends JSONSerializable
@@ -208,6 +205,7 @@ case class LieferpositionModify(
 ) extends JSONSerializable
 
 case class LieferpositionenModify(
+  preisTotal: Option[BigDecimal],
   lieferpositionen: List[LieferpositionModify]
 ) extends JSONSerializable
 

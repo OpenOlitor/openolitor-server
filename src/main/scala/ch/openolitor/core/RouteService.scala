@@ -95,8 +95,8 @@ case object Download extends ResponseType
 case object Fetch extends ResponseType
 
 object RouteServiceActor {
-  def props(entityStore: ActorRef, eventStore: ActorRef, mailService: ActorRef, reportSystem: ActorRef, fileStore: FileStore, loginTokenCache: Cache[Subject])(implicit sysConfig: SystemConfig, system: ActorSystem): Props =
-    Props(classOf[DefaultRouteServiceActor], entityStore, eventStore, mailService, reportSystem, fileStore, sysConfig, system, loginTokenCache)
+  def props(entityStore: ActorRef, eventStore: ActorRef, mailService: ActorRef, reportSystem: ActorRef, fileStore: FileStore, airbrakeNotifier: ActorRef, loginTokenCache: Cache[Subject])(implicit sysConfig: SystemConfig, system: ActorSystem): Props =
+    Props(classOf[DefaultRouteServiceActor], entityStore, eventStore, mailService, reportSystem, fileStore, airbrakeNotifier, sysConfig, system, loginTokenCache)
 }
 
 trait RouteServiceComponent extends ActorReferences {
@@ -117,12 +117,12 @@ trait RouteServiceComponent extends ActorReferences {
 }
 
 trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache {
-  override lazy val stammdatenRouteService = new DefaultStammdatenRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory)
-  override lazy val buchhaltungRouteService = new DefaultBuchhaltungRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory)
-  override lazy val kundenportalRouteService = new DefaultKundenportalRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory)
-  override lazy val systemRouteService = new DefaultSystemRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory)
-  override lazy val loginRouteService = new DefaultLoginRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, loginTokenCache)
-  override lazy val nonAuthRessourcesRouteService = new DefaultNonAuthRessourcesRouteService(sysConfig, system, fileStore, actorRefFactory)
+  override lazy val stammdatenRouteService = new DefaultStammdatenRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
+  override lazy val buchhaltungRouteService = new DefaultBuchhaltungRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
+  override lazy val kundenportalRouteService = new DefaultKundenportalRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
+  override lazy val systemRouteService = new DefaultSystemRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
+  override lazy val loginRouteService = new DefaultLoginRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, loginTokenCache)
+  override lazy val nonAuthRessourcesRouteService = new DefaultNonAuthRessourcesRouteService(sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
 }
 
 // we don't implement our route structure directly in the service actor because(entityStore, sysConfig, system, fileStore, actorRefFactory)
@@ -136,15 +136,18 @@ trait RouteServiceActor
     with FileStoreComponent
     with CORSSupport
     with BaseJsonProtocol
-    with RoleBasedAuthorization {
+    with RoleBasedAuthorization
+    with AirbrakeNotifierReference {
   self: RouteServiceComponent =>
 
-  //initially run db evolution  
+  //initially run db evolution
   override def preStart() = {
     runDBEvolution()
   }
 
-  implicit val openolitorRejectionHandler: RejectionHandler = OpenOlitorRejectionHandler()
+  implicit val openolitorRejectionHandler: RejectionHandler = OpenOlitorRejectionHandler(this)
+
+  implicit def exceptionHandler: ExceptionHandler = OpenOlitorExceptionHandler(this)
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test
@@ -170,7 +173,7 @@ trait RouteServiceActor
               buchhaltungRouteService.buchhaltungRoute ~
               fileStoreRoute
           } ~
-          authorize(hasRole(KundenZugang)) {
+          authorize(hasRole(KundenZugang) || hasRole(AdministratorZugang)) {
             kundenportalRouteService.kundenportalRoute
           }
       } ~
@@ -216,7 +219,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     with FileStoreComponent
     with LazyLogging
     with SprayDeserializers
-    with ReportJsonProtocol {
+    with ReportJsonProtocol
+    with DateFormats {
 
   implicit val timeout = Timeout(5.seconds)
 
@@ -288,7 +292,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           sheet.setCellStyleInheritance(false)
 
           result match {
-            case list: List[Product] =>
+            case list: List[Product @unchecked] =>
               if (list.nonEmpty) {
 
                 val row = sheet.getRowByIndex(0);
@@ -329,7 +333,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
                     }
                 }
               }
-            case x: Any => sheet.getRowByIndex(0).getCellByIndex(0).setStringValue("Data of type" + x.toString() + " could not be transfered to ODS file.")
+            case x => sheet.getRowByIndex(0).getCellByIndex(0).setStringValue("Data of type" + x.toString + " could not be transfered to ODS file.")
           }
 
           sheet.getColumnList.asScala map { _.setUseOptimalWidth(true) }
@@ -557,9 +561,9 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
               case ZipReportResult(_, errors, zip) if zip.isDefined =>
                 //TODO: send error to client as well
                 errors.map(error => logger.warn(s"Coulnd't generate report document: $error"))
-                zip.map(result => streamZip("Report_" + System.currentTimeMillis + ".zip", result)) getOrElse (complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden, es wurden keine Dateien erzeugt"))
+                zip.map(result => streamZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", result)) getOrElse (complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden, es wurden keine Dateien erzeugt"))
               case BatchStoredPdfReportResult(_, errors, results) if downloadFile =>
-                downloadAsZip("Report_" + System.currentTimeMillis + ".zip", results)
+                downloadAsZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", results)
               case result: BatchStoredPdfReportResult =>
                 //complete(result)
                 complete("")
@@ -591,6 +595,7 @@ class DefaultRouteServiceActor(
   override val mailService: ActorRef,
   override val reportSystem: ActorRef,
   override val fileStore: FileStore,
+  override val airbrakeNotifier: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
   override val loginTokenCache: Cache[Subject]

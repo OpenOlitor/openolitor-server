@@ -13,7 +13,7 @@ object BuildSettings {
  
   val buildSettings = SbtScalariform.scalariformSettings ++ Seq(
     organization := "ch.openolitor.scalamacros",
-    version := "1.0.0",
+    version := "1.0.1",
     scalaVersion := "2.11.8",
     crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -67,7 +67,8 @@ object BuildSettings {
       // s3
       "com.amazonaws"                %   "aws-java-sdk"                         % "1.11.4",
       "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
-      "me.lessis"                    %%  "courier"                              % "0.1.3"
+      "me.lessis"                    %%  "courier"                              % "0.1.3",
+      "com.github.nscala-time"       %%  "nscala-time"                          % "2.14.0"
 	  )
 	}
   )

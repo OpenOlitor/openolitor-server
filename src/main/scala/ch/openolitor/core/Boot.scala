@@ -65,6 +65,9 @@ import ch.openolitor.core.reporting._
 import ch.openolitor.core.filestore.DefaultFileStoreComponent
 import ch.openolitor.core.mailservice.MailService
 import ch.openolitor.buchhaltung.BuchhaltungReportEventListener
+import ch.openolitor.core.calculations.OpenOlitorCalculations
+import ch.openolitor.core.calculations.Calculations.InitializeCalculation
+import ch.openolitor.util.AirbrakeNotifier
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
 
@@ -97,6 +100,7 @@ object Boot extends App with LazyLogging {
   val ooConfig = config.getConfig("openolitor")
   val configs = getMandantConfiguration(ooConfig)
   implicit val timeout = Timeout(5.seconds)
+
   val mandanten = startServices(configs)
 
   val nonConfigPort = Option(System.getenv("PORT")).getOrElse("8080")
@@ -143,6 +147,12 @@ object Boot extends App with LazyLogging {
     logger.debug(s"oo-proxy-system: configured proxy listener on port ${rootPort}")
   }
 
+  def startAirbrakeService(implicit systemConfig: SystemConfig) = {
+    implicit val airbrakeNotifierSystem = ActorSystem(s"oo-airbrake-notifier-system-${systemConfig.mandantConfiguration.name}")
+    val airbrakeNotifier = airbrakeNotifierSystem.actorOf(AirbrakeNotifier.props, "oo-airbrake-notifier")
+    airbrakeNotifier
+  }
+
   /**
    * Jeder Mandant wird in einem eigenen Akka System gestartet.
    */
@@ -161,7 +171,9 @@ object Boot extends App with LazyLogging {
 
       // initialise root actors
       val duration = Duration.create(1, SECONDS);
-      val system = app.actorOf(SystemActor.props, "oo-system")
+      val airbrakeNotifier = startAirbrakeService
+
+      val system = app.actorOf(SystemActor.props(airbrakeNotifier), "oo-system")
       logger.debug(s"oo-system:$system")
       val entityStore = Await.result(system ? SystemActor.Child(EntityStore.props(new Evolution(sysCfg)), "entity-store"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> entityStore:$entityStore")
@@ -170,15 +182,16 @@ object Boot extends App with LazyLogging {
       val mailService = Await.result(system ? SystemActor.Child(MailService.props, "mail-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
-      val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, entityStore), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
       val fileStoreComponent = new DefaultFileStoreComponent(cfg.name, sysCfg, app)
       val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStoreComponent.fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
 
       //start actor listening events
       val stammdatenDBEventListener = Await.result(system ? SystemActor.Child(StammdatenDBEventEntityListener.props, "stammdaten-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val stammdatenMailSentListener = Await.result(system ? SystemActor.Child(StammdatenMailListener.props, "stammdaten-mail-listener"), duration).asInstanceOf[ActorRef]
+      val stammdatenGeneratedEventsListener = Await.result(system ? SystemActor.Child(StammdatenGeneratedEventsListener.props, "stammdaten-generated-events-listener"), duration).asInstanceOf[ActorRef]
 
-      val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props, "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(entityStore), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
@@ -188,6 +201,8 @@ object Boot extends App with LazyLogging {
       //start actor mapping dbevents to client messages
       val dbEventClientMessageMapper = Await.result(system ? SystemActor.Child(DBEvent2UserMapping.props, "db-event-mapper"), duration).asInstanceOf[ActorRef]
 
+      val calculations = Await.result(system ? SystemActor.Child(OpenOlitorCalculations.props(entityStore), "calculations"), duration).asInstanceOf[ActorRef]
+
       //initialize global persistentviews
       logger.debug(s"oo-system: send Startup to entityStoreview")
       eventStore ? DefaultMessages.Startup
@@ -195,7 +210,7 @@ object Boot extends App with LazyLogging {
       buchhaltungEntityStoreView ? DefaultMessages.Startup
 
       // create and start our service actor
-      val service = Await.result(system ? SystemActor.Child(RouteServiceActor.props(entityStore, eventStore, mailService, reportSystem, fileStoreComponent.fileStore, loginTokenCache), "route-service"), duration).asInstanceOf[ActorRef]
+      val service = Await.result(system ? SystemActor.Child(RouteServiceActor.props(entityStore, eventStore, mailService, reportSystem, fileStoreComponent.fileStore, airbrakeNotifier, loginTokenCache), "route-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system: route-service:$service")
 
       // start a new HTTP server on port 9005 with our service actor as the handler
@@ -205,6 +220,8 @@ object Boot extends App with LazyLogging {
       //start new websocket service
       IO(UHttp) ? Http.Bind(clientMessages, interface = cfg.interface, port = cfg.wsPort)
       logger.debug(s"oo-system: configured ws listener on port ${cfg.wsPort}")
+
+      calculations ! InitializeCalculation
 
       MandantSystem(cfg, app)
     }

@@ -37,6 +37,7 @@ import ch.openolitor.core.Macros._
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import ch.openolitor.core.Macros._
 import scala.collection.immutable.TreeMap
 import scalaz._
@@ -59,7 +60,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     with LazyLogging
     with AsyncConnectionPoolContextAware
     with StammdatenDBMappings
-    with KorbStatusHandler {
+    with KorbHandler
+    with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
   val ZERO = 0
@@ -309,11 +311,17 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  def aboParameters(create: AboModify)(abotyp: Abotyp): (Option[Int], Option[DateTime]) = {
+  def aboParameters(create: AboModify)(abotyp: Abotyp): (Option[Int], Option[LocalDate], Boolean) = {
     abotyp.laufzeiteinheit match {
-      case Unbeschraenkt => (None, None)
-      case Lieferungen => (abotyp.laufzeit, None)
-      case Monate => (None, Some(create.start.plusMonths(abotyp.laufzeit.get)))
+      case Unbeschraenkt =>
+        (None, None, IAbo.calculateAktiv(create.start, None))
+
+      case Lieferungen =>
+        (abotyp.laufzeit, None, IAbo.calculateAktiv(create.start, None))
+
+      case Monate =>
+        val ende = Some(create.start.plusMonths(abotyp.laufzeit.get))
+        (None, ende, IAbo.calculateAktiv(create.start, ende))
     }
   }
 
@@ -349,7 +357,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       abotypByVertriebartId(create.vertriebsartId) map {
         case (vertriebsart, vertrieb, abotyp) =>
           aboParameters(create)(abotyp) match {
-            case (guthaben, ende) =>
+            case (guthaben, ende, aktiv) =>
               val abo = create match {
                 case create: DepotlieferungAboModify =>
                   val depotName = depotById(create.depotId).map(_.name).getOrElse("")
@@ -369,6 +377,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
+                    "aktiv" -> aktiv,
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
@@ -392,6 +401,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
+                    "aktiv" -> aktiv,
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
@@ -412,6 +422,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
+                    "aktiv" -> aktiv,
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
@@ -577,31 +588,9 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     logger.debug(s"Create Koerbe:${lieferung.id}")
     stammdatenWriteRepository.getById(abotypMapping, lieferung.abotypId) map { abotyp =>
       val abos = stammdatenWriteRepository.getAktiveAbos(lieferung.vertriebId, lieferung.datum)
-      val statusL = abos map { abo =>
-        val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
-        val retAbw = abwCount match {
-          case Some(abw) if abw > 0 => 1
-          case _ => 0
-        }
-        val status = calculateKorbStatus(abwCount, abo.guthaben, abotyp.guthabenMindestbestand)
-        val korbId = KorbId(IdUtil.positiveRandomId)
-        val korb = Korb(
-          korbId,
-          lieferung.id,
-          abo.id,
-          status,
-          abo.guthaben,
-          None,
-          None,
-          DateTime.now,
-          personId,
-          DateTime.now,
-          personId
-        )
-        stammdatenWriteRepository.insertEntity[Korb, KorbId](korb)
-        status
-      }
-
+      val statusL = (abos map { abo =>
+        upsertKorb(lieferung, abo, abotyp)
+      }).map(_._1).flatten map (_.status)
       val counts = statusL.groupBy { _.getClass }.mapValues(_.size)
 
       logger.debug(s"Update lieferung:$lieferung")
@@ -618,12 +607,26 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     DB autoCommit { implicit session =>
       stammdatenWriteRepository.getById(lieferplanungMapping, data.lieferplanungId) map { lieferplanung =>
         stammdatenWriteRepository.getById(lieferungMapping, data.id) map { lieferung =>
+          val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.datum) match {
+            case Some(lieferungVorher) =>
+              val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.datum).getOrElse(BigDecimal(0))
 
+              val durchschnittspreisBisher: BigDecimal = lieferungVorher.anzahlLieferungen match {
+                case 0 => BigDecimal(0)
+                case _ => sum / lieferungVorher.anzahlLieferungen
+              }
+              val anzahlLieferungenNeu = lieferungVorher.anzahlLieferungen + 1
+              (durchschnittspreisBisher, anzahlLieferungenNeu)
+            case None =>
+              (BigDecimal(0), 1)
+          }
           val lpId = Some(data.lieferplanungId)
 
           val updatedLieferung = lieferung.copy(
             lieferplanungId = lpId,
             status = Offen,
+            durchschnittspreis = newDurchschnittspreis,
+            anzahlLieferungen = newAnzahlLieferungen,
             modifidat = meta.timestamp,
             modifikator = personId
           )

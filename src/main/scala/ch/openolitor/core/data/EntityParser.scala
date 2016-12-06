@@ -1,3 +1,25 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package ch.openolitor.core.data
 
 import java.util.Date
@@ -8,6 +30,7 @@ import scala.reflect.runtime.universe.{ Try => UTry, _ }
 import akka.event.LoggingAdapter
 import java.io.InputStream
 import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.odftoolkit.simple._
@@ -55,24 +78,21 @@ trait EntityParser {
 
   def parseImpl[E <: BaseEntity[_], P, R](name: String, table: Table, idCol: String, colNames: Seq[String])(entityFactory: Long => Seq[Int] => Row => P)(resultHandler: (Long, P) => Option[R])(implicit loggingAdapter: LoggingAdapter): List[R] = {
     loggingAdapter.debug(s"Parse $name")
-    val rows = table.getRowList().toList take (1000)
-    val header = rows.head
-    val data = rows.tail
+    val header = table.getRowByIndex(0)
+    val data = table.getRowIterator().toStream drop (1)
 
     //match column indexes
     val indexes = columnIndexes(header, name, Seq(idCol) ++ colNames)
     val indexId = indexes.head
     val otherIndexes = indexes.tail
 
-    (for {
-      row <- data
-    } yield {
-      val optId = row.value[Option[Long]](indexId)
-      optId map { id =>
-        val result = entityFactory(id)(otherIndexes)(row)
-        resultHandler(id, result)
-      } getOrElse (None)
-    }).flatten
+    (data takeWhile { row =>
+      row.value[Option[Long]](indexId).isDefined
+    } flatMap { row =>
+      val id = row.value[Long](indexId)
+      val result = entityFactory(id)(otherIndexes)(row)
+      resultHandler(id, result)
+    }).toList
   }
 
   def columnIndexes(header: Row, sheet: String, names: Seq[String], maxCols: Option[Int] = None)(implicit loggingAdapter: LoggingAdapter) = {
@@ -141,6 +161,8 @@ object EntityParser {
           case t if t =:= typeOf[Date] => self.getDateValue
           case t if t =:= typeOf[DateTime] => tryParseDate(self.getStringValue)
           case t if t =:= typeOf[Option[DateTime]] => self.getStringOptionValue map (s => tryParseDate(s))
+          case t if t =:= typeOf[LocalDate] => tryParseDate(self.getStringValue).toLocalDate
+          case t if t =:= typeOf[Option[LocalDate]] => self.getStringOptionValue map (s => tryParseDate(s).toLocalDate)
           case t if t =:= typeOf[Int] => self.getStringValue.toInt
           case t if t =:= typeOf[Option[Int]] => getStringOptionValue map (_.toInt)
           case t if t =:= typeOf[Long] => self.getStringValue.toLong

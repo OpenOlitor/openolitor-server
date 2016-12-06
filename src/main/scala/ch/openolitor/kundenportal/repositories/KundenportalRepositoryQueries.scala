@@ -1,3 +1,25 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package ch.openolitor.kundenportal.repositories
 
 import ch.openolitor.core.models._
@@ -136,18 +158,24 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .from(lieferungMapping as lieferung)
         .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
         .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
+        .leftJoin(lieferplanungMapping as lieferplanung).on(lieferplanung.id, lieferung.lieferplanungId)
         .where.eq(lieferung.abotypId, parameter(id))
-        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, lieferung))
         .and.withRoundBracket { _.eq(lieferung.status, parameter(Abgeschlossen)).or.eq(lieferung.status, parameter(Verrechnet)) }
         .orderBy(lieferung.datum).desc
     }
       .one(lieferungMapping(lieferung))
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
-        rs => lieferpositionMapping.opt(lieferposition)(rs)
+        rs => lieferpositionMapping.opt(lieferposition)(rs),
+        rs => lieferplanungMapping.opt(lieferplanung)(rs)
       )
-      .map((lieferung, abotyp, lieferposition) => {
-        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition)
+      .map((lieferung, abotyp, lieferposition, lieferplanung) => {
+        val bemerkung = lieferplanung match {
+          case Nil => None
+          case x => x.head.bemerkungen
+        }
+        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
       })
   }
 
@@ -157,14 +185,20 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .from(lieferungMapping as lieferung)
         .join(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
         .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
+        .leftJoin(lieferplanungMapping as lieferplanung).on(lieferplanung.id, lieferung.lieferplanungId)
         .where.eq(lieferung.id, parameter(id))
     }.one(lieferungMapping(lieferung))
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
-        rs => lieferpositionMapping.opt(lieferposition)(rs)
+        rs => lieferpositionMapping.opt(lieferposition)(rs),
+        rs => lieferplanungMapping.opt(lieferplanung)(rs)
       )
-      .map { (lieferung, abotyp, positionen) =>
-        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> positionen)
+      .map { (lieferung, abotyp, positionen, lieferplanung) =>
+        val bemerkung = lieferplanung match {
+          case Nil => None
+          case x => x.head.bemerkungen
+        }
+        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> positionen, "lieferplanungBemerkungen" -> bemerkung)
       }.single
   }
 

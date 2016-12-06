@@ -27,6 +27,7 @@ import scalikejdbc._
 import ch.openolitor.core.repositories.BaseWriteRepository
 import ch.openolitor.stammdaten.models._
 import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.AkkaEventStream
@@ -41,6 +42,8 @@ trait StammdatenWriteRepository extends BaseWriteRepository with EventStream {
   def getAbotypDetail(id: AbotypId)(implicit session: DBSession): Option[Abotyp]
   def getAboDetail(id: AboId)(implicit session: DBSession): Option[AboDetail]
   def getAboDetailAusstehend(id: AboId)(implicit session: DBSession): Option[AboDetail]
+  def getAbosByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Abo]
+  def getAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Abo]
 
   def getProjekt(implicit session: DBSession): Option[Projekt]
   def getKunden(implicit session: DBSession): List[Kunde]
@@ -64,17 +67,23 @@ trait StammdatenWriteRepository extends BaseWriteRepository with EventStream {
   def getProdukteByProduktekategorieBezeichnung(bezeichnung: String)(implicit session: DBSession): List[Produkt]
   def getKorb(lieferungId: LieferungId, aboId: AboId)(implicit session: DBSession): Option[Korb]
   def getKoerbe(datum: DateTime, vertriebsartId: VertriebsartId, status: KorbStatus)(implicit session: DBSession): List[Korb]
+  def getKoerbe(datum: DateTime, vertriebsartIds: List[VertriebsartId], status: KorbStatus)(implicit session: DBSession): List[Korb]
   def getKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): List[Korb]
   def getAktiveAbos(vertriebId: VertriebId, lieferdatum: DateTime)(implicit session: DBSession): List[Abo]
   def countAbwesend(lieferungId: LieferungId, aboId: AboId)(implicit session: DBSession): Option[Int]
-  def countAbwesend(aboId: AboId, datum: DateTime)(implicit session: DBSession): Option[Int]
+  def countAbwesend(aboId: AboId, datum: LocalDate)(implicit session: DBSession): Option[Int]
   def getLieferungen(id: LieferplanungId)(implicit session: DBSession): List[Lieferung]
   def getLieferungen(id: VertriebId)(implicit session: DBSession): List[Lieferung]
+  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[BigDecimal]
+  def getGeplanteLieferungVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
+  def getGeplanteLieferungNachher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
+  def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int]
   def getBestellungen(id: LieferplanungId)(implicit session: DBSession): List[Bestellung]
   def getBestellpositionen(id: BestellungId)(implicit session: DBSession): List[Bestellposition]
   def getVertriebsarten(vertriebId: VertriebId)(implicit session: DBSession): List[VertriebsartDetail]
   def getVertrieb(vertriebId: VertriebId)(implicit session: DBSession): Option[Vertrieb]
   def getKundeDetail(kundeId: KundeId)(implicit session: DBSession): Option[KundeDetail]
+  def getLieferungenOffenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung]
 
   def getTourlieferungenByKunde(id: KundeId)(implicit session: DBSession): List[Tourlieferung]
 
@@ -86,6 +95,12 @@ trait StammdatenWriteRepository extends BaseWriteRepository with EventStream {
   def getTourlieferungen(id: TourId)(implicit session: DBSession): List[Tourlieferung]
   def getHeimlieferung(tourId: TourId)(implicit session: DBSession): List[Heimlieferung]
   def getDepotlieferung(depotId: DepotId)(implicit session: DBSession): List[Depotlieferung]
+
+  def getDepotlieferungAbo(id: AboId)(implicit session: DBSession): Option[DepotlieferungAboDetail]
+  def getHeimlieferungAbo(id: AboId)(implicit session: DBSession): Option[HeimlieferungAboDetail]
+  def getPostlieferungAbo(id: AboId)(implicit session: DBSession): Option[PostlieferungAboDetail]
+
+  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
 }
 
 trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository with LazyLogging with StammdatenRepositoryQueries {
@@ -135,6 +150,38 @@ trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository with LazyL
 
   def getAbotypDetail(id: AbotypId)(implicit session: DBSession): Option[Abotyp] = {
     getAbotypDetailQuery(id).apply()
+  }
+
+  def getAbosByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Abo] = {
+    getDepotlieferungAbos(abotypId) ::: getHeimlieferungAbos(abotypId) ::: getPostlieferungAbos(abotypId)
+  }
+
+  def getDepotlieferungAbos(abotypId: AbotypId)(implicit session: DBSession): List[DepotlieferungAbo] = {
+    getDepotlieferungAbosQuery(abotypId).apply()
+  }
+
+  def getHeimlieferungAbos(abotypId: AbotypId)(implicit session: DBSession): List[HeimlieferungAbo] = {
+    getHeimlieferungAbosQuery(abotypId).apply()
+  }
+
+  def getPostlieferungAbos(abotypId: AbotypId)(implicit session: DBSession): List[PostlieferungAbo] = {
+    getPostlieferungAbosQuery(abotypId).apply()
+  }
+
+  def getAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Abo] = {
+    getDepotlieferungAbosByVertrieb(vertriebId) ::: getHeimlieferungAbosByVertrieb(vertriebId) ::: getPostlieferungAbosByVertrieb(vertriebId)
+  }
+
+  def getDepotlieferungAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[DepotlieferungAbo] = {
+    getDepotlieferungAbosByVertriebQuery(vertriebId).apply()
+  }
+
+  def getHeimlieferungAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[HeimlieferungAbo] = {
+    getHeimlieferungAbosByVertriebQuery(vertriebId).apply()
+  }
+
+  def getPostlieferungAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[PostlieferungAbo] = {
+    getPostlieferungAbosByVertriebQuery(vertriebId).apply()
   }
 
   def getProjekt(implicit session: DBSession): Option[Projekt] = {
@@ -257,6 +304,10 @@ trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository with LazyL
     getKoerbeQuery(datum, vertriebsartId, status).apply()
   }
 
+  def getKoerbe(datum: DateTime, vertriebsartIds: List[VertriebsartId], status: KorbStatus)(implicit session: DBSession): List[Korb] = {
+    getKoerbeQuery(datum, vertriebsartIds, status).apply()
+  }
+
   def getKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): List[Korb] = {
     getKoerbeQuery(auslieferungId).apply()
   }
@@ -283,7 +334,7 @@ trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository with LazyL
     countAbwesendQuery(lieferungId, aboId).apply()
   }
 
-  def countAbwesend(aboId: AboId, datum: DateTime)(implicit session: DBSession): Option[Int] = {
+  def countAbwesend(aboId: AboId, datum: LocalDate)(implicit session: DBSession): Option[Int] = {
     countAbwesendQuery(aboId, datum).apply()
   }
 
@@ -293,6 +344,22 @@ trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository with LazyL
 
   def getLieferungen(id: VertriebId)(implicit session: DBSession): List[Lieferung] = {
     getLieferungenQuery(id).apply()
+  }
+
+  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[BigDecimal] = {
+    sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId, datum).apply()
+  }
+
+  def getGeplanteLieferungVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
+    getGeplanteLieferungVorherQuery(vertriebId, datum).apply()
+  }
+
+  def getGeplanteLieferungNachher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
+    getGeplanteLieferungNachherQuery(vertriebId, datum).apply()
+  }
+
+  def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int] = {
+    countEarlierLieferungOffenQuery(id).apply()
   }
 
   def getBestellungen(id: LieferplanungId)(implicit session: DBSession): List[Bestellung] = {
@@ -357,5 +424,13 @@ trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository with LazyL
 
   def getKundeDetail(kundeId: KundeId)(implicit session: DBSession): Option[KundeDetail] = {
     getKundeDetailQuery(kundeId).apply()
+  }
+
+  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
+    getSingleDepotlieferungAbo(id)() orElse getSingleHeimlieferungAbo(id)() orElse getSinglePostlieferungAbo(id)()
+  }
+
+  def getLieferungenOffenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung] = {
+    getLieferungenOffenByAbotypQuery(abotypId)()
   }
 }
