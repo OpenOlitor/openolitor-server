@@ -68,11 +68,14 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryComponent
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryComponent
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
 
 trait KundenportalRoutes extends HttpService with ActorReferences
     with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
     with StammdatenEventStoreSerializer
     with BuchhaltungJsonProtocol
+    with ArbeitseinsatzJsonProtocol
     with StammdatenDBMappings {
   self: KundenportalReadRepositoryComponent with FileStoreComponent =>
 
@@ -91,7 +94,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       pathPrefix("kundenportal") {
-        abosRoute ~ rechnungenRoute ~ projektRoute
+        abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute
       }
     }
 
@@ -132,6 +135,20 @@ trait KundenportalRoutes extends HttpService with ActorReferences
           }
         )
       }
+  }
+
+  def arbeitRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
+    path("arbeitseinsaetze") {
+      get {
+        list(kundenportalReadRepository.getArbeitseinsaetze)
+      }
+    } ~
+      path("arbeitsangebote") {
+        get {
+          list(kundenportalReadRepository.getArbeitsangebote)
+        }
+      }
+
   }
 
   def abosRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
