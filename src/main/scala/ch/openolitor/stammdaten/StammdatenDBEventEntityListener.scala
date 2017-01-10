@@ -91,19 +91,21 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     case e @ EntityModified(personId, entity: DepotlieferungAbo, orig: DepotlieferungAbo) if entity.depotId != orig.depotId =>
       handleDepotlieferungAboDepotChanged(orig.depotId, entity.depotId)(personId)
       handleAboModified(orig, entity)(personId)
+    case e @ EntityCreated(personId, entity: HeimlieferungAbo) =>
+      handleHeimlieferungAboCreated(entity)(personId)
+      handleAboCreated(entity)(personId)
     case e @ EntityDeleted(personId, entity: HeimlieferungAbo) =>
       handleHeimlieferungAboDeleted(entity)(personId)
       handleAboDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) if entity.tourId != orig.tourId =>
-      handleHeimlieferungAboChanged(orig.tourId, entity.tourId)(personId)
+      handleHeimlieferungAboTourChanged(orig.tourId, entity.tourId)(personId)
       handleHeimlieferungAboModified(orig, entity)(personId)
+      handleAboModified(orig, entity)(personId)
+    case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) =>
+      handleHeimlieferungAboModified(entity, orig)(personId)
       handleAboModified(orig, entity)(personId)
     case e @ EntityModified(personId, entity: PostlieferungAbo, orig: PostlieferungAbo) if entity.vertriebId != orig.vertriebId =>
       handleAboModified(orig, entity)(personId)
-    case e @ EntityCreated(personId, entity: HeimlieferungAbo) =>
-      handleHeimlieferungAboCreated(entity)(personId)
-      handleAboCreated(entity)(personId)
-    case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) => handleHeimlieferungAboModified(entity, orig)(personId)
     case e @ EntityCreated(personId, entity: Abo) => handleAboCreated(entity)(personId)
     case e @ EntityDeleted(personId, entity: Abo) => handleAboDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: Abo, orig: Abo) => handleAboModified(orig, entity)(personId)
@@ -210,13 +212,6 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
   }
 
   def handleHeimlieferungAboModified(entity: HeimlieferungAbo, orig: HeimlieferungAbo)(implicit personId: PersonId) = {
-    DB autoCommit { implicit session =>
-      modifyEntity[Tour, TourId](entity.tourId, { tour =>
-        log.debug(s"Add abonnent to tour:${tour.id}")
-        tour.copy(anzahlAbonnentenAktiv = tour.anzahlAbonnentenAktiv + calculateAboAktivCreate(entity))
-      })
-    }
-
     insertOrUpdateTourlieferung(entity)
   }
 
@@ -241,7 +236,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     }
   }
 
-  def handleHeimlieferungAboChanged(from: TourId, to: TourId)(implicit personId: PersonId) = {
+  def handleHeimlieferungAboTourChanged(from: TourId, to: TourId)(implicit personId: PersonId) = {
     DB autoCommit { implicit session =>
       modifyEntity[Tour, TourId](from, { tour =>
         log.debug(s"Remove abonnent from tour:${tour.id}")
@@ -344,21 +339,12 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     // koerbe erstellen, modifizieren, loeschen falls noetig
     stammdatenWriteRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
       stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
-        orig map { original =>
-          if (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false) {
-            deleteKorb(lieferung, abo)
-          } else {
-            upsertKorb(lieferung, abo, abotyp) match {
-              case (Some(korb), existingKorb) => updateLieferungWithKorbCounts(lieferung, korb, existingKorb)
-              case _ => // nothing to update
-            }
-          }
-        } getOrElse {
-          if (abo.start <= lieferung.datum.toLocalDate && abo.ende.map(_ >= lieferung.datum.toLocalDate).getOrElse(true)) {
-            upsertKorb(lieferung, abo, abotyp) match {
-              case (Some(korb), existingKorb) => updateLieferungWithKorbCounts(lieferung, korb, existingKorb)
-              case _ => // nothing to update
-            }
+        if (orig.isDefined && (abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
+          deleteKorb(lieferung, abo)
+        } else if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
+          upsertKorb(lieferung, abo, abotyp) match {
+            case (Some(korb), existingKorb) => updateLieferungWithKorbCounts(lieferung, korb, existingKorb)
+            case _ => // nothing to update
           }
         }
       }
