@@ -38,6 +38,7 @@ object ArbeitseinsatzStatus {
 case object InVorbereitung extends ArbeitseinsatzStatus
 case object Offen extends ArbeitseinsatzStatus
 case object Abgesagt extends ArbeitseinsatzStatus
+case object Archiviert extends ArbeitseinsatzStatus
 
 case class ArbeitskategorieId(id: Long) extends BaseId
 
@@ -64,7 +65,7 @@ trait IArbeitsangebot extends BaseEntity[ArbeitsangebotId] {
   val ort: Option[String]
   val zeitVon: DateTime
   val zeitBis: DateTime
-  val arbeitskategorien: Seq[String]
+  val arbeitskategorien: Seq[ArbeitskategorieId]
   val anzahlPersonen: Option[Int]
   val mehrPersonenOk: Boolean
   val einsatzZeit: Option[Int]
@@ -79,7 +80,7 @@ case class Arbeitsangebot(
   ort: Option[String],
   zeitVon: DateTime,
   zeitBis: DateTime,
-  arbeitskategorien: Seq[String],
+  arbeitskategorien: Seq[ArbeitskategorieId],
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
   einsatzZeit: Option[Int],
@@ -98,7 +99,7 @@ case class ArbeitsangebotModify(
   ort: Option[String],
   zeitVon: DateTime,
   zeitBis: DateTime,
-  arbeitskategorien: Seq[String],
+  arbeitskategorien: Seq[ArbeitskategorieId],
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
   einsatzZeit: Option[Int],

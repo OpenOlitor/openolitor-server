@@ -44,8 +44,10 @@ trait ArbeitseinsatzReadRepository {
   def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]]
 
   def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
+  def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]]
   def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
+  def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitseinsatz]]
   def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
@@ -58,6 +60,10 @@ class ArbeitseinsatzReadRepositoryImpl extends BaseReadRepository with Arbeitsei
 
   def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
     getArbeitsangeboteQuery.future
+  }
+
+  def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]] = {
+    getArbeitsangebotQuery(arbeitsangebotId).future
   }
 
   def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
@@ -74,6 +80,10 @@ class ArbeitseinsatzReadRepositoryImpl extends BaseReadRepository with Arbeitsei
 
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
     getFutureArbeitseinsaetzeQuery.future
+  }
+
+  def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitseinsatz]] = {
+    getArbeitseinsatzQuery(arbeitseinsatzId).future
   }
 
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {

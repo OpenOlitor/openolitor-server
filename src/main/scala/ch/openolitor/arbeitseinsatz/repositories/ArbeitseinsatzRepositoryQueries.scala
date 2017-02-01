@@ -60,6 +60,14 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
 
+  protected def getArbeitsangebotQuery(arbeitsangebotId: ArbeitsangebotId) = {
+    withSQL {
+      select
+        .from(arbeitsangebotMapping as arbeitsangebot)
+        .where.eq(arbeitsangebot.id, parameter(arbeitsangebotId))
+    }.map(arbeitsangebotMapping(arbeitsangebot)).single
+  }
+
   protected def getFutureArbeitsangeboteQuery = {
     withSQL {
       select
@@ -75,6 +83,14 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .orderBy(arbeitseinsatz.zeitVon)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+  }
+
+  protected def getArbeitseinsatzQuery(arbeitseinsatzId: ArbeitseinsatzId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .where.eq(arbeitseinsatz.id, parameter(arbeitseinsatzId))
+    }.map(arbeitseinsatzMapping(arbeitseinsatz)).single
   }
 
   protected def getArbeitseinsaetzeQuery(kundeId: KundeId) = {

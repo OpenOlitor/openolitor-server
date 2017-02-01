@@ -49,6 +49,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
   implicit val arbeitseinsatzIdBinder: TypeBinder[ArbeitseinsatzId] = baseIdTypeBinder(ArbeitseinsatzId.apply _)
 
   implicit val optionArbeitsangebotIdBinder: TypeBinder[Option[ArbeitsangebotId]] = optionBaseIdTypeBinder(ArbeitsangebotId.apply _)
+  implicit val arbeitskategorieIdSeqBinder: TypeBinder[Seq[ArbeitskategorieId]] = string.map(s => if (s != null && !s.trim.isEmpty) s.split(",").map(_.toLong).map(ArbeitskategorieId.apply _).toSeq else Nil)
 
   implicit val arbeitseinsatzStatusTypeBinder: TypeBinder[ArbeitseinsatzStatus] = string.map(ArbeitseinsatzStatus.apply)
 
@@ -60,6 +61,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
   implicit val arbeiteinsatzIdSqlBinder = baseIdSqlBinder[ArbeitseinsatzId]
 
   implicit val arbeitsangebotIdOptionSqlBinder = optionSqlBinder[ArbeitsangebotId]
+  implicit val arbeitskategorieIdSeqSqlBinder = seqSqlBinder[ArbeitskategorieId]
 
   implicit val arbeitskategorieMapping = new BaseEntitySQLSyntaxSupport[Arbeitskategorie] {
     override val tableName = "Arbeitskategorie"
