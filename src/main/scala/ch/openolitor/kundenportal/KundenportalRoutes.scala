@@ -85,6 +85,8 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   implicit val abotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val abwesenheitIdPath = long2BaseIdPathMatcher(AbwesenheitId.apply)
   implicit val lieferungIdPath = long2BaseIdPathMatcher(LieferungId.apply)
+  implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
+  implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
 
   import EntityStore._
 
@@ -138,14 +140,36 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   }
 
   def arbeitRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
-    path("arbeitseinsaetze") {
+    path("arbeitsangebote") {
       get {
-        list(kundenportalReadRepository.getArbeitseinsaetze)
+        list(kundenportalReadRepository.getArbeitsangebote)
       }
     } ~
-      path("arbeitsangebote") {
+      path("arbeitsangebote" / arbeitsangebotIdPath / "participate") { arbeitsangebotId =>
+        post {
+          requestInstance { request =>
+            entity(as[ArbeitseinsatzCreate]) { arbein =>
+              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzErstellenCommand(subject.personId, subject, arbein)) {
+                case UserCommandFailed =>
+                  complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht erstellt werden.")
+                case _ =>
+                  complete("")
+              }
+            }
+          }
+        }
+      } ~
+      path("arbeitseinsaetze") {
         get {
-          list(kundenportalReadRepository.getArbeitsangebote)
+          list(kundenportalReadRepository.getArbeitseinsaetze)
+        }
+      } ~
+      path("arbeitseinsaetze" / arbeitseinsatzIdPath / "zurücktreten") { arbeitseinsatzId =>
+        onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzLoeschenCommand(subject.personId, subject, arbeitseinsatzId)) {
+          case UserCommandFailed =>
+            complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht gelöscht werden.")
+          case _ =>
+            complete("")
         }
       }
 

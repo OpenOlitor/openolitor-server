@@ -35,6 +35,7 @@ import ch.openolitor.core.repositories.BaseWriteRepository
 import scala.concurrent._
 import akka.event.Logging
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.arbeitseinsatz.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 import ch.openolitor.core.Boot
@@ -50,10 +51,18 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
  */
 trait KundenportalWriteRepository extends BaseWriteRepository with EventStream {
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
+  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
+  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
 }
 
 trait KundenportalWriteRepositoryImpl extends KundenportalWriteRepository with LazyLogging with KundenportalRepositoryQueries {
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
     getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
+  }
+  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
+    getById(arbeitsangebotMapping, id)
+  }
+  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail] = {
+    getArbeitseinsatzDetailQuery(id).apply()
   }
 }

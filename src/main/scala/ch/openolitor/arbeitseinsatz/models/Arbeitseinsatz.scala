@@ -141,6 +141,27 @@ case class Arbeitseinsatz(
   modifikator: PersonId
 ) extends BaseEntity[ArbeitseinsatzId]
 
+case class ArbeitseinsatzDetail(
+  id: ArbeitseinsatzId,
+  arbeitsangebotId: ArbeitsangebotId,
+  arbeitsangebotTitel: String,
+  zeitVon: DateTime,
+  zeitBis: DateTime,
+  kundeId: KundeId,
+  kundeBezeichnung: String,
+  aboId: AboId,
+  aboBezeichnung: String,
+  anzahlPersonen: Int,
+  bemerkungen: Option[String],
+  //additional Detail fields
+  arbeitsangebot: Arbeitsangebot,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[ArbeitseinsatzId]
+
 case class ArbeitseinsatzModify(
   arbeitsangebotId: ArbeitsangebotId,
   arbeitsangebotTitel: String,
@@ -150,6 +171,13 @@ case class ArbeitseinsatzModify(
   kundeBezeichnung: String,
   aboId: AboId,
   aboBezeichnung: String,
+  anzahlPersonen: Int,
+  bemerkungen: Option[String]
+) extends JSONSerializable
+
+case class ArbeitseinsatzCreate(
+  arbeitsangebotId: ArbeitsangebotId,
+  kundeId: KundeId,
   anzahlPersonen: Int,
   bemerkungen: Option[String]
 ) extends JSONSerializable

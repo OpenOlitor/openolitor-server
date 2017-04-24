@@ -33,6 +33,7 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.security.Subject
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalWriteRepositoryComponent, KundenportalWriteRepositoryComponent }
 import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId }
+import ch.openolitor.arbeitseinsatz.models._
 
 import akka.actor.ActorSystem
 import scalikejdbc.DB
@@ -40,6 +41,8 @@ import scalikejdbc.DB
 object KundenportalCommandHandler {
   case class AbwesenheitErstellenCommand(originator: PersonId, subject: Subject, entity: AbwesenheitCreate) extends UserCommand
   case class AbwesenheitLoeschenCommand(originator: PersonId, subject: Subject, aboId: AboId, abwesenheitId: AbwesenheitId) extends UserCommand
+  case class ArbeitseinsatzErstellenCommand(originator: PersonId, subject: Subject, entity: ArbeitseinsatzCreate) extends UserCommand
+  case class ArbeitseinsatzLoeschenCommand(originator: PersonId, subject: Subject, arbeitseinsatzId: ArbeitseinsatzId) extends UserCommand
 }
 
 trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware {
@@ -69,6 +72,31 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
           }
         } getOrElse (Failure(new InvalidStateException(s"Das Abo dieser Abwesenheit wurden nicht gefunden.")))
       }
+
+    case ArbeitseinsatzErstellenCommand(personId, subject, entity: ArbeitseinsatzCreate) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        kundenportalWriteRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
+          //TODO check if kunde may subscribe
+          if (arbeitsangebot.status == Offen) {
+            handleEntityInsert[ArbeitseinsatzCreate, ArbeitseinsatzId](idFactory, meta, entity, ArbeitseinsatzId.apply)
+          } else {
+            Failure(new InvalidStateException("Es können nur Arbeitseinsätze auf offenen Arbeitsangeboten erstellt werden."))
+          }
+        } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot wurde nicht gefunden.")))
+      }
+
+    case ArbeitseinsatzLoeschenCommand(personId, subject, arbeitseinsatzId) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        kundenportalWriteRepository.getArbeitseinsatzDetail(arbeitseinsatzId) map { arbeitseinsatz =>
+          //TODO check better if this operation is ok
+          if (arbeitseinsatz.arbeitsangebot.status == Offen) {
+            Success(Seq(EntityDeletedEvent(meta, arbeitseinsatzId)))
+          } else {
+            Failure(new InvalidStateException("Es können nur Arbeitseinsätze offener Arbeitsangebote entfernt werden."))
+          }
+        } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot doer der Arbeitseinsatz wurden nicht gefunden.")))
+      }
+
   }
 }
 
