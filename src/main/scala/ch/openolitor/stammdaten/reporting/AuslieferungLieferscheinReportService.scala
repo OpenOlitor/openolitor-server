@@ -57,9 +57,6 @@ trait AuslieferungLieferscheinReportService extends AsyncConnectionPoolContextAw
       case VorlageTourLieferschein => s"tour_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
       case VorlagePostLieferschein => s"post_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
 
-      case VorlageDepotLieferetiketten => s"depot_lieferetiketten_nr_${auslieferung.id.id}_${auslieferung.datum}"
-      case VorlageTourLieferetiketten => s"tour_lieferetiketten_nr_${auslieferung.id.id}_${auslieferung.datum}"
-      case VorlagePostLieferetiketten => s"post_lieferetiketten_nr_${auslieferung.id.id}_${auslieferung.datum}"
       case _ => s"auslieferung_nr_${auslieferung.id.id}_${auslieferung.datum}"
     }
   }

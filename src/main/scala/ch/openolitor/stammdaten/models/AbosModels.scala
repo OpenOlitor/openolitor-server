@@ -26,6 +26,7 @@ import ch.openolitor.stammdaten._
 import ch.openolitor.core.models._
 import java.util.UUID
 import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.JSONSerializable
@@ -36,9 +37,9 @@ import ch.openolitor.core.scalax.Tuple24
 case class AboId(id: Long) extends BaseId
 
 object IAbo {
-  def calculateAktiv(start: DateTime, ende: Option[DateTime]): Boolean = {
-    val yesterday = DateTime.now.toLocalDate.minusDays(1)
-    start.isBeforeNow && (ende map (_.toLocalDate.isAfter(yesterday)) getOrElse true)
+  def calculateAktiv(start: LocalDate, ende: Option[LocalDate]): Boolean = {
+    val yesterday = LocalDate.now.minusDays(1)
+    start.isBefore(LocalDate.now) && (ende map (_.isAfter(yesterday)) getOrElse true)
   }
 }
 
@@ -51,8 +52,8 @@ trait IAbo extends BaseEntity[AboId] with BelongsToKunde {
   val abotypName: String
   val kundeId: KundeId
   val kunde: String
-  val start: DateTime
-  val ende: Option[DateTime]
+  val start: LocalDate
+  val ende: Option[LocalDate]
   val guthabenVertraglich: Option[Int]
   val guthaben: Int
   val guthabenInRechnung: Int
@@ -82,8 +83,8 @@ sealed trait AboDetail extends JSONSerializable {
   val abotypName: String
   val kundeId: KundeId
   val kunde: String
-  val start: DateTime
-  val ende: Option[DateTime]
+  val start: LocalDate
+  val ende: Option[LocalDate]
   val guthabenVertraglich: Option[Int]
   val guthaben: Int
   val guthabenInRechnung: Int
@@ -101,8 +102,8 @@ sealed trait AboModify extends JSONSerializable {
   val kundeId: KundeId
   val kunde: String
   val vertriebsartId: VertriebsartId
-  val start: DateTime
-  val ende: Option[DateTime]
+  val start: LocalDate
+  val ende: Option[LocalDate]
 }
 
 case class DepotlieferungAbo(
@@ -116,8 +117,8 @@ case class DepotlieferungAbo(
   abotypName: String,
   depotId: DepotId,
   depotName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -177,8 +178,8 @@ case class DepotlieferungAboReport(
   abotypName: String,
   depotId: DepotId,
   depotName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -206,8 +207,8 @@ case class DepotlieferungAboDetail(
   abotypName: String,
   depotId: DepotId,
   depotName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -233,8 +234,8 @@ case class DepotlieferungAboModify(
   kunde: String,
   vertriebsartId: VertriebsartId,
   depotId: DepotId,
-  start: DateTime,
-  ende: Option[DateTime]
+  start: LocalDate,
+  ende: Option[LocalDate]
 ) extends AboModify
 
 case class HeimlieferungAbo(
@@ -248,8 +249,8 @@ case class HeimlieferungAbo(
   abotypName: String,
   tourId: TourId,
   tourName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -308,8 +309,8 @@ case class HeimlieferungAboDetail(
   abotypName: String,
   tourId: TourId,
   tourName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -335,8 +336,8 @@ case class HeimlieferungAboModify(
   kunde: String,
   vertriebsartId: VertriebsartId,
   tourId: TourId,
-  start: DateTime,
-  ende: Option[DateTime]
+  start: LocalDate,
+  ende: Option[LocalDate]
 ) extends AboModify
 
 case class PostlieferungAbo(
@@ -348,8 +349,8 @@ case class PostlieferungAbo(
   vertriebBeschrieb: Option[String],
   abotypId: AbotypId,
   abotypName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -375,8 +376,8 @@ case class PostlieferungAboDetail(
   vertriebBeschrieb: Option[String],
   abotypId: AbotypId,
   abotypName: String,
-  start: DateTime,
-  ende: Option[DateTime],
+  start: LocalDate,
+  ende: Option[LocalDate],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -401,8 +402,8 @@ case class PostlieferungAboModify(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
-  start: DateTime,
-  ende: Option[DateTime]
+  start: LocalDate,
+  ende: Option[LocalDate]
 ) extends AboModify
 
 case class AbwesenheitId(id: Long) extends BaseId
@@ -411,7 +412,7 @@ case class Abwesenheit(
   id: AbwesenheitId,
   aboId: AboId,
   lieferungId: LieferungId,
-  datum: DateTime,
+  datum: LocalDate,
   bemerkung: Option[String],
   //modification flags
   erstelldat: DateTime,
@@ -422,18 +423,19 @@ case class Abwesenheit(
 
 case class AbwesenheitModify(
   lieferungId: LieferungId,
-  datum: DateTime,
+  datum: LocalDate,
   bemerkung: Option[String]
 ) extends JSONSerializable
 
 case class AbwesenheitCreate(
   aboId: AboId,
   lieferungId: LieferungId,
-  datum: DateTime,
+  datum: LocalDate,
   bemerkung: Option[String]
 ) extends JSONSerializable
 
 case class AboGuthabenModify(
+  guthabenAlt: Int,
   guthabenNeu: Int,
   bemerkung: String
 ) extends JSONSerializable

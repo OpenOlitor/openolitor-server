@@ -43,15 +43,15 @@ object StammdatenCommandHandler {
   case class LieferplanungAbschliessenCommand(originator: PersonId, id: LieferplanungId) extends UserCommand
   case class LieferplanungAbrechnenCommand(originator: PersonId, id: LieferplanungId) extends UserCommand
   case class AbwesenheitCreateCommand(originator: PersonId, abw: AbwesenheitCreate) extends UserCommand
-  case class BestellungAnProduzentenVersenden(originator: PersonId, id: BestellungId) extends UserCommand
+  case class SammelbestellungAnProduzentenVersendenCommand(originator: PersonId, id: SammelbestellungId) extends UserCommand
   case class PasswortWechselCommand(originator: PersonId, personId: PersonId, passwort: Array[Char], einladung: Option[EinladungId]) extends UserCommand
   case class AuslieferungenAlsAusgeliefertMarkierenCommand(originator: PersonId, ids: Seq[AuslieferungId]) extends UserCommand
-  case class CreateAnzahlLieferungenRechnungenCommand(originator: PersonId, rechnungCreate: AboRechnungCreate) extends UserCommand
-  case class CreateBisGuthabenRechnungenCommand(originator: PersonId, rechnungCreate: AboRechnungCreate) extends UserCommand
+  case class CreateAnzahlLieferungenRechnungenCommand(originator: PersonId, aboRechnungCreate: AboRechnungCreate) extends UserCommand
+  case class CreateBisGuthabenRechnungenCommand(originator: PersonId, aboRechnungCreate: AboRechnungCreate) extends UserCommand
   case class LoginDeaktivierenCommand(originator: PersonId, kundeId: KundeId, personId: PersonId) extends UserCommand
   case class LoginAktivierenCommand(originator: PersonId, kundeId: KundeId, personId: PersonId) extends UserCommand
   case class EinladungSendenCommand(originator: PersonId, kundeId: KundeId, personId: PersonId) extends UserCommand
-  case class BestellungenAlsAbgerechnetMarkierenCommand(originator: PersonId, datum: DateTime, ids: Seq[BestellungId]) extends UserCommand
+  case class SammelbestellungenAlsAbgerechnetMarkierenCommand(originator: PersonId, datum: DateTime, ids: Seq[SammelbestellungId]) extends UserCommand
   case class PasswortResetCommand(originator: PersonId, personId: PersonId) extends UserCommand
   case class RolleWechselnCommand(originator: PersonId, kundeId: KundeId, personId: PersonId, rolle: Rolle) extends UserCommand
 
@@ -62,13 +62,17 @@ object StammdatenCommandHandler {
   case class LieferplanungAbschliessenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
   case class LieferplanungAbrechnenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
   case class AbwesenheitCreateEvent(meta: EventMetadata, id: AbwesenheitId, abw: AbwesenheitCreate) extends PersistentEvent with JSONSerializable
+  @Deprecated
   case class BestellungVersendenEvent(meta: EventMetadata, id: BestellungId) extends PersistentEvent with JSONSerializable
+  case class SammelbestellungVersendenEvent(meta: EventMetadata, id: SammelbestellungId) extends PersistentEvent with JSONSerializable
   case class PasswortGewechseltEvent(meta: EventMetadata, personId: PersonId, passwort: Array[Char], einladungId: Option[EinladungId]) extends PersistentEvent with JSONSerializable
   case class LoginDeaktiviertEvent(meta: EventMetadata, kundeId: KundeId, personId: PersonId) extends PersistentEvent with JSONSerializable
   case class LoginAktiviertEvent(meta: EventMetadata, kundeId: KundeId, personId: PersonId) extends PersistentEvent with JSONSerializable
   case class EinladungGesendetEvent(meta: EventMetadata, einladung: EinladungCreate) extends PersistentEvent with JSONSerializable
   case class AuslieferungAlsAusgeliefertMarkierenEvent(meta: EventMetadata, id: AuslieferungId) extends PersistentEvent with JSONSerializable
+  @Deprecated
   case class BestellungAlsAbgerechnetMarkierenEvent(meta: EventMetadata, datum: DateTime, id: BestellungId) extends PersistentEvent with JSONSerializable
+  case class SammelbestellungAlsAbgerechnetMarkierenEvent(meta: EventMetadata, datum: DateTime, id: SammelbestellungId) extends PersistentEvent with JSONSerializable
   case class PasswortResetGesendetEvent(meta: EventMetadata, einladung: EinladungCreate) extends PersistentEvent with JSONSerializable
   case class RolleGewechseltEvent(meta: EventMetadata, kundeId: KundeId, personId: PersonId, rolle: Rolle) extends PersistentEvent with JSONSerializable
 
@@ -97,10 +101,10 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
                   val bestellEvents = distinctLieferpositionen.map {
                     case (produzentId, lieferplanungId, datum) =>
-                      val bestellungId = BestellungId(idFactory(classOf[BestellungId]))
-                      val insertEvent = EntityInsertedEvent(meta, bestellungId, BestellungCreate(produzentId, lieferplanungId, datum))
+                      val sammelbestellungId = SammelbestellungId(idFactory(classOf[SammelbestellungId]))
+                      val insertEvent = EntityInsertedEvent(meta, sammelbestellungId, SammelbestellungCreate(produzentId, lieferplanungId, datum))
 
-                      val bestellungVersendenEvent = BestellungVersendenEvent(meta, bestellungId)
+                      val bestellungVersendenEvent = SammelbestellungVersendenEvent(meta, sammelbestellungId)
 
                       Seq(insertEvent, bestellungVersendenEvent)
                   }.toSeq.flatten
@@ -139,12 +143,12 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         }
       }
 
-    case BestellungAnProduzentenVersenden(personId, id: BestellungId) => idFactory => meta =>
+    case SammelbestellungAnProduzentenVersendenCommand(personId, id: SammelbestellungId) => idFactory => meta =>
       DB readOnly { implicit session =>
-        stammdatenWriteRepository.getById(bestellungMapping, id) map { bestellung =>
-          bestellung.status match {
+        stammdatenWriteRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
+          sammelbestellung.status match {
             case Offen | Abgeschlossen =>
-              Success(Seq(BestellungVersendenEvent(meta, id)))
+              Success(Seq(SammelbestellungVersendenEvent(meta, id)))
             case _ =>
               Failure(new InvalidStateException("Eine Bestellung kann nur in den Stati 'Offen' oder 'Abgeschlossen' versendet werden"))
           }
@@ -159,7 +163,15 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             stammdatenWriteRepository.getById(postAuslieferungMapping, id) map { auslieferung =>
               auslieferung.status match {
                 case Erfasst =>
-                  Success(AuslieferungAlsAusgeliefertMarkierenEvent(meta, id))
+                  val copy = auslieferung match {
+                    case d: DepotAuslieferung =>
+                      d.copy(status = Ausgeliefert)
+                    case t: TourAuslieferung =>
+                      t.copy(status = Ausgeliefert)
+                    case p: PostAuslieferung =>
+                      p.copy(status = Ausgeliefert)
+                  }
+                  Success(EntityUpdatedEvent(meta, id, copy))
                 case _ =>
                   Failure(new InvalidStateException(s"Eine Auslieferung kann nur im Status 'Erfasst' als ausgeliefert markiert werden. Nr. $id"))
               }
@@ -173,31 +185,31 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         }
       }
 
-    case BestellungenAlsAbgerechnetMarkierenCommand(personId, datum, ids: Seq[BestellungId]) => idFactory => meta =>
+    case SammelbestellungenAlsAbgerechnetMarkierenCommand(personId, datum, ids: Seq[SammelbestellungId]) => idFactory => meta =>
       DB readOnly { implicit session =>
         val (events, failures) = ids map { id =>
-          stammdatenWriteRepository.getById(bestellungMapping, id) map { bestellung =>
-            bestellung.status match {
+          stammdatenWriteRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
+            sammelbestellung.status match {
               case Abgeschlossen =>
-                Success(BestellungAlsAbgerechnetMarkierenEvent(meta, datum, id))
+                Success(SammelbestellungAlsAbgerechnetMarkierenEvent(meta, datum, id))
               case _ =>
-                Failure(new InvalidStateException(s"Eine Bestellung kann nur im Status 'Abgeschlossen' als abgerechnet markiert werden. Nr. $id"))
+                Failure(new InvalidStateException(s"Eine Sammelbestellung kann nur im Status 'Abgeschlossen' als abgerechnet markiert werden. Nr. $id"))
             }
-          } getOrElse (Failure(new InvalidStateException(s"Keine Bestellung mit der Nr. $id gefunden")))
+          } getOrElse (Failure(new InvalidStateException(s"Keine Sammelbestellung mit der Nr. $id gefunden")))
         } partition (_.isSuccess)
 
         if (events.isEmpty) {
-          Failure(new InvalidStateException(s"Keine der Bestellung konnte abgearbeitet werden"))
+          Failure(new InvalidStateException(s"Keine der Sammelbestellung konnte abgearbeitet werden"))
         } else {
           Success(events map (_.get))
         }
       }
 
-    case CreateAnzahlLieferungenRechnungenCommand(originator, rechnungCreate) => idFactory => meta =>
-      createAboRechnungen(idFactory, meta, rechnungCreate)
+    case CreateAnzahlLieferungenRechnungenCommand(originator, aboRechnungCreate) => idFactory => meta =>
+      createAboRechnungen(idFactory, meta, aboRechnungCreate)
 
-    case CreateBisGuthabenRechnungenCommand(originator, rechnungCreate) => idFactory => meta =>
-      createAboRechnungen(idFactory, meta, rechnungCreate)
+    case CreateBisGuthabenRechnungenCommand(originator, aboRechnungCreate) => idFactory => meta =>
+      createAboRechnungen(idFactory, meta, aboRechnungCreate)
 
     case PasswortWechselCommand(originator, personId, pwd, einladungId) => idFactory => meta =>
       Success(Seq(PasswortGewechseltEvent(meta, personId, pwd, einladungId)))
@@ -378,9 +390,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     }
   }
 
-  def createAboRechnungen(idFactory: IdFactory, meta: EventMetadata, rechnungCreate: AboRechnungCreate) = {
+  def createAboRechnungen(idFactory: IdFactory, meta: EventMetadata, aboRechnungCreate: AboRechnungCreate) = {
     DB readOnly { implicit session =>
-      val (events, failures) = rechnungCreate.ids map { id =>
+      val (events, failures) = aboRechnungCreate.ids map { id =>
         stammdatenWriteRepository.getAboDetail(id) flatMap { aboDetail =>
           stammdatenWriteRepository.getById(abotypMapping, aboDetail.abotypId) flatMap { abotyp =>
             stammdatenWriteRepository.getById(kundeMapping, aboDetail.kundeId) map { kunde =>
@@ -390,23 +402,23 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
                 Failure(new InvalidStateException(s"Für den Abotyp dieses Abos ($id) kann keine Guthabenrechnung erstellt werden"))
               } else {
                 // has to be refactored as soon as more modes are available
-                val anzahlLieferungen = rechnungCreate.anzahlLieferungen getOrElse {
-                  math.max(((rechnungCreate.bisGuthaben getOrElse aboDetail.guthaben) - aboDetail.guthaben), 0)
+                val anzahlLieferungen = aboRechnungCreate.anzahlLieferungen getOrElse {
+                  math.max(((aboRechnungCreate.bisGuthaben getOrElse aboDetail.guthaben) - aboDetail.guthaben), 0)
                 }
 
                 if (anzahlLieferungen > 0) {
-                  val betrag = rechnungCreate.betrag getOrElse abotyp.preis * anzahlLieferungen
+                  val betrag = aboRechnungCreate.betrag getOrElse abotyp.preis * anzahlLieferungen
 
                   val rechnung = RechnungCreate(
                     aboDetail.kundeId,
                     id,
-                    rechnungCreate.titel,
+                    aboRechnungCreate.titel,
                     anzahlLieferungen,
-                    rechnungCreate.waehrung,
+                    aboRechnungCreate.waehrung,
                     betrag,
                     None,
-                    rechnungCreate.rechnungsDatum,
-                    rechnungCreate.faelligkeitsDatum,
+                    aboRechnungCreate.rechnungsDatum,
+                    aboRechnungCreate.faelligkeitsDatum,
                     None,
                     kunde.strasseLieferung getOrElse kunde.strasse,
                     kunde.hausNummerLieferung orElse kunde.hausNummer,

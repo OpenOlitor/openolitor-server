@@ -173,7 +173,8 @@ class DBEvent2UserMapping extends Actor
 
     case e @ EntityModified(userId, entity: DepotAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[DepotAuslieferung]])
     case e @ EntityModified(userId, entity: TourAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[TourAuslieferung]])
-    case e @ EntityModified(userId, entity: PostAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[PostAuslieferung]])
+    case e @ EntityModified(userId, entity: PostAuslieferung, _) =>
+      send(userId, e.asInstanceOf[DBEvent[PostAuslieferung]])
 
     case e @ EntityCreated(userId, entity: Arbeitskategorie) => send(userId, e.asInstanceOf[DBEvent[Arbeitskategorie]])
     case e @ EntityModified(userId, entity: Arbeitskategorie, _) => send(userId, e.asInstanceOf[DBEvent[Arbeitskategorie]])
@@ -187,6 +188,6 @@ class DBEvent2UserMapping extends Actor
     case e @ EntityModified(userId, entity: Arbeitseinsatz, _) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
     case e @ EntityDeleted(userId, entity: Arbeitseinsatz) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
 
-    case x => log.debug(s"receive unknown event $x")
+    case x => // send nothing
   }
 }
