@@ -124,6 +124,8 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
         column.zeitBis -> parameter(ae.zeitBis),
         column.kundeId -> parameter(ae.kundeId),
         column.kundeBezeichnung -> parameter(ae.kundeBezeichnung),
+        column.personId -> parameter(ae.personId),
+        column.personName -> parameter(ae.personName),
         column.aboId -> parameter(ae.aboId),
         column.aboBezeichnung -> parameter(ae.aboBezeichnung),
         column.anzahlPersonen -> parameter(ae.anzahlPersonen),

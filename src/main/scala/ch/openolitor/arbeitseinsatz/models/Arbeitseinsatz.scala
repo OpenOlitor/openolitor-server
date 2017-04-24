@@ -116,8 +116,10 @@ trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
   val zeitBis: DateTime
   val kundeId: KundeId
   val kundeBezeichnung: String
-  val aboId: AboId
-  val aboBezeichnung: String
+  val personId: Option[PersonId]
+  val personName: Option[String]
+  val aboId: Option[AboId]
+  val aboBezeichnung: Option[String]
   val anzahlPersonen: Int
   val bemerkungen: Option[String]
 }
@@ -130,8 +132,10 @@ case class Arbeitseinsatz(
   zeitBis: DateTime,
   kundeId: KundeId,
   kundeBezeichnung: String,
-  aboId: AboId,
-  aboBezeichnung: String,
+  personId: Option[PersonId],
+  personName: Option[String],
+  aboId: Option[AboId],
+  aboBezeichnung: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String],
   //modification flags
@@ -149,8 +153,10 @@ case class ArbeitseinsatzDetail(
   zeitBis: DateTime,
   kundeId: KundeId,
   kundeBezeichnung: String,
-  aboId: AboId,
-  aboBezeichnung: String,
+  aboId: Option[AboId],
+  aboBezeichnung: Option[String],
+  personId: Option[PersonId],
+  personName: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String],
   //additional Detail fields
@@ -169,8 +175,10 @@ case class ArbeitseinsatzModify(
   zeitBis: DateTime,
   kundeId: KundeId,
   kundeBezeichnung: String,
-  aboId: AboId,
-  aboBezeichnung: String,
+  personId: Option[PersonId],
+  personName: Option[String],
+  aboId: Option[AboId],
+  aboBezeichnung: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String]
 ) extends JSONSerializable

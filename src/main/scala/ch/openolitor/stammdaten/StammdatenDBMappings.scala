@@ -80,6 +80,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
   implicit val projektVorlageIdBinder: TypeBinder[ProjektVorlageId] = baseIdTypeBinder(ProjektVorlageId.apply _)
   implicit val optionAuslieferungIdBinder: TypeBinder[Option[AuslieferungId]] = optionBaseIdTypeBinder(AuslieferungId.apply _)
   implicit val einladungIdBinder: TypeBinder[EinladungId] = baseIdTypeBinder(EinladungId.apply _)
+  implicit val optionAboIdBinder: TypeBinder[Option[AboId]] = optionBaseIdTypeBinder(AboId.apply _)
+  implicit val optionPersonIdBinder: TypeBinder[Option[PersonId]] = optionBaseIdTypeBinder(PersonId.apply _)
 
   implicit val pendenzStatusTypeBinder: TypeBinder[PendenzStatus] = string.map(PendenzStatus.apply)
   implicit val rhythmusTypeBinder: TypeBinder[Rhythmus] = string.map(Rhythmus.apply)
@@ -168,6 +170,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
   implicit val produktProduktekategorieIdIdSqlBinder = baseIdSqlBinder[ProduktProduktekategorieId]
   implicit val lieferplanungIdOptionBinder = optionSqlBinder[LieferplanungId]
   implicit val einladungIdSqlBinder = baseIdSqlBinder[EinladungId]
+  implicit val aboIdOptionSqlBinder = optionSqlBinder[AboId]
+  implicit val personIdOptionSqlBinder = optionSqlBinder[PersonId]
 
   implicit val stringIntTreeMapSqlBinder = treeMapSqlBinder[String, Int]
   implicit val stringBigDecimalTreeMapSqlBinder = treeMapSqlBinder[String, BigDecimal]

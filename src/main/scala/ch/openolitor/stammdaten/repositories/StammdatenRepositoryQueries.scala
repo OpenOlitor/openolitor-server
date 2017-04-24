@@ -38,8 +38,9 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.FilterExpr
 import org.joda.time.LocalDate
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
-trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings {
+trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val person = personMapping.syntax("pers")
@@ -76,6 +77,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val postAuslieferung = postAuslieferungMapping.syntax("postAuslieferung")
   lazy val projektVorlage = projektVorlageMapping.syntax("projektVorlage")
   lazy val einladung = einladungMapping.syntax("einladung")
+
+  lazy val arbeitseinsatz = arbeitseinsatzMapping.syntax("arbeitseinsatz")
 
   lazy val lieferpositionShort = lieferpositionMapping.syntax
   lazy val korbShort = korbMapping.syntax
@@ -177,6 +180,38 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         copyTo[Kunde, KundeDetailReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
           "personen" -> personenWihoutPwd, "projekt" -> projekt)
       }.single
+  }
+
+  protected def getKundeDetailsArbeitseinsatzReportQuery(projekt: ProjektReport) = {
+    val x = SubQuery.syntax("x").include(abwesenheit)
+    withSQL {
+      select
+        .from(kundeMapping as kunde)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(kunde.id, heimlieferungAbo.kundeId)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
+        .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+        .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
+        .orderBy(person.sort)
+    }.one(kundeMapping(kunde))
+      .toManies(
+        rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
+        rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => personMapping.opt(person)(rs),
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
+      )
+      .map { (kunde, pl, hl, dl, personen, pendenzen, arbeitseinsaetze) =>
+        val abos = pl ++ hl ++ dl
+        val anzahlArbeitseinsaetzeSoll = 0 // pl map (a => a.soll) + hl map (a => a.soll) + dl map (a => a.soll)
+        val persL = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
+
+        copyTo[Kunde, KundeDetailArbeitseinsatzReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
+          "personen" -> persL, "projekt" -> projekt, "anzahlArbeitseinsaetzeSoll" -> anzahlArbeitseinsaetzeSoll,
+          "anzahlArbeitseinsaetzeIst" -> arbeitseinsaetze.length, "arbeitseinsaetze" -> arbeitseinsaetze)
+      }.list
   }
 
   protected def getPersonenQuery(kundeId: KundeId) = {
