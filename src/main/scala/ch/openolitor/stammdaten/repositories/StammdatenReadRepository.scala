@@ -175,8 +175,8 @@ class StammdatenReadRepositoryImpl extends BaseReadRepository with StammdatenRea
     getKundeDetailReportQuery(kundeId, projekt).future
   }
 
-  def getKundeDetailArbeitseinsatzReport(kundeId: KundeId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetailArbeitseinsatzReport]] = {
-    getKundeDetailArbeitseinsatzReportQuery(kundeId, projekt).future
+  def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]] = {
+    getKundeDetailsArbeitseinsatzReportQuery(projekt).future
   }
 
   def getPersonen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Person]] = {
