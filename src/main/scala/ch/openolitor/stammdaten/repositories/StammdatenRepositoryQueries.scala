@@ -183,13 +183,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getKundeDetailsArbeitseinsatzReportQuery(projekt: ProjektReport) = {
-    val x = SubQuery.syntax("x").include(abwesenheit)
     withSQL {
       select
         .from(kundeMapping as kunde)
         .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
         .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(kunde.id, heimlieferungAbo.kundeId)
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
+        .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo).or.eq(aboTyp.id, postlieferungAbo))
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
         .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
@@ -199,13 +199,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => abotypMapping.opt(aboTyp)(rs),
         rs => personMapping.opt(person)(rs),
         rs => pendenzMapping.opt(pendenz)(rs),
         rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
       )
-      .map { (kunde, pl, hl, dl, personen, pendenzen, arbeitseinsaetze) =>
+      .map { (kunde, pl, hl, dl, abotypen, personen, pendenzen, arbeitseinsaetze) =>
         val abos = pl ++ hl ++ dl
-        val anzahlArbeitseinsaetzeSoll = 0 // pl map (a => a.soll) + hl map (a => a.soll) + dl map (a => a.soll)
+        val anzahlArbeitseinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(0)) sum
         val persL = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
 
         copyTo[Kunde, KundeDetailArbeitseinsatzReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
