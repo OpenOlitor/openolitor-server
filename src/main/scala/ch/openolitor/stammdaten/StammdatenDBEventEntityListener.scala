@@ -347,13 +347,28 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
   def modifyKoerbeForAbo(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession) = {
     // koerbe erstellen, modifizieren, loeschen falls noetig
     stammdatenWriteRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
-      stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
+      orig map {
+        origAbo =>
+          // VERTRIEB changed (step 1): Delete Körbe of former Vertrieb
+          if (abo.vertriebId != origAbo.vertriebId) {
+            stammdatenWriteRepository.getLieferungenOffenByAbotypVertrieb(origAbo.abotypId, origAbo.vertriebId) map { lieferung =>
+              deleteKorb(lieferung, origAbo)
+            }
+          }
+      }
+
+      stammdatenWriteRepository.getLieferungenOffenByAbotypVertrieb(abo.abotypId, abo.vertriebId) map { lieferung =>
+        // Delete Körbe if start and/or end do not match delivery period any more
         if (orig.isDefined && (abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
           deleteKorb(lieferung, abo)
-        } else if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
+        }
+        // update Körbe if start and/or end match delivery period
+        // TODO only upsert if orig is not within period and new abo is
+        if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
           upsertKorb(lieferung, abo, abotyp)
         }
       }
+
     }
   }
 

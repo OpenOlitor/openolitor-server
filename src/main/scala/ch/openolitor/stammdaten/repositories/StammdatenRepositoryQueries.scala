@@ -1758,6 +1758,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(lieferungMapping(lieferung)).list
   }
 
+  protected def getLieferungenOffenByAbotypVertriebQuery(abotypId: AbotypId, vertriebId: VertriebId) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, parameter(abotypId))
+        .and.eq(lieferung.vertriebId, parameter(vertriebId))
+        .and.eq(lieferung.status, parameter(Offen))
+    }.map(lieferungMapping(lieferung)).list
+  }
+
   protected def getLastClosedLieferplanungenDetailQuery = {
     withSQL {
       select
