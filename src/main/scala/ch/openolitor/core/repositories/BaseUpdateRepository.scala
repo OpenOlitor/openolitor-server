@@ -40,7 +40,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   /*
    * @param updateFields restrict the updated fields to this list
    */
-  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFields: SQLSyntax*)(implicit
+  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFieldsHead: SQLSyntax, updateFieldsTail: SQLSyntax*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: SqlBinder[I],
@@ -49,7 +49,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     getById(syntaxSupport, entity.id).map { orig =>
       val alias = syntaxSupport.syntax("x")
       val id = alias.id
-      val updateParams = updateFields.toList match {
+      val updateParams = (updateFieldsHead :: updateFieldsTail.toList) match {
         case Nil => syntaxSupport.updateParameters(entity)
         case specifiedFields => (syntaxSupport.updateParameters(entity) filter (f => specifiedFields.contains(f._1))) ++ syntaxSupport.defaultColumns(entity)
       }
