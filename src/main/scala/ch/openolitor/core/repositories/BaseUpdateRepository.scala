@@ -40,16 +40,16 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   /*
    * @param updateFields restrict the updated fields to this list
    */
-  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFieldsHead: SQLSyntax, updateFieldsTail: SQLSyntax*)(implicit
+  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFieldsHead: Option[SQLSyntax], updateFieldsTail: SQLSyntax*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: SqlBinder[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E] = {
-    getById(syntaxSupport, entity.id).map { orig =>
+    getById(syntaxSupport, entity.id) map { orig =>
       val alias = syntaxSupport.syntax("x")
       val id = alias.id
-      val updateParams = (updateFieldsHead :: updateFieldsTail.toList) match {
+      val updateParams = updateFieldsHead map (_ :: updateFieldsTail.toList) getOrElse (updateFieldsTail.toList) match {
         case Nil => syntaxSupport.updateParameters(entity)
         case specifiedFields => (syntaxSupport.updateParameters(entity) filter (f => specifiedFields.contains(f._1))) ++ syntaxSupport.defaultColumns(entity)
       }
@@ -66,5 +66,14 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
       logger.debug(s"Entity with id:${entity.id} not found, ignore update")
       None
     }
+  }
+
+  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFieldsHead: SQLSyntax, updateFieldsTail: SQLSyntax*)(implicit
+    session: DBSession,
+    syntaxSupport: BaseEntitySQLSyntaxSupport[E],
+    binder: SqlBinder[I],
+    user: PersonId,
+    eventPublisher: EventPublisher): Option[E] = {
+    updateEntity[E, I](entity, Some(updateFieldsHead), updateFieldsTail: _*)
   }
 }

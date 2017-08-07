@@ -604,7 +604,13 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
           val adjustedLieferung = createKoerbe(updatedLieferung)
 
           //update Lieferung
-          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](adjustedLieferung)
+          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](
+            adjustedLieferung,
+            lieferungMapping.column.lieferplanungId,
+            lieferungMapping.column.status,
+            lieferungMapping.column.durchschnittspreis,
+            lieferungMapping.column.anzahlLieferungen
+          )
 
           (dateFormat.print(adjustedLieferung.datum), adjustedLieferung.abotypBeschrieb)
         }
@@ -616,7 +622,10 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
         val updatedObj = lieferplanung.copy(abotypDepotTour = abotypDates)
 
         //update lieferplanung
-        stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](updatedObj)
+        stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](
+          updatedObj,
+          lieferplanungMapping.column.abotypDepotTour
+        )
       }
     }
 
@@ -676,7 +685,13 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
           val adjustedLieferung = createKoerbe(updatedLieferung)
 
           //update Lieferung
-          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](adjustedLieferung)
+          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](
+            adjustedLieferung,
+            lieferungMapping.column.lieferplanungId,
+            lieferungMapping.column.status,
+            lieferungMapping.column.durchschnittspreis,
+            lieferungMapping.column.anzahlLieferungen
+          )
         }
       }
     }

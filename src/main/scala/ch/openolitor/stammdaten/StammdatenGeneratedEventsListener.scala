@@ -89,26 +89,21 @@ class StammdatenGeneratedEventsListener(override val sysConfig: SystemConfig) ex
         if (abo.aktiv != aktiv) {
           abo match {
             case d: DepotlieferungAbo =>
-              modifyEntity[DepotlieferungAbo, AboId](d.id) { a =>
+              modifyEntityFields[DepotlieferungAbo, AboId](d.id) { a =>
                 a.copy(aktiv = aktiv)
-              }
+              }(depotlieferungAboMapping.column.aktiv)
             case h: HeimlieferungAbo =>
-              modifyEntity[HeimlieferungAbo, AboId](h.id) { a =>
+              modifyEntityFields[HeimlieferungAbo, AboId](h.id) { a =>
                 a.copy(aktiv = aktiv)
-              }
+              }(heimlieferungAboMapping.column.aktiv)
             case p: PostlieferungAbo =>
-              modifyEntity[PostlieferungAbo, AboId](p.id) { a =>
+              modifyEntityFields[PostlieferungAbo, AboId](p.id) { a =>
                 a.copy(aktiv = aktiv)
-              }
+              }(postlieferungAboMapping.column.aktiv)
 
           }
         }
       }
     }
-  }
-
-  // TODO refactor this further
-  def modifyEntity[E <: BaseEntity[I], I <: BaseId](id: I)(mod: E => E)(implicit session: DBSession, publisher: EventPublisher, syntax: BaseEntitySQLSyntaxSupport[E], binder: SqlBinder[I], personId: PersonId): Option[E] = {
-    modifyEntityWithRepository(stammdatenUpdateRepository)(id, mod)
   }
 }

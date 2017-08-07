@@ -70,7 +70,7 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
         val copy = sammelbestellung.copy(datumVersendet = Some(meta.timestamp))
-        stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](copy)
+        stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](copy, sammelbestellungMapping.column.datumVersendet)
       }
     }
   }
@@ -80,7 +80,7 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(einladungMapping, id) map { einladung =>
         val copy = einladung.copy(datumVersendet = Some(meta.timestamp))
-        stammdatenWriteRepository.updateEntity[Einladung, EinladungId](copy)
+        stammdatenWriteRepository.updateEntity[Einladung, EinladungId](copy, einladungMapping.column.datumVersendet)
       }
     }
   }

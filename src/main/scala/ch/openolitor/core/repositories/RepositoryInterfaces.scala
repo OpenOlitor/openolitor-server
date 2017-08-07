@@ -56,7 +56,7 @@ trait InsertRepository {
 }
 
 trait UpdateRepository {
-  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFields: SQLSyntax*)(implicit
+  def updateEntity[E <: BaseEntity[I], I <: BaseId](entity: E, updateFieldsHead: SQLSyntax, updateFieldsTail: SQLSyntax*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: SqlBinder[I],

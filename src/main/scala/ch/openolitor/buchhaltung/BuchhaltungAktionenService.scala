@@ -88,7 +88,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
   def rechnungPDFStored(meta: EventMetadata, id: RechnungId, fileStoreId: String)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(fileStoreId = Some(fileStoreId)))
+        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(fileStoreId = Some(fileStoreId)), rechnungMapping.column.fileStoreId)
       }
     }
   }
@@ -96,7 +96,12 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
   def mahnungPDFStored(meta: EventMetadata, id: RechnungId, fileStoreId: String)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(mahnungFileStoreIds = (rechnung.mahnungFileStoreIds filterNot (_ == "")) + fileStoreId))
+        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](
+          rechnung.copy(
+          mahnungFileStoreIds = (rechnung.mahnungFileStoreIds filterNot (_ == "")) + fileStoreId
+        ),
+          rechnungMapping.column.mahnungFileStoreIds
+        )
       }
     }
   }
@@ -105,7 +110,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
         if (Erstellt == rechnung.status) {
-          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(status = Verschickt))
+          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(status = Verschickt), rechnungMapping.column.status)
         }
       }
     }
@@ -119,7 +124,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
             rechnung.copy(
               status = MahnungVerschickt,
               anzahlMahnungen = rechnung.anzahlMahnungen + 1
-            )
+            ),
+            rechnungMapping.column.status, rechnungMapping.column.anzahlMahnungen
           )
         }
       }
@@ -135,11 +141,14 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
   def rechnungBezahlenUpdate(id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
     buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
       if (Verschickt == rechnung.status || MahnungVerschickt == rechnung.status) {
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(
+        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](
+          rechnung.copy(
           einbezahlterBetrag = Some(entity.einbezahlterBetrag),
           eingangsDatum = Some(entity.eingangsDatum),
           status = Bezahlt
-        ))
+        ),
+          rechnungMapping.column.status, rechnungMapping.column.einbezahlterBetrag, rechnungMapping.column.eingangsDatum
+        )
       }
     }
   }
@@ -148,7 +157,10 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
         if (Bezahlt != rechnung.status) {
-          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(status = Storniert))
+          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](
+            rechnung.copy(status = Storniert),
+            rechnungMapping.column.status
+          )
         }
       }
     }
@@ -214,7 +226,11 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
           }
         }
 
-        buchhaltungWriteRepository.updateEntity[ZahlungsEingang, ZahlungsEingangId](eingang.copy(erledigt = true, bemerkung = entity.bemerkung))
+        buchhaltungWriteRepository.updateEntity[ZahlungsEingang, ZahlungsEingangId](
+          eingang.copy(erledigt = true, bemerkung = entity.bemerkung),
+          zahlungsEingangMapping.column.status,
+          zahlungsEingangMapping.column.bemerkung
+        )
       }
     }
   }

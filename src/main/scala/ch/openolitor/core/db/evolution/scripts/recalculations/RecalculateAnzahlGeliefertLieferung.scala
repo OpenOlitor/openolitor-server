@@ -55,7 +55,7 @@ object RecalculateAnzahlGeliefertLieferung {
             val koerbeCount = koerbe.size
             getById(lieferungMapping, lieferungId) map { lieferung =>
               val copy = lieferung.copy(anzahlKoerbeZuLiefern = koerbeCount)
-              updateEntity[Lieferung, LieferungId](copy)
+              updateEntity[Lieferung, LieferungId](copy, lieferungMapping.column.anzahlKoerbeZuLiefern)
             }
         }
       }

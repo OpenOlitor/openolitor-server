@@ -55,7 +55,7 @@ object RecalculateAnzahlAbwesenheitenLieferung {
             val abwCount = abwesenheiten.size
             getById(lieferungMapping, lieferungId) map { lieferung =>
               val copy = lieferung.copy(anzahlAbwesenheiten = abwCount)
-              updateEntity[Lieferung, LieferungId](copy)
+              updateEntity[Lieferung, LieferungId](copy, lieferungMapping.column.anzahlAbwesenheiten)
             }
         }
       }
