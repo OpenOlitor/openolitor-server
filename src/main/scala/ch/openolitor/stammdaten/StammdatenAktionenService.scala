@@ -114,7 +114,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(lieferplanungMapping, id) map { lieferplanung =>
         if (Offen == lieferplanung.status) {
-          stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.copy(status = Abgeschlossen))
+          stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.copy(status = Abgeschlossen), lieferplanungMapping.column.status)
         }
       }
     }
@@ -124,7 +124,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(lieferplanungMapping, id) map { lieferplanung =>
         if (Abgeschlossen == lieferplanung.status) {
-          stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.copy(status = Verrechnet))
+          stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.copy(status = Verrechnet), lieferplanungMapping.column.status)
         }
       }
       stammdatenWriteRepository.getLieferungen(id) map { lieferung =>
@@ -134,7 +134,8 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
       }
       stammdatenWriteRepository.getSammelbestellungen(id) map { sammelbestellung =>
         if (Abgeschlossen == sammelbestellung.status) {
-          stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](sammelbestellung.copy(status = Verrechnet, datumAbrechnung = Some(DateTime.now)))
+          stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](sammelbestellung.copy(status = Verrechnet, datumAbrechnung = Some(DateTime.now)), sammelbestellungMapping.column.status,
+            sammelbestellungMapping.column.datumAbrechnung)
         }
       }
     }
@@ -223,13 +224,13 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(personMapping, id) map { person =>
         val updated = person.copy(passwort = Some(pwd))
-        stammdatenWriteRepository.updateEntity[Person, PersonId](updated)
+        stammdatenWriteRepository.updateEntity[Person, PersonId](updated, personMapping.column.passwort)
       }
 
       einladungId map { id =>
         stammdatenWriteRepository.getById(einladungMapping, id) map { einladung =>
           val updated = einladung.copy(expires = new DateTime())
-          stammdatenWriteRepository.updateEntity[Einladung, EinladungId](updated)
+          stammdatenWriteRepository.updateEntity[Einladung, EinladungId](updated, einladungMapping.column.expires)
         }
       }
     }
@@ -239,7 +240,7 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(personMapping, personId) map { person =>
         val updated = person.copy(loginAktiv = false)
-        stammdatenWriteRepository.updateEntity[Person, PersonId](updated)
+        stammdatenWriteRepository.updateEntity[Person, PersonId](updated, personMapping.column.loginAktiv)
       }
     }
   }
@@ -253,7 +254,7 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
   def setLoginAktiv(meta: EventMetadata, personId: PersonId)(implicit originator: PersonId = meta.originator, session: DBSession, publisher: EventPublisher) = {
     stammdatenWriteRepository.getById(personMapping, personId) map { person =>
       val updated = person.copy(loginAktiv = true)
-      stammdatenWriteRepository.updateEntity[Person, PersonId](updated)
+      stammdatenWriteRepository.updateEntity[Person, PersonId](updated, personMapping.column.loginAktiv)
     }
   }
 
@@ -313,7 +314,7 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(personMapping, personId) map { person =>
         val updated = person.copy(rolle = Some(rolle))
-        stammdatenWriteRepository.updateEntity[Person, PersonId](updated)
+        stammdatenWriteRepository.updateEntity[Person, PersonId](updated, personMapping.column.rolle)
       }
     }
   }
@@ -325,18 +326,27 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotAuslieferungMapping, id) map { auslieferung =>
         if (Erfasst == auslieferung.status) {
-          stammdatenWriteRepository.updateEntity[DepotAuslieferung, AuslieferungId](auslieferung.copy(status = Ausgeliefert))
+          stammdatenWriteRepository.updateEntity[DepotAuslieferung, AuslieferungId](
+            auslieferung.copy(status = Ausgeliefert),
+            depotAuslieferungMapping.column.status
+          )
         }
       } orElse {
         stammdatenWriteRepository.getById(tourAuslieferungMapping, id) map { auslieferung =>
           if (Erfasst == auslieferung.status) {
-            stammdatenWriteRepository.updateEntity[TourAuslieferung, AuslieferungId](auslieferung.copy(status = Ausgeliefert))
+            stammdatenWriteRepository.updateEntity[TourAuslieferung, AuslieferungId](
+              auslieferung.copy(status = Ausgeliefert),
+              tourAuslieferungMapping.column.status
+            )
           }
         }
       } orElse {
         stammdatenWriteRepository.getById(postAuslieferungMapping, id) map { auslieferung =>
           if (Erfasst == auslieferung.status) {
-            stammdatenWriteRepository.updateEntity[PostAuslieferung, AuslieferungId](auslieferung.copy(status = Ausgeliefert))
+            stammdatenWriteRepository.updateEntity[PostAuslieferung, AuslieferungId](
+              auslieferung.copy(status = Ausgeliefert),
+              postAuslieferungMapping.column.status
+            )
           }
         }
       }
@@ -347,7 +357,11 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
         if (Abgeschlossen == sammelbestellung.status) {
-          stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](sammelbestellung.copy(status = Verrechnet, datumAbrechnung = Some(datum)))
+          stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](
+            sammelbestellung.copy(status = Verrechnet, datumAbrechnung = Some(datum)),
+            sammelbestellungMapping.column.status,
+            sammelbestellungMapping.column.datumAbrechnung
+          )
         }
       }
     }

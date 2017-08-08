@@ -132,13 +132,25 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
 
           //update total on bestellung, steuer and totalSteuer
           val copy = bestellung.copy(preisTotal = total, steuer = mwst, totalSteuer = totalInkl, adminProzenteAbzug = adminProzenteAbzug, totalNachAbzugAdminProzente = totalNachAbzugAdminProzente)
-          stammdatenWriteRepository.updateEntity[Bestellung, BestellungId](copy)
+          stammdatenWriteRepository.updateEntity[Bestellung, BestellungId](
+            copy,
+            bestellungMapping.column.preisTotal,
+            bestellungMapping.column.steuer,
+            bestellungMapping.column.totalSteuer,
+            bestellungMapping.column.adminProzenteAbzug,
+            bestellungMapping.column.totalNachAbzugAdminProzente
+          )
           (total, mwst, totalInkl)
       }
       val totals = totalsToAggregate.foldLeft((BigDecimal(0), BigDecimal(0), BigDecimal(0))) { case ((accA, accB, accC), (a, b, c)) => (accA + a, accB + b, accC + c) }
 
       val copy = sammelbestellung.copy(preisTotal = totals._1, steuer = totals._2, totalSteuer = totals._3)
-      stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](copy)
+      stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](
+        copy,
+        sammelbestellungMapping.column.preisTotal,
+        sammelbestellungMapping.column.steuer,
+        sammelbestellungMapping.column.totalSteuer
+      )
     }
 
   }

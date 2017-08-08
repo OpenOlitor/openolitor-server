@@ -37,41 +37,46 @@ import ch.openolitor.core.models.BaseEntity
 import ch.openolitor.core.models.BaseId
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.repositories.SqlBinder
-import ch.openolitor.core.repositories.ModifyEntity
 import ch.openolitor.core.repositories.EventPublisher
 
-trait AboAktivChangeHandler extends StammdatenDBMappings with ModifyEntity {
+trait AboAktivChangeHandler extends StammdatenDBMappings {
+  this: StammdatenUpdateRepositoryComponent =>
   def handleAboAktivChange(abo: Abo, change: Int)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId) = {
     abo match {
       case d: DepotlieferungAbo =>
-        modifyEntity[Depot, DepotId](d.depotId) { depot =>
+        modifyEntityFields[Depot, DepotId](d.depotId) { depot =>
           depot.copy(anzahlAbonnentenAktiv = depot.anzahlAbonnentenAktiv + change)
-        }
+        }(depotMapping.column.anzahlAbonnentenAktiv)
       case h: HeimlieferungAbo =>
-        modifyEntity[Tour, TourId](h.tourId) { tour =>
+        modifyEntityFields[Tour, TourId](h.tourId) { tour =>
           tour.copy(anzahlAbonnentenAktiv = tour.anzahlAbonnentenAktiv + change)
-        }
+        }(tourMapping.column.anzahlAbonnentenAktiv)
       case _ =>
       // nothing to change
     }
 
-    modifyEntity[Abotyp, AbotypId](abo.abotypId) { abotyp =>
+    modifyEntityFields[Abotyp, AbotypId](abo.abotypId) { abotyp =>
       abotyp.copy(anzahlAbonnentenAktiv = abotyp.anzahlAbonnentenAktiv + change)
-    }
-    modifyEntity[Kunde, KundeId](abo.kundeId) { kunde =>
+    }(abotypMapping.column.anzahlAbonnentenAktiv)
+
+    modifyEntityFields[Kunde, KundeId](abo.kundeId) { kunde =>
       kunde.copy(anzahlAbosAktiv = kunde.anzahlAbosAktiv + change)
-    }
-    modifyEntity[Vertrieb, VertriebId](abo.vertriebId) { vertrieb =>
+    }(kundeMapping.column.anzahlAbosAktiv)
+
+    modifyEntityFields[Vertrieb, VertriebId](abo.vertriebId) { vertrieb =>
       vertrieb.copy(anzahlAbosAktiv = vertrieb.anzahlAbosAktiv + change)
-    }
-    modifyEntity[Depotlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
+    }(vertriebMapping.column.anzahlAbosAktiv)
+
+    modifyEntityFields[Depotlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
       vertriebsart.copy(anzahlAbosAktiv = vertriebsart.anzahlAbosAktiv + change)
-    }
-    modifyEntity[Heimlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
+    }(depotlieferungMapping.column.anzahlAbosAktiv)
+
+    modifyEntityFields[Heimlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
       vertriebsart.copy(anzahlAbosAktiv = vertriebsart.anzahlAbosAktiv + change)
-    }
-    modifyEntity[Postlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
+    }(heimlieferungMapping.column.anzahlAbosAktiv)
+
+    modifyEntityFields[Postlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
       vertriebsart.copy(anzahlAbosAktiv = vertriebsart.anzahlAbosAktiv + change)
-    }
+    }(postlieferungMapping.column.anzahlAbosAktiv)
   }
 }

@@ -40,8 +40,11 @@ trait LieferungHandler extends LieferungDurchschnittspreisHandler with Stammdate
     stammdatenWriteRepository.getById(lieferungMapping, lieferungId) map { lieferung =>
       positionen.preisTotal match {
         case Some(preis) =>
-          val copy = lieferung.copy(preisTotal = preis, modifidat = meta.timestamp, modifikator = personId)
-          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](copy)
+          val copy = lieferung.copy(preisTotal = preis)
+          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](
+            copy,
+            lieferungMapping.column.preisTotal
+          )
         case _ =>
       }
 
