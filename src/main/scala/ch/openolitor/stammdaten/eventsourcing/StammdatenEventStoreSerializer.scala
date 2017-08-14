@@ -44,6 +44,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val depotIdPersister = persister[DepotId]("depot-id")
 
   implicit val aboIdPersister = persister[AboId]("abo-id")
+  implicit val korbIdPersister = persister[KorbId]("korb-id")
 
   implicit val abotypModifyPersister = persister[AbotypModify]("abotyp-modify")
   implicit val abotypIdPersister = persister[AbotypId]("abotyp-id")
@@ -150,6 +151,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val kontoDatenIdPersister = persister[KontoDatenId]("konto-daten-id")
 
   implicit val korbCreatePersister = persister[KorbCreate]("korb-create")
+  implicit val korbModifyAuslieferungPersister = persister[KorbAuslieferungModify]("korb-modify-auslieferung")
+
   implicit val tourAuslieferungModifyPersister = persister[TourAuslieferungModify]("tour-auslieferung-modify")
   implicit val depotAuslieferungPersister = persister[DepotAuslieferung]("depot-auslieferung")
   implicit val tourAuslieferungPersister = persister[TourAuslieferung]("tour-auslieferung")
@@ -229,6 +232,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     abwesenheitCreateV2Persister,
     abwesenheitIdPersister,
     korbCreatePersister,
+    korbModifyAuslieferungPersister,
     tourAuslieferungModifyPersister,
     depotAuslieferungPersister,
     tourAuslieferungPersister,
@@ -258,7 +262,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     passwortResetGesendetEventPersister,
     rolleGewechseltEventPersister,
     aboAktiviertEventPersister,
-    aboDeaktiviertEventPersister
+    aboDeaktiviertEventPersister,
+    korbIdPersister
   )
 
   def fixToOptionLocalDate(in: JsValue, attribute: Symbol): JsValue = {
