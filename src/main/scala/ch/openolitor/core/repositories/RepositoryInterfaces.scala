@@ -39,18 +39,18 @@ import ch.openolitor.core.db.OOAsyncDB._
 trait ReadRepository {
   def getById[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], id: I)(implicit
     session: DBSession,
-    binder: Binders[I]): Option[E]
+    binder: ParameterBinderFactory[I]): Option[E]
 
   def getByIds[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit
     session: DBSession,
-    binder: Binders[I]): List[E]
+    binder: ParameterBinderFactory[I]): List[E]
 }
 
 trait InsertRepository {
   def insertEntity[E <: BaseEntity[I], I <: BaseId](entity: E)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E]
 }
@@ -59,7 +59,7 @@ trait UpdateRepository {
   def updateEntity[E <: BaseEntity[I], I <: BaseId](id: I)(updateFieldsHead: (SQLSyntax, ParameterBinder), updateFieldsTail: (SQLSyntax, ParameterBinder)*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E]
 }
@@ -71,14 +71,14 @@ trait DeleteRepository {
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Validator[E])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E]
 
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Option[Validator[E]] = None)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E]
 }

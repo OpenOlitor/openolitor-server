@@ -37,7 +37,7 @@ import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseRepositoryQueries extends DBMappings with LazyLogging {
-  protected def getByIdsQuery[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit binder: Binders[I]) = {
+  protected def getByIdsQuery[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit binder: ParameterBinderFactory[I]) = {
     val alias = syntax.syntax("x")
     val idx = alias.id
     withSQL {
@@ -47,7 +47,7 @@ trait BaseRepositoryQueries extends DBMappings with LazyLogging {
     }.map(syntax.apply(alias)).list
   }
 
-  protected def getByIdQuery[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], id: I)(implicit binder: Binders[I]) = {
+  protected def getByIdQuery[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], id: I)(implicit binder: ParameterBinderFactory[I]) = {
     val alias = syntax.syntax("x")
     val idx = alias.id
     withSQL {

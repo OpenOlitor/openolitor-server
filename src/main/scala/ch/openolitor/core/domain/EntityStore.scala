@@ -167,7 +167,7 @@ trait EntityStore extends AggregateRoot
         log.debug(s"EntityStoreInitialized")
       case e @ EntityInsertedEvent(meta, id, entity) =>
         updateId(e.idType, id.id)
-        log.debug(s"EntityInsertedEvent, update id to:${e.idType} -> ${id.id}")
+      //log.debug(s"EntityInsertedEvent, update id to:${e.idType} -> ${id.id}")
       case _ =>
     }
   }

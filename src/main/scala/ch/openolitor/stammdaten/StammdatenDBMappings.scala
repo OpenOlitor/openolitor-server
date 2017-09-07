@@ -39,97 +39,141 @@ import ch.openolitor.core.repositories.BaseParameter
 
 //DB Model bindig
 trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParameter {
+  import ParameterBinderFactory._
 
   val fristeinheitPattern = """(\d+)(M|W)""".r
 
   // DB type binders for read operations
-  implicit val tourIdBinder: Binders[TourId] = baseIdBinders(TourId.apply _)
-  implicit val depotIdBinder: Binders[DepotId] = baseIdBinders(DepotId.apply _)
-  implicit val aboTypIdBinder: Binders[AbotypId] = baseIdBinders(AbotypId.apply _)
-  implicit val vertriebIdBinder: Binders[VertriebId] = baseIdBinders(VertriebId.apply _)
-  implicit val vertriebsartIdBinder: Binders[VertriebsartId] = baseIdBinders(VertriebsartId.apply _)
-  implicit val vertriebsartIdSetBinder: Binders[Set[VertriebsartId]] = setBaseIdBinders(VertriebsartId.apply _)
-  implicit val vertriebsartIdSeqBinder: Binders[Seq[VertriebsartId]] = seqBaseIdBinders(VertriebsartId.apply _)
-  implicit val kundeIdBinder: Binders[KundeId] = baseIdBinders(KundeId.apply _)
-  implicit val pendenzIdBinder: Binders[PendenzId] = baseIdBinders(PendenzId.apply _)
-  implicit val aboIdBinder: Binders[AboId] = baseIdBinders(AboId.apply _)
-  implicit val lierferungIdBinder: Binders[LieferungId] = baseIdBinders(LieferungId.apply _)
-  implicit val lieferplanungIdBinder: Binders[LieferplanungId] = baseIdBinders(LieferplanungId.apply _)
-  implicit val optionLieferplanungIdBinder: Binders[Option[LieferplanungId]] = optionBaseIdBinders(LieferplanungId.apply _)
-  implicit val lieferpositionIdBinder: Binders[LieferpositionId] = baseIdBinders(LieferpositionId.apply _)
-  implicit val bestellungIdBinder: Binders[BestellungId] = baseIdBinders(BestellungId.apply _)
-  implicit val sammelbestellungIdBinder: Binders[SammelbestellungId] = baseIdBinders(SammelbestellungId.apply _)
-  implicit val bestellpositionIdBinder: Binders[BestellpositionId] = baseIdBinders(BestellpositionId.apply _)
-  implicit val customKundentypIdBinder: Binders[CustomKundentypId] = baseIdBinders(CustomKundentypId.apply _)
-  implicit val kundentypIdBinder: Binders[KundentypId] = Binders.string.xmap(KundentypId.apply _, _.id)
-  implicit val produktekategorieIdBinder: Binders[ProduktekategorieId] = baseIdBinders(ProduktekategorieId.apply _)
-  implicit val baseProduktekategorieIdBinder: Binders[BaseProduktekategorieId] = Binders.string.xmap(BaseProduktekategorieId.apply _, _.id)
-  implicit val produktIdBinder: Binders[ProduktId] = baseIdBinders(ProduktId.apply _)
-  implicit val optionProduktIdBinder: Binders[Option[ProduktId]] = optionBaseIdBinders(ProduktId.apply _)
-  implicit val produzentIdBinder: Binders[ProduzentId] = baseIdBinders(ProduzentId.apply _)
-  implicit val baseProduzentIdBinder: Binders[BaseProduzentId] = Binders.string.xmap(BaseProduzentId.apply _, _.id)
-  implicit val projektIdBinder: Binders[ProjektId] = baseIdBinders(ProjektId.apply _)
-  implicit val produktProduzentIdBinder: Binders[ProduktProduzentId] = baseIdBinders(ProduktProduzentId.apply _)
-  implicit val produktProduktekategorieIdBinder: Binders[ProduktProduktekategorieId] = baseIdBinders(ProduktProduktekategorieId.apply _)
-  implicit val abwesenheitIdBinder: Binders[AbwesenheitId] = baseIdBinders(AbwesenheitId.apply _)
-  implicit val korbIdBinder: Binders[KorbId] = baseIdBinders(KorbId.apply _)
-  implicit val auslieferungIdBinder: Binders[AuslieferungId] = baseIdBinders(AuslieferungId.apply _)
-  implicit val projektVorlageIdBinder: Binders[ProjektVorlageId] = baseIdBinders(ProjektVorlageId.apply _)
-  implicit val optionAuslieferungIdBinder: Binders[Option[AuslieferungId]] = optionBaseIdBinders(AuslieferungId.apply _)
-  implicit val einladungIdBinder: Binders[EinladungId] = baseIdBinders(EinladungId.apply _)
-  implicit val kontoDatenIdBinder: Binders[KontoDatenId] = baseIdBinders(KontoDatenId.apply _)
+  //  implicit val tourIdBinder: ParameterBinderFactory[TourId] = baseIdParameterBinderFactory(TourId.apply _)
+  //  implicit val depotIdBinder: ParameterBinderFactory[DepotId] = baseIdParameterBinderFactory(DepotId.apply _)
+  //  implicit val aboTypIdBinder: ParameterBinderFactory[AbotypId] = baseIdParameterBinderFactory(AbotypId.apply _)
+  //  implicit val vertriebIdBinder: ParameterBinderFactory[VertriebId] = baseIdParameterBinderFactory(VertriebId.apply _)
+  //  implicit val vertriebsartIdBinder: ParameterBinderFactory[VertriebsartId] = baseIdParameterBinderFactory(VertriebsartId.apply _)
+  //  implicit val vertriebsartIdSetBinder: ParameterBinderFactory[Set[VertriebsartId]] = setBaseIdParameterBinderFactory(VertriebsartId.apply _)
+  //  implicit val vertriebsartIdSeqBinder: ParameterBinderFactory[Seq[VertriebsartId]] = seqBaseIdParameterBinderFactory(VertriebsartId.apply _)
+  //  implicit val kundeIdBinder: ParameterBinderFactory[KundeId] = baseIdParameterBinderFactory(KundeId.apply _)
+  //  implicit val pendenzIdBinder: ParameterBinderFactory[PendenzId] = baseIdParameterBinderFactory(PendenzId.apply _)
+  //  implicit val aboIdBinder: ParameterBinderFactory[AboId] = baseIdParameterBinderFactory(AboId.apply _)
+  //  implicit val lierferungIdBinder: ParameterBinderFactory[LieferungId] = baseIdParameterBinderFactory(LieferungId.apply _)
+  //  implicit val lieferplanungIdBinder: ParameterBinderFactory[LieferplanungId] = baseIdParameterBinderFactory(LieferplanungId.apply _)
+  //  implicit val optionLieferplanungIdBinder: ParameterBinderFactory[Option[LieferplanungId]] = optionBaseIdParameterBinderFactory(LieferplanungId.apply _)
+  //  implicit val lieferpositionIdBinder: ParameterBinderFactory[LieferpositionId] = baseIdParameterBinderFactory(LieferpositionId.apply _)
+  //  implicit val bestellungIdBinder: ParameterBinderFactory[BestellungId] = baseIdParameterBinderFactory(BestellungId.apply _)
+  //  implicit val sammelbestellungIdBinder: ParameterBinderFactory[SammelbestellungId] = baseIdParameterBinderFactory(SammelbestellungId.apply _)
+  //  implicit val bestellpositionIdBinder: ParameterBinderFactory[BestellpositionId] = baseIdParameterBinderFactory(BestellpositionId.apply _)
+  //  implicit val customKundentypIdBinder: ParameterBinderFactory[CustomKundentypId] = baseIdParameterBinderFactory(CustomKundentypId.apply _)
+  //  implicit val kundentypIdBinder: ParameterBinderFactory[KundentypId] = ParameterBinderFactory.string.xmap(KundentypId.apply _, _.id)
+  //  implicit val produktekategorieIdBinder: ParameterBinderFactory[ProduktekategorieId] = baseIdParameterBinderFactory(ProduktekategorieId.apply _)
+  //  implicit val baseProduktekategorieIdBinder: ParameterBinderFactory[BaseProduktekategorieId] = ParameterBinderFactory.string.xmap(BaseProduktekategorieId.apply _, _.id)
+  //  implicit val produktIdBinder: ParameterBinderFactory[ProduktId] = baseIdParameterBinderFactory(ProduktId.apply _)
+  //  implicit val optionProduktIdBinder: ParameterBinderFactory[Option[ProduktId]] = optionBaseIdParameterBinderFactory(ProduktId.apply _)
+  //  implicit val produzentIdBinder: ParameterBinderFactory[ProduzentId] = baseIdParameterBinderFactory(ProduzentId.apply _)
+  //  implicit val baseProduzentIdBinder: ParameterBinderFactory[BaseProduzentId] = ParameterBinderFactory.string.xmap(BaseProduzentId.apply _, _.id)
+  //  implicit val projektIdBinder: ParameterBinderFactory[ProjektId] = baseIdParameterBinderFactory(ProjektId.apply _)
+  //  implicit val produktProduzentIdBinder: ParameterBinderFactory[ProduktProduzentId] = baseIdParameterBinderFactory(ProduktProduzentId.apply _)
+  //  implicit val produktProduktekategorieIdBinder: ParameterBinderFactory[ProduktProduktekategorieId] = baseIdParameterBinderFactory(ProduktProduktekategorieId.apply _)
+  //  implicit val abwesenheitIdBinder: ParameterBinderFactory[AbwesenheitId] = baseIdParameterBinderFactory(AbwesenheitId.apply _)
+  //  implicit val korbIdBinder: ParameterBinderFactory[KorbId] = baseIdParameterBinderFactory(KorbId.apply _)
+  //  implicit val auslieferungIdBinder: ParameterBinderFactory[AuslieferungId] = baseIdParameterBinderFactory(AuslieferungId.apply _)
+  //  implicit val projektVorlageIdBinder: ParameterBinderFactory[ProjektVorlageId] = baseIdParameterBinderFactory(ProjektVorlageId.apply _)
+  //  implicit val optionAuslieferungIdBinder: ParameterBinderFactory[Option[AuslieferungId]] = optionBaseIdParameterBinderFactory(AuslieferungId.apply _)
+  //  implicit val einladungIdBinder: ParameterBinderFactory[EinladungId] = baseIdParameterBinderFactory(EinladungId.apply _)
+  //  implicit val kontoDatenIdBinder: ParameterBinderFactory[KontoDatenId] = baseIdParameterBinderFactory(KontoDatenId.apply _)
 
-  implicit val pendenzStatusBinders: Binders[PendenzStatus] = toStringBinder(PendenzStatus.apply)
-  implicit val rhythmusBinders: Binders[Rhythmus] = toStringBinder(Rhythmus.apply)
-  implicit val waehrungBinders: Binders[Waehrung] = toStringBinder(Waehrung.apply)
-  implicit val lieferungStatusBinders: Binders[LieferungStatus] = toStringBinder(LieferungStatus.apply)
-  implicit val korbStatusBinders: Binders[KorbStatus] = toStringBinder(KorbStatus.apply)
-  implicit val auslieferungStatusBinders: Binders[AuslieferungStatus] = toStringBinder(AuslieferungStatus.apply)
-  implicit val preiseinheitBinders: Binders[Preiseinheit] = toStringBinder(Preiseinheit.apply)
-  implicit val lieferzeitpunktBinders: Binders[Lieferzeitpunkt] = toStringBinder(Lieferzeitpunkt.apply)
-  implicit val lieferzeitpunktSetBinders: Binders[Set[Lieferzeitpunkt]] = setSqlBinder(Lieferzeitpunkt.apply, _.toString)
-  implicit val kundenTypIdSetBinder: Binders[Set[KundentypId]] = setSqlBinder(KundentypId.apply, _.toString)
-  implicit val laufzeiteinheitBinders: Binders[Laufzeiteinheit] = toStringBinder(Laufzeiteinheit.apply)
-  implicit val liefereinheiBinders: Binders[Liefereinheit] = toStringBinder(Liefereinheit.apply)
-  implicit val liefersaisonBinders: Binders[Liefersaison] = toStringBinder(Liefersaison.apply)
-  implicit val vorlageTypeBinders: Binders[VorlageTyp] = toStringBinder(VorlageTyp.apply)
-  implicit val anredeBinders: Binders[Option[Anrede]] = toStringBinder(Anrede.apply)
-  implicit val fristBinders: Binders[Option[Frist]] = Binders.string.xmap(_ match {
+  implicit def pendenzStatusParameterBinderFactory[A <: PendenzStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def rhythmusParameterBinderFactory[A <: Rhythmus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def waehrungParameterBinderFactory[A <: Waehrung]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def lieferungStatusParameterBinderFactory[A <: LieferungStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def korbStatusParameterBinderFactory[A <: KorbStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def auslieferungStatusParameterBinderFactory[A <: AuslieferungStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def preiseinheitParameterBinderFactory[A <: Preiseinheit]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def lieferzeitpunktParameterBinderFactory[A <: Lieferzeitpunkt]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def lieferzeitpunktSetParameterBinderFactory: ParameterBinderFactory[Set[Lieferzeitpunkt]] = setSqlParameterBinderFactory(_.toString)
+  implicit def kundenTypIdSetParameterBinderFactory: ParameterBinderFactory[Set[KundentypId]] = setSqlParameterBinderFactory(_.toString)
+  implicit def laufzeiteinheitParameterBinderFactory[A <: Laufzeiteinheit]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def liefereinheiParameterBinderFactory[A <: Liefereinheit]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def liefersaisonParameterBinderFactory[A <: Liefersaison]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def vorlageTypeParameterBinderFactory[A <: VorlageTyp]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def anredeParameterBinderFactory[A <: Anrede]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def fristParameterBinderFactory[A <: Frist]: ParameterBinderFactory[A] = stringParameterBinderFactory.contramap({ frist =>
+    val einheit = frist.einheit match {
+      case Wochenfrist => "W"
+      case Monatsfrist => "M"
+    }
+    s"${frist.wert}$einheit"
+  })
+
+  implicit val baseProduktekategorieIdSetParameterBinderFactory: ParameterBinderFactory[Set[BaseProduktekategorieId]] = setBaseStringIdParameterBinderFactory
+  implicit val baseProduzentIdSetParameterBinderFactory: ParameterBinderFactory[Set[BaseProduzentId]] = setBaseStringIdParameterBinderFactory
+  implicit val stringIntTreeMapParameterBinderFactory: ParameterBinderFactory[TreeMap[String, Int]] = treeMapParameterBinderFactory[String, Int](identity, _.toString)
+  implicit val stringBigDecimalTreeMapParameterBinderFactory: ParameterBinderFactory[TreeMap[String, BigDecimal]] = treeMapParameterBinderFactory(identity, _.toString)
+  implicit val rolleMapParameterBinderFactory: ParameterBinderFactory[Map[Rolle, Boolean]] = mapParameterBinderFactory(_.toString, _.toString)
+  implicit val rolleParameterBinderFactory: ParameterBinderFactory[Option[Rolle]] = toStringParameterBinderFactory
+
+  // TypeBinder
+  implicit val tourIdBinder: TypeBinder[TourId] = baseIdTypeBinder(TourId.apply _)
+  implicit val depotIdBinder: TypeBinder[DepotId] = baseIdTypeBinder(DepotId.apply _)
+  implicit val aboTypIdBinder: TypeBinder[AbotypId] = baseIdTypeBinder(AbotypId.apply _)
+  implicit val vertriebIdBinder: TypeBinder[VertriebId] = baseIdTypeBinder(VertriebId.apply _)
+  implicit val vertriebsartIdBinder: TypeBinder[VertriebsartId] = baseIdTypeBinder(VertriebsartId.apply _)
+  implicit val vertriebsartIdSetBinder: TypeBinder[Set[VertriebsartId]] = setBaseIdTypeBinder(VertriebsartId.apply _)
+  implicit val vertriebsartIdSeqBinder: TypeBinder[Seq[VertriebsartId]] = seqBaseIdTypeBinder(VertriebsartId.apply _)
+  implicit val kundeIdBinder: TypeBinder[KundeId] = baseIdTypeBinder(KundeId.apply _)
+  implicit val pendenzIdBinder: TypeBinder[PendenzId] = baseIdTypeBinder(PendenzId.apply _)
+  implicit val aboIdBinder: TypeBinder[AboId] = baseIdTypeBinder(AboId.apply _)
+  implicit val lierferungIdBinder: TypeBinder[LieferungId] = baseIdTypeBinder(LieferungId.apply _)
+  implicit val lieferplanungIdBinder: TypeBinder[LieferplanungId] = baseIdTypeBinder(LieferplanungId.apply _)
+  implicit val optionLieferplanungIdBinder: TypeBinder[Option[LieferplanungId]] = optionBaseIdTypeBinder(LieferplanungId.apply _)
+  implicit val lieferpositionIdBinder: TypeBinder[LieferpositionId] = baseIdTypeBinder(LieferpositionId.apply _)
+  implicit val bestellungIdBinder: TypeBinder[BestellungId] = baseIdTypeBinder(BestellungId.apply _)
+  implicit val sammelbestellungIdBinder: TypeBinder[SammelbestellungId] = baseIdTypeBinder(SammelbestellungId.apply _)
+  implicit val bestellpositionIdBinder: TypeBinder[BestellpositionId] = baseIdTypeBinder(BestellpositionId.apply _)
+  implicit val customKundentypIdBinder: TypeBinder[CustomKundentypId] = baseIdTypeBinder(CustomKundentypId.apply _)
+  implicit val kundentypIdBinder: TypeBinder[KundentypId] = baseStringIdTypeBinder(KundentypId.apply _)
+  implicit val produktekategorieIdBinder: TypeBinder[ProduktekategorieId] = baseIdTypeBinder(ProduktekategorieId.apply _)
+  implicit val baseProduktekategorieIdBinder: TypeBinder[BaseProduktekategorieId] = baseStringIdTypeBinder(BaseProduktekategorieId.apply _)
+  implicit val produktIdBinder: TypeBinder[ProduktId] = baseIdTypeBinder(ProduktId.apply _)
+  implicit val optionProduktIdBinder: TypeBinder[Option[ProduktId]] = optionBaseIdTypeBinder(ProduktId.apply _)
+  implicit val produzentIdBinder: TypeBinder[ProduzentId] = baseIdTypeBinder(ProduzentId.apply _)
+  implicit val baseProduzentIdBinder: TypeBinder[BaseProduzentId] = baseStringIdTypeBinder(BaseProduzentId.apply _)
+  implicit val projektIdBinder: TypeBinder[ProjektId] = baseIdTypeBinder(ProjektId.apply _)
+  implicit val produktProduzentIdBinder: TypeBinder[ProduktProduzentId] = baseIdTypeBinder(ProduktProduzentId.apply _)
+  implicit val produktProduktekategorieIdBinder: TypeBinder[ProduktProduktekategorieId] = baseIdTypeBinder(ProduktProduktekategorieId.apply _)
+  implicit val abwesenheitIdBinder: TypeBinder[AbwesenheitId] = baseIdTypeBinder(AbwesenheitId.apply _)
+  implicit val korbIdBinder: TypeBinder[KorbId] = baseIdTypeBinder(KorbId.apply _)
+  implicit val auslieferungIdBinder: TypeBinder[AuslieferungId] = baseIdTypeBinder(AuslieferungId.apply _)
+  implicit val projektVorlageIdBinder: TypeBinder[ProjektVorlageId] = baseIdTypeBinder(ProjektVorlageId.apply _)
+  implicit val optionAuslieferungIdBinder: TypeBinder[Option[AuslieferungId]] = optionBaseIdTypeBinder(AuslieferungId.apply _)
+  implicit val einladungIdBinder: TypeBinder[EinladungId] = baseIdTypeBinder(EinladungId.apply _)
+  implicit val kontoDatenIdBinder: TypeBinder[KontoDatenId] = baseIdTypeBinder(KontoDatenId.apply _)
+
+  implicit val pendenzStatusTypeBinder: TypeBinder[PendenzStatus] = toStringTypeBinder(PendenzStatus.apply)
+  implicit val rhythmusTypeBinder: TypeBinder[Rhythmus] = toStringTypeBinder(Rhythmus.apply)
+  implicit val waehrungTypeBinder: TypeBinder[Waehrung] = toStringTypeBinder(Waehrung.apply)
+  implicit val lieferungStatusTypeBinder: TypeBinder[LieferungStatus] = toStringTypeBinder(LieferungStatus.apply)
+  implicit val korbStatusTypeBinder: TypeBinder[KorbStatus] = toStringTypeBinder(KorbStatus.apply)
+  implicit val auslieferungStatusTypeBinder: TypeBinder[AuslieferungStatus] = toStringTypeBinder(AuslieferungStatus.apply)
+  implicit val preiseinheitTypeBinder: TypeBinder[Preiseinheit] = toStringTypeBinder(Preiseinheit.apply)
+  implicit val lieferzeitpunktTypeBinder: TypeBinder[Lieferzeitpunkt] = toStringTypeBinder(Lieferzeitpunkt.apply)
+  implicit val lieferzeitpunktSetTypeBinder: TypeBinder[Set[Lieferzeitpunkt]] = setSqlTypeBinder(Lieferzeitpunkt.apply)
+  implicit val kundenTypIdSetTypeBinder: TypeBinder[Set[KundentypId]] = setSqlTypeBinder(KundentypId.apply)
+  implicit val laufzeiteinheitTypeBinder: TypeBinder[Laufzeiteinheit] = toStringTypeBinder(Laufzeiteinheit.apply)
+  implicit val liefereinheiTypeBinder: TypeBinder[Liefereinheit] = toStringTypeBinder(Liefereinheit.apply)
+  implicit val liefersaisonTypeBinder: TypeBinder[Liefersaison] = toStringTypeBinder(Liefersaison.apply)
+  implicit val vorlageTypeTypeBinder: TypeBinder[VorlageTyp] = toStringTypeBinder(VorlageTyp.apply)
+  implicit val anredeTypeBinder: TypeBinder[Option[Anrede]] = toStringTypeBinder(Anrede.apply)
+  implicit val fristTypeBinder: TypeBinder[Option[Frist]] = TypeBinder.string.map(_ match {
     case fristeinheitPattern(wert, "W") => Some(Frist(wert.toInt, Wochenfrist))
     case fristeinheitPattern(wert, "M") => Some(Frist(wert.toInt, Monatsfrist))
     case _ => None
-  }, {
-    _ match {
-      case None => ""
-      case Some(frist) =>
-        val einheit = frist.einheit match {
-          case Wochenfrist => "W"
-          case Monatsfrist => "M"
-        }
-        s"${frist.wert}$einheit"
-    }
   })
 
-  implicit val baseProduktekategorieIdSetBinders: Binders[Set[BaseProduktekategorieId]] = setBaseStringIdBinders(BaseProduktekategorieId.apply _)
-  implicit val baseProduzentIdSetBinders: Binders[Set[BaseProduzentId]] = setBaseStringIdBinders(BaseProduzentId.apply _)
-  implicit val stringIntTreeMapBinders: Binders[TreeMap[String, Int]] = treeMapBinders[String, Int](identity, _.toInt, identity, _.toString)
-  implicit val stringBigDecimalTreeMapBinders: Binders[TreeMap[String, BigDecimal]] = treeMapBinders(identity, BigDecimal(_), identity, _.toString)
-  implicit val rolleMapBinders: Binders[Map[Rolle, Boolean]] = mapBinders(r => Rolle(r).getOrElse(KundenZugang), _.toBoolean, _.toString, _.toString)
-  implicit val rolleBinders: Binders[Option[Rolle]] = toStringBinder(Rolle.apply)
-
-  // declare parameterbinderfactories for enum type to allow dynamic type convertion of enum subtypes
-  implicit def pendenzStatusParameterBinderFactory[A <: PendenzStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def rhythmusParameterBinderFactory[A <: Rhythmus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def waehrungParameterBinderFactory[A <: Waehrung]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def lieferungStatusParameterBinderFactory[A <: LieferungStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def korbStatusParameterBinderFactory[A <: KorbStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def auslieferungStatusParameterBinderFactory[A <: AuslieferungStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def preiseinheitParameterBinderFactory[A <: Preiseinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def lieferzeitpunktParameterBinderFactory[A <: Lieferzeitpunkt]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def laufzeiteinheitParameterBinderFactory[A <: Laufzeiteinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def liefereinheitParameterBinderFactory[A <: Liefereinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def liefersaisonParameterBinderFactory[A <: Liefersaison]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def vorlageParameterBinderFactory[A <: VorlageTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit val baseProduktekategorieIdSetTypeBinder: TypeBinder[Set[BaseProduktekategorieId]] = setBaseStringIdTypeBinder(BaseProduktekategorieId.apply _)
+  implicit val baseProduzentIdSetTypeBinder: TypeBinder[Set[BaseProduzentId]] = setBaseStringIdTypeBinder(BaseProduzentId.apply _)
+  implicit val stringIntTreeMapTypeBinder: TypeBinder[TreeMap[String, Int]] = treeMapTypeBinder[String, Int](identity, _.toInt)
+  implicit val stringBigDecimalTreeMapTypeBinder: TypeBinder[TreeMap[String, BigDecimal]] = treeMapTypeBinder(identity, BigDecimal(_))
+  implicit val rolleMapTypeBinder: TypeBinder[Map[Rolle, Boolean]] = mapTypeBinder(r => Rolle(r).getOrElse(KundenZugang), _.toBoolean)
+  implicit val rolleTypeBinder: TypeBinder[Option[Rolle]] = toStringTypeBinder(Rolle.apply)
 
   implicit val abotypMapping = new BaseEntitySQLSyntaxSupport[Abotyp] {
     override val tableName = "Abotyp"

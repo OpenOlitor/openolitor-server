@@ -42,19 +42,47 @@ trait DBMappings extends BaseParameter
     with Parameters27
     with Parameters28
     with LowPriorityImplicitsParameterBinderFactory1 {
-  import Binders._
+  import TypeBinder._
   import ParameterBinderFactory._
 
-  def baseIdBinders[T <: BaseId](f: Long => T): Binders[T] = Binders.long.xmap(l => f(l), _.id)
-  def optionBaseIdBinders[T <: BaseId](f: Long => T): Binders[Option[T]] = Binders.optionLong.xmap(_.map(l => f(l)), _.map(_.id))
-  def toStringBinder[V](f: String => V): Binders[V] = Binders.string.xmap(f(_), _.toString)
-  def seqSqlBinder[V](f: String => V, g: V => String): Binders[Seq[V]] = Binders.string.xmap({ x => x.split(",") map (f) }, { values => values map (g) mkString (",") })
-  def setSqlBinder[V](f: String => V, g: V => String): Binders[Set[V]] = Binders.string.xmap({ x => x.split(",") map (f) toSet }, { values => values map (g) mkString (",") })
-  def seqBaseIdBinders[T <: BaseId](f: Long => T): Binders[Seq[T]] = seqSqlBinder[T](l => f(l.toLong), _.id.toString)
-  def setBaseIdBinders[T <: BaseId](f: Long => T): Binders[Set[T]] = setSqlBinder[T](l => f(l.toLong), _.id.toString)
-  def setBaseStringIdBinders[T <: BaseStringId](f: String => T): Binders[Set[T]] = setSqlBinder[T](l => f(l), _.id)
-  def treeMapBinders[K: Ordering, V](kf: String => K, vf: String => V, kg: K => String, vg: V => String): Binders[TreeMap[K, V]] =
-    Binders.string.xmap({ s =>
+  // ParameterBinder
+  implicit def baseIdParameterBinderFactory[T <: BaseId]: ParameterBinderFactory[T] = longParameterBinderFactory.contramap(_.id)
+  implicit def baseStringIdParameterBinderFactory[T <: BaseStringId]: ParameterBinderFactory[T] = stringParameterBinderFactory.contramap(_.id)
+  def toStringParameterBinderFactory[V]: ParameterBinderFactory[V] = stringParameterBinderFactory.contramap(_.toString)
+  def seqSqlParameterBinderFactory[V](g: V => String): ParameterBinderFactory[Seq[V]] = stringParameterBinderFactory.contramap({ values => values map (g) mkString (",") })
+  def setSqlParameterBinderFactory[V](g: V => String): ParameterBinderFactory[Set[V]] = stringParameterBinderFactory.contramap({ values => values map (g) mkString (",") })
+  def seqBaseIdParameterBinderFactory[T <: BaseId](f: Long => T): ParameterBinderFactory[Seq[T]] = seqSqlParameterBinderFactory[T](_.id.toString)
+  def setBaseIdParameterBinderFactory[T <: BaseId](f: Long => T): ParameterBinderFactory[Set[T]] = setSqlParameterBinderFactory[T](_.id.toString)
+  def setBaseStringIdParameterBinderFactory[T <: BaseStringId]: ParameterBinderFactory[Set[T]] = setSqlParameterBinderFactory[T](_.id)
+  def treeMapParameterBinderFactory[K: Ordering, V](kg: K => String, vg: V => String): ParameterBinderFactory[TreeMap[K, V]] =
+    stringParameterBinderFactory.contramap({ map =>
+      map.toIterable.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
+    })
+  def mapParameterBinderFactory[K, V](kg: K => String, vg: V => String): ParameterBinderFactory[Map[K, V]] =
+    stringParameterBinderFactory.contramap({ map =>
+      map.toIterable.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
+    })
+
+  implicit val localeParameterBinderFactory: ParameterBinderFactory[Locale] = stringParameterBinderFactory.contramap(_.toLanguageTag)
+  // implicit val personIdParameterBinderFactory: ParameterBinderFactory[PersonId] = baseIdParameterBinderFactory
+
+  implicit val charArrayParameterBinderFactory: ParameterBinderFactory[Array[Char]] = stringParameterBinderFactory.contramap(x => new String(x))
+
+  implicit val stringSeqParameterBinderFactory: ParameterBinderFactory[Seq[String]] = seqSqlParameterBinderFactory(identity)
+  implicit val stringSetParameterBinderFactory: ParameterBinderFactory[Set[String]] = setSqlParameterBinderFactory(identity)
+
+  // TypeBinder
+  def baseIdTypeBinder[T <: BaseId](f: Long => T): TypeBinder[T] = TypeBinder.long.map(l => f(l))
+  def baseStringIdTypeBinder[T <: BaseStringId](f: String => T): TypeBinder[T] = TypeBinder.string.map(l => f(l))
+  def optionBaseIdTypeBinder[T <: BaseId](f: Long => T): TypeBinder[Option[T]] = TypeBinder.optionLong.map(_.map(l => f(l)))
+  def toStringTypeBinder[V](f: String => V): TypeBinder[V] = TypeBinder.string.map(f(_))
+  def seqSqlTypeBinder[V](f: String => V): TypeBinder[Seq[V]] = TypeBinder.string.map({ x => x.split(",") map (f) })
+  def setSqlTypeBinder[V](f: String => V): TypeBinder[Set[V]] = TypeBinder.string.map({ x => x.split(",") map (f) toSet })
+  def seqBaseIdTypeBinder[T <: BaseId](f: Long => T): TypeBinder[Seq[T]] = seqSqlTypeBinder[T](l => f(l.toLong))
+  def setBaseIdTypeBinder[T <: BaseId](f: Long => T): TypeBinder[Set[T]] = setSqlTypeBinder[T](l => f(l.toLong))
+  def setBaseStringIdTypeBinder[T <: BaseStringId](f: String => T): TypeBinder[Set[T]] = setSqlTypeBinder[T](l => f(l))
+  def treeMapTypeBinder[K: Ordering, V](kf: String => K, vf: String => V): TypeBinder[TreeMap[K, V]] =
+    TypeBinder.string.map({ s =>
       (TreeMap.empty[K, V] /: s.split(",")) { (tree, str) =>
         str.split("=") match {
           case Array(left, right) =>
@@ -63,11 +91,9 @@ trait DBMappings extends BaseParameter
             tree
         }
       }
-    }, { map =>
-      map.toIterable.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
     })
-  def mapBinders[K, V](kf: String => K, vf: String => V, kg: K => String, vg: V => String): Binders[Map[K, V]] =
-    Binders.string.xmap({ s =>
+  def mapTypeBinder[K, V](kf: String => K, vf: String => V): TypeBinder[Map[K, V]] =
+    TypeBinder.string.map({ s =>
       (Map.empty[K, V] /: s.split(",")) { (tree, str) =>
         str.split("=") match {
           case Array(left, right) =>
@@ -76,43 +102,15 @@ trait DBMappings extends BaseParameter
             tree
         }
       }
-    }, { map =>
-      map.toIterable.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
     })
 
-  implicit val localeBinder: Binders[Locale] = Binders.string.xmap(l => Locale.forLanguageTag(l), _.toLanguageTag)
-  implicit val personIdBinder: Binders[PersonId] = baseIdBinders(PersonId.apply _)
+  implicit val localeTypeBinder: TypeBinder[Locale] = TypeBinder.string.map(l => Locale.forLanguageTag(l))
+  implicit val personIdTypeBinder: TypeBinder[PersonId] = baseIdTypeBinder(PersonId.apply _)
 
-  implicit val charArrayBinder: Binders[Array[Char]] = Binders.string.xmap(_.toCharArray, x => new String(x))
-  implicit val optionCharArrayBinder: Binders[Option[Array[Char]]] = Binders.string.xmap(s => Option(s).map(_.toCharArray), _.map(x => new String(x)).getOrElse(null))
+  implicit val charArrayBinder: TypeBinder[Array[Char]] = TypeBinder.string.map(_.toCharArray)
+  implicit val optionCharArrayBinder: TypeBinder[Option[Array[Char]]] = TypeBinder.string.map(s => Option(s).map(_.toCharArray))
 
-  implicit val stringSeqBinders: Binders[Seq[String]] = seqSqlBinder(identity, identity)
-  implicit val stringSetBinders: Binders[Set[String]] = setSqlBinder(identity, identity)
-
-  // low level binders
-  import TypeBinder._
-  import ParameterBinderFactory._
-  implicit val stringBinder = Binders.string
-  implicit val optionStringBinder = Binders.option[String]
-  implicit val intBinder = Binders.int
-  implicit val optionIntBinder = Binders.optionInt
-  implicit val longBinder = Binders.long
-  implicit val optionLongBinder = Binders.optionLong
-  implicit val shortBinder = Binders.short
-  implicit val optionShortBinder = Binders.optionShort
-  implicit val floatBinder = Binders.float
-  implicit val optionFloatBinder = Binders.optionFloat
-  implicit val doubleBinder = Binders.double
-  implicit val optionDoubleBinder = Binders.optionDouble
-  implicit val booleanBinder = Binders.boolean
-  implicit val optionBooleanBinder = Binders.optionBoolean
-  implicit val localDateBinder = Binders.jodaLocalDate
-  implicit val optionLocalDateBinder = Binders.option[LocalDate]
-  implicit val datetimeBinder = Binders.jodaDateTime
-  implicit val optionDatetimeBinder = Binders.option[DateTime]
-  implicit val bigDecimalBinder = Binders.bigDecimal
-  implicit val optionBigDecimalBinder = Binders.option[BigDecimal]
-
-  // low level parameterbinderfactories
+  implicit val stringSeqTypeBinder: TypeBinder[Seq[String]] = seqSqlTypeBinder(identity)
+  implicit val stringSetTypeBinder: TypeBinder[Set[String]] = setSqlTypeBinder(identity)
 
 }

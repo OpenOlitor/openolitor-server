@@ -44,7 +44,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   def updateEntityIf[E <: BaseEntity[I], I <: BaseId](p: (E) => Boolean)(id: I)(updateFieldsHead: (SQLSyntax, ParameterBinder), updateFieldsTail: (SQLSyntax, ParameterBinder)*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E] = {
     modifyEntityIf[E, I](p)(id)(_ => (updateFieldsHead +: updateFieldsTail).toMap)
@@ -56,7 +56,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   def updateEntity[E <: BaseEntity[I], I <: BaseId](id: I)(updateFieldsHead: (SQLSyntax, ParameterBinder), updateFieldsTail: (SQLSyntax, ParameterBinder)*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E] = {
     modifyEntity[E, I](id)(_ => (updateFieldsHead +: updateFieldsTail).toMap)
@@ -70,7 +70,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   def modifyEntity[E <: BaseEntity[I], I <: BaseId](id: I)(updateFunction: (E) => Map[SQLSyntax, ParameterBinder])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E] = {
     modifyEntityIf[E, I](_ => true)(id)(updateFunction)
@@ -85,7 +85,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   def modifyEntityIf[E <: BaseEntity[I], I <: BaseId](p: (E) => Boolean)(id: I)(updateFunction: (E) => Map[SQLSyntax, ParameterBinder])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
+    binder: ParameterBinderFactory[I],
     user: PersonId,
     eventPublisher: EventPublisher): Option[E] = {
     getById(syntaxSupport, id) map { orig =>

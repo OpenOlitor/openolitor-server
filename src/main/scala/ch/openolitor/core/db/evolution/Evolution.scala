@@ -28,7 +28,7 @@ import ch.openolitor.core.repositories.CoreDBMappings
 import scala.util._
 import ch.openolitor.core.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.db.evolution.scripts.V1Scripts
+import ch.openolitor.core.db.evolution.scripts.v1.V1Scripts
 import ch.openolitor.util.IteratorUtil
 import org.joda.time.DateTime
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport

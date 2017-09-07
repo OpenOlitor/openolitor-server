@@ -27,12 +27,13 @@ import ch.openolitor.core.models._
 
 trait CoreDBMappings extends DBMappings {
 
-  implicit val dbSchemaIdBinder = baseIdBinders(DBSchemaId.apply _)
-  implicit val evolutionStatusBinder = toStringBinder(EvolutionStatus.apply _)
+  // implicit val dbSchemaIdBinder = baseIdParameterBinderFactory(DBSchemaId.apply _)
+  implicit def evolutionStatusParameterBinderFactory[A <: EvolutionStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  // implicit val persistenceEventStateIdParameterBinderFactory: ParameterBinderFactory[PersistenceEventStateId] = baseIdParameterBinderFactory(PersistenceEventStateId.apply _)
 
-  implicit def evolutionStatusParameterBinderFactory[A <: EvolutionStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-
-  implicit val persistenceEventStateIdBinders: Binders[PersistenceEventStateId] = baseIdBinders(PersistenceEventStateId.apply _)
+  implicit val dbSchemaIdBinder = baseIdTypeBinder(DBSchemaId.apply _)
+  implicit val evolutionStatusTypeBinder: TypeBinder[EvolutionStatus] = toStringTypeBinder(EvolutionStatus.apply _)
+  implicit val persistenceEventStateIdParameterBinderFactory: TypeBinder[PersistenceEventStateId] = baseIdTypeBinder(PersistenceEventStateId.apply _)
 
   implicit val dbSchemaMapping = new BaseEntitySQLSyntaxSupport[DBSchema] {
     override val tableName = "DBSchema"

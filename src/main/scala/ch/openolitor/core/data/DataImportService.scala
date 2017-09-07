@@ -23,6 +23,7 @@
 package ch.openolitor.core.data
 
 import akka.actor._
+
 import ch.openolitor.stammdaten._
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
@@ -32,7 +33,7 @@ import java.util.UUID
 import ch.openolitor.core.models._
 import ch.openolitor.core.domain.EventService
 import java.io.File
-import ch.openolitor.core.db.evolution.scripts.V1Scripts
+import ch.openolitor.core.db.evolution.scripts.v1.V1Scripts
 import scalikejdbc._
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.repositories.BaseWriteRepository
@@ -58,7 +59,7 @@ trait DataImportServiceComponent {
 }
 
 class DefaultDataImportService(override val sysConfig: SystemConfig, override val entityStore: ActorRef,
-  override val system: ActorSystem, override implicit val personId: PersonId) extends DataImportService()(personId)
+  override val system: ActorSystem, personId: PersonId) extends DataImportService()(personId)
     with DefaultStammdatenWriteRepositoryComponent
     with DefaultBuchhaltungWriteRepositoryComponent
 
@@ -185,7 +186,7 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
   def importEntityList[E <: BaseEntity[I], I <: BaseId](name: String, entities: List[E], result: Map[String, Int])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I]) = {
+    binder: ParameterBinderFactory[I]) = {
     log.debug(s"Import ${entities.length} $name...")
     entities map { entity =>
       insertEntity[E, I](entity)

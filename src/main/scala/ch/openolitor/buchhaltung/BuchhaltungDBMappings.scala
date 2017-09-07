@@ -27,7 +27,6 @@ import java.util.UUID
 import ch.openolitor.core.models._
 import ch.openolitor.buchhaltung.models._
 import scalikejdbc._
-import scalikejdbc.Binders._
 import ch.openolitor.core.repositories.DBMappings
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
@@ -38,26 +37,37 @@ import ch.openolitor.core.repositories.BaseParameter
 //DB Model bindig
 trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with BaseParameter {
 
-  // DB type binders for read operations
-  implicit val rechnungIdBinder: Binders[RechnungId] = baseIdBinders(RechnungId.apply _)
-  implicit val rechnungsPositionIdBinder: Binders[RechnungsPositionId] = baseIdBinders(RechnungsPositionId.apply _)
-  implicit val optionRechnungsPositionIdBinder: Binders[Option[RechnungsPositionId]] = optionBaseIdBinders(RechnungsPositionId.apply _)
-  implicit val zahlungsImportIdBinder: Binders[ZahlungsImportId] = baseIdBinders(ZahlungsImportId.apply _)
-  implicit val zahlungsEingangIdBinder: Binders[ZahlungsEingangId] = baseIdBinders(ZahlungsEingangId.apply _)
+  // ParameterBinders
+  //  implicit val rechnungIdParameterBinderFactory: ParameterBinderFactory[RechnungId] = baseIdParameterBinderFactory(RechnungId.apply _)
+  //  implicit val rechnungsPositionIdParameterBinderFactory: ParameterBinderFactory[RechnungsPositionId] = baseIdParameterBinderFactory(RechnungsPositionId.apply _)
+  //  implicit val optionRechnungsPositionIdParameterBinderFactory: ParameterBinderFactory[Option[RechnungsPositionId]] = optionBaseIdParameterBinderFactory(RechnungsPositionId.apply _)
+  //  implicit val zahlungsImportIdBinder: ParameterBinderFactory[ZahlungsImportId] = baseIdParameterBinderFactory(ZahlungsImportId.apply _)
+  //  implicit val zahlungsEingangIdBinder: ParameterBinderFactory[ZahlungsEingangId] = baseIdParameterBinderFactory(ZahlungsEingangId.apply _)
 
-  implicit val rechnungStatusBinders: Binders[RechnungStatus] = toStringBinder(RechnungStatus.apply)
-  implicit val rechnungsPositionStatusBinders: Binders[RechnungsPositionStatus.RechnungsPositionStatus] = toStringBinder(RechnungsPositionStatus.apply)
-  implicit val rechnungsPositionTypBinders: Binders[RechnungsPositionTyp.RechnungsPositionTyp] = toStringBinder(RechnungsPositionTyp.apply)
-  implicit val optionRechnungIdBinder: Binders[Option[RechnungId]] = optionBaseIdBinders(RechnungId.apply _)
-  implicit val optionAboIdBinder: Binders[Option[AboId]] = optionBaseIdBinders(AboId.apply _)
+  implicit def rechnungStatusParameterBinderFactory[A <: RechnungStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def rechnungsPositionStatusParameterBinderFactory[A <: RechnungsPositionStatus.RechnungsPositionStatus]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  implicit def rechnungsPositionTypParameterBinderFactory[A <: RechnungsPositionTyp.RechnungsPositionTyp]: ParameterBinderFactory[A] = toStringParameterBinderFactory
+  // implicit val optionRechnungIdBinder: ParameterBinderFactory[Option[RechnungId]] = optionBa
+  // implicit val optionAboIdBinder: ParameterBinderFactory[Option[AboId]] = optionBaseIdParameterBinderFactory(AboId.apply _)
 
-  implicit val zahlungsEingangStatusBinders: Binders[ZahlungsEingangStatus] = toStringBinder(ZahlungsEingangStatus.apply)
+  implicit val zahlungsEingangStatusParameterBinderFactory: ParameterBinderFactory[ZahlungsEingangStatus] = toStringParameterBinderFactory
+
+  // TypeBinders
+  implicit val rechnungIdTypeBinder: TypeBinder[RechnungId] = baseIdTypeBinder(RechnungId.apply _)
+  implicit val rechnungsPositionIdTypeBinder: TypeBinder[RechnungsPositionId] = baseIdTypeBinder(RechnungsPositionId.apply _)
+  implicit val optionRechnungsPositionIdTypeBinder: TypeBinder[Option[RechnungsPositionId]] = optionBaseIdTypeBinder(RechnungsPositionId.apply _)
+  implicit val zahlungsImportIdTypeBinder: TypeBinder[ZahlungsImportId] = baseIdTypeBinder(ZahlungsImportId.apply _)
+  implicit val zahlungsEingangIdTypeBinder: TypeBinder[ZahlungsEingangId] = baseIdTypeBinder(ZahlungsEingangId.apply _)
+
+  implicit val rechnungStatusTypeBinder: TypeBinder[RechnungStatus] = toStringTypeBinder(RechnungStatus.apply)
+  implicit val rechnungsPositionStatusTypeBinder: TypeBinder[RechnungsPositionStatus.RechnungsPositionStatus] = toStringTypeBinder(RechnungsPositionStatus.apply)
+  implicit val rechnungsPositionTypTypeBinder: TypeBinder[RechnungsPositionTyp.RechnungsPositionTyp] = toStringTypeBinder(RechnungsPositionTyp.apply)
+  implicit val optionRechnungIdBinder: TypeBinder[Option[RechnungId]] = optionBaseIdTypeBinder(RechnungId.apply _)
+  implicit val optionAboIdBinder: TypeBinder[Option[AboId]] = optionBaseIdTypeBinder(AboId.apply _)
+
+  implicit val zahlungsEingangStatusTypeBinder: TypeBinder[ZahlungsEingangStatus] = toStringTypeBinder(ZahlungsEingangStatus.apply)
 
   // declare parameterbinderfactories for enum type to allow dynamic type convertion of enum subtypes
-  implicit def rechnungStatusParameterBinderFactory[A <: RechnungStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def rechnungsPositionStatusStatusParameterBinderFactory[A <: RechnungsPositionStatus.RechnungsPositionStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def rechnungsPositionTypStatusParameterBinderFactory[A <: RechnungsPositionTyp.RechnungsPositionTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def zahlungsEingangStatusParameterBinderFactory[A <: ZahlungsEingangStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val rechnungMapping = new BaseEntitySQLSyntaxSupport[Rechnung] {
     override val tableName = "Rechnung"

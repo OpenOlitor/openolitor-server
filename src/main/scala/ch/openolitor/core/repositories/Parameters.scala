@@ -28,7 +28,7 @@ import scalikejdbc._
 trait Parameters {
   def parameters[A](params: Tuple1[A])(
     implicit
-    binder0: Binders[A]
+    binder0: ParameterBinderFactory[A]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1)
@@ -37,8 +37,8 @@ trait Parameters {
 
   def parameters[A, B](params: Tuple2[A, B])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -48,9 +48,9 @@ trait Parameters {
 
   def parameters[A, B, C](params: Tuple3[A, B, C])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -61,10 +61,10 @@ trait Parameters {
 
   def parameters[A, B, C, D](params: Tuple4[A, B, C, D])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -76,11 +76,11 @@ trait Parameters {
 
   def parameters[A, B, C, D, E](params: Tuple5[A, B, C, D, E])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -93,12 +93,12 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F](params: Tuple6[A, B, C, D, E, F])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -112,13 +112,13 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G](params: Tuple7[A, B, C, D, E, F, G])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -133,14 +133,14 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H](params: Tuple8[A, B, C, D, E, F, G, H])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -156,15 +156,15 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I](params: Tuple9[A, B, C, D, E, F, G, H, I])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -181,16 +181,16 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J](params: Tuple10[A, B, C, D, E, F, G, H, I, J])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -208,17 +208,17 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K](params: Tuple11[A, B, C, D, E, F, G, H, I, J, K])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -237,18 +237,18 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L](params: Tuple12[A, B, C, D, E, F, G, H, I, J, K, L])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -268,19 +268,19 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M](params: Tuple13[A, B, C, D, E, F, G, H, I, J, K, L, M])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -301,20 +301,20 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N](params: Tuple14[A, B, C, D, E, F, G, H, I, J, K, L, M, N])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -336,21 +336,21 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](params: Tuple15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -373,22 +373,22 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](params: Tuple16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -412,23 +412,23 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](params: Tuple17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P],
-    binder16: Binders[Q]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P],
+    binder16: ParameterBinderFactory[Q]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -453,24 +453,24 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](params: Tuple18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P],
-    binder16: Binders[Q],
-    binder17: Binders[R]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P],
+    binder16: ParameterBinderFactory[Q],
+    binder17: ParameterBinderFactory[R]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -496,25 +496,25 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](params: Tuple19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P],
-    binder16: Binders[Q],
-    binder17: Binders[R],
-    binder18: Binders[S]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P],
+    binder16: ParameterBinderFactory[Q],
+    binder17: ParameterBinderFactory[R],
+    binder18: ParameterBinderFactory[S]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -541,26 +541,26 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](params: Tuple20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P],
-    binder16: Binders[Q],
-    binder17: Binders[R],
-    binder18: Binders[S],
-    binder19: Binders[T]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P],
+    binder16: ParameterBinderFactory[Q],
+    binder17: ParameterBinderFactory[R],
+    binder18: ParameterBinderFactory[S],
+    binder19: ParameterBinderFactory[T]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -588,27 +588,27 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](params: Tuple21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P],
-    binder16: Binders[Q],
-    binder17: Binders[R],
-    binder18: Binders[S],
-    binder19: Binders[T],
-    binder20: Binders[U]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P],
+    binder16: ParameterBinderFactory[Q],
+    binder17: ParameterBinderFactory[R],
+    binder18: ParameterBinderFactory[S],
+    binder19: ParameterBinderFactory[T],
+    binder20: ParameterBinderFactory[U]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
@@ -637,28 +637,28 @@ trait Parameters {
 
   def parameters[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](params: Tuple22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V])(
     implicit
-    binder0: Binders[A],
-    binder1: Binders[B],
-    binder2: Binders[C],
-    binder3: Binders[D],
-    binder4: Binders[E],
-    binder5: Binders[F],
-    binder6: Binders[G],
-    binder7: Binders[H],
-    binder8: Binders[I],
-    binder9: Binders[J],
-    binder10: Binders[K],
-    binder11: Binders[L],
-    binder12: Binders[M],
-    binder13: Binders[N],
-    binder14: Binders[O],
-    binder15: Binders[P],
-    binder16: Binders[Q],
-    binder17: Binders[R],
-    binder18: Binders[S],
-    binder19: Binders[T],
-    binder20: Binders[U],
-    binder21: Binders[V]
+    binder0: ParameterBinderFactory[A],
+    binder1: ParameterBinderFactory[B],
+    binder2: ParameterBinderFactory[C],
+    binder3: ParameterBinderFactory[D],
+    binder4: ParameterBinderFactory[E],
+    binder5: ParameterBinderFactory[F],
+    binder6: ParameterBinderFactory[G],
+    binder7: ParameterBinderFactory[H],
+    binder8: ParameterBinderFactory[I],
+    binder9: ParameterBinderFactory[J],
+    binder10: ParameterBinderFactory[K],
+    binder11: ParameterBinderFactory[L],
+    binder12: ParameterBinderFactory[M],
+    binder13: ParameterBinderFactory[N],
+    binder14: ParameterBinderFactory[O],
+    binder15: ParameterBinderFactory[P],
+    binder16: ParameterBinderFactory[Q],
+    binder17: ParameterBinderFactory[R],
+    binder18: ParameterBinderFactory[S],
+    binder19: ParameterBinderFactory[T],
+    binder20: ParameterBinderFactory[U],
+    binder21: ParameterBinderFactory[V]
   ): Seq[ParameterBinder] = {
     Seq(
       binder0(params._1),
