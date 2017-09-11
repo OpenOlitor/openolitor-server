@@ -25,6 +25,7 @@ package ch.openolitor.core.repositories
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.models._
+import ch.openolitor.core.Macros._
 
 trait CoreDBMappings extends DBMappings {
 
@@ -48,12 +49,7 @@ trait CoreDBMappings extends DBMappings {
     def parameterMappings(entity: DBSchema): Seq[Any] =
       parameters(DBSchema.unapply(entity).get)
 
-    override def updateParameters(schema: DBSchema) = {
-      Seq(
-        column.revision -> parameter(schema.revision),
-        column.status -> parameter(schema.status)
-      )
-    }
+    override def updateParameters(schema: DBSchema) = autoUpdateParams[DBSchema](schema)
   }
 
   implicit val persistenceEventStateMapping = new BaseEntitySQLSyntaxSupport[PersistenceEventState] {
@@ -67,11 +63,6 @@ trait CoreDBMappings extends DBMappings {
     def parameterMappings(entity: PersistenceEventState): Seq[Any] =
       parameters(PersistenceEventState.unapply(entity).get)
 
-    override def updateParameters(state: PersistenceEventState) = {
-      Seq(
-        column.lastTransactionNr -> parameter(state.lastTransactionNr),
-        column.lastSequenceNr -> parameter(state.lastSequenceNr)
-      )
-    }
+    override def updateParameters(state: PersistenceEventState) = autoUpdateParams[PersistenceEventState](state)
   }
 }

@@ -25,9 +25,13 @@ package ch.openolitor.core
 import scala.reflect.macros.blackbox.Context
 import scala.language.experimental.macros
 import scalaz.IsEmpty
+import scalikejdbc._
 
 object Macros {
 
+  /**
+   * copyFrom macro configures a specific copy method in which all fields taken from 'from' combined with the mappings as parameters.
+   */
   def copyFrom[S, D](dest: S, from: D, mapping: (String, Any)*): S = macro copyFromImpl[S, D]
 
   def copyFromImpl[S: c.WeakTypeTag, D: c.WeakTypeTag](c: Context)(
@@ -78,6 +82,9 @@ object Macros {
     ))
   }
 
+  /**
+   * copyTo macro calling a type specific apply method of D with all the parameters matching from source combined with the values provided in the mapping
+   */
   def copyTo[S, D](source: S, mapping: (String, Any)*): D = macro copyToImpl[S, D]
 
   def copyToImpl[S: c.WeakTypeTag, D: c.WeakTypeTag](c: Context)(
@@ -126,5 +133,51 @@ object Macros {
     }
 
     c.Expr[D] { q"$companionObject(..$applyParams)" }
+  }
+
+  /**
+   * Creates update mapping for all fields not included in the excludes String, default field 'id', 'ersteller' and 'erstelldat' will be ignored. The macro expands to the following syntax:
+   * Seq(
+   * 	column.field1 -> parameters(entity.field1),
+   *  column.field2 -> parameters(entity.field2),
+   *  ...
+   *  column.fieldX -> parameters(entity.fieldX)
+   * )
+   */
+  def autoUpdateParams[S](entity: S, excludes: String*): Seq[Tuple2[SQLSyntax, Any]] = macro autoUpdateParamsImpl[S]
+
+  def autoUpdateParamsImpl[S: c.WeakTypeTag](c: Context)(
+    entity: c.Expr[S], excludes: c.Expr[String]*
+  ): c.Expr[Seq[Tuple2[SQLSyntax, Any]]] = {
+    import c.universe._
+
+    val sourceTree = entity.tree
+    val defaultExcludeColumns = Set("id", "ersteller", "erstelldat")
+    val tag = weakTypeTag[S].tpe
+    val declarations = tag.decls
+    val ctor = declarations.collectFirst { case m: MethodSymbol if m.isPrimaryConstructor => m }.getOrElse {
+      c.abort(c.enclosingPosition, s"Could not find the primary constructor for $tag. type $tag must be a class, not trait or type parameter")
+    }
+    val allParams = ctor.paramLists.head
+    val excludeStrs: Set[String] = (excludes.map(_.tree).flatMap {
+      case q"${ value: String }" => Some(value)
+      case m => {
+        c.error(c.enclosingPosition, s"You must use String literal values for field names to exclude from autoUpdateParams's targets. $m could not resolve at compile time.")
+        None
+      }
+    }(collection.breakOut) ++ defaultExcludeColumns).toSet
+    val paramsStrs: Set[String] = allParams.map(_.name.decodedName.toString)(collection.breakOut)
+    excludeStrs.foreach { ex =>
+      if (!paramsStrs(ex)) c.error(c.enclosingPosition, s"$ex does not found in ${weakTypeTag[S].tpe}")
+    }
+    val mappings = allParams.filterNot(f => excludeStrs(f.name.decodedName.toString)).map { field =>
+      println(s"field:${field.name}")
+      val col = q"column.column($field)"
+      val fieldValue = Select(sourceTree, field)
+      q"$col.->(parameter($fieldValue))"
+    }
+    println(s"Mappings -> $mappings")
+
+    c.Expr[Seq[Tuple2[SQLSyntax, Any]]](q"Seq(..$mappings)")
   }
 }

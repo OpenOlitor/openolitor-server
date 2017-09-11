@@ -23,6 +23,7 @@
 package ch.openolitor.stammdaten
 
 import java.util.UUID
+
 import ch.openolitor.core.models._
 import ch.openolitor.core.models.VorlageTyp
 import ch.openolitor.core.repositories.ParameterBinderMapping
@@ -37,6 +38,7 @@ import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.scalax._
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.filestore.VorlageRechnung
+import ch.openolitor.core.Macros._
 
 //DB Model bindig
 trait StammdatenDBMappings extends DBMappings with LazyLogging {
@@ -196,31 +198,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Abotyp): Seq[Any] =
       parameters(Abotyp.unapply(entity).get)
 
-    override def updateParameters(abotyp: Abotyp) = {
-      super.updateParameters(abotyp) ++ Seq(
-        column.name -> parameter(abotyp.name),
-        column.beschreibung -> parameter(abotyp.beschreibung),
-        column.lieferrhythmus -> parameter(abotyp.lieferrhythmus),
-        column.aktivVon -> parameter(abotyp.aktivVon),
-        column.aktivBis -> parameter(abotyp.aktivBis),
-        column.preis -> parameter(abotyp.preis),
-        column.preiseinheit -> parameter(abotyp.preiseinheit),
-        column.laufzeit -> parameter(abotyp.laufzeit),
-        column.laufzeiteinheit -> parameter(abotyp.laufzeiteinheit),
-        column.vertragslaufzeit -> parameter(abotyp.vertragslaufzeit),
-        column.kuendigungsfrist -> parameter(abotyp.kuendigungsfrist),
-        column.anzahlAbwesenheiten -> parameter(abotyp.anzahlAbwesenheiten),
-        column.farbCode -> parameter(abotyp.farbCode),
-        column.zielpreis -> parameter(abotyp.zielpreis),
-        column.guthabenMindestbestand -> parameter(abotyp.guthabenMindestbestand),
-        column.adminProzente -> parameter(abotyp.adminProzente),
-        column.wirdGeplant -> parameter(abotyp.wirdGeplant),
-        column.anzahlAbonnenten -> parameter(abotyp.anzahlAbonnenten),
-        column.anzahlAbonnentenAktiv -> parameter(abotyp.anzahlAbonnentenAktiv),
-        column.letzteLieferung -> parameter(abotyp.letzteLieferung),
-        column.waehrung -> parameter(abotyp.waehrung)
-      )
-    }
+    override def updateParameters(abotyp: Abotyp): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams[Abotyp](abotyp)
   }
 
   implicit val customKundentypMapping = new BaseEntitySQLSyntaxSupport[CustomKundentyp] {
