@@ -172,9 +172,11 @@ object Macros {
     }
     val mappings = allParams.filterNot(f => excludeStrs(f.name.decodedName.toString)).map { field =>
       println(s"field:${field.name}")
-      val col = q"column.column($field)"
+      //val col = q"column.column($field)"
+      val col = q"column.column(${field.name.decodedName.toString})"
       val fieldValue = Select(sourceTree, field)
-      q"$col.->(parameter($fieldValue))"
+      //q"$col.->(parameter($fieldValue))"
+      q"scala.Tuple2($col, parameter($fieldValue))"
     }
     println(s"Mappings -> $mappings")
 
