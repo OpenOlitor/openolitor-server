@@ -49,7 +49,7 @@ trait CoreDBMappings extends DBMappings {
     def parameterMappings(entity: DBSchema): Seq[Any] =
       parameters(DBSchema.unapply(entity).get)
 
-    override def updateParameters(schema: DBSchema) = autoUpdateParams[DBSchema](schema)
+    override def updateParameters(entity: DBSchema): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val persistenceEventStateMapping = new BaseEntitySQLSyntaxSupport[PersistenceEventState] {
@@ -63,6 +63,6 @@ trait CoreDBMappings extends DBMappings {
     def parameterMappings(entity: PersistenceEventState): Seq[Any] =
       parameters(PersistenceEventState.unapply(entity).get)
 
-    override def updateParameters(state: PersistenceEventState) = autoUpdateParams[PersistenceEventState](state)
+    override def updateParameters(entity: PersistenceEventState): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 }

@@ -36,9 +36,9 @@ import ch.openolitor.core.repositories.SqlBinder
 import ch.openolitor.stammdaten.models.PendenzStatus
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.scalax._
+import ch.openolitor.core.Macros._
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.filestore.VorlageRechnung
-import ch.openolitor.core.Macros._
 
 //DB Model bindig
 trait StammdatenDBMappings extends DBMappings with LazyLogging {
@@ -198,7 +198,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Abotyp): Seq[Any] =
       parameters(Abotyp.unapply(entity).get)
 
-    override def updateParameters(abotyp: Abotyp): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams[Abotyp](abotyp)
+    override def updateParameters(entity: Abotyp): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val customKundentypMapping = new BaseEntitySQLSyntaxSupport[CustomKundentyp] {
@@ -212,13 +212,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: CustomKundentyp): Seq[Any] =
       parameters(CustomKundentyp.unapply(entity).get)
 
-    override def updateParameters(typ: CustomKundentyp) = {
-      super.updateParameters(typ) ++ Seq(
-        column.kundentyp -> parameter(typ.kundentyp),
-        column.beschreibung -> parameter(typ.beschreibung),
-        column.anzahlVerknuepfungen -> parameter(typ.anzahlVerknuepfungen)
-      )
-    }
+    override def updateParameters(entity: CustomKundentyp): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val kundeMapping = new BaseEntitySQLSyntaxSupport[Kunde] {
@@ -232,30 +226,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Kunde): Seq[Any] =
       parameters(Kunde.unapply(entity).get)
 
-    override def updateParameters(kunde: Kunde) = {
-      super.updateParameters(kunde) ++ Seq(
-        column.bezeichnung -> parameter(kunde.bezeichnung),
-        column.strasse -> parameter(kunde.strasse),
-        column.hausNummer -> parameter(kunde.hausNummer),
-        column.adressZusatz -> parameter(kunde.adressZusatz),
-        column.plz -> parameter(kunde.plz),
-        column.ort -> parameter(kunde.ort),
-        column.abweichendeLieferadresse -> parameter(kunde.abweichendeLieferadresse),
-        column.bezeichnungLieferung -> parameter(kunde.bezeichnungLieferung),
-        column.strasseLieferung -> parameter(kunde.strasseLieferung),
-        column.hausNummerLieferung -> parameter(kunde.hausNummerLieferung),
-        column.plzLieferung -> parameter(kunde.plzLieferung),
-        column.ortLieferung -> parameter(kunde.ortLieferung),
-        column.adressZusatzLieferung -> parameter(kunde.adressZusatzLieferung),
-        column.zusatzinfoLieferung -> parameter(kunde.zusatzinfoLieferung),
-        column.typen -> parameter(kunde.typen),
-        column.bemerkungen -> parameter(kunde.bemerkungen),
-        column.anzahlAbos -> parameter(kunde.anzahlAbos),
-        column.anzahlAbosAktiv -> parameter(kunde.anzahlAbosAktiv),
-        column.anzahlPendenzen -> parameter(kunde.anzahlPendenzen),
-        column.anzahlPersonen -> parameter(kunde.anzahlPersonen)
-      )
-    }
+    override def updateParameters(entity: Kunde): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val personMapping = new BaseEntitySQLSyntaxSupport[Person] {
@@ -269,25 +240,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Person): Seq[Any] =
       parameters(Person.unapply(entity).get)
 
-    override def updateParameters(person: Person) = {
-      super.updateParameters(person) ++ Seq(
-        column.kundeId -> parameter(person.kundeId),
-        column.anrede -> parameter(person.anrede),
-        column.name -> parameter(person.name),
-        column.vorname -> parameter(person.vorname),
-        column.email -> parameter(person.email),
-        column.emailAlternative -> parameter(person.emailAlternative),
-        column.telefonMobil -> parameter(person.telefonMobil),
-        column.telefonFestnetz -> parameter(person.telefonFestnetz),
-        column.bemerkungen -> parameter(person.bemerkungen),
-        column.sort -> parameter(person.sort),
-        column.loginAktiv -> parameter(person.loginAktiv),
-        column.passwort -> parameter(person.passwort),
-        column.passwortWechselErforderlich -> parameter(person.passwortWechselErforderlich),
-        column.rolle -> parameter(person.rolle),
-        column.letzteAnmeldung -> parameter(person.letzteAnmeldung)
-      )
-    }
+    override def updateParameters(entity: Person): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val pendenzMapping = new BaseEntitySQLSyntaxSupport[Pendenz] {
@@ -301,16 +254,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Pendenz): Seq[Any] =
       parameters(Pendenz.unapply(entity).get)
 
-    override def updateParameters(pendenz: Pendenz) = {
-      super.updateParameters(pendenz) ++ Seq(
-        column.kundeId -> parameter(pendenz.kundeId),
-        column.kundeBezeichnung -> parameter(pendenz.kundeBezeichnung),
-        column.datum -> parameter(pendenz.datum),
-        column.bemerkung -> parameter(pendenz.bemerkung),
-        column.status -> parameter(pendenz.status),
-        column.generiert -> parameter(pendenz.generiert)
-      )
-    }
+    override def updateParameters(entity: Pendenz): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val lieferungMapping = new BaseEntitySQLSyntaxSupport[Lieferung] {
@@ -324,24 +268,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Lieferung): Seq[Any] =
       parameters(Lieferung.unapply(entity).get)
 
-    override def updateParameters(lieferung: Lieferung) = {
-      super.updateParameters(lieferung) ++ Seq(
-        column.abotypId -> parameter(lieferung.abotypId),
-        column.abotypBeschrieb -> parameter(lieferung.abotypBeschrieb),
-        column.vertriebId -> parameter(lieferung.vertriebId),
-        column.vertriebBeschrieb -> parameter(lieferung.vertriebBeschrieb),
-        column.status -> parameter(lieferung.status),
-        column.datum -> parameter(lieferung.datum),
-        column.durchschnittspreis -> parameter(lieferung.durchschnittspreis),
-        column.anzahlLieferungen -> parameter(lieferung.anzahlLieferungen),
-        column.anzahlKoerbeZuLiefern -> parameter(lieferung.anzahlKoerbeZuLiefern),
-        column.anzahlAbwesenheiten -> parameter(lieferung.anzahlAbwesenheiten),
-        column.anzahlSaldoZuTief -> parameter(lieferung.anzahlSaldoZuTief),
-        column.zielpreis -> parameter(lieferung.zielpreis),
-        column.preisTotal -> parameter(lieferung.preisTotal),
-        column.lieferplanungId -> parameter(lieferung.lieferplanungId)
-      )
-    }
+    override def updateParameters(entity: Lieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val lieferplanungMapping = new BaseEntitySQLSyntaxSupport[Lieferplanung] {
@@ -354,13 +281,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Lieferplanung): Seq[Any] = parameters(Lieferplanung.unapply(entity).get)
 
-    override def updateParameters(lieferplanung: Lieferplanung) = {
-      super.updateParameters(lieferplanung) ++ Seq(
-        column.bemerkungen -> parameter(lieferplanung.bemerkungen),
-        column.abotypDepotTour -> parameter(lieferplanung.abotypDepotTour),
-        column.status -> parameter(lieferplanung.status)
-      )
-    }
+    override def updateParameters(entity: Lieferplanung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val lieferpositionMapping = new BaseEntitySQLSyntaxSupport[Lieferposition] {
@@ -373,19 +294,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Lieferposition): Seq[Any] = parameters(Lieferposition.unapply(entity).get)
 
-    override def updateParameters(lieferposition: Lieferposition) = {
-      super.updateParameters(lieferposition) ++ Seq(
-        column.produktId -> parameter(lieferposition.produktId),
-        column.produktBeschrieb -> parameter(lieferposition.produktBeschrieb),
-        column.produzentId -> parameter(lieferposition.produzentId),
-        column.produzentKurzzeichen -> parameter(lieferposition.produzentKurzzeichen),
-        column.preisEinheit -> parameter(lieferposition.preisEinheit),
-        column.einheit -> parameter(lieferposition.einheit),
-        column.menge -> parameter(lieferposition.menge),
-        column.preis -> parameter(lieferposition.preis),
-        column.anzahl -> parameter(lieferposition.anzahl)
-      )
-    }
+    override def updateParameters(entity: Lieferposition): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val sammelbestellungMapping = new BaseEntitySQLSyntaxSupport[Sammelbestellung] {
@@ -398,21 +307,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Sammelbestellung): Seq[Any] = parameters(Sammelbestellung.unapply(entity).get)
 
-    override def updateParameters(sammelbestellung: Sammelbestellung) = {
-      super.updateParameters(sammelbestellung) ++ Seq(
-        column.produzentId -> parameter(sammelbestellung.produzentId),
-        column.produzentKurzzeichen -> parameter(sammelbestellung.produzentKurzzeichen),
-        column.lieferplanungId -> parameter(sammelbestellung.lieferplanungId),
-        column.status -> parameter(sammelbestellung.status),
-        column.datum -> parameter(sammelbestellung.datum),
-        column.datumAbrechnung -> parameter(sammelbestellung.datumAbrechnung),
-        column.preisTotal -> parameter(sammelbestellung.preisTotal),
-        column.steuerSatz -> parameter(sammelbestellung.steuerSatz),
-        column.steuer -> parameter(sammelbestellung.steuer),
-        column.totalSteuer -> parameter(sammelbestellung.totalSteuer),
-        column.datumVersendet -> parameter(sammelbestellung.datumVersendet)
-      )
-    }
+    override def updateParameters(entity: Sammelbestellung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val bestellungMapping = new BaseEntitySQLSyntaxSupport[Bestellung] {
@@ -425,18 +320,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Bestellung): Seq[Any] = parameters(Bestellung.unapply(entity).get)
 
-    override def updateParameters(bestellung: Bestellung) = {
-      super.updateParameters(bestellung) ++ Seq(
-        column.sammelbestellungId -> parameter(bestellung.sammelbestellungId),
-        column.preisTotal -> parameter(bestellung.preisTotal),
-        column.steuerSatz -> parameter(bestellung.steuerSatz),
-        column.steuer -> parameter(bestellung.steuer),
-        column.totalSteuer -> parameter(bestellung.totalSteuer),
-        column.adminProzente -> parameter(bestellung.adminProzente),
-        column.adminProzenteAbzug -> parameter(bestellung.adminProzenteAbzug),
-        column.totalNachAbzugAdminProzente -> parameter(bestellung.totalNachAbzugAdminProzente)
-      )
-    }
+    override def updateParameters(entity: Bestellung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val bestellpositionMapping = new BaseEntitySQLSyntaxSupport[Bestellposition] {
@@ -449,17 +333,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Bestellposition): Seq[Any] = parameters(Bestellposition.unapply(entity).get)
 
-    override def updateParameters(bestellposition: Bestellposition) = {
-      super.updateParameters(bestellposition) ++ Seq(
-        column.produktId -> parameter(bestellposition.produktId),
-        column.produktBeschrieb -> parameter(bestellposition.produktBeschrieb),
-        column.preisEinheit -> parameter(bestellposition.preisEinheit),
-        column.einheit -> parameter(bestellposition.einheit),
-        column.menge -> parameter(bestellposition.menge),
-        column.preis -> parameter(bestellposition.preis),
-        column.anzahl -> parameter(bestellposition.anzahl)
-      )
-    }
+    override def updateParameters(entity: Bestellposition): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val tourMapping = new BaseEntitySQLSyntaxSupport[Tour] {
@@ -472,14 +346,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Tour): Seq[Any] = parameters(Tour.unapply(entity).get)
 
-    override def updateParameters(tour: Tour) = {
-      super.updateParameters(tour) ++ Seq(
-        column.name -> parameter(tour.name),
-        column.beschreibung -> parameter(tour.beschreibung),
-        column.anzahlAbonnenten -> parameter(tour.anzahlAbonnenten),
-        column.anzahlAbonnentenAktiv -> parameter(tour.anzahlAbonnentenAktiv)
-      )
-    }
+    override def updateParameters(entity: Tour): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val depotMapping = new BaseEntitySQLSyntaxSupport[Depot] {
@@ -492,33 +359,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Depot): Seq[Any] = parameters(Depot.unapply(entity).get)
 
-    override def updateParameters(depot: Depot) = {
-      super.updateParameters(depot) ++ Seq(
-        column.name -> parameter(depot.name),
-        column.kurzzeichen -> parameter(depot.kurzzeichen),
-        column.apName -> parameter(depot.apName),
-        column.apVorname -> parameter(depot.apVorname),
-        column.apTelefon -> parameter(depot.apTelefon),
-        column.apEmail -> parameter(depot.apEmail),
-        column.vName -> parameter(depot.vName),
-        column.vVorname -> parameter(depot.vVorname),
-        column.vTelefon -> parameter(depot.vTelefon),
-        column.vEmail -> parameter(depot.vEmail),
-        column.strasse -> parameter(depot.strasse),
-        column.hausNummer -> parameter(depot.hausNummer),
-        column.plz -> parameter(depot.plz),
-        column.ort -> parameter(depot.ort),
-        column.aktiv -> parameter(depot.aktiv),
-        column.oeffnungszeiten -> parameter(depot.oeffnungszeiten),
-        column.farbCode -> parameter(depot.farbCode),
-        column.iban -> parameter(depot.iban),
-        column.bank -> parameter(depot.bank),
-        column.beschreibung -> parameter(depot.beschreibung),
-        column.anzahlAbonnenten -> parameter(depot.anzahlAbonnenten),
-        column.anzahlAbonnentenAktiv -> parameter(depot.anzahlAbonnentenAktiv),
-        column.anzahlAbonnentenMax -> parameter(depot.anzahlAbonnentenMax)
-      )
-    }
+    override def updateParameters(entity: Depot): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val vertriebMapping = new BaseEntitySQLSyntaxSupport[Vertrieb] {
@@ -531,30 +372,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Vertrieb): Seq[Any] = parameters(Vertrieb.unapply(entity).get)
 
-    override def updateParameters(vertrieb: Vertrieb) = {
-      super.updateParameters(vertrieb) ++ Seq(
-        column.abotypId -> parameter(vertrieb.abotypId),
-        column.liefertag -> parameter(vertrieb.liefertag),
-        column.beschrieb -> parameter(vertrieb.beschrieb),
-        column.anzahlAbos -> parameter(vertrieb.anzahlAbos),
-        column.durchschnittspreis -> parameter(vertrieb.durchschnittspreis),
-        column.anzahlLieferungen -> parameter(vertrieb.anzahlLieferungen),
-        column.anzahlAbosAktiv -> parameter(vertrieb.anzahlAbosAktiv)
-      )
-    }
+    override def updateParameters(entity: Vertrieb): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  trait LieferungMapping[E <: Vertriebsart] extends BaseEntitySQLSyntaxSupport[E] {
-    override def updateParameters(lieferung: E) = {
-      super.updateParameters(lieferung) ++ Seq(
-        column.vertriebId -> parameter(lieferung.vertriebId),
-        column.anzahlAbos -> parameter(lieferung.anzahlAbos),
-        column.anzahlAbosAktiv -> parameter(lieferung.anzahlAbosAktiv)
-      )
-    }
-  }
-
-  implicit val heimlieferungMapping = new LieferungMapping[Heimlieferung] {
+  implicit val heimlieferungMapping = new BaseEntitySQLSyntaxSupport[Heimlieferung] {
     override val tableName = "Heimlieferung"
 
     override lazy val columns = autoColumns[Heimlieferung]()
@@ -564,14 +385,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Heimlieferung): Seq[Any] = parameters(Heimlieferung.unapply(entity).get)
 
-    override def updateParameters(lieferung: Heimlieferung) = {
-      super.updateParameters(lieferung) ++ Seq(
-        column.tourId -> parameter(lieferung.tourId)
-      )
-    }
+    override def updateParameters(entity: Heimlieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  implicit val depotlieferungMapping = new LieferungMapping[Depotlieferung] {
+  implicit val depotlieferungMapping = new BaseEntitySQLSyntaxSupport[Depotlieferung] {
     override val tableName = "Depotlieferung"
 
     override lazy val columns = autoColumns[Depotlieferung]()
@@ -582,14 +399,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Depotlieferung): Seq[Any] =
       parameters(Depotlieferung.unapply(entity).get)
 
-    override def updateParameters(lieferung: Depotlieferung) = {
-      super.updateParameters(lieferung) ++ Seq(
-        column.depotId -> parameter(lieferung.depotId)
-      )
-    }
+    override def updateParameters(entity: Depotlieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  implicit val postlieferungMapping = new LieferungMapping[Postlieferung] {
+  implicit val postlieferungMapping = new BaseEntitySQLSyntaxSupport[Postlieferung] {
     override val tableName = "Postlieferung"
 
     override lazy val columns = autoColumns[Postlieferung]()
@@ -599,34 +412,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Postlieferung): Seq[Any] = parameters(Postlieferung.unapply(entity).get)
 
-    override def updateParameters(lieferung: Postlieferung) = {
-      super.updateParameters(lieferung)
-    }
+    override def updateParameters(entity: Postlieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  trait BaseAboMapping[A <: Abo] extends BaseEntitySQLSyntaxSupport[A] {
-    override def updateParameters(abo: A) = {
-      super.updateParameters(abo) ++ Seq(
-        column.kundeId -> parameter(abo.kundeId),
-        column.kunde -> parameter(abo.kunde),
-        column.vertriebId -> parameter(abo.vertriebId),
-        column.vertriebsartId -> parameter(abo.vertriebsartId),
-        column.abotypId -> parameter(abo.abotypId),
-        column.abotypName -> parameter(abo.abotypName),
-        column.start -> parameter(abo.start),
-        column.ende -> parameter(abo.ende),
-        column.guthabenVertraglich -> parameter(abo.guthabenVertraglich),
-        column.guthaben -> parameter(abo.guthaben),
-        column.guthabenInRechnung -> parameter(abo.guthabenInRechnung),
-        column.letzteLieferung -> parameter(abo.letzteLieferung),
-        column.anzahlAbwesenheiten -> parameter(abo.anzahlAbwesenheiten),
-        column.anzahlLieferungen -> parameter(abo.anzahlLieferungen),
-        column.aktiv -> parameter(abo.aktiv)
-      )
-    }
-  }
-
-  implicit val depotlieferungAboMapping = new BaseAboMapping[DepotlieferungAbo] {
+  implicit val depotlieferungAboMapping = new BaseEntitySQLSyntaxSupport[DepotlieferungAbo] {
     override val tableName = "DepotlieferungAbo"
 
     override lazy val columns = autoColumns[DepotlieferungAbo]()
@@ -635,15 +424,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: DepotlieferungAbo): Seq[Any] = parameters(DepotlieferungAbo.unapply(entity).get)
 
-    override def updateParameters(depotlieferungAbo: DepotlieferungAbo) = {
-      super.updateParameters(depotlieferungAbo) ++ Seq(
-        column.depotId -> parameter(depotlieferungAbo.depotId),
-        column.depotName -> parameter(depotlieferungAbo.depotName)
-      )
-    }
+    override def updateParameters(entity: DepotlieferungAbo): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  implicit val heimlieferungAboMapping = new BaseAboMapping[HeimlieferungAbo] {
+  implicit val heimlieferungAboMapping = new BaseEntitySQLSyntaxSupport[HeimlieferungAbo] {
     override val tableName = "HeimlieferungAbo"
 
     override lazy val columns = autoColumns[HeimlieferungAbo]()
@@ -653,16 +437,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: HeimlieferungAbo): Seq[Any] = parameters(HeimlieferungAbo.unapply(entity).get)
 
-    override def updateParameters(heimlieferungAbo: HeimlieferungAbo) = {
-      super.updateParameters(heimlieferungAbo) ++ Seq(
-        column.tourId -> parameter(heimlieferungAbo.tourId),
-        column.tourName -> parameter(heimlieferungAbo.tourName),
-        column.vertriebBeschrieb -> parameter(heimlieferungAbo.vertriebBeschrieb)
-      )
-    }
+    override def updateParameters(entity: HeimlieferungAbo): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  implicit val postlieferungAboMapping = new BaseAboMapping[PostlieferungAbo] {
+  implicit val postlieferungAboMapping = new BaseEntitySQLSyntaxSupport[PostlieferungAbo] {
     override val tableName = "PostlieferungAbo"
 
     override lazy val columns = autoColumns[PostlieferungAbo]()
@@ -672,9 +450,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: PostlieferungAbo): Seq[Any] = parameters(PostlieferungAbo.unapply(entity).get)
 
-    override def updateParameters(postlieferungAbo: PostlieferungAbo) = {
-      super.updateParameters(postlieferungAbo)
-    }
+    override def updateParameters(entity: PostlieferungAbo): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val produktMapping = new BaseEntitySQLSyntaxSupport[Produkt] {
@@ -687,18 +463,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Produkt): Seq[Any] = parameters(Produkt.unapply(entity).get)
 
-    override def updateParameters(produkt: Produkt) = {
-      super.updateParameters(produkt) ++ Seq(
-        column.name -> parameter(produkt.name),
-        column.verfuegbarVon -> parameter(produkt.verfuegbarVon),
-        column.verfuegbarBis -> parameter(produkt.verfuegbarBis),
-        column.kategorien -> parameter(produkt.kategorien),
-        column.standardmenge -> parameter(produkt.standardmenge),
-        column.einheit -> parameter(produkt.einheit),
-        column.preis -> parameter(produkt.preis),
-        column.produzenten -> parameter(produkt.produzenten)
-      )
-    }
+    override def updateParameters(entity: Produkt): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val produzentMapping = new BaseEntitySQLSyntaxSupport[Produzent] {
@@ -711,28 +476,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Produzent): Seq[Any] = parameters(Produzent.unapply(entity).get)
 
-    override def updateParameters(produzent: Produzent) = {
-      super.updateParameters(produzent) ++ Seq(
-        column.name -> parameter(produzent.name),
-        column.vorname -> parameter(produzent.vorname),
-        column.kurzzeichen -> parameter(produzent.kurzzeichen),
-        column.strasse -> parameter(produzent.strasse),
-        column.hausNummer -> parameter(produzent.hausNummer),
-        column.adressZusatz -> parameter(produzent.adressZusatz),
-        column.plz -> parameter(produzent.plz),
-        column.ort -> parameter(produzent.ort),
-        column.bemerkungen -> parameter(produzent.bemerkungen),
-        column.email -> parameter(produzent.email),
-        column.telefonMobil -> parameter(produzent.telefonMobil),
-        column.telefonFestnetz -> parameter(produzent.telefonFestnetz),
-        column.iban -> parameter(produzent.iban),
-        column.bank -> parameter(produzent.bank),
-        column.mwst -> parameter(produzent.mwst),
-        column.mwstSatz -> parameter(produzent.mwstSatz),
-        column.mwstNr -> parameter(produzent.mwstNr),
-        column.aktiv -> parameter(produzent.aktiv)
-      )
-    }
+    override def updateParameters(entity: Produzent): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val produktekategorieMapping = new BaseEntitySQLSyntaxSupport[Produktekategorie] {
@@ -745,11 +489,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Produktekategorie): Seq[Any] = parameters(Produktekategorie.unapply(entity).get)
 
-    override def updateParameters(produktekategorie: Produktekategorie) = {
-      super.updateParameters(produktekategorie) ++ Seq(
-        column.beschreibung -> parameter(produktekategorie.beschreibung)
-      )
-    }
+    override def updateParameters(entity: Produktekategorie): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val projektMapping = new BaseEntitySQLSyntaxSupport[Projekt] {
@@ -762,27 +502,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Projekt): Seq[Any] = parameters(Projekt.unapply(entity).get)
 
-    override def updateParameters(projekt: Projekt) = {
-      super.updateParameters(projekt) ++ Seq(
-        column.bezeichnung -> parameter(projekt.bezeichnung),
-        column.strasse -> parameter(projekt.strasse),
-        column.hausNummer -> parameter(projekt.hausNummer),
-        column.adressZusatz -> parameter(projekt.adressZusatz),
-        column.plz -> parameter(projekt.plz),
-        column.ort -> parameter(projekt.ort),
-        column.preiseSichtbar -> parameter(projekt.preiseSichtbar),
-        column.preiseEditierbar -> parameter(projekt.preiseEditierbar),
-        column.emailErforderlich -> parameter(projekt.emailErforderlich),
-        column.waehrung -> parameter(projekt.waehrung),
-        column.geschaeftsjahrMonat -> parameter(projekt.geschaeftsjahrMonat),
-        column.geschaeftsjahrTag -> parameter(projekt.geschaeftsjahrTag),
-        column.twoFactorAuthentication -> parameter(projekt.twoFactorAuthentication),
-        column.sprache -> parameter(projekt.sprache),
-        column.welcomeMessage1 -> parameter(projekt.welcomeMessage1),
-        column.welcomeMessage2 -> parameter(projekt.welcomeMessage2),
-        column.maintenanceMode -> parameter(projekt.maintenanceMode)
-      )
-    }
+    override def updateParameters(entity: Projekt): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val produktProduzentMapping = new BaseEntitySQLSyntaxSupport[ProduktProduzent] {
@@ -795,12 +515,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: ProduktProduzent): Seq[Any] = parameters(ProduktProduzent.unapply(entity).get)
 
-    override def updateParameters(projekt: ProduktProduzent) = {
-      super.updateParameters(projekt) ++ Seq(
-        column.produktId -> parameter(projekt.produktId),
-        column.produzentId -> parameter(projekt.produzentId)
-      )
-    }
+    override def updateParameters(entity: ProduktProduzent): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val produktProduktekategorieMapping = new BaseEntitySQLSyntaxSupport[ProduktProduktekategorie] {
@@ -813,12 +528,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: ProduktProduktekategorie): Seq[Any] = parameters(ProduktProduktekategorie.unapply(entity).get)
 
-    override def updateParameters(produktkat: ProduktProduktekategorie) = {
-      super.updateParameters(produktkat) ++ Seq(
-        column.produktId -> parameter(produktkat.produktId),
-        column.produktekategorieId -> parameter(produktkat.produktekategorieId)
-      )
-    }
+    override def updateParameters(entity: ProduktProduktekategorie): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val abwesenheitMapping = new BaseEntitySQLSyntaxSupport[Abwesenheit] {
@@ -831,14 +541,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Abwesenheit): Seq[Any] = parameters(Abwesenheit.unapply(entity).get)
 
-    override def updateParameters(entity: Abwesenheit) = {
-      super.updateParameters(entity) ++ Seq(
-        column.aboId -> parameter(entity.aboId),
-        column.lieferungId -> parameter(entity.lieferungId),
-        column.datum -> parameter(entity.datum),
-        column.bemerkung -> parameter(entity.bemerkung)
-      )
-    }
+    override def updateParameters(entity: Abwesenheit): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val tourlieferungMapping = new BaseEntitySQLSyntaxSupport[Tourlieferung] {
@@ -851,11 +554,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Tourlieferung): Seq[Any] = parameters(Tourlieferung.unapply(entity).get)
 
-    override def updateParameters(entity: Tourlieferung) = {
-      super.updateParameters(entity) ++ Seq(
-        column.sort -> parameter(entity.sort)
-      )
-    }
+    override def updateParameters(entity: Tourlieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val korbMapping = new BaseEntitySQLSyntaxSupport[Korb] {
@@ -868,29 +567,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: Korb): Seq[Any] = parameters(Korb.unapply(entity).get)
 
-    override def updateParameters(entity: Korb) = {
-      super.updateParameters(entity) ++ Seq(
-        column.lieferungId -> parameter(entity.lieferungId),
-        column.aboId -> parameter(entity.aboId),
-        column.status -> parameter(entity.status),
-        column.auslieferungId -> parameter(entity.auslieferungId),
-        column.guthabenVorLieferung -> parameter(entity.guthabenVorLieferung),
-        column.sort -> parameter(entity.sort)
-      )
-    }
+    override def updateParameters(entity: Korb): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  trait AuslieferungMapping[E <: Auslieferung] extends BaseEntitySQLSyntaxSupport[E] {
-    override def updateParameters(auslieferung: E) = {
-      super.updateParameters(auslieferung) ++ Seq(
-        column.status -> parameter(auslieferung.status),
-        column.datum -> parameter(auslieferung.datum),
-        column.anzahlKoerbe -> parameter(auslieferung.anzahlKoerbe)
-      )
-    }
-  }
-
-  implicit val depotAuslieferungMapping = new AuslieferungMapping[DepotAuslieferung] {
+  implicit val depotAuslieferungMapping = new BaseEntitySQLSyntaxSupport[DepotAuslieferung] {
     override val tableName = "DepotAuslieferung"
 
     override lazy val columns = autoColumns[DepotAuslieferung]()
@@ -901,15 +581,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: DepotAuslieferung): Seq[Any] =
       parameters(DepotAuslieferung.unapply(entity).get)
 
-    override def updateParameters(entity: DepotAuslieferung) = {
-      super.updateParameters(entity) ++ Seq(
-        column.depotId -> parameter(entity.depotId),
-        column.depotName -> parameter(entity.depotName)
-      )
-    }
+    override def updateParameters(entity: DepotAuslieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  implicit val tourAuslieferungMapping = new AuslieferungMapping[TourAuslieferung] {
+  implicit val tourAuslieferungMapping = new BaseEntitySQLSyntaxSupport[TourAuslieferung] {
     override val tableName = "TourAuslieferung"
 
     override lazy val columns = autoColumns[TourAuslieferung]()
@@ -920,15 +595,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: TourAuslieferung): Seq[Any] =
       parameters(TourAuslieferung.unapply(entity).get)
 
-    override def updateParameters(entity: TourAuslieferung) = {
-      super.updateParameters(entity) ++ Seq(
-        column.tourId -> parameter(entity.tourId),
-        column.tourName -> parameter(entity.tourName)
-      )
-    }
+    override def updateParameters(entity: TourAuslieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
-  implicit val postAuslieferungMapping = new AuslieferungMapping[PostAuslieferung] {
+  implicit val postAuslieferungMapping = new BaseEntitySQLSyntaxSupport[PostAuslieferung] {
     override val tableName = "PostAuslieferung"
 
     override lazy val columns = autoColumns[PostAuslieferung]()
@@ -938,6 +608,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
 
     def parameterMappings(entity: PostAuslieferung): Seq[Any] =
       parameters(PostAuslieferung.unapply(entity).get)
+
+    override def updateParameters(entity: PostAuslieferung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val projektVorlageMapping = new BaseEntitySQLSyntaxSupport[ProjektVorlage] {
@@ -951,13 +623,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: ProjektVorlage): Seq[Any] =
       parameters(ProjektVorlage.unapply(entity).get)
 
-    override def updateParameters(entity: ProjektVorlage) = {
-      super.updateParameters(entity) ++ Seq(
-        column.name -> parameter(entity.name),
-        column.beschreibung -> parameter(entity.beschreibung),
-        column.fileStoreId -> parameter(entity.fileStoreId)
-      )
-    }
+    override def updateParameters(entity: ProjektVorlage): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val einladungMapping = new BaseEntitySQLSyntaxSupport[Einladung] {
@@ -971,12 +637,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: Einladung): Seq[Any] =
       parameters(Einladung.unapply(entity).get)
 
-    override def updateParameters(entity: Einladung) = {
-      super.updateParameters(entity) ++ Seq(
-        column.expires -> parameter(entity.expires),
-        column.datumVersendet -> parameter(entity.datumVersendet)
-      )
-    }
+    override def updateParameters(entity: Einladung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val kontoDatenMapping = new BaseEntitySQLSyntaxSupport[KontoDaten] {
@@ -990,12 +651,6 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: KontoDaten): Seq[Any] =
       parameters(KontoDaten.unapply(entity).get)
 
-    override def updateParameters(entity: KontoDaten) = {
-      super.updateParameters(entity) ++ Seq(
-        column.iban -> parameter(entity.iban),
-        column.teilnehmerNummer -> parameter(entity.teilnehmerNummer),
-        column.referenzNummerPrefix -> parameter(entity.referenzNummerPrefix)
-      )
-    }
+    override def updateParameters(entity: KontoDaten): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 }

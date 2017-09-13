@@ -35,6 +35,7 @@ import ch.openolitor.core.scalax._
 import scala.concurrent.Future
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import ch.openolitor.core.db.OOAsyncDB._
+import ch.openolitor.core.Macros._
 
 case class ParameterBindMapping[A](cl: Class[A], binder: ParameterBinder[A])
 
@@ -63,22 +64,9 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
    */
   def parameterMappings(entity: E): Seq[Any]
 
-  def defaultColumns(entity: E): Seq[Tuple2[SQLSyntax, Any]] =
-    defaultInsertColumns(entity) ++ defaultUpdateColumns(entity)
-
-  def defaultInsertColumns(entity: E): Seq[Tuple2[SQLSyntax, Any]] = Seq(
-    column.erstelldat -> parameter(entity.erstelldat),
-    column.ersteller -> parameter(entity.ersteller)
-  )
-
-  def defaultUpdateColumns(entity: E): Seq[Tuple2[SQLSyntax, Any]] = Seq(
-    column.modifidat -> parameter(entity.modifidat),
-    column.modifikator -> parameter(entity.modifikator)
-  )
-
   /**
    * Declare update parameters for this entity used on update. Is by default an empty set
    */
-  def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, Any]] = defaultUpdateColumns(entity)
+  def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, Any]]
 }
 

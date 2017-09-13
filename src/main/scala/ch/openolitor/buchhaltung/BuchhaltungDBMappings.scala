@@ -34,6 +34,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.repositories.SqlBinder
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.scalax._
+import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 
 //DB Model bindig
@@ -79,29 +80,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def parameterMappings(entity: Rechnung): Seq[Any] =
       parameters(Rechnung.unapply(entity).get)
 
-    override def updateParameters(entity: Rechnung) = {
-      super.updateParameters(entity) ++ Seq(
-        column.kundeId -> parameter(entity.kundeId),
-        column.titel -> parameter(entity.titel),
-        column.betrag -> parameter(entity.betrag),
-        column.einbezahlterBetrag -> parameter(entity.einbezahlterBetrag),
-        column.waehrung -> parameter(entity.waehrung),
-        column.rechnungsDatum -> parameter(entity.rechnungsDatum),
-        column.faelligkeitsDatum -> parameter(entity.faelligkeitsDatum),
-        column.eingangsDatum -> parameter(entity.eingangsDatum),
-        column.status -> parameter(entity.status),
-        column.referenzNummer -> parameter(entity.referenzNummer),
-        column.esrNummer -> parameter(entity.esrNummer),
-        column.fileStoreId -> parameter(entity.fileStoreId),
-        column.anzahlMahnungen -> parameter(entity.anzahlMahnungen),
-        column.mahnungFileStoreIds -> parameter(entity.mahnungFileStoreIds),
-        column.strasse -> parameter(entity.strasse),
-        column.hausNummer -> parameter(entity.hausNummer),
-        column.adressZusatz -> parameter(entity.adressZusatz),
-        column.plz -> parameter(entity.plz),
-        column.ort -> parameter(entity.ort)
-      )
-    }
+    override def updateParameters(entity: Rechnung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val rechnungsPositionMapping = new BaseEntitySQLSyntaxSupport[RechnungsPosition] {
@@ -115,21 +94,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def parameterMappings(entity: RechnungsPosition): Seq[Any] =
       parameters(RechnungsPosition.unapply(entity).get)
 
-    override def updateParameters(entity: RechnungsPosition) = {
-      super.updateParameters(entity) ++ Seq(
-        column.rechnungId -> parameter(entity.rechnungId),
-        column.parentRechnungsPositionId -> parameter(entity.parentRechnungsPositionId),
-        column.aboId -> parameter(entity.aboId),
-        column.kundeId -> parameter(entity.kundeId),
-        column.betrag -> parameter(entity.betrag),
-        column.waehrung -> parameter(entity.waehrung),
-        column.anzahlLieferungen -> parameter(entity.anzahlLieferungen),
-        column.beschrieb -> parameter(entity.beschrieb),
-        column.status -> parameter(entity.status),
-        column.typ -> parameter(entity.typ),
-        column.sort -> parameter(entity.sort)
-      )
-    }
+    override def updateParameters(entity: RechnungsPosition): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val zahlungsImportMapping = new BaseEntitySQLSyntaxSupport[ZahlungsImport] {
@@ -143,13 +108,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def parameterMappings(entity: ZahlungsImport): Seq[Any] =
       parameters(ZahlungsImport.unapply(entity).get)
 
-    override def updateParameters(entity: ZahlungsImport) = {
-      super.updateParameters(entity) ++ Seq(
-        column.file -> parameter(entity.file),
-        column.anzahlZahlungsEingaenge -> parameter(entity.anzahlZahlungsEingaenge),
-        column.anzahlZahlungsEingaengeErledigt -> parameter(entity.anzahlZahlungsEingaengeErledigt)
-      )
-    }
+    override def updateParameters(entity: ZahlungsImport): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 
   implicit val zahlungsEingangMapping = new BaseEntitySQLSyntaxSupport[ZahlungsEingang] {
@@ -163,11 +122,6 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def parameterMappings(entity: ZahlungsEingang): Seq[Any] =
       parameters(ZahlungsEingang.unapply(entity).get)
 
-    override def updateParameters(entity: ZahlungsEingang) = {
-      super.updateParameters(entity) ++ Seq(
-        column.erledigt -> parameter(entity.erledigt),
-        column.bemerkung -> parameter(entity.bemerkung)
-      )
-    }
+    override def updateParameters(entity: ZahlungsEingang): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
   }
 }
