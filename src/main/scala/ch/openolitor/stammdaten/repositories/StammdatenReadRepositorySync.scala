@@ -304,6 +304,7 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
   }
 
   def getAktiveAbos(vertriebId: VertriebId, lieferdatum: DateTime)(implicit session: DBSession): List[Abo] = {
+    //
     getAktiveDepotlieferungAbos(vertriebId, lieferdatum) :::
       getAktiveHeimlieferungAbos(vertriebId, lieferdatum) :::
       getAktivePostlieferungAbos(vertriebId, lieferdatum) :::
