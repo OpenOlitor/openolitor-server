@@ -712,10 +712,11 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(postlieferungAboMapping(postlieferungAbo)).list
   }
 
-  protected def getPendenzenQuery = {
+  protected def getPendenzenQuery(filter: Option[FilterExpr]) = {
     withSQL {
       select
         .from(pendenzMapping as pendenz)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, pendenz))
         .orderBy(pendenz.datum)
     }.map(pendenzMapping(pendenz)).list
   }
