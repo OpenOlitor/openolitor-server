@@ -763,7 +763,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       durchschnittspreis = newDurchschnittspreis,
       anzahlLieferungen = newAnzahlLieferungen,
       modifidat = meta.timestamp,
-      modifikator = personId)
+      modifikator = personId
+    )
 
     //create koerbe
     val adjustedLieferung = createKoerbe(updatedLieferung)
@@ -775,7 +776,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       lieferungMapping.column.anzahlKoerbeZuLiefern -> adjustedLieferung.anzahlKoerbeZuLiefern,
       lieferungMapping.column.anzahlAbwesenheiten -> adjustedLieferung.anzahlAbwesenheiten,
       lieferungMapping.column.anzahlSaldoZuTief -> adjustedLieferung.anzahlSaldoZuTief,
-      lieferungMapping.column.lieferplanungId -> Some(lieferplanungId))
+      lieferungMapping.column.lieferplanungId -> Some(lieferplanungId)
+    )
     adjustedLieferung
   }
 
