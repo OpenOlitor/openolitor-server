@@ -728,7 +728,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
     def parameterMappings(entity: PostlieferungAbo): Seq[Any] = parameters(PostlieferungAbo.unapply(entity).get)
   }
 
-  implicit val zusatzAboMapping = new BaseEntitySQLSyntaxSupport[ZusatzAbo] {
+  implicit val zusatzAboMapping = new BaseAboMapping[ZusatzAbo] {
     override val tableName = "ZusatzAbo"
 
     override lazy val columns = autoColumns[ZusatzAbo]()
@@ -743,22 +743,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging {
       super.updateParameters(zusatzAbo) ++ Seq(
         column.hauptAboId -> parameter(zusatzAbo.hauptAboId),
         column.hauptAbotypId -> parameter(zusatzAbo.hauptAbotypId),
-        column.kundeId -> parameter(zusatzAbo.kundeId),
-        column.kunde -> parameter(zusatzAbo.kunde),
-        column.vertriebsartId -> parameter(zusatzAbo.vertriebsartId),
-        column.vertriebId -> parameter(zusatzAbo.vertriebId),
-        column.vertriebBeschrieb -> parameter(zusatzAbo.vertriebBeschrieb),
-        column.abotypId -> parameter(zusatzAbo.abotypId),
-        column.abotypName -> parameter(zusatzAbo.abotypName),
-        column.start -> parameter(zusatzAbo.start),
-        column.ende -> parameter(zusatzAbo.ende),
-        column.guthabenVertraglich -> parameter(zusatzAbo.guthabenVertraglich),
-        column.guthaben -> parameter(zusatzAbo.guthaben),
-        column.guthabenInRechnung -> parameter(zusatzAbo.guthabenInRechnung),
-        column.letzteLieferung -> parameter(zusatzAbo.letzteLieferung),
-        column.anzahlAbwesenheiten -> parameter(zusatzAbo.anzahlAbwesenheiten),
-        column.anzahlLieferungen -> parameter(zusatzAbo.anzahlLieferungen),
-        column.aktiv -> parameter(zusatzAbo.aktiv)
+        column.vertriebBeschrieb -> parameter(zusatzAbo.vertriebBeschrieb)
       )
     }
   }

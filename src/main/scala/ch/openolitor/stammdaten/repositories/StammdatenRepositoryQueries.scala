@@ -751,11 +751,10 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
-        .join(lieferungMapping as lieferung).on(zusatzAbo.vertriebId, lieferung.vertriebId)
+        .innerJoin(lieferungMapping as lieferung).on(zusatzAbo.abotypId, lieferung.abotypId)
         .where.eq(zusatzAbo.abotypId, parameter(abotypId))
-        .and.eq(zusatzAbo.abotypId, parameter(abotypId))
-        .and.eq(lieferung.lieferplanungId, parameter(lieferplanungId))
         .and.le(zusatzAbo.start, parameter(lieferdatum))
+        .and.eq(lieferung.lieferplanungId, parameter(lieferplanungId))
         .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, parameter(lieferdatum)) }
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
