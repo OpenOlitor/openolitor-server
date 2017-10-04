@@ -1898,7 +1898,10 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             .where.le(postlieferungAbo.start, parameter(today))
             .and.withRoundBracket { _.isNull(postlieferungAbo.ende).or.ge(postlieferungAbo.ende, parameter(today)) }
             .and.eq(postlieferungAbo.aktiv, parameter(false))
-        )
+        ).union(select(zusatzAbo.id).from(zusatzAboMapping as zusatzAbo)
+            .where.le(zusatzAbo.start, parameter(today))
+            .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, parameter(today)) }
+            .and.eq(zusatzAbo.aktiv, parameter(false)))
     }.map(res => AboId(res.long(1))).list
   }
 
@@ -1919,7 +1922,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             .where.le(postlieferungAbo.start, parameter(yesterday))
             .and.withRoundBracket { _.isNotNull(postlieferungAbo.ende).and.le(postlieferungAbo.ende, parameter(yesterday)) }
             .and.eq(postlieferungAbo.aktiv, parameter(true))
-        )
+        ).union(
+            select(zusatzAbo.id).from(zusatzAboMapping as zusatzAbo)
+              .where.le(zusatzAbo.start, parameter(yesterday))
+              .and.withRoundBracket { _.isNotNull(zusatzAbo.ende).and.le(zusatzAbo.ende, parameter(yesterday)) }
+              .and.eq(zusatzAbo.aktiv, parameter(true))
+          )
     }.map(res => AboId(res.long(1))).list
   }
 
