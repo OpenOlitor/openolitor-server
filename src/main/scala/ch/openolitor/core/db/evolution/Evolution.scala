@@ -104,7 +104,13 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[ZahlungsImport, ZahlungsImportId](seeds, zahlungsImportMapping),
           adjustSeed[ZahlungsEingang, ZahlungsEingangId](seeds, zahlungsEingangMapping),
           adjustSeed[Einladung, EinladungId](seeds, einladungMapping),
-          adjustSeed[Sammelbestellung, SammelbestellungId](seeds, sammelbestellungMapping)
+          adjustSeed[Sammelbestellung, SammelbestellungId](seeds, sammelbestellungMapping),
+          adjustSeeds[AuslieferungId](
+            seeds,
+            maxId[DepotAuslieferung, AuslieferungId](depotAuslieferungMapping),
+            maxId[TourAuslieferung, AuslieferungId](tourAuslieferungMapping),
+            maxId[PostAuslieferung, AuslieferungId](postAuslieferungMapping)
+          )
         ).flatten
 
         Success(seeds ++ dbIds.toMap)
