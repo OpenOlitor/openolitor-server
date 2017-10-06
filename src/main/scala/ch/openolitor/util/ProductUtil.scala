@@ -22,27 +22,23 @@
 \*                                                                           */
 package ch.openolitor.util
 
-import org.specs2.mutable._
+object ProductUtil {
+  implicit class Product2MapSupport(self: Product) {
+    /**
+     * Converts a product to a nested Map consisting of properties and names as key-value pairs.
+     */
+    def toMap: Map[String, Any] = {
+      val fieldNames = self.getClass.getDeclaredFields.map(_.getName)
 
-class StringUtilSpec extends Specification {
-  import StringUtil._
+      def toVals(seq: TraversableOnce[Any]): Seq[Any] = (seq map {
+        case t: Traversable[_] => toVals(t)
+        case p: Product if p.productArity > 0 => p.toMap
+        case x => x
+      }).toSeq
 
-  "StringUtil" should {
-    "convert empty" in {
-      "".toUnderscore === ""
-    }
+      val vals = toVals(self.productIterator)
 
-    "convert non-matching" in {
-      "heyhey".toUnderscore === "heyhey"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "CamelCase".toUnderscore === "camel_case"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "OpenOlitorVersion1".toUnderscore === "open_olitor_version1"
+      fieldNames.zip(vals).toMap
     }
   }
-
 }

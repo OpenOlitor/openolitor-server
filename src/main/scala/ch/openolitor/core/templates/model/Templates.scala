@@ -20,29 +20,53 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util
+package ch.openolitor.core.templates.model
 
-import org.specs2.mutable._
+import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.models._
+import org.joda.time.DateTime
 
-class StringUtilSpec extends Specification {
-  import StringUtil._
+sealed trait MailTemplateType
+case object ProduzentenBestellungMailTemplateType extends MailTemplateType
+case object CustomerMailTemplateType extends MailTemplateType
+case object UnknownMailTemplateType extends MailTemplateType
 
-  "StringUtil" should {
-    "convert empty" in {
-      "".toUnderscore === ""
-    }
+object MailTemplateType extends LazyLogging {
+  val AllTemplateTypes = List(
+    ProduzentenBestellungMailTemplateType,
+    CustomerMailTemplateType
+  )
 
-    "convert non-matching" in {
-      "heyhey".toUnderscore === "heyhey"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "CamelCase".toUnderscore === "camel_case"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "OpenOlitorVersion1".toUnderscore === "open_olitor_version1"
-    }
+  def apply(value: String): MailTemplateType = {
+    logger.debug(s"MailTemplateType.apply:$value")
+    AllTemplateTypes.find(_.toString.toLowerCase == value.toLowerCase).getOrElse(UnknownMailTemplateType)
   }
-
 }
+
+case class MailTemplateId(id: Long) extends BaseId
+case class MailTemplate(
+  id: MailTemplateId,
+  templateType: MailTemplateType,
+  templateName: String,
+  description: Option[String],
+  subject: String,
+  body: String,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[MailTemplateId]
+
+case class SharedTemplateId(id: Long) extends BaseId
+case class SharedTemplate(
+  id: SharedTemplateId,
+  templateName: String,
+  description: Option[String],
+  template: String,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[SharedTemplateId]

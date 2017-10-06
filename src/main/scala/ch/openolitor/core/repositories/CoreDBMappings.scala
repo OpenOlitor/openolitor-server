@@ -24,6 +24,7 @@ package ch.openolitor.core.repositories
 
 import scalikejdbc._
 import ch.openolitor.core.models._
+import ch.openolitor.core.templates.model._
 
 trait CoreDBMappings extends DBMappings {
 
@@ -69,6 +70,11 @@ trait CoreDBMappings extends DBMappings {
         column.lastTransactionNr -> state.lastTransactionNr,
         column.lastSequenceNr -> state.lastSequenceNr
       )
+      super.updateParameters(state) ++
+        Seq(
+          column.lastTransactionNr -> parameter(state.lastTransactionNr),
+          column.lastSequenceNr -> parameter(state.lastSequenceNr)
+        )
     }
   }
 }
