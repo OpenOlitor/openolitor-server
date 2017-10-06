@@ -99,6 +99,55 @@ case class Projekt(
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
 }
 
+object Projekt {
+
+  def build(
+    id: ProjektId = ProjektId(0),
+    bezeichnung: String,
+    strasse: Option[String] = None,
+    hausNummer: Option[String] = None,
+    adressZusatz: Option[String] = None,
+    plz: Option[String] = None,
+    ort: Option[String] = None,
+    preiseSichtbar: Boolean = false,
+    preiseEditierbar: Boolean = false,
+    emailErforderlich: Boolean = false,
+    waehrung: Waehrung = CHF,
+    geschaeftsjahrMonat: Int = 1,
+    geschaeftsjahrTag: Int = 1,
+    twoFactorAuthentication: Map[Rolle, Boolean] = Map(),
+    sprache: Locale = Locale.GERMAN,
+    welcomeMessage1: Option[String] = None,
+    welcomeMessage2: Option[String] = None,
+    maintenanceMode: Boolean = false
+  )(implicit person: PersonId): Projekt = {
+    Projekt(
+      id,
+      bezeichnung,
+      strasse,
+      hausNummer,
+      adressZusatz,
+      plz,
+      ort,
+      preiseSichtbar,
+      preiseEditierbar,
+      emailErforderlich,
+      waehrung,
+      geschaeftsjahrMonat,
+      geschaeftsjahrTag,
+      twoFactorAuthentication,
+      sprache,
+      welcomeMessage1,
+      welcomeMessage2,
+      maintenanceMode,
+      erstelldat = DateTime.now,
+      ersteller = person,
+      modifidat = DateTime.now,
+      modifikator = person
+    )
+  }
+}
+
 case class ProjektPublik(
   id: ProjektId,
   bezeichnung: String,

@@ -22,12 +22,13 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor.{ ActorSystem, ActorRef }
+import akka.actor.{ ActorRef, ActorSystem }
 import akka.pattern.ask
 import akka.io.IO
 import spray.can.Http
 import spray.can.server.UHttp
 import akka.util.Timeout
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import collection.JavaConversions._
@@ -44,6 +45,7 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.ws.ClientMessagesServer
 import resource._
 import java.net.ServerSocket
+
 import ch.openolitor.core.proxy.ProxyServiceActor
 import ch.openolitor.core.db.evolution.Evolution
 import ch.openolitor.buchhaltung.BuchhaltungEntityStoreView
@@ -63,11 +65,18 @@ import ch.openolitor.core.jobs.JobQueueService
 import ch.openolitor.core.db.evolution.DBEvolutionActor
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.core.domain.SystemEvents.SystemStarted
+import ch.openolitor.mailtemplates.MailTemplateEntityStoreView
 import org.joda.time.DateTime
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
 
-case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: Map[Class[_], Long], config: Config) {
+trait SystemConfigReference {
+  val sysConfig: SystemConfig
+
+  lazy val config = sysConfig.mandantConfiguration.config
+}
+
+case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: Map[Class[_ <: ch.openolitor.core.models.BaseId], Long], config: Config) {
   val configKey = s"openolitor.${key}"
 
   def wsUri = s"ws://$interface:$wsPort"
@@ -186,8 +195,8 @@ object Boot extends App with LazyLogging {
       val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor), "mail-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
-      val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
       val fileStoreComponent = new DefaultFileStoreComponent(cfg.name, sysCfg, app)
+      val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStoreComponent.fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
       val jobQueueService = Await.result(system ? SystemActor.Child(JobQueueService.props(cfg), "job-queue"), duration).asInstanceOf[ActorRef]
 
@@ -199,6 +208,8 @@ object Boot extends App with LazyLogging {
       val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(dbEvolutionActor), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
+
+      val mailTemplateEntityStoreView = Await.result(system ? SystemActor.Child(MailTemplateEntityStoreView.props(dbEvolutionActor), "mailtemplate-entity-store-view"), duration).asInstanceOf[ActorRef]
 
       val reportsEntityStoreView = Await.result(system ? SystemActor.Child(ReportsEntityStoreView.props(dbEvolutionActor), "reports-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportsDBEventListener = Await.result(system ? SystemActor.Child(ReportsDBEventEntityListener.props, "reports-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
@@ -239,12 +250,12 @@ object Boot extends App with LazyLogging {
     }
   }
 
-  def dbSeeds(config: Config) = {
+  def dbSeeds(config: Config): Map[Class[_ <: ch.openolitor.core.models.BaseId], Long] = {
     val models = config.getStringList("db.default.seed.models")
     val mappings: Seq[(Class[_], Long)] = models.map { model =>
       Class.forName(model) -> config.getLong(s"db.default.seed.mappings.$model")
-    }.toSeq
-    mappings.toMap
+    }
+    mappings.toMap.asInstanceOf[Map[Class[_ <: ch.openolitor.core.models.BaseId], Long]]
   }
 
   def systemConfig(mandant: MandantConfiguration) = SystemConfig(mandant, connectionPoolContext(mandant), asyncConnectionPoolContext(mandant))

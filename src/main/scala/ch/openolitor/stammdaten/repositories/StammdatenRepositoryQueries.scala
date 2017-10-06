@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
+import ch.openolitor.core.models._
 import scalikejdbc._
 import sqls.{ distinct, count }
 import ch.openolitor.stammdaten.models._
@@ -221,6 +222,56 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .from(personMapping as person)
         .where.eq(person.kundeId, kundeId)
         .orderBy(person.sort)
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenForAbotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(depotlieferungAbo.kundeId, kunde.id)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(heimlieferungAbo.kundeId, kunde.id)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(postlieferungAbo.kundeId, kunde.id)
+        .where.withRoundBracket {
+          _.eq(depotlieferungAbo.aktiv, true).and.eq(depotlieferungAbo.abotypId, abotypId)
+        }.or.withRoundBracket {
+          _.eq(heimlieferungAbo.aktiv, true).and.eq(heimlieferungAbo.abotypId, abotypId)
+        }.or.withRoundBracket {
+          _.eq(postlieferungAbo.aktiv, true).and.eq(postlieferungAbo.abotypId, abotypId)
+        }
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenForZusatzabotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.kundeId, kunde.id)
+        .where.eq(zusatzAbo.abotypId, abotypId).and.eq(zusatzAbo.aktiv, true)
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenQuery(tourId: TourId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .join(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .join(heimlieferungAboMapping as heimlieferungAbo).on(heimlieferungAbo.kundeId, kunde.id)
+        .join(tourMapping as tour).on(tour.id, heimlieferungAbo.tourId)
+        .where.eq(tour.id, tourId).and.eq(heimlieferungAbo.aktiv, true)
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenQuery(depotId: DepotId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .join(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .join(depotlieferungAboMapping as depotlieferungAbo).on(depotlieferungAbo.kundeId, kunde.id)
+        .join(depotMapping as depot).on(depot.id, depotlieferungAbo.depotId)
+        .where.eq(depot.id, depotId).and.eq(depotlieferungAbo.aktiv, true)
     }.map(personMapping(person)).list
   }
 

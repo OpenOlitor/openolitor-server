@@ -31,6 +31,8 @@ import ch.openolitor.stammdaten.StammdatenJsonProtocol
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
+import ch.openolitor.mailtemplates.MailTemplateJsonProtocol
+import ch.openolitor.mailtemplates.model.{ MailTemplate }
 import ch.openolitor.reports.ReportsJsonProtocol
 import ch.openolitor.reports.models._
 
@@ -54,6 +56,7 @@ class DBEvent2UserMapping extends Actor
   with ClientReceiver
   with StammdatenJsonProtocol
   with BuchhaltungJsonProtocol
+  with MailTemplateJsonProtocol
   with ReportsJsonProtocol
   with AkkaEventStream {
   import DBEvent2UserMapping._
@@ -188,6 +191,11 @@ class DBEvent2UserMapping extends Actor
     case e @ EntityModified(userId, entity: PostAuslieferung, _) => send(userId, e.asInstanceOf[DBEvent[PostAuslieferung]])
 
     case e @ EntityModified(userId, entity: Sammelbestellung, _) => send(userId, e.asInstanceOf[DBEvent[Sammelbestellung]])
+
+    // Mail Template
+    case e @ EntityCreated(personId, entity: MailTemplate) => send(personId, e.asInstanceOf[DBEvent[MailTemplate]])
+    case e @ EntityModified(personId, entity: MailTemplate, _) => send(personId, e.asInstanceOf[DBEvent[MailTemplate]])
+    case e @ EntityDeleted(personId, entity: MailTemplate) => send(personId, e.asInstanceOf[DBEvent[MailTemplate]])
 
     // Reports Modul
 

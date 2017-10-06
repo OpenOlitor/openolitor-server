@@ -154,5 +154,6 @@ object V2Scripts {
     OO861_recalculate_lieferung_counts.scripts ++
     OO900_Guthaben.scripts ++
     OO942_EnlargeFileRef.scripts ++
-    OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts
+    OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
+    OO762_Mail_Templates.scripts
 }

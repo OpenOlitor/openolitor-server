@@ -25,22 +25,23 @@ package ch.openolitor.util
 import org.specs2.mutable._
 
 class StringUtilSpec extends Specification {
+  import StringUtil._
 
   "StringUtil" should {
     "convert empty" in {
-      StringUtil.toUnderscore("") === ""
+      "".toUnderscore === ""
     }
 
     "convert non-matching" in {
-      StringUtil.toUnderscore("heyhey") === "heyhey"
+      "heyhey".toUnderscore === "heyhey"
     }
 
     "convert camel case to lower case with underscores" in {
-      StringUtil.toUnderscore("CamelCase") === "camel_case"
+      "CamelCase".toUnderscore === "camel_case"
     }
 
     "convert camel case to lower case with underscores" in {
-      StringUtil.toUnderscore("OpenOlitorVersion1") === "open_olitor_version1"
+      "OpenOlitorVersion1".toUnderscore === "open_olitor_version1"
     }
   }
 
