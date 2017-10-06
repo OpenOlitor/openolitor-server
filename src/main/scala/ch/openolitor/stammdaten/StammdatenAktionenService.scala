@@ -48,28 +48,33 @@ import scalikejdbc.DBSession
 import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.templates.engine.MailTemplateService
+import ch.openolitor.core.templates.model.MailTemplateType
+import scala.util.{ Failure, Success }
+import ch.openolitor.core.templates.repositories._
+import ch.openolitor.core.templates.model._
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-  extends StammdatenAktionenService(sysConfig, mailService)
-  with DefaultStammdatenWriteRepositoryComponent {
+    extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultTemplateReadRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
  */
 class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
-  with LazyLogging
-  with AsyncConnectionPoolContextAware
-  with StammdatenDBMappings
-  with MailServiceReference
-  with StammdatenEventStoreSerializer
-  with SammelbestellungenHandler
-  with LieferungHandler {
-  self: StammdatenWriteRepositoryComponent =>
+    with LazyLogging
+    with AsyncConnectionPoolContextAware
+    with StammdatenDBMappings
+    with MailServiceReference
+    with StammdatenEventStoreSerializer
+    with SammelbestellungenHandler
+    with LieferungHandler
+    with MailTemplateService {
+  self: StammdatenWriteRepositoryComponent with TemplateReadRepositoryComponent =>
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
@@ -238,14 +243,14 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
   }
 
   def sendPasswortReset(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
-    sendEinladung(meta, einladungCreate, "Sie können Ihr Passwort mit folgendem Link neu setzten:", BasePasswortResetLink)
+    sendEinladung(meta, einladungCreate, BasePasswortResetLink, PasswordResetMailTemplateType)
   }
 
   def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
-    sendEinladung(meta, einladungCreate, "Aktivieren Sie Ihren Zugang mit folgendem Link:", BaseZugangLink)
+    sendEinladung(meta, einladungCreate, BaseZugangLink, InvitationMailTemplateType)
   }
 
-  def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseText: String, baseLink: String)(implicit originator: PersonId): Unit = {
+  private def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseLink: String, mailTemplateType: MailTemplateType)(implicit originator: PersonId): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(personMapping, einladungCreate.personId) map { person =>
 
@@ -266,22 +271,23 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
         if (einladung.erstelldat.isAfter(new DateTime(2017, 3, 2, 12, 0)) && (einladung.datumVersendet.isEmpty || einladung.datumVersendet.get.isBefore(meta.timestamp)) && einladung.expires.isAfter(DateTime.now)) {
           setLoginAktiv(meta, einladung.personId)
 
-          val text = s"""
-	        ${person.vorname} ${person.name},
+          // TODO: replace templatename with selected name from client
+          val mailContext = EinladungMailContext(person, einladung, baseLink)
+          generateMail(mailTemplateType, "Default", mailContext) map {
+            case Success(mailPayload) =>
+              // email wurde bereits im CommandHandler überprüft
+              val mail = mailPayload.toMail(1, person.email.get, None, None)
 
-	        ${baseText} ${baseLink}?token=${einladung.uid}
-
-	        """
-
-          // email wurde bereits im CommandHandler überprüft
-          val mail = Mail(1, person.email.get, None, None, "OpenOlitor Zugang", text)
-
-          mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), einladung.id) map {
-            case _: SendMailEvent =>
-            //ok
-            case other =>
-              logger.debug(s"Sending Mail failed resulting in $other")
+              mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), einladung.id) map {
+                case _: SendMailEvent =>
+                //ok
+                case other =>
+                  logger.debug(s"Sending Mail failed resulting in $other")
+              }
+            case Failure(e) =>
+              logger.warn(s"Failed preparing mail", e)
           }
+
         } else {
           logger.debug(s"Don't send Einladung, has been send earlier: ${einladungCreate.id}")
         }

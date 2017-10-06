@@ -57,7 +57,17 @@ case object InvitationMailTemplateType extends MailTemplateType {
     body = """
           {{ person.vorname }} {{person.name }},
 
-	        {{ baseText }} {{ baseLink }}?token={{ einladung.uid }}
+	        Aktivieren Sie Ihren Zugang mit folgendem Link: {{ baseLink }}?token={{ einladung.uid }}
+	        """
+  )
+}
+case object PasswordResetMailTemplateType extends MailTemplateType {
+  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
+    subject = """OpenOlitor Zugang""",
+    body = """
+          {{ person.vorname }} {{person.name }},
+
+	        Sie können Ihr Passwort mit folgendem Link neu setzten: {{ baseLink }}?token={{ einladung.uid }}
 	        """
   )
 }
@@ -77,7 +87,9 @@ case object UnknownMailTemplateType extends MailTemplateType {
 object MailTemplateType extends LazyLogging {
   val AllTemplateTypes = List(
     ProduzentenBestellungMailTemplateType,
-    CustomerMailTemplateType
+    CustomerMailTemplateType,
+    InvitationMailTemplateType,
+    PasswordResetMailTemplateType
   )
 
   def apply(value: String): MailTemplateType = {
