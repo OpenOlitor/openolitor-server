@@ -23,6 +23,8 @@
 package ch.openolitor.util
 
 object StringUtil {
-  def toUnderscore(input: String): String =
-    (input replaceAll ("([A-Z]+)([A-Z][a-z])", "$1_$2") replaceAll ("([a-z\\d])([A-Z])", "$1_$2")).toLowerCase
+  implicit class OOString(self: String) {
+    def toUnderscore: String =
+      (self replaceAll ("([A-Z]+)([A-Z][a-z])", "$1_$2") replaceAll ("([a-z\\d])([A-Z])", "$1_$2")).toLowerCase
+  }
 }

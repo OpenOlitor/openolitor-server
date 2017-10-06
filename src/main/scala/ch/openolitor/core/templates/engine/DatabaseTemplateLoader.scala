@@ -20,29 +20,44 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util
+package ch.openolitor.core.templates.engine
 
-import org.specs2.mutable._
+import de.zalando.beard.renderer._
+import ch.openolitor.core.templates.repositories._
+import ch.openolitor.core.templates.model._
+import ch.openolitor.core.db.ConnectionPoolContextAware
+import scalikejdbc._
+import scala.io.Source
+import ch.openolitor.core.SystemConfig
 
-class StringUtilSpec extends Specification {
-  import StringUtil._
+/**
+ * TemplateLoadeer backed by a database. This loader will resolve the templates using the following two patterns:
+ * <ol>
+ * <li>Mail/<TemplateName>/<Subject|Body></li>
+ * <li><TemplateName></li>
+ * </ol>
+ *
+ * The first one will resolve templates from the MailTemplate entity by the TemplateName and either the Subject or the Body Part of it. The
+ * second one refers to the generic Template entity use to get included and shared in other templates.
+ */
+class DatabaseTemplateLoader(readRepository: TemplateReadRepositorySync, override val sysConfig: SystemConfig) extends TemplateLoader with TemplateDBMappings with ConnectionPoolContextAware {
 
-  "StringUtil" should {
-    "convert empty" in {
-      "".toUnderscore === ""
-    }
+  val mailTemplateSubjectPattern = """Mail/(.*)/Subject""".r
+  val mailTemplateBodyPattern = """Mail/(.*)/Body""".r
 
-    "convert non-matching" in {
-      "heyhey".toUnderscore === "heyhey"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "CamelCase".toUnderscore === "camel_case"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "OpenOlitorVersion1".toUnderscore === "open_olitor_version1"
+  override def load(templateName: TemplateName) = {
+    DB readOnly { implicit session =>
+      // load template
+      (templateName.name match {
+        case mailTemplateSubjectPattern(templateName) =>
+          readRepository.getMailTemplateByName(templateName).map(_.subject)
+        case mailTemplateBodyPattern(templateName) =>
+          readRepository.getMailTemplateByName(templateName).map(_.body)
+        case templateName =>
+          readRepository.getSharedTemplateByName(templateName).map(_.template)
+      }) map { templateString =>
+        Source.fromString(templateString)
+      }
     }
   }
-
 }
