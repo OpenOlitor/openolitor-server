@@ -20,25 +20,29 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailservice
+package ch.openolitor.core.templates.repositories
 
-import ch.openolitor.core.domain.EventMetadata
-import org.joda.time.DateTime
-import ch.openolitor.core.models.BaseId
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.JSONSerializable
+import scalikejdbc._
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
+import scala.concurrent.Future
+import ch.openolitor.core.db._
+import ch.openolitor.core.db.OOAsyncDB._
+import akka.actor.ActorSystem
+import ch.openolitor.core.templates.model._
+import ch.openolitor.core.repositories.BaseReadRepositorySync
+import ch.openolitor.core.repositories.BaseReadRepositoryAsync
 
-case class MailPayload(subject: String, content: String)
-
-case class Mail(priority: Int, to: String, cc: Option[String], bcc: Option[String], subject: String, content: String) extends JSONSerializable {
-  def this(priority: Int, to: String, cc: Option[String], bcc: Option[String], payload: MailPayload) =
-    this(priority, to, cc, bcc, payload.subject, payload.content)
+trait TemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
+  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
+  def getSharedTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SharedTemplate]]
 }
 
-case class MailEnqueued(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef], nextTry: DateTime, expires: DateTime, retries: Int)
-    extends Ordered[MailEnqueued] {
-  import scala.math.Ordered.orderingToOrdered
-  implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
-
-  def compare(that: MailEnqueued): Int = (this.mail.priority, this.nextTry) compare (that.mail.priority, that.nextTry)
+class TemplateReadRepositoryAsyncImpl extends TemplateReadRepositoryAsync with TemplateRepositoryQueries {
+  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
+    getMailTemplateByNameQuery(templateName).future()
+  }
+  def getSharedTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SharedTemplate]] = {
+    getSharedTemplateByNameQuery(templateName).future()
+  }
 }
