@@ -20,29 +20,27 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util
+package ch.openolitor.core.templates.repositories
 
-import org.specs2.mutable._
+import scalikejdbc._
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
+import ch.openolitor.core.db._
+import ch.openolitor.core.db.OOAsyncDB._
+import akka.actor.ActorSystem
+import ch.openolitor.core.templates.model._
+import ch.openolitor.core.repositories.BaseReadRepositorySync
 
-class StringUtilSpec extends Specification {
-  import StringUtil._
+trait TemplateReadRepositorySync extends BaseReadRepositorySync {
+  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
+  def getSharedTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[SharedTemplate]
+}
 
-  "StringUtil" should {
-    "convert empty" in {
-      "".toUnderscore === ""
-    }
-
-    "convert non-matching" in {
-      "heyhey".toUnderscore === "heyhey"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "CamelCase".toUnderscore === "camel_case"
-    }
-
-    "convert camel case to lower case with underscores" in {
-      "OpenOlitorVersion1".toUnderscore === "open_olitor_version1"
-    }
+class TemplateReadRepositorySyncImpl extends TemplateReadRepositorySync with TemplateRepositoryQueries {
+  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate] = {
+    getMailTemplateByNameQuery(templateName).apply()
   }
-
+  def getSharedTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[SharedTemplate] = {
+    getSharedTemplateByNameQuery(templateName).apply()
+  }
 }

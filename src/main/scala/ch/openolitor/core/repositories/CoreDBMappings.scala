@@ -25,6 +25,7 @@ package ch.openolitor.core.repositories
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.models._
+import ch.openolitor.core.templates.model._
 
 trait CoreDBMappings extends DBMappings {
 
@@ -49,10 +50,11 @@ trait CoreDBMappings extends DBMappings {
       parameters(DBSchema.unapply(entity).get)
 
     override def updateParameters(schema: DBSchema) = {
-      Seq(
-        column.revision -> parameter(schema.revision),
-        column.status -> parameter(schema.status)
-      )
+      super.updateParameters(schema) ++
+        Seq(
+          column.revision -> parameter(schema.revision),
+          column.status -> parameter(schema.status)
+        )
     }
   }
 
@@ -68,10 +70,11 @@ trait CoreDBMappings extends DBMappings {
       parameters(PersistenceEventState.unapply(entity).get)
 
     override def updateParameters(state: PersistenceEventState) = {
-      Seq(
-        column.lastTransactionNr -> parameter(state.lastTransactionNr),
-        column.lastSequenceNr -> parameter(state.lastSequenceNr)
-      )
+      super.updateParameters(state) ++
+        Seq(
+          column.lastTransactionNr -> parameter(state.lastTransactionNr),
+          column.lastSequenceNr -> parameter(state.lastSequenceNr)
+        )
     }
   }
 }

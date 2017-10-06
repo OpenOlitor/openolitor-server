@@ -24,7 +24,7 @@ package ch.openolitor.util.querybuilder
 
 import scalikejdbc._
 import ch.openolitor.util.parsing._
-import ch.openolitor.util.StringUtil
+import ch.openolitor.util.StringUtil._
 import com.typesafe.scalalogging.LazyLogging
 
 object UriQueryParamToSQLSyntaxBuilder extends LazyLogging {
@@ -89,7 +89,7 @@ object UriQueryParamToSQLSyntaxBuilder extends LazyLogging {
 
   private def retrieveColumn[T](sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T], attribute: String): Option[SQLSyntax] = {
     try {
-      Some(sqlSyntax.column(StringUtil.toUnderscore(attribute)))
+      Some(sqlSyntax.column(attribute.toUnderscore))
     } catch {
       case _: Exception => None
     }
