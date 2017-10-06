@@ -516,3 +516,9 @@ case class EinladungCreate(
   expires: DateTime,
   datumVersendet: Option[DateTime]
 ) extends JSONSerializable
+
+case class EinladungMailContext(
+  person: Person,
+  einladung: Einladung,
+  baseLink: String
+) extends Product

@@ -27,7 +27,7 @@ trait TemplateReadRepositoryComponent {
   val templateReadRepositorySync: TemplateReadRepositorySync
 }
 
-trait DefaultTemplateReadRepositoryComponentAsync extends TemplateReadRepositoryComponent {
+trait DefaultTemplateReadRepositoryComponent extends TemplateReadRepositoryComponent {
   override val templateReadRepositoryAsync: TemplateReadRepositoryAsync = new TemplateReadRepositoryAsyncImpl
   override val templateReadRepositorySync: TemplateReadRepositorySync = new TemplateReadRepositorySyncImpl
 }

@@ -28,12 +28,12 @@ import ch.openolitor.core.models.BaseId
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 
-case class MailPayload(subject: String, content: String)
-
-case class Mail(priority: Int, to: String, cc: Option[String], bcc: Option[String], subject: String, content: String) extends JSONSerializable {
-  def this(priority: Int, to: String, cc: Option[String], bcc: Option[String], payload: MailPayload) =
-    this(priority, to, cc, bcc, payload.subject, payload.content)
+case class MailPayload(subject: String, content: String) {
+  def toMail(priority: Int, to: String, cc: Option[String], bcc: Option[String]): Mail =
+    Mail(priority, to, cc, bcc, subject, content)
 }
+
+case class Mail(priority: Int, to: String, cc: Option[String], bcc: Option[String], subject: String, content: String) extends JSONSerializable
 
 case class MailEnqueued(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef], nextTry: DateTime, expires: DateTime, retries: Int)
     extends Ordered[MailEnqueued] {
