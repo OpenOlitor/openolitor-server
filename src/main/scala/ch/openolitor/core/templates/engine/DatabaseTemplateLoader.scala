@@ -40,19 +40,17 @@ import ch.openolitor.core.SystemConfig
  * The first one will resolve templates from the MailTemplate entity by the TemplateName and either the Subject or the Body Part of it. The
  * second one refers to the generic Template entity use to get included and shared in other templates.
  */
-class DatabaseTemplateLoader(readRepository: TemplateReadRepositorySync, override val sysConfig: SystemConfig) extends TemplateLoader with TemplateDBMappings with ConnectionPoolContextAware {
+class DatabaseTemplateLoader(template: MailTemplatePayload, readRepository: TemplateReadRepositorySync, override val sysConfig: SystemConfig) extends TemplateLoader with TemplateDBMappings with ConnectionPoolContextAware {
 
-  val mailTemplateSubjectPattern = """Mail/(.*)/Subject""".r
-  val mailTemplateBodyPattern = """Mail/(.*)/Body""".r
+  val mailTemplateSubjectPattern = """Mail/Subject""".r
+  val mailTemplateBodyPattern = """Mail/Body""".r
 
   override def load(templateName: TemplateName) = {
     DB readOnly { implicit session =>
       // load template
       (templateName.name match {
-        case mailTemplateSubjectPattern(templateName) =>
-          readRepository.getMailTemplateByName(templateName).map(_.subject)
-        case mailTemplateBodyPattern(templateName) =>
-          readRepository.getMailTemplateByName(templateName).map(_.body)
+        case mailTemplateSubjectPattern => Some(template.subject)
+        case mailTemplateBodyPattern => Some(template.body)
         case templateName =>
           readRepository.getSharedTemplateByName(templateName).map(_.template)
       }) map { templateString =>

@@ -25,11 +25,54 @@ package ch.openolitor.core.templates.model
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
+import java.util.Locale
 
-sealed trait MailTemplateType
-case object ProduzentenBestellungMailTemplateType extends MailTemplateType
-case object CustomerMailTemplateType extends MailTemplateType
-case object UnknownMailTemplateType extends MailTemplateType
+sealed trait MailTemplateType {
+  val defaultMailTemplate: MailTemplatePayload
+}
+case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
+  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
+    subject = """Bestellung {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}""",
+    body = """
+          Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} {{ produzent.vorname }}:
+
+          Lieferung: {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}
+          
+          Bestellpositionen:
+          {{for bestellung in bestellungen}}
+          {{if bestellung.adminProzente > 0}}
+          Adminprozente: {{ bestellung.adminProzente }}%:
+          {{/if}}          
+          {{for bestellposition in bestellung.bestellpositionen}}
+          {{ bestellposition.produktBeschrieb }}: {{ bestellposition.anzahl }} x {{ bestellposition.menge }} {{bestellposition.einheit }} à {{ bestellposition.preisEinheit }}{{ bestellposition.detail }} = {{ bestellposition.preis }} {{ projekt.waehrung }} ⇒ {{ bestellposition.mengeTotal }} {{ bestellposition.einheit }}
+          {{/for}}
+          {{/for}}
+          
+          Summe [{{ projekt.waehrung }}]: {{ sammelbestellung.preisTotal | number format="#.00" }}"""
+  )
+}
+case object InvitationMailTemplateType extends MailTemplateType {
+  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
+    subject = """OpenOlitor Zugang""",
+    body = """
+          {{ person.vorname }} {{person.name }},
+
+	        {{ baseText }} {{ baseLink }}?token={{ einladung.uid }}
+	        """
+  )
+}
+case object CustomerMailTemplateType extends MailTemplateType {
+  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
+    subject = "",
+    body = ""
+  )
+}
+case object UnknownMailTemplateType extends MailTemplateType {
+  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
+    subject = "",
+    body = ""
+  )
+}
 
 object MailTemplateType extends LazyLogging {
   val AllTemplateTypes = List(
@@ -42,6 +85,8 @@ object MailTemplateType extends LazyLogging {
     AllTemplateTypes.find(_.toString.toLowerCase == value.toLowerCase).getOrElse(UnknownMailTemplateType)
   }
 }
+
+case class MailTemplatePayload(subject: String, body: String)
 
 case class MailTemplateId(id: Long) extends BaseId
 case class MailTemplate(
