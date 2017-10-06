@@ -37,15 +37,6 @@ import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.Macros._
 
-case class ParameterBindMapping[A](cl: Class[A], binder: ParameterBinder[A])
-
-trait ParameterBinderMapping[A] {
-  def bind(value: A): ParameterBinder[A]
-}
-
-trait SqlBinder[-T] extends (T => Any) {
-}
-
 trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E] with LazyLogging with DBMappings {
 
   //override def columnNames 
@@ -62,11 +53,11 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
   /**
    * Declare parameter mappings for all parameters used on insert
    */
-  def parameterMappings(entity: E): Seq[Any]
+  def parameterMappings(entity: E): Seq[ParameterBinder]
 
   /**
    * Declare update parameters for this entity used on update. Is by default an empty set
    */
-  def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, Any]]
+  def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]]
 }
 

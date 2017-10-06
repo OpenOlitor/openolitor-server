@@ -23,20 +23,17 @@
 package ch.openolitor.core.repositories
 
 import scalikejdbc._
-import scalikejdbc.TypeBinder._
 import ch.openolitor.core.models._
 import ch.openolitor.core.Macros._
 
 trait CoreDBMappings extends DBMappings {
 
-  implicit val dbschemaIdBinder: TypeBinder[DBSchemaId] = baseIdTypeBinder(DBSchemaId.apply _)
-  implicit val evolutionStatusTypeBinder: TypeBinder[EvolutionStatus] = string.map(EvolutionStatus.apply)
+  implicit val dbSchemaIdBinder = baseIdBinders(DBSchemaId.apply _)
+  implicit val evolutionStatusBinder = toStringBinder(EvolutionStatus.apply _)
 
-  implicit val dbSchemaIdSqlBinder = baseIdSqlBinder[DBSchemaId]
-  implicit val evolutionStatusBinder = toStringSqlBinder[EvolutionStatus]
+  implicit def evolutionStatusParameterBinderFactory[A <: EvolutionStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
-  implicit val persistenceEventStateIdSqlBinderBinder: TypeBinder[PersistenceEventStateId] = baseIdTypeBinder(PersistenceEventStateId.apply _)
-  implicit val persistenceEventStateIdSqlBinder = baseIdSqlBinder[PersistenceEventStateId]
+  implicit val persistenceEventStateIdBinders: Binders[PersistenceEventStateId] = baseIdBinders(PersistenceEventStateId.apply _)
 
   implicit val dbSchemaMapping = new BaseEntitySQLSyntaxSupport[DBSchema] {
     override val tableName = "DBSchema"
@@ -46,10 +43,10 @@ trait CoreDBMappings extends DBMappings {
     def apply(rn: ResultName[DBSchema])(rs: WrappedResultSet): DBSchema =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: DBSchema): Seq[Any] =
+    def parameterMappings(entity: DBSchema): Seq[ParameterBinder] =
       parameters(DBSchema.unapply(entity).get)
 
-    override def updateParameters(entity: DBSchema): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
+    override def updateParameters(entity: DBSchema): Seq[Tuple2[SQLSyntax, ParameterBinder]] = autoUpdateParams(entity)
   }
 
   implicit val persistenceEventStateMapping = new BaseEntitySQLSyntaxSupport[PersistenceEventState] {
@@ -60,9 +57,9 @@ trait CoreDBMappings extends DBMappings {
     def apply(rn: ResultName[PersistenceEventState])(rs: WrappedResultSet): PersistenceEventState =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: PersistenceEventState): Seq[Any] =
+    def parameterMappings(entity: PersistenceEventState): Seq[ParameterBinder] =
       parameters(PersistenceEventState.unapply(entity).get)
 
-    override def updateParameters(entity: PersistenceEventState): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
+    override def updateParameters(entity: PersistenceEventState): Seq[Tuple2[SQLSyntax, ParameterBinder]] = autoUpdateParams(entity)
   }
 }

@@ -144,11 +144,11 @@ object Macros {
    *  column.fieldX -> parameters(entity.fieldX)
    * )
    */
-  def autoUpdateParams[S](entity: S, excludes: String*): Seq[Tuple2[SQLSyntax, Any]] = macro autoUpdateParamsImpl[S]
+  def autoUpdateParams[S](entity: S, excludes: String*): Seq[Tuple2[SQLSyntax, ParameterBinder]] = macro autoUpdateParamsImpl[S]
 
   def autoUpdateParamsImpl[S: c.WeakTypeTag](c: Context)(
     entity: c.Expr[S], excludes: c.Expr[String]*
-  ): c.Expr[Seq[Tuple2[SQLSyntax, Any]]] = {
+  ): c.Expr[Seq[Tuple2[SQLSyntax, ParameterBinder]]] = {
     import c.universe._
 
     val sourceTree = entity.tree
@@ -172,10 +172,10 @@ object Macros {
     }
     val mappings = allParams.filterNot(f => excludeStrs(f.name.decodedName.toString)).map { field =>
       val col = q"column.column(${field.name.decodedName.toString})"
-      val fieldValue = Select(sourceTree, field)
-      q"scala.Tuple2($col, parameter($fieldValue))"
+      // val fieldValue = Select(sourceTree, field)
+      q"scala.Tuple2($col, $entity.$field)"
     }
 
-    c.Expr[Seq[Tuple2[SQLSyntax, Any]]](q"Seq(..$mappings)")
+    c.Expr[Seq[Tuple2[SQLSyntax, ParameterBinder]]](q"Seq(..$mappings)")
   }
 }

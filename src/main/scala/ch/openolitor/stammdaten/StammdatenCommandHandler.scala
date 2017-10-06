@@ -34,8 +34,6 @@ import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.Macros._
-import ch.openolitor.buchhaltung.models.RechnungCreateFromRechnungsPositionen
-import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.buchhaltung.models.RechnungsPositionCreate
 import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import org.joda.time.DateTime
@@ -328,6 +326,10 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[AbwesenheitCreate, AbwesenheitId](idFactory, meta, entity, AbwesenheitId.apply)
     case e @ InsertEntityCommand(personId, entity: AbotypModify) => idFactory => meta =>
       handleEntityInsert[AbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
+    case e @ InsertEntityCommand(personId, entity: ZusatzAbotypModify) => idFactory => meta =>
+      handleEntityInsert[ZusatzAbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
+    case e @ InsertEntityCommand(personId, entity: ZusatzAbotypModify) => idFactory => meta =>
+      handleEntityInsert[ZusatzAbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
     case e @ InsertEntityCommand(personId, entity: DepotModify) => idFactory => meta =>
       handleEntityInsert[DepotModify, DepotId](idFactory, meta, entity, DepotId.apply)
     case e @ InsertEntityCommand(personId, entity: DepotlieferungModify) => idFactory => meta =>
@@ -348,6 +350,10 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[HeimlieferungAboModify, AboId](idFactory, meta, entity, AboId.apply)
     case e @ InsertEntityCommand(personId, entity: PostlieferungAboModify) => idFactory => meta =>
       handleEntityInsert[PostlieferungAboModify, AboId](idFactory, meta, entity, AboId.apply)
+    case e @ InsertEntityCommand(personId, entity: ZusatzAboModify) => idFactory => meta =>
+      handleEntityInsert[ZusatzAboModify, AboId](idFactory, meta, entity, AboId.apply)
+    case e @ InsertEntityCommand(personId, entity: ZusatzAboCreate) => idFactory => meta =>
+      handleEntityInsert[ZusatzAboCreate, AboId](idFactory, meta, entity, AboId.apply)
     case e @ InsertEntityCommand(personId, entity: PendenzCreate) => idFactory => meta =>
       handleEntityInsert[PendenzCreate, PendenzId](idFactory, meta, entity, PendenzId.apply)
     case e @ InsertEntityCommand(personId, entity: VertriebModify) => idFactory => meta =>

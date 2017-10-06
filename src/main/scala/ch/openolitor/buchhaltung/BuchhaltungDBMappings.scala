@@ -25,49 +25,40 @@ package ch.openolitor.buchhaltung
 import ch.openolitor.stammdaten.models.AboId
 import java.util.UUID
 import ch.openolitor.core.models._
-import ch.openolitor.core.repositories.ParameterBinderMapping
 import ch.openolitor.buchhaltung.models._
 import scalikejdbc._
-import scalikejdbc.TypeBinder._
+import scalikejdbc.Binders._
 import ch.openolitor.core.repositories.DBMappings
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.repositories.SqlBinder
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.scalax._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.core.repositories.BaseParameter
 
 //DB Model bindig
-trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
-  import TypeBinder._
+trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with BaseParameter {
 
   // DB type binders for read operations
-  implicit val rechnungIdBinder: TypeBinder[RechnungId] = baseIdTypeBinder(RechnungId.apply _)
-  implicit val rechnungsPositionIdBinder: TypeBinder[RechnungsPositionId] = baseIdTypeBinder(RechnungsPositionId.apply _)
-  implicit val zahlungsImportIdBinder: TypeBinder[ZahlungsImportId] = baseIdTypeBinder(ZahlungsImportId.apply _)
-  implicit val zahlungsEingangIdBinder: TypeBinder[ZahlungsEingangId] = baseIdTypeBinder(ZahlungsEingangId.apply _)
+  implicit val rechnungIdBinder: Binders[RechnungId] = baseIdBinders(RechnungId.apply _)
+  implicit val rechnungsPositionIdBinder: Binders[RechnungsPositionId] = baseIdBinders(RechnungsPositionId.apply _)
+  implicit val optionRechnungsPositionIdBinder: Binders[Option[RechnungsPositionId]] = optionBaseIdBinders(RechnungsPositionId.apply _)
+  implicit val zahlungsImportIdBinder: Binders[ZahlungsImportId] = baseIdBinders(ZahlungsImportId.apply _)
+  implicit val zahlungsEingangIdBinder: Binders[ZahlungsEingangId] = baseIdBinders(ZahlungsEingangId.apply _)
 
-  implicit val rechnungStatusTypeBinder: TypeBinder[RechnungStatus] = string.map(RechnungStatus.apply)
-  implicit val rechnungsPositionStatusTypeBinder: TypeBinder[RechnungsPositionStatus.RechnungsPositionStatus] = string.map(RechnungsPositionStatus.apply)
-  implicit val rechnungsPositionTypTypeBinder: TypeBinder[RechnungsPositionTyp.RechnungsPositionTyp] = string.map(RechnungsPositionTyp.apply)
-  implicit val optionRechnungIdBinder: TypeBinder[Option[RechnungId]] = optionBaseIdTypeBinder(RechnungId.apply _)
-  implicit val optionAboIdBinder: TypeBinder[Option[AboId]] = optionBaseIdTypeBinder(AboId.apply _)
+  implicit val rechnungStatusBinders: Binders[RechnungStatus] = toStringBinder(RechnungStatus.apply)
+  implicit val rechnungsPositionStatusBinders: Binders[RechnungsPositionStatus.RechnungsPositionStatus] = toStringBinder(RechnungsPositionStatus.apply)
+  implicit val rechnungsPositionTypBinders: Binders[RechnungsPositionTyp.RechnungsPositionTyp] = toStringBinder(RechnungsPositionTyp.apply)
+  implicit val optionRechnungIdBinder: Binders[Option[RechnungId]] = optionBaseIdBinders(RechnungId.apply _)
+  implicit val optionAboIdBinder: Binders[Option[AboId]] = optionBaseIdBinders(AboId.apply _)
 
-  implicit val zahlungsEingangStatusTypeBinder: TypeBinder[ZahlungsEingangStatus] = string.map(ZahlungsEingangStatus.apply)
+  implicit val zahlungsEingangStatusBinders: Binders[ZahlungsEingangStatus] = toStringBinder(ZahlungsEingangStatus.apply)
 
-  //DB parameter binders for write and query operationsit
-  implicit val rechnungStatusBinder = toStringSqlBinder[RechnungStatus]
-  implicit val rechnungsPositionStatusBinder = toStringSqlBinder[RechnungsPositionStatus.RechnungsPositionStatus]
-  implicit val rechnungsPositionTypBinder = toStringSqlBinder[RechnungsPositionTyp.RechnungsPositionTyp]
-  implicit val zahlungsEingangStatusBinder = toStringSqlBinder[ZahlungsEingangStatus]
-
-  implicit val rechnungIdSqlBinder = baseIdSqlBinder[RechnungId]
-  implicit val optionRechnungIdSqlBinder = optionSqlBinder[RechnungId]
-  implicit val rechnungsPositionIdSqlBinder = baseIdSqlBinder[RechnungsPositionId]
-  implicit val optionRechnungsPositionIdSqlBinder = optionSqlBinder[RechnungsPositionId]
-  implicit val optionAboIdSqlBinder = optionSqlBinder[AboId]
-  implicit val zahlungsEingangIdSqlBinder = baseIdSqlBinder[ZahlungsEingangId]
-  implicit val zahlungsImportIdSqlBinder = baseIdSqlBinder[ZahlungsImportId]
+  // declare parameterbinderfactories for enum type to allow dynamic type convertion of enum subtypes
+  implicit def rechnungStatusParameterBinderFactory[A <: RechnungStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit def rechnungsPositionStatusStatusParameterBinderFactory[A <: RechnungsPositionStatus.RechnungsPositionStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit def rechnungsPositionTypStatusParameterBinderFactory[A <: RechnungsPositionTyp.RechnungsPositionTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit def zahlungsEingangStatusParameterBinderFactory[A <: ZahlungsEingangStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val rechnungMapping = new BaseEntitySQLSyntaxSupport[Rechnung] {
     override val tableName = "Rechnung"
@@ -77,10 +68,10 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[Rechnung])(rs: WrappedResultSet): Rechnung =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Rechnung): Seq[Any] =
+    def parameterMappings(entity: Rechnung): Seq[ParameterBinder] =
       parameters(Rechnung.unapply(entity).get)
 
-    override def updateParameters(entity: Rechnung): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
+    override def updateParameters(entity: Rechnung): Seq[Tuple2[SQLSyntax, ParameterBinder]] = autoUpdateParams(entity)
   }
 
   implicit val rechnungsPositionMapping = new BaseEntitySQLSyntaxSupport[RechnungsPosition] {
@@ -91,10 +82,10 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[RechnungsPosition])(rs: WrappedResultSet): RechnungsPosition =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: RechnungsPosition): Seq[Any] =
+    def parameterMappings(entity: RechnungsPosition): Seq[ParameterBinder] =
       parameters(RechnungsPosition.unapply(entity).get)
 
-    override def updateParameters(entity: RechnungsPosition): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
+    override def updateParameters(entity: RechnungsPosition): Seq[Tuple2[SQLSyntax, ParameterBinder]] = autoUpdateParams(entity)
   }
 
   implicit val zahlungsImportMapping = new BaseEntitySQLSyntaxSupport[ZahlungsImport] {
@@ -105,10 +96,10 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[ZahlungsImport])(rs: WrappedResultSet): ZahlungsImport =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: ZahlungsImport): Seq[Any] =
+    def parameterMappings(entity: ZahlungsImport): Seq[ParameterBinder] =
       parameters(ZahlungsImport.unapply(entity).get)
 
-    override def updateParameters(entity: ZahlungsImport): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
+    override def updateParameters(entity: ZahlungsImport): Seq[Tuple2[SQLSyntax, ParameterBinder]] = autoUpdateParams(entity)
   }
 
   implicit val zahlungsEingangMapping = new BaseEntitySQLSyntaxSupport[ZahlungsEingang] {
@@ -119,9 +110,9 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings {
     def apply(rn: ResultName[ZahlungsEingang])(rs: WrappedResultSet): ZahlungsEingang =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: ZahlungsEingang): Seq[Any] =
+    def parameterMappings(entity: ZahlungsEingang): Seq[ParameterBinder] =
       parameters(ZahlungsEingang.unapply(entity).get)
 
-    override def updateParameters(entity: ZahlungsEingang): Seq[Tuple2[SQLSyntax, Any]] = autoUpdateParams(entity)
+    override def updateParameters(entity: ZahlungsEingang): Seq[Tuple2[SQLSyntax, ParameterBinder]] = autoUpdateParams(entity)
   }
 }

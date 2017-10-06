@@ -20,28 +20,42 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.calculations
+package ch.openolitor.stammdaten.batch.calculations
 
-import akka.actor.Actor
-import akka.actor.ActorLogging
 import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import akka.actor.Props
+import ch.openolitor.core.batch.BaseBatchJob
+import scala.concurrent.duration._
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import scalikejdbc._
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
-import ch.openolitor.core.calculations.Calculations._
-import ch.openolitor.core.calculations.BaseCalculationsSupervisor
-import akka.actor.ActorRef
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
-object StammdatenCalculations {
-  def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[DefaultStammdatenCalculations], sysConfig, system, entityStore)
+object LieferungCounterCalculation {
+  def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[LieferungCounterCalculation], sysConfig, system)
 }
 
-class StammdatenCalculations(val sysConfig: SystemConfig, val system: ActorSystem, val entityStore: ActorRef) extends BaseCalculationsSupervisor {
-  override lazy val calculators = Set(
-    context.actorOf(AktiveAbosCalculation.props(sysConfig, system, entityStore)),
-    context.actorOf(KorbStatusCalculation.props(sysConfig, system)),
-    context.actorOf(LieferungCounterCalculation.props(sysConfig, system))
-  )
-}
+class LieferungCounterCalculation(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BaseBatchJob
+    with AsyncConnectionPoolContextAware
+    with DefaultStammdatenWriteRepositoryComponent
+    with StammdatenDBMappings {
 
-class DefaultStammdatenCalculations(override val sysConfig: SystemConfig, override val system: ActorSystem, override val entityStore: ActorRef) extends StammdatenCalculations(sysConfig, system, entityStore) with DefaultStammdatenWriteRepositoryComponent
+  override def process(): Unit = {
+    DB autoCommit { implicit session =>
+      sql"""update ${lieferungMapping.table} l 
+		INNER JOIN (SELECT k.lieferung_id, count(k.id) counter from ${korbMapping.table} k WHERE Status='WirdGeliefert' group by k.lieferung_id) k ON l.id=k.lieferung_id
+		set l.anzahl_koerbe_zu_liefern=k.counter""".execute.apply()
+      sql"""update ${lieferungMapping.table} l 
+		INNER JOIN (SELECT k.lieferung_id, count(k.id) counter from ${korbMapping.table} k WHERE Status='FaelltAusAbwesend' group by k.lieferung_id) k ON l.id=k.lieferung_id
+		set l.anzahl_abwesenheiten=k.counter""".execute.apply()
+      sql"""update ${lieferungMapping.table} l 
+		INNER JOIN (SELECT k.lieferung_id, count(k.id) counter from ${korbMapping.table} k WHERE Status='FaelltAusSaldoZuTief' group by k.lieferung_id) k ON l.id=k.lieferung_id
+		set l.anzahl_saldo_zu_tief=k.counter""".execute.apply()
+    }
+  }
+
+  protected def handleInitialization(): Unit = {
+    // disable scheduled calculation for now
+  }
+}
