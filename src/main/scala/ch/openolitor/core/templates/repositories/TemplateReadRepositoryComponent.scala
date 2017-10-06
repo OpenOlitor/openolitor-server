@@ -20,24 +20,14 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailservice
+package ch.openolitor.core.templates.repositories
 
-import ch.openolitor.core.domain.EventMetadata
-import org.joda.time.DateTime
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.JSONSerializable
-
-case class MailPayload(subject: String, content: String)
-
-case class Mail(priority: Int, to: String, cc: Option[String], bcc: Option[String], subject: String, content: String) extends JSONSerializable {
-  def this(priority: Int, to: String, cc: Option[String], bcc: Option[String], payload: MailPayload) =
-    this(priority, to, cc, bcc, payload.subject, payload.content)
+trait TemplateReadRepositoryComponent {
+  val templateReadRepositoryAsync: TemplateReadRepositoryAsync
+  val templateReadRepositorySync: TemplateReadRepositorySync
 }
 
-case class MailEnqueued(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef], nextTry: DateTime, expires: DateTime, retries: Int)
-  extends Ordered[MailEnqueued] {
-  import scala.math.Ordered.orderingToOrdered
-  implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
-
-  def compare(that: MailEnqueued): Int = (this.mail.priority, this.nextTry) compare (that.mail.priority, that.nextTry)
+trait DefaultTemplateReadRepositoryComponentAsync extends TemplateReadRepositoryComponent {
+  override val templateReadRepositoryAsync: TemplateReadRepositoryAsync = new TemplateReadRepositoryAsyncImpl
+  override val templateReadRepositorySync: TemplateReadRepositorySync = new TemplateReadRepositorySyncImpl
 }
