@@ -37,8 +37,9 @@ import java.util.Locale
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import spray.json.JsValue
+import ch.openolitor.core.templates.eventsourcing._
 
-trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
+trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with TemplateEventStoreSerializer {
   //V1 persisters
   implicit val depotModifyPersister = persister[DepotModify]("depot-modify")
   implicit val depotIdPersister = persister[DepotId]("depot-id")
@@ -275,7 +276,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
     korbIdPersister
-  )
+  ) ++ mailTemplatePersisters
 
   def fixToOptionLocalDate(in: JsValue, attribute: Symbol): JsValue = {
     // convert wrong date js values

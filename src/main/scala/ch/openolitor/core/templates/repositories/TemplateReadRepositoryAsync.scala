@@ -36,6 +36,9 @@ import ch.openolitor.core.repositories.BaseReadRepositoryAsync
 trait TemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
   def getSharedTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SharedTemplate]]
+
+  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
+  def getSharedTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[SharedTemplate]]
 }
 
 class TemplateReadRepositoryAsyncImpl extends TemplateReadRepositoryAsync with TemplateRepositoryQueries {
@@ -44,5 +47,12 @@ class TemplateReadRepositoryAsyncImpl extends TemplateReadRepositoryAsync with T
   }
   def getSharedTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SharedTemplate]] = {
     getSharedTemplateByNameQuery(templateName).future()
+  }
+
+  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]] = {
+    getMailTemplatesQuery().future()
+  }
+  def getSharedTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[SharedTemplate]] = {
+    getSharedTemplatesQuery().future()
   }
 }
