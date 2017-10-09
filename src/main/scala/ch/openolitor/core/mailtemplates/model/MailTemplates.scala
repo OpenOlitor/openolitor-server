@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.model
+package ch.openolitor.core.mailtemplates.model
 
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._
@@ -30,66 +30,35 @@ import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 
 sealed trait MailTemplateType extends JSONSerializable {
-  def defaultMailTemplate: MailTemplatePayload
+  val defaultSubject: String
+  val defaultMailBodyTemplateName: String
 }
-case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
-  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
-    subject = """Bestellung {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}""",
-    body = """
-          Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} {{ produzent.vorname }}:
 
-          Lieferung: {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}
-          
-          Bestellpositionen:
-          {{for bestellung in bestellungen}}
-          {{if bestellung.adminProzente > 0}}
-          Adminprozente: {{ bestellung.adminProzente }}%:
-          {{/if}}          
-          {{for bestellposition in bestellung.bestellpositionen}}
-          {{ bestellposition.produktBeschrieb }}: {{ bestellposition.anzahl }} x {{ bestellposition.menge }} {{bestellposition.einheit }} à {{ bestellposition.preisEinheit }}{{ bestellposition.detail }} = {{ bestellposition.preis }} {{ projekt.waehrung }} ⇒ {{ bestellposition.mengeTotal }} {{ bestellposition.einheit }}
-          {{/for}}
-          {{/for}}
-          
-          Summe [{{ projekt.waehrung }}]: {{ sammelbestellung.preisTotal | number format="#.00" }}"""
-  )
+case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
+  val defaultSubject = """Bestellung {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}"""
+  val defaultMailBodyTemplateName = "ProduzentenBestellungMail"
 }
 case object InvitationMailTemplateType extends MailTemplateType {
-  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
-    subject = """OpenOlitor Zugang""",
-    body = """
-          {{ person.vorname }} {{person.name }},
-
-	        Aktivieren Sie Ihren Zugang mit folgendem Link: {{ baseLink }}?token={{ einladung.uid }}
-	        """
-  )
+  val defaultSubject = """OpenOlitor Zugang"""
+  val defaultMailBodyTemplateName = "InvitationMail"
 }
 case object PasswordResetMailTemplateType extends MailTemplateType {
-  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
-    subject = """OpenOlitor Zugang""",
-    body = """
-          {{ person.vorname }} {{person.name }},
-
-	        Sie können Ihr Passwort mit folgendem Link neu setzten: {{ baseLink }}?token={{ einladung.uid }}
-	        """
-  )
+  val defaultSubject = """OpenOlitor Zugang"""
+  val defaultMailBodyTemplateName = "PasswordResetMail"
 }
-case object CustomerMailTemplateType extends MailTemplateType {
-  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
-    subject = "",
-    body = ""
-  )
+case object CustomMailTemplateType extends MailTemplateType {
+  val defaultSubject = ""
+  val defaultMailBodyTemplateName = "CustomMail"
 }
 case object UnknownMailTemplateType extends MailTemplateType {
-  val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
-    subject = "",
-    body = ""
-  )
+  val defaultSubject = ""
+  val defaultMailBodyTemplateName = ""
 }
 
 object MailTemplateType extends LazyLogging {
   val AllTemplateTypes = List(
     ProduzentenBestellungMailTemplateType,
-    CustomerMailTemplateType,
+    CustomMailTemplateType,
     InvitationMailTemplateType,
     PasswordResetMailTemplateType
   )
@@ -100,8 +69,6 @@ object MailTemplateType extends LazyLogging {
   }
 }
 
-case class MailTemplatePayload(subject: String, body: String)
-
 case class MailTemplateId(id: Long) extends BaseId
 case class MailTemplate(
   id: MailTemplateId,
@@ -109,7 +76,7 @@ case class MailTemplate(
   templateName: String,
   description: Option[String],
   subject: String,
-  body: String,
+  bodyFileStoreId: String,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -121,25 +88,5 @@ case class MailTemplateModify(
   templateType: MailTemplateType,
   templateName: String,
   description: Option[String],
-  subject: String,
-  body: String
-) extends JSONSerializable
-
-case class SharedTemplateId(id: Long) extends BaseId
-case class SharedTemplate(
-  id: SharedTemplateId,
-  templateName: String,
-  description: Option[String],
-  template: String,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[SharedTemplateId] with JSONSerializable
-
-case class SharedTemplateModify(
-  templateName: String,
-  description: Option[String],
-  template: String
+  subject: String
 ) extends JSONSerializable

@@ -20,16 +20,15 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.mailtemplates.repositories
 
 import scalikejdbc._
 import scalikejdbc.async._
 import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
 
-trait TemplateRepositoryQueries extends LazyLogging with TemplateDBMappings {
+trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
   lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
-  lazy val sharedTemplate = sharedTemplateMapping.syntax("sharedTemplate")
 
   protected def getMailTemplatesQuery() = {
     withSQL {
@@ -38,26 +37,11 @@ trait TemplateRepositoryQueries extends LazyLogging with TemplateDBMappings {
     }.map(mailTemplateMapping(mailTemplate)).list
   }
 
-  protected def getSharedTemplatesQuery() = {
-    withSQL {
-      select
-        .from(sharedTemplateMapping as sharedTemplate)
-    }.map(sharedTemplateMapping(sharedTemplate)).list
-  }
-
   protected def getMailTemplateByNameQuery(templateName: String) = {
     withSQL {
       select
         .from(mailTemplateMapping as mailTemplate)
         .where.eq(mailTemplate.templateName, parameter(templateName))
     }.map(mailTemplateMapping(mailTemplate)).single
-  }
-
-  protected def getSharedTemplateByNameQuery(templateName: String) = {
-    withSQL {
-      select
-        .from(sharedTemplateMapping as sharedTemplate)
-        .where.eq(sharedTemplate.templateName, parameter(templateName))
-    }.map(sharedTemplateMapping(sharedTemplate)).single
   }
 }

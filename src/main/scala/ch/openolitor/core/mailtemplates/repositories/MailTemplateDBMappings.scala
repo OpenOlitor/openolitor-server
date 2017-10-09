@@ -20,22 +20,20 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.mailtemplates.repositories
 
 import ch.openolitor.core.repositories.DBMappings
-import ch.openolitor.core.templates.model._
+import ch.openolitor.core.mailtemplates.model._
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.repositories._
 
-trait TemplateDBMappings extends DBMappings {
+trait MailTemplateDBMappings extends DBMappings {
   implicit val mailTemplateType: TypeBinder[MailTemplateType] = string.map(MailTemplateType.apply)
   implicit val mailTemplateId: TypeBinder[MailTemplateId] = baseIdTypeBinder(MailTemplateId.apply)
-  implicit val sharedTemplateId: TypeBinder[SharedTemplateId] = baseIdTypeBinder(SharedTemplateId.apply)
 
   implicit val mailTemplateTypeSqlBinder = toStringSqlBinder[MailTemplateType]
   implicit val mailTemplateIdSqlBinder = baseIdSqlBinder[MailTemplateId]
-  implicit val sharedTemplateIdSqlBinder = baseIdSqlBinder[SharedTemplateId]
 
   implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
     override val tableName = "MailTemplate"
@@ -55,28 +53,7 @@ trait TemplateDBMappings extends DBMappings {
           column.templateName -> parameter(entity.templateName),
           column.description -> parameter(entity.description),
           column.subject -> parameter(entity.subject),
-          column.body -> parameter(entity.body)
-        )
-    }
-  }
-
-  implicit val sharedTemplateMapping = new BaseEntitySQLSyntaxSupport[SharedTemplate] {
-    override val tableName = "SharedTemplate"
-
-    override lazy val columns = autoColumns[SharedTemplate]()
-
-    def apply(rn: ResultName[SharedTemplate])(rs: WrappedResultSet): SharedTemplate =
-      autoConstruct(rs, rn)
-
-    def parameterMappings(entity: SharedTemplate): Seq[Any] =
-      parameters(SharedTemplate.unapply(entity).get)
-
-    override def updateParameters(entity: SharedTemplate) = {
-      super.updateParameters(entity) ++
-        Seq(
-          column.templateName -> parameter(entity.templateName),
-          column.description -> parameter(entity.description),
-          column.template -> parameter(entity.template)
+          column.bodyFileStoreId -> parameter(entity.bodyFileStoreId)
         )
     }
   }

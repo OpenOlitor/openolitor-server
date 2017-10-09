@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.mailtemplates.repositories
 
 import scalikejdbc._
 import scalikejdbc.async._
@@ -29,30 +29,21 @@ import scala.concurrent.Future
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import akka.actor.ActorSystem
-import ch.openolitor.core.templates.model._
-import ch.openolitor.core.repositories.BaseReadRepositorySync
-import ch.openolitor.core.repositories.BaseReadRepositoryAsync
+import ch.openolitor.core.mailtemplates.model._
+import ch.openolitor.core.repositories._
 
-trait TemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
+trait MailTemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
-  def getSharedTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SharedTemplate]]
 
   def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
-  def getSharedTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[SharedTemplate]]
 }
 
-class TemplateReadRepositoryAsyncImpl extends TemplateReadRepositoryAsync with TemplateRepositoryQueries {
+class MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
   def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
     getMailTemplateByNameQuery(templateName).future()
-  }
-  def getSharedTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SharedTemplate]] = {
-    getSharedTemplateByNameQuery(templateName).future()
   }
 
   def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]] = {
     getMailTemplatesQuery().future()
-  }
-  def getSharedTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[SharedTemplate]] = {
-    getSharedTemplatesQuery().future()
   }
 }

@@ -20,16 +20,21 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.core.mailtemplates.engine
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
-case object MailTemplateBucket extends FileStoreBucket
+import de.zalando.beard.renderer._
+import scalikejdbc._
+import scala.io.Source
+import com.typesafe.scalalogging.LazyLogging
 
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, TemporaryDataBucket, MailTemplateBucket)
+/**
+ * TemplateLoader trying to resolve templates from multiple templateloaders in the order provided in the constructor
+ */
+class FallbackTemplateLoader(templateLoader: TemplateLoader, fallbackTemplateLoaders: TemplateLoader*) extends TemplateLoader with LazyLogging {
+
+  val templateLoaderOrder = templateLoader +: fallbackTemplateLoaders
+
+  override def load(templateName: TemplateName): Option[Source] = {
+    templateLoaderOrder.foldLeft[Option[Source]](None)(_ orElse _.load(templateName))
+  }
 }

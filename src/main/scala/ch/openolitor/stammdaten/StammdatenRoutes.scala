@@ -54,8 +54,8 @@ import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.core.security.RequestFailed
-import ch.openolitor.core.templates.TemplateRoutes
-import ch.openolitor.core.templates.repositories._
+import ch.openolitor.core.mailtemplates.MailTemplateRoutes
+import ch.openolitor.core.mailtemplates.repositories._
 
 trait StammdatenRoutes extends HttpService with ActorReferences
     with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -73,8 +73,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     with LieferplanungReportService
     with FileTypeFilenameMapping
     with StammdatenPaths
-    with TemplateRoutes {
-  self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent with TemplateReadRepositoryComponent =>
+    with MailTemplateRoutes {
+  self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent with MailTemplateReadRepositoryComponent =>
 
   import EntityStore._
 
@@ -852,4 +852,4 @@ class DefaultStammdatenRoutes(
     extends StammdatenRoutes
     with DefaultStammdatenReadRepositoryAsyncComponent
     with DefaultBuchhaltungReadRepositoryAsyncComponent
-    with DefaultTemplateReadRepositoryComponent
+    with DefaultMailTemplateReadRepositoryComponent

@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates
+package ch.openolitor.core.mailtemplates
 
 import spray.routing._
 import spray.http._
@@ -32,25 +32,24 @@ import spray.httpx.unmarshalling._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.templates.repositories.TemplateReadRepositoryComponent
 import ch.openolitor.core.security.Subject
-import ch.openolitor.core.templates.model._
-import ch.openolitor.core.templates.repositories.TemplateDBMappings
-import ch.openolitor.core.templates.eventsourcing._
+import ch.openolitor.core.mailtemplates.repositories.MailTemplateReadRepositoryComponent
+import ch.openolitor.core.mailtemplates.model._
+import ch.openolitor.core.mailtemplates.repositories.MailTemplateDBMappings
+import ch.openolitor.core.mailtemplates.eventsourcing._
 
-trait TemplateRoutes extends HttpService
+trait MailTemplateRoutes extends HttpService
     with ActorReferences
     with AsyncConnectionPoolContextAware
     with SprayDeserializers
     with DefaultRouteService
     with LazyLogging
-    with TemplateJsonProtocol
-    with TemplateDBMappings
-    with TemplateEventStoreSerializer {
-  self: TemplateReadRepositoryComponent =>
+    with MailTemplateJsonProtocol
+    with MailTemplateDBMappings
+    with MailTemplateEventStoreSerializer {
+  self: MailTemplateReadRepositoryComponent =>
 
   implicit val mailTemplateIdPath = long2BaseIdPathMatcher(MailTemplateId.apply)
-  implicit val sharedTemplateIdPath = long2BaseIdPathMatcher(SharedTemplateId.apply)
 
   def mailTemplateRoute(implicit subject: Subject) =
     path("mailtemplatetypes") {
@@ -59,19 +58,14 @@ trait TemplateRoutes extends HttpService
       }
     } ~
       path("mailtemplates") {
-        get(list(templateReadRepositoryAsync.getMailTemplates())) ~
+        get(list(mailTemplateReadRepositoryAsync.getMailTemplates())) ~
           post(create[MailTemplateModify, MailTemplateId](MailTemplateId.apply _))
       } ~
       path("mailtemplates" / mailTemplateIdPath) { mailTemplateId =>
-        get(detail(templateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
+        get(detail(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
           (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId))
-      } ~
-      path("mailtemplatetypes" / "sharedtemplatetypes") {
-        get(list(templateReadRepositoryAsync.getSharedTemplates())) ~
-          post(create[SharedTemplateModify, SharedTemplateId](SharedTemplateId.apply _))
-      } ~
-      path("mailtemplatetypes" / "sharedtemplates" / sharedTemplateIdPath) { sharedTemplateId =>
-        get(detail(templateReadRepositoryAsync.getById(sharedTemplateMapping, sharedTemplateId))) ~
-          (put | post)(update[SharedTemplateModify, SharedTemplateId](sharedTemplateId))
-      }
+      } // ~
+  //      path("mailtemplates" / mailTemplateIdPath / "upload") { mailTemplateId =>
+  //       
+  //      }
 }
