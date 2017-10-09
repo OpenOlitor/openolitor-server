@@ -680,7 +680,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   private def updateKorbAuslieferungId(meta: EventMetadata, id: KorbId, entity: KorbAuslieferungModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Korb, KorbId](id)(
-        korbMapping.column.auslieferungId -> Some(entity.auslieferungId)
+        korbMapping.column.auslieferungId -> Option(entity.auslieferungId)
       )
     }
   }

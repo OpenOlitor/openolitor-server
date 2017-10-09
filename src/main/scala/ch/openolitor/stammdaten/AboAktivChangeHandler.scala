@@ -26,6 +26,11 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
+import ch.openolitor.stammdaten.StammdatenCommandHandler.AboAktiviertEvent
+import ch.openolitor.stammdaten.StammdatenCommandHandler.AboDeaktiviertEvent
+import ch.openolitor.core.models.BaseEntity
+import ch.openolitor.core.models.BaseId
+import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.repositories.EventPublisher
 
 trait AboAktivChangeHandler extends StammdatenDBMappings {

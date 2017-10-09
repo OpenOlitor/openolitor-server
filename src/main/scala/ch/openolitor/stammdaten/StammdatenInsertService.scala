@@ -737,7 +737,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   private def updateLieferungUndZusatzLieferung(meta: EventMetadata, lieferplanungId: LieferplanungId, project: Option[Projekt], lieferung: Lieferung)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Lieferung = {
     val adjustedLieferung = offenLieferung(meta, lieferplanungId, project, lieferung)
     stammdatenWriteRepository.getExistingZusatzAbotypen(adjustedLieferung.id).map { zusatzAbotyp =>
-      stammdatenWriteRepository.getExistingZusatzaboLieferung(zusatzAbotyp.id, lieferplanungId) match {
+      stammdatenWriteRepository.getExistingZusatzaboLieferung(zusatzAbotyp.id, lieferplanungId, lieferung.datum) match {
         case None => {
           // Using positiveRandomId because the lieferung cannot be created in commandHandler.
           createLieferungInner(meta, LieferungId(positiveRandomId), LieferungAbotypCreate(zusatzAbotyp.id, adjustedLieferung.vertriebId, adjustedLieferung.datum), Some(lieferplanungId)).map { zusatzLieferung =>
