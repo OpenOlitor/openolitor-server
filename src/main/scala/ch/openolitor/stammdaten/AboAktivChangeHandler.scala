@@ -22,13 +22,8 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.actor._
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.core.domain._
-import ch.openolitor.core.db._
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import ch.openolitor.stammdaten.StammdatenCommandHandler.AboAktiviertEvent
