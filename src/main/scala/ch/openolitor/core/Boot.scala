@@ -68,6 +68,10 @@ import org.joda.time.DateTime
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
 
+trait SystemConfigReference {
+  val sysConfig: SystemConfig
+}
+
 case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: Map[Class[_], Long], config: Config) {
   val configKey = s"openolitor.${key}"
 

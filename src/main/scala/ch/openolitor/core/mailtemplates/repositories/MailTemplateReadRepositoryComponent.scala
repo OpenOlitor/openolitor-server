@@ -20,17 +20,14 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.core.mailtemplates.repositories
 
+trait MailTemplateReadRepositoryComponent {
+  val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync
+  val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync
+}
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
-case object MailTemplateBucket extends FileStoreBucket
-
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, TemporaryDataBucket, MailTemplateBucket)
+trait DefaultMailTemplateReadRepositoryComponent extends MailTemplateReadRepositoryComponent {
+  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new MailTemplateReadRepositoryAsyncImpl
+  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new MailTemplateReadRepositorySyncImpl
 }

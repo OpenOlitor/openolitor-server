@@ -36,9 +36,9 @@ import java.util.Locale
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import spray.json.JsValue
-import ch.openolitor.core.templates.eventsourcing._
+import ch.openolitor.core.mailtemplates.eventsourcing._
 
-trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with TemplateEventStoreSerializer {
+trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with MailTemplateEventStoreSerializer {
   //V1 persisters
   implicit val depotModifyPersister = persister[DepotModify]("depot-modify")
   implicit val depotIdPersister = persister[DepotId]("depot-id")
