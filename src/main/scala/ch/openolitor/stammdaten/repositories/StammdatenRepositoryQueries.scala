@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
+import ch.openolitor.core.models._
 import scalikejdbc._
 import sqls.{ distinct, count }
 import ch.openolitor.stammdaten.models._
