@@ -20,44 +20,15 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.templates
 
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
+import spray.json._
+import ch.openolitor.core.BaseJsonProtocol
+import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.templates.model._
+import zangelo.spray.json.AutoProductFormats
 
-trait TemplateRepositoryQueries extends LazyLogging with TemplateDBMappings {
-  lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
-  lazy val sharedTemplate = sharedTemplateMapping.syntax("sharedTemplate")
-
-  protected def getMailTemplatesQuery() = {
-    withSQL {
-      select
-        .from(mailTemplateMapping as mailTemplate)
-    }.map(mailTemplateMapping(mailTemplate)).list
-  }
-
-  protected def getSharedTemplatesQuery() = {
-    withSQL {
-      select
-        .from(sharedTemplateMapping as sharedTemplate)
-    }.map(sharedTemplateMapping(sharedTemplate)).list
-  }
-
-  protected def getMailTemplateByNameQuery(templateName: String) = {
-    withSQL {
-      select
-        .from(mailTemplateMapping as mailTemplate)
-        .where.eq(mailTemplate.templateName, parameter(templateName))
-    }.map(mailTemplateMapping(mailTemplate)).single
-  }
-
-  protected def getSharedTemplateByNameQuery(templateName: String) = {
-    withSQL {
-      select
-        .from(sharedTemplateMapping as sharedTemplate)
-        .where.eq(sharedTemplate.templateName, parameter(templateName))
-    }.map(sharedTemplateMapping(sharedTemplate)).single
-  }
+trait TemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
+  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
+  implicit val sharedTemplateIdFormat = baseIdFormat(SharedTemplateId.apply)
 }

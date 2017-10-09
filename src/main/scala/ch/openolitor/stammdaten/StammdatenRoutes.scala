@@ -53,24 +53,28 @@ import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.core.security.RequestFailed
+import ch.openolitor.core.templates.TemplateRoutes
+import ch.openolitor.core.templates.repositories._
 
 trait StammdatenRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-  with StammdatenJsonProtocol
-  with StammdatenEventStoreSerializer
-  with BuchhaltungJsonProtocol
-  with Defaults
-  with AuslieferungLieferscheinReportService
-  with AuslieferungEtikettenReportService
-  with AuslieferungKorbUebersichtReportService
-  with KundenBriefReportService
-  with DepotBriefReportService
-  with ProduzentenBriefReportService
-  with ProduzentenabrechnungReportService
-  with LieferplanungReportService
-  with FileTypeFilenameMapping
-  with StammdatenPaths {
-  self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent =>
+    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+    with StammdatenJsonProtocol
+    with StammdatenEventStoreSerializer
+    with BuchhaltungJsonProtocol
+    with Defaults
+    with AuslieferungLieferscheinReportService
+    with AuslieferungEtikettenReportService
+    with AuslieferungKorbUebersichtReportService
+    with KundenBriefReportService
+    with DepotBriefReportService
+    with ProduzentenBriefReportService
+    with ProduzentenabrechnungReportService
+    with LieferplanungReportService
+    with FileTypeFilenameMapping
+    with StammdatenPaths
+    with TemplateRoutes {
+  self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent with TemplateReadRepositoryComponent =>
 
   import EntityStore._
 
@@ -81,7 +85,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       }
       kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ personenRoute ~
         kundentypenRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
-        produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute
+        produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
+        mailTemplateRoute
     }
 
   private def kontoDatenRoute(implicit subject: Subject): Route =
@@ -844,6 +849,7 @@ class DefaultStammdatenRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-  extends StammdatenRoutes
-  with DefaultStammdatenReadRepositoryAsyncComponent
-  with DefaultBuchhaltungReadRepositoryAsyncComponent
+    extends StammdatenRoutes
+    with DefaultStammdatenReadRepositoryAsyncComponent
+    with DefaultBuchhaltungReadRepositoryAsyncComponent
+    with DefaultTemplateReadRepositoryComponent

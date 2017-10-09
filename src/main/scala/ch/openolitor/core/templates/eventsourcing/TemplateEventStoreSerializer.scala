@@ -20,44 +20,32 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.templates.eventsourcing
 
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
+import stamina._
+import stamina.json._
+import ch.openolitor.core.templates.model._
+import ch.openolitor.core.templates._
+import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.core.domain.EntityStoreJsonProtocol
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+import java.util.Locale
+import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import spray.json.JsValue
 
-trait TemplateRepositoryQueries extends LazyLogging with TemplateDBMappings {
-  lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
-  lazy val sharedTemplate = sharedTemplateMapping.syntax("sharedTemplate")
+trait TemplateEventStoreSerializer extends TemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
+  //V1 persisters
+  implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
+  implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
 
-  protected def getMailTemplatesQuery() = {
-    withSQL {
-      select
-        .from(mailTemplateMapping as mailTemplate)
-    }.map(mailTemplateMapping(mailTemplate)).list
-  }
+  implicit val sharedTemplateModifyPersister = persister[SharedTemplateModify]("shared-template-modify")
+  implicit val sharedTemplateIdPersister = persister[SharedTemplateId]("shared-template-id")
 
-  protected def getSharedTemplatesQuery() = {
-    withSQL {
-      select
-        .from(sharedTemplateMapping as sharedTemplate)
-    }.map(sharedTemplateMapping(sharedTemplate)).list
-  }
-
-  protected def getMailTemplateByNameQuery(templateName: String) = {
-    withSQL {
-      select
-        .from(mailTemplateMapping as mailTemplate)
-        .where.eq(mailTemplate.templateName, parameter(templateName))
-    }.map(mailTemplateMapping(mailTemplate)).single
-  }
-
-  protected def getSharedTemplateByNameQuery(templateName: String) = {
-    withSQL {
-      select
-        .from(sharedTemplateMapping as sharedTemplate)
-        .where.eq(sharedTemplate.templateName, parameter(templateName))
-    }.map(sharedTemplateMapping(sharedTemplate)).single
-  }
+  val mailTemplatePersisters = List(
+    mailTemplateModifyPersister,
+    mailTemplateIdPersister,
+    sharedTemplateModifyPersister,
+    sharedTemplateIdPersister
+  )
 }

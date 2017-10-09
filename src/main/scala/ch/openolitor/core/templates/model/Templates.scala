@@ -26,9 +26,11 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import java.util.Locale
+import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.JSONSerializable
 
-sealed trait MailTemplateType {
-  val defaultMailTemplate: MailTemplatePayload
+sealed trait MailTemplateType extends JSONSerializable {
+  def defaultMailTemplate: MailTemplatePayload
 }
 case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
   val defaultMailTemplate: MailTemplatePayload = MailTemplatePayload(
@@ -113,7 +115,15 @@ case class MailTemplate(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
-) extends BaseEntity[MailTemplateId]
+) extends BaseEntity[MailTemplateId] with JSONSerializable
+
+case class MailTemplateModify(
+  templateType: MailTemplateType,
+  templateName: String,
+  description: Option[String],
+  subject: String,
+  body: String
+) extends JSONSerializable
 
 case class SharedTemplateId(id: Long) extends BaseId
 case class SharedTemplate(
@@ -126,4 +136,10 @@ case class SharedTemplate(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
-) extends BaseEntity[SharedTemplateId]
+) extends BaseEntity[SharedTemplateId] with JSONSerializable
+
+case class SharedTemplateModify(
+  templateName: String,
+  description: Option[String],
+  template: String
+) extends JSONSerializable
