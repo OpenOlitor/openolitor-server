@@ -100,6 +100,11 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       handleAboModified(orig, entity)(personId)
     case e @ EntityModified(personId, entity: PostlieferungAbo, orig: PostlieferungAbo) if entity.vertriebId != orig.vertriebId =>
       handleAboModified(orig, entity)(personId)
+
+    case e @ EntityCreated(personId, entity: ZusatzAbo) => handleZusatzAboCreated(entity)(personId)
+    case e @ EntityModified(personId, entity: ZusatzAbo, orig: ZusatzAbo) => handleZusatzAboModified(orig, entity)(personId)
+    case e @ EntityDeleted(personId, entity: ZusatzAbo) => handleZusatzAboDeleted(entity)(personId)
+
     case e @ EntityCreated(personId, entity: Abo) => handleAboCreated(entity)(personId)
     case e @ EntityDeleted(personId, entity: Abo) => handleAboDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: Abo, orig: Abo) => handleAboModified(orig, entity)(personId)
@@ -399,6 +404,43 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     }
   }
 
+  def handleZusatzAboCreated(zusatzAbo: ZusatzAbo)(implicit personId: PersonId) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      val modZusatzAboCount = calculateAboAktivCreate(zusatzAbo)
+      stammdatenUpdateRepository.modifyEntity[ZusatzAbotyp, AbotypId](zusatzAbo.abotypId) { zusatzAbotyp =>
+        log.debug(s"Add abonnent to zusatzabotyp:${zusatzAbotyp.id}")
+        Map(
+          zusatzAbotypMapping.column.anzahlAbonnenten -> (zusatzAbotyp.anzahlAbonnenten + 1),
+          zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv + modZusatzAboCount)
+        )
+      }
+    }
+  }
+
+  def handleZusatzAboModified(from: ZusatzAbo, to: ZusatzAbo)(implicit personId: PersonId) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      if (from.aktiv != to.aktiv) {
+        val change = if (to.aktiv) 1 else -1
+        stammdatenUpdateRepository.modifyEntity[ZusatzAbotyp, AbotypId](to.abotypId) { zusatzAbotyp =>
+          Map(zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv + change))
+        }
+      }
+    }
+  }
+
+  def handleZusatzAboDeleted(zusatzAbo: ZusatzAbo)(implicit personId: PersonId) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      val modZusatzAboCount = calculateAboAktivCreate(zusatzAbo)
+      stammdatenUpdateRepository.modifyEntity[ZusatzAbotyp, AbotypId](zusatzAbo.abotypId) { zusatzAbotyp =>
+        log.debug(s"Remove abonnent from zusatzabotyp:${zusatzAbotyp.id}")
+        Map(
+          zusatzAbotypMapping.column.anzahlAbonnenten -> (zusatzAbotyp.anzahlAbonnenten - 1),
+          zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv - modZusatzAboCount)
+        )
+      }
+    }
+  }
+
   def handleKundeModified(kunde: Kunde, orig: Kunde)(implicit personId: PersonId) = {
     //compare typen
     //find removed typen
@@ -465,9 +507,9 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
 
       stammdatenUpdateRepository.getAboDetailAusstehend(abw.aboId) match {
         case Some(abo) => {
-          stammdatenUpdateRepository.getKorb(abw.lieferungId, abw.aboId) match {
-            case Some(korb) => {
-              stammdatenUpdateRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
+          stammdatenUpdateRepository.getKorb(abw.lieferungId, abw.aboId).toList ++
+            stammdatenUpdateRepository.getZusatzAboKorb(abw.lieferungId, abw.aboId) map { korb =>
+              stammdatenUpdateRepository.getAbotypById(abo.abotypId) map { abotyp =>
                 //re count because the might be another abwesenheit for the same date
                 val newAbwesenheitCount = stammdatenUpdateRepository.countAbwesend(abw.aboId, abw.datum)
                 val status = calculateKorbStatus(newAbwesenheitCount, abo.guthaben, abotyp.guthabenMindestbestand)
@@ -476,8 +518,6 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
                 stammdatenUpdateRepository.updateEntity[Korb, KorbId](korb.id)(korbMapping.column.status -> status)
               }
             }
-            case None => log.debug(s"No Korb yet for Lieferung : ${abw.lieferungId} and Abotyp : ${abw.aboId}")
-          }
         }
         case None => log.error(s"There should be an abo with this id : ${abw.aboId}")
       }
@@ -514,6 +554,10 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
           stammdatenUpdateRepository.updateEntity[Korb, KorbId](korb.id)(korbMapping.column.status -> FaelltAusAbwesend)
         }
         case None => log.debug(s"No Korb yet for Lieferung : ${abw.lieferungId} and Abotyp : ${abw.aboId}")
+      }
+
+      stammdatenUpdateRepository.getZusatzAboKorb(abw.lieferungId, abw.aboId).map { zusatzKorb =>
+        stammdatenUpdateRepository.updateEntity[Korb, KorbId](zusatzKorb.id)(korbMapping.column.status -> FaelltAusAbwesend)
       }
     }
   }

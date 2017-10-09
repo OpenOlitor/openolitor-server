@@ -41,6 +41,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val person = personMapping.syntax("pers")
   lazy val lieferplanung = lieferplanungMapping.syntax("lieferplanung")
   lazy val lieferung = lieferungMapping.syntax("lieferung")
+  lazy val hauptLieferung = lieferungMapping.syntax("lieferung")
   lazy val lieferungJoin = lieferungMapping.syntax("lieferungJ")
   lazy val lieferposition = lieferpositionMapping.syntax("lieferposition")
   lazy val bestellung = bestellungMapping.syntax("bestellung")
@@ -85,6 +86,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, aboTyp))
         .orderBy(aboTyp.name)
     }.map(abotypMapping(aboTyp)).list
+  }
+
+  protected def getExistingZusatzAbotypenQuery(lieferungId: LieferungId) = {
+    withSQL {
+      select
+        .from(zusatzAbotypMapping as zusatzAboTyp)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.abotypId, zusatzAboTyp.id)
+        .leftJoin(korbMapping as korb).on(korb.aboId, zusatzAbo.hauptAboId)
+        .where.eq(korb.lieferungId, parameter(lieferungId))
+    }.map(zusatzAbotypMapping(zusatzAboTyp)).list
   }
 
   protected def getZusatzAbotypenQuery(filter: Option[FilterExpr]) = {
@@ -713,43 +724,50 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(_.int(1)).single
   }
 
-  protected def getAktiveDepotlieferungAbosQuery(vertriebId: VertriebId, lieferdatum: DateTime) = {
+  protected def getAktiveDepotlieferungAbosQuery(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime) = {
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
-        .where.eq(depotlieferungAbo.vertriebId, vertriebId)
-        .and.le(depotlieferungAbo.start, lieferdatum)
-        .and.withRoundBracket { _.isNull(depotlieferungAbo.ende).or.ge(depotlieferungAbo.ende, lieferdatum.toLocalDate) }
+        .where.eq(depotlieferungAbo.vertriebId, parameter(vertriebId))
+        .and.eq(depotlieferungAbo.abotypId, parameter(abotypId))
+        .and.le(depotlieferungAbo.start, parameter(lieferdatum))
+        .and.withRoundBracket { _.isNull(depotlieferungAbo.ende).or.ge(depotlieferungAbo.ende, parameter(lieferdatum.toLocalDate)) }
     }.map(depotlieferungAboMapping(depotlieferungAbo)).list
   }
 
-  protected def getAktiveHeimlieferungAbosQuery(vertriebId: VertriebId, lieferdatum: DateTime) = {
+  protected def getAktiveHeimlieferungAbosQuery(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime) = {
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
-        .where.eq(heimlieferungAbo.vertriebId, vertriebId)
-        .and.le(heimlieferungAbo.start, lieferdatum)
-        .and.withRoundBracket { _.isNull(heimlieferungAbo.ende).or.ge(heimlieferungAbo.ende, lieferdatum.toLocalDate) }
+        .where.eq(heimlieferungAbo.vertriebId, parameter(vertriebId))
+        .and.eq(heimlieferungAbo.abotypId, parameter(abotypId))
+        .and.le(heimlieferungAbo.start, parameter(lieferdatum))
+        .and.withRoundBracket { _.isNull(heimlieferungAbo.ende).or.ge(heimlieferungAbo.ende, parameter(lieferdatum.toLocalDate)) }
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
-  protected def getAktiveZusatzAbosQuery(vertriebId: VertriebId, lieferdatum: DateTime) = {
+  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
+    // zusätzlich get haupabo, get all Lieferungen where Lieferplanung is equal
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
-        .where.eq(zusatzAbo.vertriebId, vertriebId)
-        .and.le(zusatzAbo.start, lieferdatum)
-        .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, lieferdatum) }
+        .join(lieferungMapping as lieferung).on(zusatzAbo.vertriebId, lieferung.vertriebId)
+        .where.eq(zusatzAbo.abotypId, parameter(abotypId))
+        .and.eq(zusatzAbo.abotypId, parameter(abotypId))
+        .and.eq(lieferung.lieferplanungId, parameter(lieferplanungId))
+        .and.le(zusatzAbo.start, parameter(lieferdatum))
+        .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, parameter(lieferdatum)) }
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
-  protected def getAktivePostlieferungAbosQuery(vertriebId: VertriebId, lieferdatum: DateTime) = {
+  protected def getAktivePostlieferungAbosQuery(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime) = {
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
-        .where.eq(postlieferungAbo.vertriebId, vertriebId)
-        .and.le(postlieferungAbo.start, lieferdatum)
-        .and.withRoundBracket { _.isNull(postlieferungAbo.ende).or.ge(postlieferungAbo.ende, lieferdatum.toLocalDate) }
+        .where.eq(postlieferungAbo.vertriebId, parameter(vertriebId))
+        .and.eq(postlieferungAbo.abotypId, parameter(abotypId))
+        .and.le(postlieferungAbo.start, parameter(lieferdatum))
+        .and.withRoundBracket { _.isNull(postlieferungAbo.ende).or.ge(postlieferungAbo.ende, parameter(lieferdatum.toLocalDate)) }
     }.map(postlieferungAboMapping(postlieferungAbo)).list
   }
 
@@ -974,6 +992,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(lieferplanungMapping(lieferplanung)).single
   }
 
+  protected def getLieferplanungQuery(id: LieferungId) = {
+    withSQL {
+      select
+        .from(lieferplanungMapping as lieferplanung)
+        .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .where.eq(lieferung.id, parameter(id))
+    }.map(lieferplanungMapping(lieferplanung)).single
+  }
+
   protected def getLieferplanungReportQuery(id: LieferplanungId, projekt: ProjektReport) = {
     withSQL {
       select
@@ -1062,6 +1089,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .from(lieferungMapping as lieferung)
         .join(abwesenheitMapping as abwesenheit)
         .where.eq(lieferung.id, abwesenheit.lieferungId).and.eq(abwesenheit.id, id)
+    }.map(lieferungMapping(lieferung)).single
+  }
+
+  protected def getExistingZusatzaboLieferungQuery(zusatzAbotypId: AbotypId, lieferplanungId: LieferplanungId, datum: DateTime) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, parameter(zusatzAbotypId))
+        .and.eq(lieferung.lieferplanungId, parameter(lieferplanungId))
+        .and.eq(lieferung.datum, parameter(datum))
     }.map(lieferungMapping(lieferung)).single
   }
 
@@ -1379,6 +1416,20 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where.eq(korb.lieferungId, lieferungId)
         .and.eq(korb.aboId, aboId).and.not.eq(korb.status, Geliefert)
     }.map(korbMapping(korb)).single
+  }
+
+  protected def getZusatzAboKorbQuery(hauptlieferungId: LieferungId, hauptAboId: AboId) = {
+    withSQL {
+      select
+        .from(korbMapping as korb)
+        .innerJoin(zusatzAboMapping as zusatzAbo)
+        .innerJoin(lieferungMapping as lieferung)
+        .innerJoin(lieferungMapping as lieferungJoin).on(lieferungJoin.datum, lieferung.datum)
+        .where.eq(korb.aboId, zusatzAbo.id)
+        .and.eq(korb.lieferungId, lieferungJoin.id)
+        .and.eq(zusatzAbo.hauptAboId, parameter(hauptAboId))
+        .and.eq(lieferung.id, parameter(hauptlieferungId))
+    }.map(korbMapping(korb)).list
   }
 
   protected def getNichtGelieferteKoerbeQuery(lieferungId: LieferungId) = {
@@ -1767,7 +1818,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(einladungMapping(einladung)).single
   }
 
-  protected def getSingleDepotlieferungAbo(id: AboId) = {
+  protected def getSingleDepotlieferungAboQuery(id: AboId) = {
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
@@ -1775,7 +1826,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(depotlieferungAboMapping(depotlieferungAbo)).single
   }
 
-  protected def getSingleHeimlieferungAbo(id: AboId) = {
+  protected def getSingleHeimlieferungAboQuery(id: AboId) = {
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
@@ -1783,7 +1834,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(heimlieferungAboMapping(heimlieferungAbo)).single
   }
 
-  protected def getSinglePostlieferungAbo(id: AboId) = {
+  protected def getSinglePostlieferungAboQuery(id: AboId) = {
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
@@ -1791,12 +1842,21 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(postlieferungAboMapping(postlieferungAbo)).single
   }
 
-  protected def getSingleZusatzAbo(id: AboId) = {
+  protected def getSingleZusatzAboQuery(id: AboId) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
         .where.eq(zusatzAbo.id, id)
     }.map(zusatzAboMapping(zusatzAbo)).single
+  }
+
+  protected def getZusatzAbosQuery(hauptaboId: AboId) = {
+    withSQL {
+      select
+        .from(zusatzAboMapping as zusatzAbo)
+        .where.eq(zusatzAbo.hauptAboId, parameter(hauptaboId))
+    }.map(zusatzAboMapping(zusatzAbo)).list
+
   }
 
   // MODIFY and DELETE Queries
