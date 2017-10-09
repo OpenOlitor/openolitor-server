@@ -20,42 +20,19 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.engine
+package ch.openolitor.core.mailtemplates.engine
 
 import de.zalando.beard.renderer._
-import ch.openolitor.core.templates.repositories._
-import ch.openolitor.core.templates.model._
-import ch.openolitor.core.db.ConnectionPoolContextAware
 import scalikejdbc._
 import scala.io.Source
-import ch.openolitor.core.SystemConfig
+import com.typesafe.scalalogging.LazyLogging
 
 /**
- * TemplateLoadeer backed by a database. This loader will resolve the templates using the following two patterns:
- * <ol>
- * <li>Mail/<TemplateName>/<Subject|Body></li>
- * <li><TemplateName></li>
- * </ol>
- *
- * The first one will resolve templates from the MailTemplate entity by the TemplateName and either the Subject or the Body Part of it. The
- * second one refers to the generic Template entity use to get included and shared in other templates.
+ * TemplateLoader backed by map of strings to resolve templates from.
  */
-class DatabaseTemplateLoader(template: MailTemplatePayload, readRepository: TemplateReadRepositorySync, override val sysConfig: SystemConfig) extends TemplateLoader with TemplateDBMappings with ConnectionPoolContextAware {
+class MapTemplateLoader(templateMap: Map[String, String]) extends TemplateLoader with LazyLogging {
 
-  val mailTemplateSubjectPattern = """Mail/Subject""".r
-  val mailTemplateBodyPattern = """Mail/Body""".r
-
-  override def load(templateName: TemplateName) = {
-    DB readOnly { implicit session =>
-      // load template
-      (templateName.name match {
-        case mailTemplateSubjectPattern => Some(template.subject)
-        case mailTemplateBodyPattern => Some(template.body)
-        case templateName =>
-          readRepository.getSharedTemplateByName(templateName).map(_.template)
-      }) map { templateString =>
-        Source.fromString(templateString)
-      }
-    }
+  override def load(templateName: TemplateName): Option[Source] = {
+    templateMap.get(templateName.name).map(template => Source.fromString(template))
   }
 }

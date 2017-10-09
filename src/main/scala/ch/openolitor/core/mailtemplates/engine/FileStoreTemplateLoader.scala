@@ -20,18 +20,26 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.core.mailtemplates.engine
 
-import scala.concurrent.Future
+import de.zalando.beard.renderer._
+import scala.io.Source
+import scala.concurrent.duration._
+import scala.concurrent._
+import ch.openolitor.core.filestore._
+import com.typesafe.scalalogging.LazyLogging
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
-case object MailTemplateBucket extends FileStoreBucket
+/**
+ * TemplateLoader backed by a filestore storage service. The template loader gets intialized with a filestorebucket to resolve templates from
+ */
+class FileStoreTemplateLoader(fileStore: FileStore, bucket: FileStoreBucket, maxAwaitTime: Duration)(implicit ec: ExecutionContext) extends TemplateLoader with LazyLogging {
 
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, TemporaryDataBucket, MailTemplateBucket)
+  override def load(templateName: TemplateName): Option[Source] = {
+    Await.result(fileStore.getFile(bucket, templateName.name).map(_ match {
+      case Right(FileStoreFile(_, is)) => Option(Source.fromInputStream(is))
+      case Left(x) =>
+        logger.warn(s"Could not resolve template from filestore. TemplateName:${templateName.name}, result:$x")
+        None
+    }), maxAwaitTime)
+  }
 }

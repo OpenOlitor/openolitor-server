@@ -20,14 +20,8 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.filestore
 
-trait TemplateReadRepositoryComponent {
-  val templateReadRepositoryAsync: TemplateReadRepositoryAsync
-  val templateReadRepositorySync: TemplateReadRepositorySync
-}
-
-trait DefaultTemplateReadRepositoryComponent extends TemplateReadRepositoryComponent {
-  override val templateReadRepositoryAsync: TemplateReadRepositoryAsync = new TemplateReadRepositoryAsyncImpl
-  override val templateReadRepositorySync: TemplateReadRepositorySync = new TemplateReadRepositorySyncImpl
+trait FileStoreReference {
+  val fileStore: FileStore
 }

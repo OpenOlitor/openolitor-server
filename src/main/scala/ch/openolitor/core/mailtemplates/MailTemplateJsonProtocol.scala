@@ -20,27 +20,14 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates.repositories
+package ch.openolitor.core.mailtemplates
 
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
-import akka.actor.ActorSystem
-import ch.openolitor.core.templates.model._
-import ch.openolitor.core.repositories.BaseReadRepositorySync
+import spray.json._
+import ch.openolitor.core.BaseJsonProtocol
+import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.mailtemplates.model._
+import zangelo.spray.json.AutoProductFormats
 
-trait TemplateReadRepositorySync extends BaseReadRepositorySync {
-  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
-  def getSharedTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[SharedTemplate]
-}
-
-class TemplateReadRepositorySyncImpl extends TemplateReadRepositorySync with TemplateRepositoryQueries {
-  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate] = {
-    getMailTemplateByNameQuery(templateName).apply()
-  }
-  def getSharedTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[SharedTemplate] = {
-    getSharedTemplateByNameQuery(templateName).apply()
-  }
+trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
+  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
 }

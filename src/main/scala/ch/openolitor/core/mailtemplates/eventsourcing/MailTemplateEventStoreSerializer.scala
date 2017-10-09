@@ -20,15 +20,27 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.templates
+package ch.openolitor.core.mailtemplates.eventsourcing
 
-import spray.json._
-import ch.openolitor.core.BaseJsonProtocol
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.templates.model._
-import zangelo.spray.json.AutoProductFormats
+import stamina._
+import stamina.json._
+import ch.openolitor.core.mailtemplates.model._
+import ch.openolitor.core.mailtemplates._
+import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.core.domain.EntityStoreJsonProtocol
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+import java.util.Locale
+import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import spray.json.JsValue
 
-trait TemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
-  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
-  implicit val sharedTemplateIdFormat = baseIdFormat(SharedTemplateId.apply)
+trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
+  //V1 persisters
+  implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
+  implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
+
+  val mailTemplatePersisters = List(
+    mailTemplateModifyPersister,
+    mailTemplateIdPersister
+  )
 }

@@ -53,18 +53,18 @@ import scalikejdbc.DBSession
 import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.core.templates.engine.MailTemplateService
-import ch.openolitor.core.templates.model.MailTemplateType
+import ch.openolitor.core.mailtemplates.engine.MailTemplateService
+import ch.openolitor.core.mailtemplates.model.MailTemplateType
 import scala.util.{ Failure, Success }
-import ch.openolitor.core.templates.repositories._
-import ch.openolitor.core.templates.model._
+import ch.openolitor.core.mailtemplates.repositories._
+import ch.openolitor.core.mailtemplates.model._
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-    extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultTemplateReadRepositoryComponent {
+    extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateReadRepositoryComponent {
 }
 
 /**
@@ -79,7 +79,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
     with SammelbestellungenHandler
     with LieferungHandler
     with MailTemplateService {
-  self: StammdatenWriteRepositoryComponent with TemplateReadRepositoryComponent =>
+  self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
@@ -279,7 +279,7 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
 
           // TODO: replace templatename with selected name from client
           val mailContext = EinladungMailContext(person, einladung, baseLink)
-          generateMail(mailTemplateType, "Default", mailContext) map {
+          generateMail(mailTemplateType, None, mailContext) map {
             case Success(mailPayload) =>
               // email wurde bereits im CommandHandler überprüft
               val mail = mailPayload.toMail(1, person.email.get, None, None)
