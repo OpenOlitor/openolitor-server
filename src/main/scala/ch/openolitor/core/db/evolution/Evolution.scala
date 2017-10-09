@@ -35,7 +35,6 @@ import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.core.repositories.SqlBinder
 import scala.reflect._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
@@ -195,7 +194,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     withSQL {
       select(max(schema.revision))
         .from(dbSchemaMapping as schema)
-        .where.eq(schema.status, parameter(Done))
+        .where.eq(schema.status, Done)
     }.map(_.intOpt(1).getOrElse(0)).single.apply().getOrElse(0)
   }
 }
