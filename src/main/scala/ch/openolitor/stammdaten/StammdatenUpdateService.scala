@@ -47,30 +47,36 @@ import ch.openolitor.util.ConfigUtil._
 import org.joda.time.DateTime
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.stammdaten.mailtemplates.MailTemplateUpdateService
+import ch.openolitor.stammdaten.mailtemplates.repositories._
 
 object StammdatenUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenUpdateService = new DefaultStammdatenUpdateService(sysConfig, system)
 }
 
 class DefaultStammdatenUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent {
+    extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
  */
-class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]]
+class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
     with LazyLogging
     with AsyncConnectionPoolContextAware
     with StammdatenDBMappings
     with LieferungHandler
+    with MailTemplateUpdateService
     with KorbHandler {
-  self: StammdatenWriteRepositoryComponent =>
+  self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
+
+  // implicitly expose the eventStream
+  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   // Hotfix
   lazy val startTime = DateTime.now.minusSeconds(sysConfig.mandantConfiguration.config.getIntOption("startTimeDelationSeconds") getOrElse 10)
 
-  val handle: Handle = {
+  val stammdatenUpdateHandle: Handle = {
     case EntityUpdatedEvent(meta, id: VertriebId, entity: VertriebModify) => updateVertrieb(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AbotypId, entity: AbotypModify) => updateAbotyp(meta, id, entity)
     case EntityUpdatedEvent(meta, id: VertriebsartId, entity: DepotlieferungAbotypModify) => updateDepotlieferungVertriebsart(meta, id, entity)
@@ -105,6 +111,8 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: SammelbestellungId, entity: SammelbestellungStatusModify) => updateSammelbestellungStatusModify(meta, id, entity)
     case e =>
   }
+
+  val handle: Handle = stammdatenUpdateHandle orElse mailTemplateUpdateHandle
 
   private def updateVertrieb(meta: EventMetadata, id: VertriebId, update: VertriebModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>

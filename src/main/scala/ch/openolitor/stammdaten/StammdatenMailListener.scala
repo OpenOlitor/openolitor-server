@@ -49,6 +49,9 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
   this: StammdatenWriteRepositoryComponent =>
   import StammdatenMailListener._
 
+  // implicitly expose the eventStream
+  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
   override def preStart() {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[MailSentEvent])

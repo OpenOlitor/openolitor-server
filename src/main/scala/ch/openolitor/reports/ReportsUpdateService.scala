@@ -41,6 +41,7 @@ import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.models.BaseId
 
 object ReportsUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ReportsUpdateService = new DefaultReportsUpdateService(sysConfig, system)
@@ -53,7 +54,7 @@ class DefaultReportsUpdateService(sysConfig: SystemConfig, override val system: 
 /**
  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Reports Moduls
  */
-class ReportsUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
+class ReportsUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]] with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
 
   val handle: Handle = {

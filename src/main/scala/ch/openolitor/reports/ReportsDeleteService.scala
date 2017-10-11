@@ -38,6 +38,7 @@ import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.models.BaseId
 
 object ReportsDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ReportsDeleteService = new DefaultReportsDeleteService(sysConfig, system)
@@ -50,7 +51,7 @@ class DefaultReportsDeleteService(sysConfig: SystemConfig, override val system: 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Reports Modul
  */
-class ReportsDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
+class ReportsDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
     with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
   import EntityStore._

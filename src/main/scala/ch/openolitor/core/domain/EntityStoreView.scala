@@ -40,9 +40,10 @@ import scala.util._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.DBEvolutionReference
+import ch.openolitor.core.models.BaseId
 
 trait EventService[E <: PersistentEvent] {
-  type Handle = (E => Unit)
+  type Handle = PartialFunction[E, Unit]
   val handle: Handle
 }
 
@@ -51,9 +52,9 @@ trait EventService[E <: PersistentEvent] {
  */
 trait EntityStoreViewComponent extends Actor {
   import EntityStore._
-  val insertService: EventService[EntityInsertedEvent[_, _]]
-  val updateService: EventService[EntityUpdatedEvent[_, _]]
-  val deleteService: EventService[EntityDeletedEvent[_]]
+  val insertService: EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
+  val updateService: EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
+  val deleteService: EventService[EntityDeletedEvent[_ <: BaseId]]
 
   val aktionenService: EventService[PersistentEvent]
 

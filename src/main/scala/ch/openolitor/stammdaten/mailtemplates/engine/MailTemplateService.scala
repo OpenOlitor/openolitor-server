@@ -41,7 +41,8 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStore
     // first try to resolve mail template
     templateName.map(name => mailTemplateReadRepositoryAsync.getMailTemplateByName(name)).getOrElse(Future.successful(None)).map { templateOption =>
 
-      val (subjectTemplate, bodyTemplateName) = templateOption.map(t => (t.subject, t.bodyFileStoreId)).getOrElse((mailTemplateType.defaultSubject, mailTemplateType.defaultMailBodyTemplateName))
+      val (subjectTemplate, bodyTemplateNameOpt) = templateOption.map(t => (t.subject, t.bodyFileStoreId)).getOrElse((mailTemplateType.defaultSubject, None))
+      val bodyTemplateName = bodyTemplateNameOpt.getOrElse(mailTemplateType.defaultMailBodyTemplateName)
 
       // prepare renderer and compiler for the whole run
       val subjectCompiler = new CustomizableTemplateCompiler(templateLoader =

@@ -28,6 +28,7 @@ import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
+import ch.openolitor.stammdaten.mailtemplates._
 import java.util.UUID
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
@@ -48,32 +49,37 @@ import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.stammdaten.mailtemplates.repositories._
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
 }
 
 class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent
+  extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent
 
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
  */
-class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
+class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
     with LazyLogging
     with AsyncConnectionPoolContextAware
     with StammdatenDBMappings
     with KorbHandler
     with SammelbestellungenHandler
-    with LieferungHandler {
-  self: StammdatenWriteRepositoryComponent =>
+    with LieferungHandler
+    with MailTemplateInsertService {
+  self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
+
+  // implicitly expose the eventStream
+  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
 
   val ZERO = 0
   val FALSE = false
 
-  val handle: Handle = {
+  val stammdatenInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: AbotypId, abotyp: AbotypModify) =>
       createAbotyp(meta, id, abotyp)
     case EntityInsertedEvent(meta, id: KundeId, kunde: KundeModify) =>
@@ -122,6 +128,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createProjektVorlage(meta, id, vorlage)
     case e =>
   }
+
+  val handle: Handle = stammdatenInsertHandle orElse mailTemplateInsertHandle
 
   def createAbotyp(meta: EventMetadata, id: AbotypId, abotyp: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     val typ = copyTo[AbotypModify, Abotyp](
