@@ -20,21 +20,41 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.engine
+package ch.openolitor.stammdaten.mailtemplates.repositories
 
-import de.zalando.beard.renderer._
+import ch.openolitor.core.repositories.DBMappings
+import ch.openolitor.stammdaten.mailtemplates.model._
 import scalikejdbc._
-import scala.io.Source
-import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc.TypeBinder._
+import ch.openolitor.core.repositories._
 
-/**
- * TemplateLoader trying to resolve templates from multiple templateloaders in the order provided in the constructor
- */
-class FallbackTemplateLoader(templateLoader: TemplateLoader, fallbackTemplateLoaders: TemplateLoader*) extends TemplateLoader with LazyLogging {
+trait MailTemplateDBMappings extends DBMappings {
+  implicit val mailTemplateType: TypeBinder[MailTemplateType] = string.map(MailTemplateType.apply)
+  implicit val mailTemplateId: TypeBinder[MailTemplateId] = baseIdTypeBinder(MailTemplateId.apply)
 
-  val templateLoaderOrder = templateLoader +: fallbackTemplateLoaders
+  implicit val mailTemplateTypeSqlBinder = toStringSqlBinder[MailTemplateType]
+  implicit val mailTemplateIdSqlBinder = baseIdSqlBinder[MailTemplateId]
 
-  override def load(templateName: TemplateName): Option[Source] = {
-    templateLoaderOrder.foldLeft[Option[Source]](None)(_ orElse _.load(templateName))
+  implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
+    override val tableName = "MailTemplate"
+
+    override lazy val columns = autoColumns[MailTemplate]()
+
+    def apply(rn: ResultName[MailTemplate])(rs: WrappedResultSet): MailTemplate =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: MailTemplate): Seq[Any] =
+      parameters(MailTemplate.unapply(entity).get)
+
+    override def updateParameters(entity: MailTemplate) = {
+      super.updateParameters(entity) ++
+        Seq(
+          column.templateType -> parameter(entity.templateType),
+          column.templateName -> parameter(entity.templateName),
+          column.description -> parameter(entity.description),
+          column.subject -> parameter(entity.subject),
+          column.bodyFileStoreId -> parameter(entity.bodyFileStoreId)
+        )
+    }
   }
 }

@@ -20,8 +20,10 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates
+package ch.openolitor.stammdaten.mailtemplates
 
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 import spray.routing._
 import spray.http._
 import spray.http.MediaTypes._
@@ -33,13 +35,13 @@ import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.security.Subject
-import ch.openolitor.core.mailtemplates.repositories.MailTemplateReadRepositoryComponent
-import ch.openolitor.core.mailtemplates.model._
-import ch.openolitor.core.mailtemplates.repositories.MailTemplateDBMappings
-import ch.openolitor.core.mailtemplates.eventsourcing._
+import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateReadRepositoryComponent
+import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateDBMappings
+import ch.openolitor.stammdaten.mailtemplates.eventsourcing._
+import ch.openolitor.core.domain.EntityStore
 
 trait MailTemplateRoutes extends HttpService
-    with ActorReferences
     with AsyncConnectionPoolContextAware
     with SprayDeserializers
     with DefaultRouteService
@@ -54,7 +56,7 @@ trait MailTemplateRoutes extends HttpService
   def mailTemplateRoute(implicit subject: Subject) =
     path("mailtemplatetypes") {
       get {
-        complete(MailTemplateType.AllTemplateTypes.map(_.asInstanceOf[MailTemplateType]))
+        complete(MailTemplateType.AllTemplateTypes)
       }
     } ~
       path("mailtemplates") {
@@ -64,8 +66,22 @@ trait MailTemplateRoutes extends HttpService
       path("mailtemplates" / mailTemplateIdPath) { mailTemplateId =>
         get(detail(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
           (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId))
-      } // ~
-  //      path("mailtemplates" / mailTemplateIdPath / "upload") { mailTemplateId =>
-  //       
-  //      }
+      }
+  //      } ~ 
+  //        path("mailtemplates" / mailTemplateIdPath / "upload") { mailTemplateId =>
+  //         get(tryDownload(vorlageType, defaultFileTypeId(vorlageType)) { _ =>
+  //          //Return vorlage from resources
+  //          fileTypeResourceAsStream(vorlageType, None) match {
+  //            case Left(resource) =>
+  //              complete(StatusCodes.BadRequest, s"Vorlage konnte im folgenden Pfad nicht gefunden werden: $resource")
+  //            case Right(is) => {
+  //              val name = vorlageType.toString
+  //              respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", name))))(stream(is))
+  //            }
+  //          }
+  //        }) ~
+  //          (put | post)(uploadStored(vorlageType, Some(defaultFileTypeId(vorlageType))) { (id, metadata) =>
+  //            complete("Standardvorlage gespeichert")
+  //          })
+  //        }
 }

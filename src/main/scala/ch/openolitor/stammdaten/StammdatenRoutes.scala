@@ -54,8 +54,8 @@ import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.core.security.RequestFailed
-import ch.openolitor.core.mailtemplates.MailTemplateRoutes
-import ch.openolitor.core.mailtemplates.repositories._
+import ch.openolitor.stammdaten.mailtemplates.MailTemplateRoutes
+import ch.openolitor.stammdaten.mailtemplates.repositories._
 
 trait StammdatenRoutes extends HttpService with ActorReferences
     with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -777,7 +777,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   private def vorlagenRoute(implicit subject: Subject): Route =
     path("vorlagetypen") {
       get {
-        complete(VorlageTyp.AlleVorlageTypen.map(_.asInstanceOf[VorlageTyp]))
+        complete(VorlageTyp.AlleVorlageTypen)
       }
     } ~
       path("vorlagen") {

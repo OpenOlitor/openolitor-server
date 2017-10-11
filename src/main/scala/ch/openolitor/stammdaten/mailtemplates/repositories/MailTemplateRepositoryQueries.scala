@@ -20,23 +20,28 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.repositories
+package ch.openolitor.stammdaten.mailtemplates.repositories
 
 import scalikejdbc._
 import scalikejdbc.async._
 import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
-import akka.actor.ActorSystem
-import ch.openolitor.core.mailtemplates.model._
-import ch.openolitor.core.repositories.BaseReadRepositorySync
+import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateReadRepositorySync extends BaseReadRepositorySync {
-  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
-}
+trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
+  lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
 
-class MailTemplateReadRepositorySyncImpl extends MailTemplateReadRepositorySync with MailTemplateRepositoryQueries {
-  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate] = {
-    getMailTemplateByNameQuery(templateName).apply()
+  protected def getMailTemplatesQuery() = {
+    withSQL {
+      select
+        .from(mailTemplateMapping as mailTemplate)
+    }.map(mailTemplateMapping(mailTemplate)).list
+  }
+
+  protected def getMailTemplateByNameQuery(templateName: String) = {
+    withSQL {
+      select
+        .from(mailTemplateMapping as mailTemplate)
+        .where.eq(mailTemplate.templateName, parameter(templateName))
+    }.map(mailTemplateMapping(mailTemplate)).single
   }
 }

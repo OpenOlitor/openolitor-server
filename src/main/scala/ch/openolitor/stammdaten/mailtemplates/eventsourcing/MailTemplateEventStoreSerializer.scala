@@ -20,14 +20,27 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.repositories
+package ch.openolitor.stammdaten.mailtemplates.eventsourcing
 
-trait MailTemplateReadRepositoryComponent {
-  val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync
-  val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync
-}
+import stamina._
+import stamina.json._
+import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.stammdaten.mailtemplates._
+import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.core.domain.EntityStoreJsonProtocol
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+import java.util.Locale
+import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import spray.json.JsValue
 
-trait DefaultMailTemplateReadRepositoryComponent extends MailTemplateReadRepositoryComponent {
-  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new MailTemplateReadRepositoryAsyncImpl
-  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new MailTemplateReadRepositorySyncImpl
+trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
+  //V1 persisters
+  implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
+  implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
+
+  val mailTemplatePersisters = List(
+    mailTemplateModifyPersister,
+    mailTemplateIdPersister
+  )
 }

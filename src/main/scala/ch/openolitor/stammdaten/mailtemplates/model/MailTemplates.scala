@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.model
+package ch.openolitor.stammdaten.mailtemplates.model
 
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._
@@ -29,7 +29,7 @@ import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 
-sealed trait MailTemplateType extends JSONSerializable {
+sealed trait MailTemplateType {
   val defaultSubject: String
   val defaultMailBodyTemplateName: String
 }
@@ -56,7 +56,7 @@ case object UnknownMailTemplateType extends MailTemplateType {
 }
 
 object MailTemplateType extends LazyLogging {
-  val AllTemplateTypes = List(
+  val AllTemplateTypes: List[MailTemplateType] = List(
     ProduzentenBestellungMailTemplateType,
     CustomMailTemplateType,
     InvitationMailTemplateType,
