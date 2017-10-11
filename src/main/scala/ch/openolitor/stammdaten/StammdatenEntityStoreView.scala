@@ -27,12 +27,14 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.stammdaten.repositories._
+import ch.openolitor.core.filestore.FileStoreReference
+import ch.openolitor.core.filestore.FileStore
 
 object StammdatenEntityStoreView {
-  def props(mailService: ActorRef, dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenEntityStoreView], mailService, dbEvolutionActor, sysConfig, system)
+  def props(mailService: ActorRef, dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, fileStore)
 }
 
-class DefaultStammdatenEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem) extends StammdatenEntityStoreView
+class DefaultStammdatenEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, override val fileStore: FileStore) extends StammdatenEntityStoreView
   with DefaultStammdatenWriteRepositoryComponent
 
 /**
@@ -58,14 +60,12 @@ trait StammdatenEntityStoreView extends EntityStoreView
 /**
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
-trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent {
-  val mailService: ActorRef
-  val sysConfig: SystemConfig
-  val system: ActorSystem
+trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent with FileStoreReference with ActorSystemReference with MailServiceReference with SystemConfigReference {
+  import EntityStore._
 
   override val insertService = StammdatenInsertService(sysConfig, system)
   override val updateService = StammdatenUpdateService(sysConfig, system)
   override val deleteService = StammdatenDeleteService(sysConfig, system)
 
-  override val aktionenService = StammdatenAktionenService(sysConfig, system, mailService)
+  override val aktionenService = StammdatenAktionenService(sysConfig, system, mailService, fileStore)
 }

@@ -48,24 +48,26 @@ import scalikejdbc.DBSession
 import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.core.mailtemplates.engine.MailTemplateService
-import ch.openolitor.core.mailtemplates.model.MailTemplateType
+import ch.openolitor.stammdaten.mailtemplates.engine.MailTemplateService
+import ch.openolitor.stammdaten.mailtemplates.model.MailTemplateType
 import scala.util.{ Failure, Success }
-import ch.openolitor.core.mailtemplates.repositories._
-import ch.openolitor.core.mailtemplates.model._
+import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.core.filestore.FileStoreReference
+import ch.openolitor.core.filestore.FileStore
 
 object StammdatenAktionenService {
-  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef, fileStore: FileStore): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService, fileStore)
 }
 
-class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
+class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef, override val fileStore: FileStore)
     extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateReadRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
  */
-class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
+abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
     with LazyLogging
     with AsyncConnectionPoolContextAware
     with StammdatenDBMappings
@@ -73,12 +75,12 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
     with StammdatenEventStoreSerializer
     with SammelbestellungenHandler
     with LieferungHandler
-    with MailTemplateService {
+    with MailTemplateService
+    with SystemConfigReference {
   self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
-  lazy val config = sysConfig.mandantConfiguration.config
   lazy val BaseZugangLink = config.getStringOption(s"security.zugang-base-url").getOrElse("")
   lazy val BasePasswortResetLink = config.getStringOption(s"security.passwort-reset-base-url").getOrElse("")
 

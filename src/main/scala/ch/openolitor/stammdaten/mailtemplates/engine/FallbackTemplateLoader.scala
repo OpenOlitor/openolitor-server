@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.engine
+package ch.openolitor.stammdaten.mailtemplates.engine
 
 import de.zalando.beard.renderer._
 import scalikejdbc._
@@ -28,11 +28,13 @@ import scala.io.Source
 import com.typesafe.scalalogging.LazyLogging
 
 /**
- * TemplateLoader backed by map of strings to resolve templates from.
+ * TemplateLoader trying to resolve templates from multiple templateloaders in the order provided in the constructor
  */
-class MapTemplateLoader(templateMap: Map[String, String]) extends TemplateLoader with LazyLogging {
+class FallbackTemplateLoader(templateLoader: TemplateLoader, fallbackTemplateLoaders: TemplateLoader*) extends TemplateLoader with LazyLogging {
+
+  val templateLoaderOrder = templateLoader +: fallbackTemplateLoaders
 
   override def load(templateName: TemplateName): Option[Source] = {
-    templateMap.get(templateName.name).map(template => Source.fromString(template))
+    templateLoaderOrder.foldLeft[Option[Source]](None)(_ orElse _.load(templateName))
   }
 }

@@ -1,9 +1,9 @@
-package ch.openolitor.core.mailtemplates.engine
+package ch.openolitor.stammdaten.mailtemplates.engine
 
 import scala.concurrent._
 import scala.util.Try
-import ch.openolitor.core.mailtemplates.repositories._
-import ch.openolitor.core.mailtemplates.model._
+import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.stammdaten.mailtemplates.model._
 import ch.openolitor.core.mailservice.MailPayload
 import ch.openolitor.core.db._
 import ch.openolitor.core._
@@ -19,7 +19,6 @@ import ch.openolitor.core.filestore._
 trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStoreReference with SystemConfigReference {
   self: MailTemplateReadRepositoryComponent =>
 
-  lazy val config = sysConfig.mandantConfiguration.config
   lazy val maxFileStoreResolveTimeout = config.getDuration(s"mailtemplates.max-file-store-resolve-timeout")
 
   /**
