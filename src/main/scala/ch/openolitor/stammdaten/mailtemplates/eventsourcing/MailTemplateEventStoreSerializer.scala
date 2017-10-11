@@ -38,6 +38,7 @@ trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with Ent
   //V1 persisters
   implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
   implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
+  implicit val mailTemplateUploadPersister = persister[MailTemplateUpload]("mail-template-upload")
 
   val mailTemplatePersisters = List(
     mailTemplateModifyPersister,
