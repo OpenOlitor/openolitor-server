@@ -76,7 +76,7 @@ case class MailTemplate(
   templateName: String,
   description: Option[String],
   subject: String,
-  bodyFileStoreId: String,
+  bodyFileStoreId: Option[String],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
