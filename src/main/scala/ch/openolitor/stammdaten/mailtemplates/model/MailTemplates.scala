@@ -28,10 +28,15 @@ import org.joda.time.DateTime
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.filestore.FileType
+import ch.openolitor.core.filestore.MailTemplateBucket
+import ch.openolitor.core.JSONSerializable
 
-sealed trait MailTemplateType {
+sealed trait MailTemplateType extends FileType {
   val defaultSubject: String
   val defaultMailBodyTemplateName: String
+
+  val bucket = MailTemplateBucket
 }
 
 case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
@@ -89,4 +94,8 @@ case class MailTemplateModify(
   templateName: String,
   description: Option[String],
   subject: String
+) extends JSONSerializable
+
+case class MailTemplateUpload(
+  bodyFileStoreId: String
 ) extends JSONSerializable
