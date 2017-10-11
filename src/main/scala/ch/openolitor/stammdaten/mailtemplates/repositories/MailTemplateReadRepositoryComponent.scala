@@ -20,41 +20,14 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.repositories
+package ch.openolitor.stammdaten.mailtemplates.repositories
 
-import ch.openolitor.core.repositories.DBMappings
-import ch.openolitor.core.mailtemplates.model._
-import scalikejdbc._
-import scalikejdbc.TypeBinder._
-import ch.openolitor.core.repositories._
+trait MailTemplateReadRepositoryComponent {
+  val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync
+  val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync
+}
 
-trait MailTemplateDBMappings extends DBMappings {
-  implicit val mailTemplateType: TypeBinder[MailTemplateType] = string.map(MailTemplateType.apply)
-  implicit val mailTemplateId: TypeBinder[MailTemplateId] = baseIdTypeBinder(MailTemplateId.apply)
-
-  implicit val mailTemplateTypeSqlBinder = toStringSqlBinder[MailTemplateType]
-  implicit val mailTemplateIdSqlBinder = baseIdSqlBinder[MailTemplateId]
-
-  implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
-    override val tableName = "MailTemplate"
-
-    override lazy val columns = autoColumns[MailTemplate]()
-
-    def apply(rn: ResultName[MailTemplate])(rs: WrappedResultSet): MailTemplate =
-      autoConstruct(rs, rn)
-
-    def parameterMappings(entity: MailTemplate): Seq[Any] =
-      parameters(MailTemplate.unapply(entity).get)
-
-    override def updateParameters(entity: MailTemplate) = {
-      super.updateParameters(entity) ++
-        Seq(
-          column.templateType -> parameter(entity.templateType),
-          column.templateName -> parameter(entity.templateName),
-          column.description -> parameter(entity.description),
-          column.subject -> parameter(entity.subject),
-          column.bodyFileStoreId -> parameter(entity.bodyFileStoreId)
-        )
-    }
-  }
+trait DefaultMailTemplateReadRepositoryComponent extends MailTemplateReadRepositoryComponent {
+  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new MailTemplateReadRepositoryAsyncImpl
+  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new MailTemplateReadRepositorySyncImpl
 }

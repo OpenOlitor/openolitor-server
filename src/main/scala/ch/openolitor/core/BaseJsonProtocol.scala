@@ -60,7 +60,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
       }
   }
 
-  def enumFormat[E](implicit fromJson: String => E, toJson: E => String = defaultConvert) = new JsonFormat[E] {
+  def enumFormat[E](implicit fromJson: String => E, toJson: E => String = defaultConvert) = new RootJsonFormat[E] {
     def write(obj: E): JsValue = JsString(toJson(obj))
 
     def read(json: JsValue): E =

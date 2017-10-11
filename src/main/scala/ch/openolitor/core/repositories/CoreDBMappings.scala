@@ -25,7 +25,6 @@ package ch.openolitor.core.repositories
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.models._
-import ch.openolitor.core.templates.model._
 
 trait CoreDBMappings extends DBMappings {
 

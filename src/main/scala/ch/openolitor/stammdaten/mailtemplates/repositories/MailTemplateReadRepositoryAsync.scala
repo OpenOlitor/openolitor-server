@@ -20,27 +20,30 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.eventsourcing
+package ch.openolitor.stammdaten.mailtemplates.repositories
 
-import stamina._
-import stamina.json._
-import ch.openolitor.core.mailtemplates.model._
-import ch.openolitor.core.mailtemplates._
-import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
-import java.util.Locale
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import spray.json.JsValue
+import scalikejdbc._
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
+import scala.concurrent.Future
+import ch.openolitor.core.db._
+import ch.openolitor.core.db.OOAsyncDB._
+import akka.actor.ActorSystem
+import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.core.repositories._
 
-trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
-  //V1 persisters
-  implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
-  implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
+trait MailTemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
+  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
 
-  val mailTemplatePersisters = List(
-    mailTemplateModifyPersister,
-    mailTemplateIdPersister
-  )
+  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
+}
+
+class MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
+  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
+    getMailTemplateByNameQuery(templateName).future()
+  }
+
+  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]] = {
+    getMailTemplatesQuery().future()
+  }
 }

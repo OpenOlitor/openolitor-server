@@ -20,30 +20,19 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates.repositories
+package ch.openolitor.stammdaten.mailtemplates
 
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import scala.concurrent.Future
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
-import akka.actor.ActorSystem
-import ch.openolitor.core.mailtemplates.model._
-import ch.openolitor.core.repositories._
+import spray.json._
+import ch.openolitor.core.BaseJsonProtocol
+import ch.openolitor.core.JSONSerializable
+import ch.openolitor.stammdaten.mailtemplates.model._
+import zangelo.spray.json.AutoProductFormats
 
-trait MailTemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
-  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
+trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
+  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
 
-  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
-}
+  implicit val mailTemplateTypeFormat: RootJsonFormat[MailTemplateType] = enumFormat(MailTemplateType.apply)
 
-class MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
-  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
-    getMailTemplateByNameQuery(templateName).future()
-  }
-
-  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]] = {
-    getMailTemplatesQuery().future()
-  }
+  //  implicit val mailTemplateModifyFormat = autoProductFormat[MailTemplateModify]
+  //  implicit val mailTemplateFormat = autoProductFormat[MailTemplate]
 }

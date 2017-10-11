@@ -20,14 +20,26 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.mailtemplates
+package ch.openolitor.stammdaten.mailtemplates.engine
 
-import spray.json._
-import ch.openolitor.core.BaseJsonProtocol
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.mailtemplates.model._
-import zangelo.spray.json.AutoProductFormats
+import de.zalando.beard.renderer._
+import scala.io.Source
+import scala.concurrent.duration._
+import scala.concurrent._
+import ch.openolitor.core.filestore._
+import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
-  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
+/**
+ * TemplateLoader backed by a filestore storage service. The template loader gets intialized with a filestorebucket to resolve templates from
+ */
+class FileStoreTemplateLoader(fileStore: FileStore, bucket: FileStoreBucket, maxAwaitTime: Duration)(implicit ec: ExecutionContext) extends TemplateLoader with LazyLogging {
+
+  override def load(templateName: TemplateName): Option[Source] = {
+    Await.result(fileStore.getFile(bucket, templateName.name).map(_ match {
+      case Right(FileStoreFile(_, is)) => Option(Source.fromInputStream(is))
+      case Left(x) =>
+        logger.warn(s"Could not resolve template from filestore. TemplateName:${templateName.name}, result:$x")
+        None
+    }), maxAwaitTime)
+  }
 }
