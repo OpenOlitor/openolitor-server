@@ -38,7 +38,7 @@ trait MailTemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
 }
 
-class MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
+trait MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
   def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
     getMailTemplateByNameQuery(templateName).future()
   }

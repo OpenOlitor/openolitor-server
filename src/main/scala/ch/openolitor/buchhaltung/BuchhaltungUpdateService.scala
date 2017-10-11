@@ -35,6 +35,8 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.models.BaseId
 
 object BuchhaltungUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungUpdateService = new DefaultBuchhaltungUpdateService(sysConfig, system)
@@ -47,7 +49,7 @@ class DefaultBuchhaltungUpdateService(sysConfig: SystemConfig, override val syst
 /**
  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Buchhaltung Moduls
  */
-class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware with BuchhaltungDBMappings {
+class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]] with LazyLogging with AsyncConnectionPoolContextAware with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val handle: Handle = {

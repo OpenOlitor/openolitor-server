@@ -22,12 +22,16 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.mailtemplates.repositories
 
+import ch.openolitor.core.DefaultActorSystemReference
+import akka.actor.ActorSystem
+
 trait MailTemplateReadRepositoryComponent {
   val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync
   val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync
 }
 
 trait DefaultMailTemplateReadRepositoryComponent extends MailTemplateReadRepositoryComponent {
-  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new MailTemplateReadRepositoryAsyncImpl
-  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new MailTemplateReadRepositorySyncImpl
+  val system: ActorSystem
+  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new DefaultActorSystemReference(system) with MailTemplateReadRepositoryAsyncImpl
+  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new DefaultActorSystemReference(system) with MailTemplateReadRepositorySyncImpl
 }

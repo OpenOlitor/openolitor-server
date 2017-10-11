@@ -34,26 +34,31 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.stammdaten.mailtemplates._
+import ch.openolitor.stammdaten.mailtemplates.repositories._
 
 object StammdatenDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenDeleteService = new DefaultStammdatenDeleteService(sysConfig, system)
 }
 
 class DefaultStammdatenDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent {
+    extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
  */
-class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
-  with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler {
-  self: StammdatenWriteRepositoryComponent =>
+class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
+    with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler with MailTemplateDeleteService {
+  self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
   import EntityStore._
+
+  // implicitly expose the eventStream
+  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   val ZERO = 0
 
-  val handle: Handle = {
+  val stammdatenDeleteHandle: Handle = {
     case EntityDeletedEvent(meta, id: AbotypId) => deleteAbotyp(meta, id)
     case EntityDeletedEvent(meta, id: AbwesenheitId) => deleteAbwesenheit(meta, id)
     case EntityDeletedEvent(meta, id: PersonId) => deletePerson(meta, id)
@@ -75,6 +80,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     case EntityDeletedEvent(meta, id: LieferungOnLieferplanungId) => removeLieferungPlanung(meta, id)
     case e =>
   }
+
+  val handle: Handle = stammdatenDeleteHandle orElse mailTemplateDeleteHandle
 
   def deleteAbotyp(meta: EventMetadata, id: AbotypId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
