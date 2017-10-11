@@ -24,13 +24,14 @@ package ch.openolitor.stammdaten.mailtemplates
 
 import spray.json._
 import spray.json.DefaultJsonProtocol._
-import spray.routing._
 import spray.http._
 import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.httpx.marshalling._
 import spray.httpx.unmarshalling._
+import spray.routing._
+import spray.routing.Directive._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
@@ -66,22 +67,32 @@ trait MailTemplateRoutes extends HttpService
       path("mailtemplates" / mailTemplateIdPath) { mailTemplateId =>
         get(detail(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
           (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId))
+      } ~
+      path("mailtemplates" / mailTemplateIdPath / "dokument") { mailTemplateId =>
+        get {
+          onSuccess(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId)) {
+            case Some(template) if template.bodyFileStoreId.isDefined =>
+              download(template.templateType, template.bodyFileStoreId.get)
+            case Some(template) =>
+              complete(StatusCodes.BadRequest, s"Bei diesem Mail-Template ist kein Dokument hinterlegt: $mailTemplateId")
+            case None =>
+              complete(StatusCodes.NotFound, s"Mail-Template nicht gefunden: $mailTemplateId")
+          }
+        } ~
+          (put | post) {
+            onSuccess(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId)) {
+              case Some(template) =>
+                val fileStoreId = template.bodyFileStoreId.getOrElse(generateFileStoreId(template))
+                uploadStored(template.templateType, Some(fileStoreId)) { (storeFileStoreId, metadata) =>
+                  updated(mailTemplateId, MailTemplateUpload(storeFileStoreId))
+                }
+              case None =>
+                complete(StatusCodes.NotFound, s"Mail-Template nicht gefunden: $mailTemplateId")
+            }
+          }
       }
-  //      } ~ 
-  //        path("mailtemplates" / mailTemplateIdPath / "upload") { mailTemplateId =>
-  //         get(tryDownload(vorlageType, defaultFileTypeId(vorlageType)) { _ =>
-  //          //Return vorlage from resources
-  //          fileTypeResourceAsStream(vorlageType, None) match {
-  //            case Left(resource) =>
-  //              complete(StatusCodes.BadRequest, s"Vorlage konnte im folgenden Pfad nicht gefunden werden: $resource")
-  //            case Right(is) => {
-  //              val name = vorlageType.toString
-  //              respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", name))))(stream(is))
-  //            }
-  //          }
-  //        }) ~
-  //          (put | post)(uploadStored(vorlageType, Some(defaultFileTypeId(vorlageType))) { (id, metadata) =>
-  //            complete("Standardvorlage gespeichert")
-  //          })
-  //        }
+
+  private def generateFileStoreId(template: MailTemplate) = {
+    template.templateName.replace(" ", "_")
+  }
 }
