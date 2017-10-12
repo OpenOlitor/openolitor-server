@@ -38,6 +38,8 @@ import ch.openolitor.stammdaten.repositories._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import scala.concurrent.ExecutionContext.Implicits.global
+import ch.openolitor.util.ConfigUtil._
+import org.joda.time.DateTime
 
 object StammdatenDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenDeleteService = new DefaultStammdatenDeleteService(sysConfig, system)
@@ -56,6 +58,9 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
   import EntityStore._
 
   val ZERO = 0
+
+  // Hotfix
+  lazy val startTime = DateTime.now.minusSeconds(sysConfig.mandantConfiguration.config.getIntOption("startTimeDelationSeconds") getOrElse 10)
 
   val handle: Handle = {
     case EntityDeletedEvent(meta, id: AbotypId) => deleteAbotyp(meta, id)
@@ -187,27 +192,29 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
   }
 
   def removeLieferungPlanung(meta: EventMetadata, id: LieferungOnLieferplanungId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      stammdatenWriteRepository.deleteLieferpositionen(id.getLieferungId())
-      stammdatenWriteRepository.getById(lieferungMapping, id.getLieferungId()) map { lieferung =>
-        //map all updatable fields
-        val copy = copyTo[Lieferung, Lieferung](
-          lieferung,
-          "durchschnittspreis" -> ZERO,
-          "anzahlLieferungen" -> ZERO,
-          "anzahlKoerbeZuLiefern" -> ZERO,
-          "anzahlAbwesenheiten" -> ZERO,
-          "anzahlSaldoZuTief" -> ZERO,
-          "lieferplanungId" -> None,
-          "status" -> Ungeplant,
-          "modifidat" -> meta.timestamp,
-          "modifikator" -> personId
-        )
-        logger.debug(s"Removed lieferung $id from lieferplanung: ${lieferung.lieferplanungId} => $copy")
-        stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](copy)
+    // Hotfix: only execute in live using the meta info to determine
+    if (meta.timestamp.isAfter(this.startTime)) {
+      DB autoCommit { implicit session =>
+        stammdatenWriteRepository.deleteLieferpositionen(id.getLieferungId())
+        stammdatenWriteRepository.getById(lieferungMapping, id.getLieferungId()) map { lieferung =>
+          //map all updatable fields
+          val copy = copyTo[Lieferung, Lieferung](
+            lieferung,
+            "durchschnittspreis" -> ZERO,
+            "anzahlLieferungen" -> ZERO,
+            "anzahlKoerbeZuLiefern" -> ZERO,
+            "anzahlAbwesenheiten" -> ZERO,
+            "anzahlSaldoZuTief" -> ZERO,
+            "lieferplanungId" -> None,
+            "status" -> Ungeplant,
+            "modifidat" -> meta.timestamp,
+            "modifikator" -> personId
+          )
+          logger.debug(s"Removed lieferung $id from lieferplanung: ${lieferung.lieferplanungId} => $copy")
+          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](copy)
+        }
       }
     }
-
   }
 
   def deleteLieferung(meta: EventMetadata, id: LieferungId)(implicit personId: PersonId = meta.originator) = {
