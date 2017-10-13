@@ -143,9 +143,19 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   val projektModifyPersister = persister[ProjektModify]("projekt-modify")
   val projektModifyV2Persister = persister[ProjektModify, V2]("projekt-modify", from[V1]
     .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN))))
-  implicit val projektModifyV3Persister = persister[ProjektModify, V3]("projekt-modify", from[V1]
+  val projektModifyV3Persister = persister[ProjektModify, V3]("projekt-modify", from[V1]
     .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
     .to[V3](_.update('maintenanceMode ! set[Boolean](false))))
+  implicit val projektModifyV4Persister = persister[ProjektModify, V4]("projekt-modify", from[V1]
+    .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
+    .to[V3](_.update('maintenanceMode ! set[Boolean](false)))
+    .to[V4](proj => {
+      proj.update('generierteMailsSenden ! set[Boolean](false))
+      proj.update('einsatzEinheit ! set[EinsatzEinheit](Halbtage))
+      proj.update('einsatzAbsageVorlaufTage ! set[Int](3))
+      proj.update('einsatzShowListeKunde ! set[Boolean](true))
+    }))
+
   implicit val projektIdPersister = persister[ProjektId]("projekt-id")
 
   // custom events
@@ -245,7 +255,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     tourCreatePersiter,
     tourModifyPersiter,
     tourIdPersister,
-    projektModifyV3Persister,
+    projektModifyV4Persister,
     projektIdPersister,
     abwesenheitCreateV2Persister,
     abwesenheitIdPersister,

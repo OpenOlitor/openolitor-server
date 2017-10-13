@@ -34,27 +34,27 @@ object OO760_add_missing_keys {
 
   val addKontoDatenKey = new Script {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      sql"""
+      /*sql"""
 ALTER TABLE KontoDaten ADD KEY id_index (id);
-""".execute.apply()
+""".execute.apply()*/
       Success(true)
     }
   }
 
   val addKundeKey = new Script {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      sql"""
+      /*sql"""
 ALTER TABLE Kunde ADD KEY id_index (id);
-""".execute.apply()
+""".execute.apply()*/
       Success(true)
     }
   }
 
   val addPersitenceEventStateKey = new Script {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      sql"""
+      /*sql"""
 ALTER TABLE PersistenceEventState ADD KEY id_index (id);
-""".execute.apply()
+""".execute.apply()*/
       Success(true)
     }
   }

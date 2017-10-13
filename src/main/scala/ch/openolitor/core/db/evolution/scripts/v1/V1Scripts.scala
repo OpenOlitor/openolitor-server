@@ -28,7 +28,6 @@ import scala.util._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import org.mindrot.jbcrypt.BCrypt
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
@@ -700,72 +699,9 @@ object V1Scripts {
     }
   }
 
-  val ArbeitseinsatzDBInitializationScript = new Script with LazyLogging with ArbeitseinsatzDBMappings {
-    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      //drop all tables
-      logger.debug(s"oo-system: cleanupDatabase - drop tables - arbeitseinsatz")
-
-      sql"drop table if exists ${arbeitskategorieMapping.table}".execute.apply()
-      sql"drop table if exists ${arbeitsangebotMapping.table}".execute.apply()
-      sql"drop table if exists ${arbeitseinsatzMapping.table}".execute.apply()
-
-      logger.debug(s"oo-system: cleanupDatabase - create tables - arbeitseinsatz")
-      //create tables
-
-      sql"""create table ${arbeitskategorieMapping.table} (
-        id BIGINT not null,
-        beschreibung varchar(200),
-        erstelldat datetime not null,
-        ersteller BIGINT not null,
-        modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
-
-      sql"""create table ${arbeitsangebotMapping.table} (
-        id BIGINT not null,
-        kopie_von BIGINT,
-        titel varchar(200) not null,
-        bezeichnung varchar(200),
-        ort varchar(500),
-        zeit_von datetime not null,
-        zeit_bis datetime,
-        arbeitskategorien varchar(500),
-        anzahl_personen DECIMAL(3,0),
-        mehr_personen_ok varchar(1) not null,
-        einsatz_zeit DECIMAL(3,0),
-        status varchar(20) not null,
-        erstelldat datetime not null,
-        ersteller BIGINT not null,
-        modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
-
-      sql"""create table ${arbeitseinsatzMapping.table} (
-        id BIGINT not null,
-        arbeitsangebot_id BIGINT,
-        arbeitsangebot_titel varchar(200) not null,
-        zeit_von datetime not null,
-        zeit_bis datetime,
-        kunde_id BIGINT not null,
-        kunde_bezeichnung varchar(50),
-        person_id BIGINT,
-        person_name varchar(50),
-        abo_id BIGINT,
-        abo_bezeichnung varchar(50),
-        anzahl_personen DECIMAL(3,0),
-        bemerkungen varchar(300),
-        erstelldat datetime not null,
-        ersteller BIGINT not null,
-        modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
-
-      logger.debug(s"oo-system: cleanupDatabase - end - arbeitseinsatz")
-      Success(true)
-    }
-  }
-
   val dbInitializationScripts = Seq(
     StammdatenDBInitializationScript,
     BuchhaltungDBInitializationScript,
-    ArbeitseinsatzDBInitializationScript,
     InitialDataScript
   )
 
