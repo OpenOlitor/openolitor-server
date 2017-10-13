@@ -63,7 +63,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
     false, Some(AdministratorZugang), DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val personAdminInactive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, false, Some(pwdHashed.toCharArray), None,
     false, Some(AdministratorZugang), DateTime.now, PersonId(1), DateTime.now, PersonId(1))
-  val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), Locale.GERMAN, false, Stunden, 3, true, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+  val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), Locale.GERMAN, false, Stunden, 3, true, None, None, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
 
   implicit val ctx = MultipleAsyncConnectionPoolContext()
   val timeout = 5 seconds
@@ -254,9 +254,11 @@ class MockLoginRouteService(
     with MockStammdatenReadRepositoryComponent {
   override val entityStore: ActorRef = null
   override val reportSystem: ActorRef = null
+  override val jobQueueService: ActorRef = null
+  override val dbEvolutionActor: ActorRef = null
   implicit val system = ActorSystem("test")
   override val sysConfig: SystemConfig = SystemConfig(null, null, MultipleAsyncConnectionPoolContext())
-  override val eventStore: ActorRef = TestActorRef(new DefaultSystemEventStore(null))
+  override val eventStore: ActorRef = TestActorRef(new DefaultSystemEventStore(sysConfig, dbEvolutionActor))
   override val mailService: ActorRef = TestActorRef(new MailServiceMock)
   override val fileStore: FileStore = null
   override val actorRefFactory: ActorRefFactory = null

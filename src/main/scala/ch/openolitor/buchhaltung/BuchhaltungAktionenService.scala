@@ -43,6 +43,8 @@ import ch.openolitor.buchhaltung.models.RechnungModifyBezahlt
 import scala.concurrent.Future
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object BuchhaltungAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system)
@@ -68,9 +70,11 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
     case RechnungMahnungVerschicktEvent(meta, id: RechnungId) =>
       rechnungMahnungVerschicken(meta, id)
     case RechnungBezahltEvent(meta, id: RechnungId, entity: RechnungModifyBezahlt) =>
-      rechnungBezahlen(meta, id, entity)
+      rechnungenUndRechnungsPositionBezahlen(meta, id, entity)
     case RechnungStorniertEvent(meta, id: RechnungId) =>
-      rechnungStornieren(meta, id)
+      rechungUndRechnungsPositionenStornieren(meta, id)
+    case RechnungDeleteEvent(meta, id: RechnungId) =>
+      rechungDelete(meta, id)
     case ZahlungsImportCreatedEvent(meta, entity: ZahlungsImportCreate) =>
       createZahlungsImport(meta, entity)
     case ZahlungsEingangErledigtEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
@@ -83,78 +87,99 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
       logger.warn(s"Unknown event:$e")
   }
 
-  def rechnungPDFStored(meta: EventMetadata, id: RechnungId, fileStoreId: String)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(fileStoreId = Some(fileStoreId)))
+  private def rechnungPDFStored(meta: EventMetadata, id: RechnungId, fileStoreId: String)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+
+      buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](id)(
+        rechnungMapping.column.fileStoreId -> Option(fileStoreId)
+      )
+    }
+  }
+
+  private def mahnungPDFStored(meta: EventMetadata, id: RechnungId, fileStoreId: String)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.modifyEntity[Rechnung, RechnungId](id) { rechnung =>
+        Map(rechnungMapping.column.mahnungFileStoreIds -> ((rechnung.mahnungFileStoreIds filterNot (_ == "")) + fileStoreId))
       }
     }
   }
 
-  def mahnungPDFStored(meta: EventMetadata, id: RechnungId, fileStoreId: String)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(mahnungFileStoreIds = (rechnung.mahnungFileStoreIds filterNot (_ == "")) + fileStoreId))
+  private def rechnungVerschicken(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.updateEntityIf[Rechnung, RechnungId](Erstellt == _.status)(id)(
+        rechnungMapping.column.status -> Verschickt
+      )
+    }
+  }
+
+  private def rechnungMahnungVerschicken(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](Verschickt == _.status)(id) { rechnung =>
+        Map(
+          rechnungMapping.column.status -> MahnungVerschickt,
+          rechnungMapping.column.anzahlMahnungen -> (rechnung.anzahlMahnungen + 1)
+        )
       }
     }
   }
 
-  def rechnungVerschicken(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        if (Erstellt == rechnung.status) {
-          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(status = Verschickt))
-        }
-      }
-    }
-  }
-
-  def rechnungMahnungVerschicken(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        if (Verschickt == rechnung.status) {
-          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](
-            rechnung.copy(
-              status = MahnungVerschickt,
-              anzahlMahnungen = rechnung.anzahlMahnungen + 1
-            )
-          )
-        }
-      }
-    }
-  }
-
-  def rechnungBezahlen(meta: EventMetadata, id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+  private def rechnungenUndRechnungsPositionBezahlen(meta: EventMetadata, id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       rechnungBezahlenUpdate(id, entity)
     }
   }
 
-  def rechnungBezahlenUpdate(id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId, session: DBSession) = {
+  private def rechnungBezahlenUpdate(id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-      if (Verschickt == rechnung.status || MahnungVerschickt == rechnung.status) {
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(
-          einbezahlterBetrag = Some(entity.einbezahlterBetrag),
-          eingangsDatum = Some(entity.eingangsDatum),
-          status = Bezahlt
-        ))
-      }
-    }
-  }
-
-  def rechnungStornieren(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-        if (Bezahlt != rechnung.status) {
-          buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](rechnung.copy(status = Storniert))
+      buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](r => Verschickt == r.status || MahnungVerschickt == r.status)(id) { rechnung =>
+        Map(
+          rechnungMapping.column.status -> Bezahlt,
+          rechnungMapping.column.einbezahlterBetrag -> Option(entity.einbezahlterBetrag),
+          rechnungMapping.column.eingangsDatum -> Option(entity.eingangsDatum)
+        )
+      }.map { _ =>
+        val rechnungsPositionen = buchhaltungWriteRepository.getRechnungsPositionenByRechnungsId(rechnung.id)
+        rechnungsPositionen.map { rp =>
+          buchhaltungWriteRepository.modifyEntity[RechnungsPosition, RechnungsPositionId](rp.id) { r =>
+            Map(rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Bezahlt)
+          }
         }
       }
     }
   }
 
-  def createZahlungsImport(meta: EventMetadata, entity: ZahlungsImportCreate)(implicit PersonId: PersonId = meta.originator) = {
+  private def rechungDelete(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.deleteEntity[Rechnung, RechnungId](id).map { _ =>
+        buchhaltungWriteRepository.getRechnungsPositionenByRechnungsId(id).map { rp =>
+          buchhaltungWriteRepository.modifyEntity[RechnungsPosition, RechnungsPositionId](rp.id) { _ =>
+            Map(
+              rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Offen,
+              rechnungsPositionMapping.column.rechnungId -> Option.empty[RechnungId]
+            )
+          }
+        }
+      }
+    }
+  }
 
-    def createZahlungsEingang(zahlungsEingangCreate: ZahlungsEingangCreate)(implicit session: DBSession) = {
+  private def rechungUndRechnungsPositionenStornieren(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.updateEntityIf[Rechnung, RechnungId](Bezahlt != _.status)(id)(
+        rechnungMapping.column.status -> Storniert
+      ).map { _ =>
+          buchhaltungWriteRepository.getRechnungsPositionenByRechnungsId(id).map { rp =>
+            buchhaltungWriteRepository.modifyEntity[RechnungsPosition, RechnungsPositionId](rp.id) { r =>
+              Map(rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Storniert)
+            }
+          }
+        }
+    }
+  }
+
+  private def createZahlungsImport(meta: EventMetadata, entity: ZahlungsImportCreate)(implicit PersonId: PersonId = meta.originator) = {
+
+    def createZahlungsEingang(zahlungsEingangCreate: ZahlungsEingangCreate)(implicit session: DBSession, publisher: EventPublisher) = {
       val zahlungsEingang = copyTo[ZahlungsEingangCreate, ZahlungsEingang](
         zahlungsEingangCreate,
         "erledigt" -> False,
@@ -178,7 +203,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
       "modifikator" -> meta.originator
     )
 
-    DB autoCommit { implicit session =>
+    DB localTxPostPublish { implicit session => implicit publisher =>
       entity.zahlungsEingaenge map { eingang =>
         buchhaltungWriteRepository.getZahlungsEingangByReferenznummer(eingang.referenzNummer) match {
           case Some(existingEingang) =>
@@ -203,16 +228,19 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
     }
   }
 
-  def zahlungsEingangErledigen(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.getById(zahlungsEingangMapping, entity.id) map { eingang =>
+  private def zahlungsEingangErledigen(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt)(implicit personId: PersonId = meta.originator) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.modifyEntity[ZahlungsEingang, ZahlungsEingangId](entity.id) { eingang =>
         if (eingang.status == Ok) {
           eingang.rechnungId map { rechnungId =>
             rechnungBezahlenUpdate(rechnungId, RechnungModifyBezahlt(eingang.betrag, eingang.gutschriftsDatum))
           }
         }
 
-        buchhaltungWriteRepository.updateEntity[ZahlungsEingang, ZahlungsEingangId](eingang.copy(erledigt = true, bemerkung = entity.bemerkung))
+        Map(
+          zahlungsEingangMapping.column.erledigt -> true,
+          zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
+        )
       }
     }
   }

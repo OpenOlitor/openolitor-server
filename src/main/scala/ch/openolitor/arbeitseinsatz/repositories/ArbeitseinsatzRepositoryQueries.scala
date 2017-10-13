@@ -24,20 +24,25 @@ package ch.openolitor.arbeitseinsatz.repositories
 
 import ch.openolitor.core.models._
 import scalikejdbc._
-import sqls.{ distinct, count }
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
 import ch.openolitor.core.db._
+import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
-import ch.openolitor.core.repositories.BaseRepository._
-import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.repositories.BaseWriteRepository
+import scala.concurrent._
+import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.EventStream
+import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
-import ch.openolitor.util.DateTimeUtil._
-import org.joda.time.DateTime
-import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
-import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
+import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.parsing.FilterExpr
-import org.joda.time.LocalDate
+import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.stammdaten.models.KundeId
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings {
 
@@ -64,7 +69,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     withSQL {
       select
         .from(arbeitsangebotMapping as arbeitsangebot)
-        .where.eq(arbeitsangebot.id, parameter(arbeitsangebotId))
+        .where.eq(arbeitsangebot.id, arbeitsangebotId)
     }.map(arbeitsangebotMapping(arbeitsangebot)).single
   }
 
@@ -89,7 +94,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     withSQL {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
-        .where.eq(arbeitseinsatz.id, parameter(arbeitseinsatzId))
+        .where.eq(arbeitseinsatz.id, arbeitseinsatzId)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).single
   }
 
@@ -97,7 +102,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     withSQL {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
-        .where.eq(arbeitseinsatz.kundeId, parameter(kundeId))
+        .where.eq(arbeitseinsatz.kundeId, kundeId)
         .orderBy(arbeitseinsatz.zeitVon)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
   }
@@ -116,7 +121,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .where.ge(arbeitseinsatz.zeitVon, new DateTime())
-        .and.eq(arbeitseinsatz.kundeId, parameter(kundeId))
+        .and.eq(arbeitseinsatz.kundeId, kundeId)
         .orderBy(arbeitseinsatz.zeitVon)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
   }

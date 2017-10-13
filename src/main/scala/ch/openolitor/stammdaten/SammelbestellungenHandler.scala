@@ -28,11 +28,12 @@ import ch.openolitor.stammdaten.repositories._
 import org.joda.time.DateTime
 import scalikejdbc._
 import ch.openolitor.util.IdUtil
+import ch.openolitor.core.repositories.EventPublisher
 
 trait SammelbestellungenHandler extends StammdatenDBMappings {
   this: StammdatenWriteRepositoryComponent =>
 
-  def createOrUpdateSammelbestellungen(id: SammelbestellungId, create: SammelbestellungModify)(implicit personId: PersonId, session: DBSession) = {
+  def createOrUpdateSammelbestellungen(id: SammelbestellungId, create: SammelbestellungModify)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
     stammdatenWriteRepository.getById(produzentMapping, create.produzentId) map { produzent =>
 
       val sammelbestellung = stammdatenWriteRepository.getById(sammelbestellungMapping, id) getOrElse {
@@ -130,14 +131,22 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
           val totalInkl = totalNachAbzugAdminProzente + mwst
 
           //update total on bestellung, steuer and totalSteuer
-          val copy = bestellung.copy(preisTotal = total, steuer = mwst, totalSteuer = totalInkl, adminProzenteAbzug = adminProzenteAbzug, totalNachAbzugAdminProzente = totalNachAbzugAdminProzente)
-          stammdatenWriteRepository.updateEntity[Bestellung, BestellungId](copy)
+          stammdatenWriteRepository.updateEntity[Bestellung, BestellungId](bestellung.id)(
+            bestellungMapping.column.preisTotal -> total,
+            bestellungMapping.column.steuer -> mwst,
+            bestellungMapping.column.totalSteuer -> totalInkl,
+            bestellungMapping.column.adminProzenteAbzug -> adminProzenteAbzug,
+            bestellungMapping.column.totalNachAbzugAdminProzente -> totalNachAbzugAdminProzente
+          )
           (total, mwst, totalInkl)
       }
       val totals = totalsToAggregate.foldLeft((BigDecimal(0), BigDecimal(0), BigDecimal(0))) { case ((accA, accB, accC), (a, b, c)) => (accA + a, accB + b, accC + c) }
 
-      val copy = sammelbestellung.copy(preisTotal = totals._1, steuer = totals._2, totalSteuer = totals._3)
-      stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](copy)
+      stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](sammelbestellung.id)(
+        sammelbestellungMapping.column.preisTotal -> totals._1,
+        sammelbestellungMapping.column.steuer -> totals._2,
+        sammelbestellungMapping.column.totalSteuer -> totals._3
+      )
     }
 
   }

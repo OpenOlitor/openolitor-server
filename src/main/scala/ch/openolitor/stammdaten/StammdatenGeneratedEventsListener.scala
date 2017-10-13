@@ -36,13 +36,14 @@ import ch.openolitor.stammdaten.StammdatenCommandHandler.AboDeaktiviertEvent
 import ch.openolitor.core.models.BaseEntity
 import ch.openolitor.core.models.BaseId
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
-import ch.openolitor.core.repositories.SqlBinder
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object StammdatenGeneratedEventsListener {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenGeneratedEventsListener], sysConfig, system)
 }
 
-class DefaultStammdatenGeneratedEventsListener(sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenGeneratedEventsListener(sysConfig) with DefaultStammdatenWriteRepositoryComponent
+class DefaultStammdatenGeneratedEventsListener(sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenGeneratedEventsListener(sysConfig) with DefaultStammdatenUpdateRepositoryComponent
 
 /**
  * Listens to succesful sent mails
@@ -51,7 +52,7 @@ class StammdatenGeneratedEventsListener(override val sysConfig: SystemConfig) ex
     with StammdatenDBMappings
     with ConnectionPoolContextAware
     with AboAktivChangeHandler {
-  this: StammdatenWriteRepositoryComponent =>
+  this: StammdatenUpdateRepositoryComponent =>
   import StammdatenGeneratedEventsListener._
 
   override def preStart() {
@@ -82,33 +83,30 @@ class StammdatenGeneratedEventsListener(override val sysConfig: SystemConfig) ex
   }
 
   private def handleChange(id: AboId, aktiv: Boolean)(implicit personId: PersonId) = {
-    DB autoCommit { implicit session =>
-      stammdatenWriteRepository.getAbo(id) map { abo =>
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenUpdateRepository.getAbo(id) map { abo =>
         if (abo.aktiv != aktiv) {
           abo match {
             case d: DepotlieferungAbo =>
-              modifyEntity[DepotlieferungAbo, AboId](d.id, { a =>
-                a.copy(aktiv = aktiv)
-              })
+              stammdatenUpdateRepository.updateEntity[DepotlieferungAbo, AboId](d.id) {
+                depotlieferungAboMapping.column.aktiv -> aktiv
+              }
             case h: HeimlieferungAbo =>
-              modifyEntity[HeimlieferungAbo, AboId](h.id, { a =>
-                a.copy(aktiv = aktiv)
-              })
+              stammdatenUpdateRepository.updateEntity[HeimlieferungAbo, AboId](h.id) {
+                heimlieferungAboMapping.column.aktiv -> aktiv
+              }
             case p: PostlieferungAbo =>
-              modifyEntity[PostlieferungAbo, AboId](p.id, { a =>
-                a.copy(aktiv = aktiv)
-              })
-
+              stammdatenUpdateRepository.updateEntity[PostlieferungAbo, AboId](p.id) {
+                postlieferungAboMapping.column.aktiv -> aktiv
+              }
+            case z: ZusatzAbo =>
+              stammdatenUpdateRepository.updateEntity[ZusatzAbo, AboId](z.id) {
+                zusatzAboMapping.column.aktiv -> aktiv
+              }
+            case _ =>
           }
         }
       }
     }
-  }
-
-  // TODO refactor this further
-  def modifyEntity[E <: BaseEntity[I], I <: BaseId](
-    id: I, mod: E => E
-  )(implicit session: DBSession, syntax: BaseEntitySQLSyntaxSupport[E], binder: SqlBinder[I], personId: PersonId): Option[E] = {
-    modifyEntityWithRepository(stammdatenWriteRepository)(id, mod)
   }
 }

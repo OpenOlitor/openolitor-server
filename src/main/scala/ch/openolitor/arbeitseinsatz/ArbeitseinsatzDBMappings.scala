@@ -24,44 +24,32 @@ package ch.openolitor.arbeitseinsatz
 
 import java.util.UUID
 import ch.openolitor.core.models._
-import ch.openolitor.core.models.VorlageTyp
-import ch.openolitor.core.repositories.BaseRepository
-import ch.openolitor.core.repositories.BaseRepository._
-import ch.openolitor.stammdaten.models._
+import ch.openolitor.arbeitseinsatz.models._
 import scalikejdbc._
-import scalikejdbc.TypeBinder._
+import scalikejdbc.Binders._
 import ch.openolitor.core.repositories.DBMappings
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.core.scalax._
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.arbeitseinsatz._
-import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.repositories.BaseParameter
+import org.joda.time.DateTime
 
 //DB Model bindig
-trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with LazyLogging {
-  import TypeBinder._
+trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with BaseParameter with LazyLogging {
 
   // DB type binders for read operations
-  implicit val arbeitskategorieIdBinder: TypeBinder[ArbeitskategorieId] = baseIdTypeBinder(ArbeitskategorieId.apply _)
-  implicit val arbeitsangebotIdBinder: TypeBinder[ArbeitsangebotId] = baseIdTypeBinder(ArbeitsangebotId.apply _)
-  implicit val arbeitseinsatzIdBinder: TypeBinder[ArbeitseinsatzId] = baseIdTypeBinder(ArbeitseinsatzId.apply _)
+  implicit val arbeitskategorieIdBinder: Binders[ArbeitskategorieId] = baseIdBinders(ArbeitskategorieId.apply _)
+  implicit val arbeitsangebotIdBinder: Binders[ArbeitsangebotId] = baseIdBinders(ArbeitsangebotId.apply _)
+  implicit val arbeitseinsatzIdBinder: Binders[ArbeitseinsatzId] = baseIdBinders(ArbeitseinsatzId.apply _)
 
-  implicit val optionArbeitsangebotIdBinder: TypeBinder[Option[ArbeitsangebotId]] = optionBaseIdTypeBinder(ArbeitsangebotId.apply _)
-  implicit val arbeitskategorieIdSeqBinder: TypeBinder[Seq[ArbeitskategorieId]] = string.map(s => if (s != null && !s.trim.isEmpty) s.split(",").map(_.toLong).map(ArbeitskategorieId.apply _).toSeq else Nil)
+  implicit val optionArbeitsangebotIdBinder: Binders[Option[ArbeitsangebotId]] = optionBaseIdBinders(ArbeitsangebotId.apply _)
+  implicit val arbeitskategorieIdSeqBinder: Binders[Seq[ArbeitskategorieId]] = seqBaseIdBinders(ArbeitskategorieId.apply _)
 
-  implicit val arbeitseinsatzStatusTypeBinder: TypeBinder[ArbeitseinsatzStatus] = string.map(ArbeitseinsatzStatus.apply)
+  implicit val arbeitseinsatzStatusBinders: Binders[ArbeitseinsatzStatus] = toStringBinder(ArbeitseinsatzStatus.apply)
 
-  //DB parameter binders for write and query operationsit
-  implicit val arbeitseinsatzStatusBinder = toStringSqlBinder[ArbeitseinsatzStatus]
-
-  implicit val arbeitskategorieIdSqlBinder = baseIdSqlBinder[ArbeitskategorieId]
-  implicit val arbeitsangebotIdSqlBinder = baseIdSqlBinder[ArbeitsangebotId]
-  implicit val arbeiteinsatzIdSqlBinder = baseIdSqlBinder[ArbeitseinsatzId]
-
-  implicit val arbeitsangebotIdOptionSqlBinder = optionSqlBinder[ArbeitsangebotId]
-  implicit val arbeitskategorieIdSeqSqlBinder = seqSqlBinder[ArbeitskategorieId]
+  // declare parameterbinderfactories for enum type to allow dynamic type convertion of enum subtypes
+  implicit def arbeitseinsatzStatusParameterBinderFactory[A <: ArbeitseinsatzStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val arbeitskategorieMapping = new BaseEntitySQLSyntaxSupport[Arbeitskategorie] {
     override val tableName = "Arbeitskategorie"
@@ -70,12 +58,12 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
 
     def apply(rn: ResultName[Arbeitskategorie])(rs: WrappedResultSet): Arbeitskategorie = autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Arbeitskategorie): Seq[Any] =
+    def parameterMappings(entity: Arbeitskategorie): Seq[ParameterBinder] =
       parameters(Arbeitskategorie.unapply(entity).get)
 
     override def updateParameters(ak: Arbeitskategorie) = {
       super.updateParameters(ak) ++ Seq(
-        column.beschreibung -> parameter(ak.beschreibung)
+        column.beschreibung -> ak.beschreibung
       )
     }
   }
@@ -87,21 +75,21 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
 
     def apply(rn: ResultName[Arbeitsangebot])(rs: WrappedResultSet): Arbeitsangebot = autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Arbeitsangebot): Seq[Any] =
+    def parameterMappings(entity: Arbeitsangebot): Seq[ParameterBinder] =
       parameters(Arbeitsangebot.unapply(entity).get)
 
     override def updateParameters(aa: Arbeitsangebot) = {
       super.updateParameters(aa) ++ Seq(
-        column.kopieVon -> parameter(aa.kopieVon),
-        column.titel -> parameter(aa.titel),
-        column.bezeichnung -> parameter(aa.bezeichnung),
-        column.ort -> parameter(aa.ort),
-        column.zeitVon -> parameter(aa.zeitVon),
-        column.zeitBis -> parameter(aa.zeitBis),
-        column.anzahlPersonen -> parameter(aa.anzahlPersonen),
-        column.mehrPersonenOk -> parameter(aa.mehrPersonenOk),
-        column.einsatzZeit -> parameter(aa.einsatzZeit),
-        column.status -> parameter(aa.status)
+        column.kopieVon -> aa.kopieVon,
+        column.titel -> aa.titel,
+        column.bezeichnung -> aa.bezeichnung,
+        column.ort -> aa.ort,
+        column.zeitVon -> aa.zeitVon,
+        column.zeitBis -> aa.zeitBis,
+        column.anzahlPersonen -> aa.anzahlPersonen,
+        column.mehrPersonenOk -> aa.mehrPersonenOk,
+        column.einsatzZeit -> aa.einsatzZeit,
+        column.status -> aa.status
       )
     }
   }
@@ -113,23 +101,23 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
 
     def apply(rn: ResultName[Arbeitseinsatz])(rs: WrappedResultSet): Arbeitseinsatz = autoConstruct(rs, rn)
 
-    def parameterMappings(entity: Arbeitseinsatz): Seq[Any] =
+    def parameterMappings(entity: Arbeitseinsatz): Seq[ParameterBinder] =
       parameters(Arbeitseinsatz.unapply(entity).get)
 
     override def updateParameters(ae: Arbeitseinsatz) = {
       super.updateParameters(ae) ++ Seq(
-        column.arbeitsangebotId -> parameter(ae.arbeitsangebotId),
-        column.arbeitsangebotTitel -> parameter(ae.arbeitsangebotTitel),
-        column.zeitVon -> parameter(ae.zeitVon),
-        column.zeitBis -> parameter(ae.zeitBis),
-        column.kundeId -> parameter(ae.kundeId),
-        column.kundeBezeichnung -> parameter(ae.kundeBezeichnung),
-        column.personId -> parameter(ae.personId),
-        column.personName -> parameter(ae.personName),
-        column.aboId -> parameter(ae.aboId),
-        column.aboBezeichnung -> parameter(ae.aboBezeichnung),
-        column.anzahlPersonen -> parameter(ae.anzahlPersonen),
-        column.bemerkungen -> parameter(ae.bemerkungen)
+        column.arbeitsangebotId -> ae.arbeitsangebotId,
+        column.arbeitsangebotTitel -> ae.arbeitsangebotTitel,
+        column.zeitVon -> ae.zeitVon,
+        column.zeitBis -> ae.zeitBis,
+        column.kundeId -> ae.kundeId,
+        column.kundeBezeichnung -> ae.kundeBezeichnung,
+        column.personId -> ae.personId,
+        column.personName -> ae.personName,
+        column.aboId -> ae.aboId,
+        column.aboBezeichnung -> ae.aboBezeichnung,
+        column.anzahlPersonen -> ae.anzahlPersonen,
+        column.bemerkungen -> ae.bemerkungen
       )
     }
   }

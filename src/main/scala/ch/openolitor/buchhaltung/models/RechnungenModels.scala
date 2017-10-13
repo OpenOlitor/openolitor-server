@@ -25,8 +25,8 @@ package ch.openolitor.buchhaltung.models
 import ch.openolitor.buchhaltung._
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.core.scalax.Tuple23
 import ch.openolitor.core.scalax.Tuple24
 import java.text.DecimalFormat
 import ch.openolitor.core.JSONSerializable
@@ -69,15 +69,55 @@ object RechnungStatus {
   }
 }
 
+object RechnungsPositionStatus {
+  sealed trait RechnungsPositionStatus
+  case object Offen extends RechnungsPositionStatus
+  case object Zugewiesen extends RechnungsPositionStatus
+  case object Bezahlt extends RechnungsPositionStatus
+  case object Storniert extends RechnungsPositionStatus
+
+  def apply(value: String): RechnungsPositionStatus = {
+    Vector(Offen, Zugewiesen, Bezahlt, Storniert).find(_.toString == value).getOrElse(Offen)
+  }
+}
+
+object RechnungsPositionTyp {
+  sealed trait RechnungsPositionTyp
+  case object Abo extends RechnungsPositionTyp
+
+  def apply(value: String): RechnungsPositionTyp = {
+    Vector(Abo).find(_.toString == value).getOrElse(Abo)
+  }
+}
+
 case class RechnungId(id: Long) extends BaseId
+case class RechnungsPositionId(id: Long) extends BaseId
+
+case class RechnungsPosition(
+  id: RechnungsPositionId,
+  rechnungId: Option[RechnungId],
+  parentRechnungsPositionId: Option[RechnungsPositionId],
+  aboId: Option[AboId],
+  kundeId: KundeId,
+  betrag: BigDecimal,
+  waehrung: Waehrung,
+  anzahlLieferungen: Option[Int],
+  beschrieb: String,
+  status: RechnungsPositionStatus.RechnungsPositionStatus,
+  typ: RechnungsPositionTyp.RechnungsPositionTyp,
+  sort: Option[Int],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[RechnungsPositionId]
 
 // rechnungsdatum sind Zeitstempel um für ISO 20022 gerüstet zu sein.
 case class Rechnung(
   id: RechnungId,
   kundeId: KundeId,
-  aboId: AboId,
   titel: String,
-  anzahlLieferungen: Int,
   waehrung: Waehrung,
   betrag: BigDecimal,
   einbezahlterBetrag: Option[BigDecimal],
@@ -105,12 +145,10 @@ case class Rechnung(
 
 object Rechnung {
   def unapply(entity: Rechnung) = {
-    Some(Tuple26(
+    Some(Tuple24(
       entity.id,
       entity.kundeId,
-      entity.aboId,
       entity.titel,
-      entity.anzahlLieferungen,
       entity.waehrung,
       entity.betrag,
       entity.einbezahlterBetrag,
@@ -136,14 +174,30 @@ object Rechnung {
   }
 }
 
+case class RechnungsPositionDetail(
+  id: RechnungsPositionId,
+  abo: Abo,
+  betrag: BigDecimal,
+  waehrung: Waehrung,
+  anzahlLieferungen: Option[Int],
+  beschrieb: String,
+  status: RechnungsPositionStatus.RechnungsPositionStatus,
+  typ: RechnungsPositionTyp.RechnungsPositionTyp,
+  sort: Option[Int],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
+
 case class RechnungDetail(
   id: RechnungId,
   kunde: Kunde,
-  abo: Abo,
   titel: String,
-  anzahlLieferungen: Int,
   waehrung: Waehrung,
   betrag: BigDecimal,
+  rechnungsPositionen: Seq[RechnungsPositionDetail],
   einbezahlterBetrag: Option[BigDecimal],
   rechnungsDatum: DateTime,
   faelligkeitsDatum: DateTime,
@@ -170,11 +224,11 @@ case class RechnungDetail(
 case class RechnungDetailReport(
     id: RechnungId,
     kunde: Kunde,
-    abo: Abo,
+    kontoDaten: KontoDaten,
     titel: String,
-    anzahlLieferungen: Int,
     waehrung: Waehrung,
     betrag: BigDecimal,
+    rechnungsPositionen: Seq[RechnungsPositionDetail],
     einbezahlterBetrag: Option[BigDecimal],
     rechnungsDatum: DateTime,
     faelligkeitsDatum: DateTime,
@@ -200,14 +254,11 @@ case class RechnungDetailReport(
   lazy val betragRappen = (betrag - betrag.toLong) * 100
 }
 
-case class RechnungCreate(
+case class RechnungCreateFromRechnungsPositionen(
   kundeId: KundeId,
-  aboId: AboId,
   titel: String,
-  anzahlLieferungen: Int,
   waehrung: Waehrung,
   betrag: BigDecimal,
-  einbezahlterBetrag: Option[BigDecimal],
   rechnungsDatum: DateTime,
   faelligkeitsDatum: DateTime,
   eingangsDatum: Option[DateTime],
@@ -220,7 +271,6 @@ case class RechnungCreate(
 
 case class RechnungModify(
   titel: String,
-  anzahlLieferungen: Int,
   waehrung: Waehrung,
   betrag: BigDecimal,
   einbezahlterBetrag: Option[BigDecimal],
@@ -234,9 +284,39 @@ case class RechnungModify(
   ort: String
 ) extends JSONSerializable
 
+case class RechnungsPositionCreate(
+  kundeId: KundeId,
+  aboId: Option[AboId],
+  beschrieb: String,
+  anzahlLieferungen: Option[Int],
+  betrag: BigDecimal,
+  waehrung: Waehrung,
+  status: RechnungsPositionStatus.RechnungsPositionStatus,
+  typ: RechnungsPositionTyp.RechnungsPositionTyp
+) extends JSONSerializable
+
+case class RechnungsPositionModify(
+  beschrieb: String,
+  anzahlLieferungen: Option[Int],
+  betrag: BigDecimal,
+  status: RechnungsPositionStatus.RechnungsPositionStatus
+) extends JSONSerializable
+
 case class RechnungModifyBezahlt(
   einbezahlterBetrag: BigDecimal,
   eingangsDatum: DateTime
 ) extends JSONSerializable
 
 case class RechnungenContainer(ids: Seq[RechnungId]) extends JSONSerializable
+
+case class RechnungsPositionenCreateRechnungen(
+  ids: Seq[RechnungsPositionId],
+  titel: String,
+  rechnungsDatum: DateTime,
+  faelligkeitsDatum: DateTime
+) extends JSONSerializable
+
+case class RechnungsPositionAssignToRechnung(
+  rechnungId: RechnungId,
+  sort: Int
+) extends JSONSerializable

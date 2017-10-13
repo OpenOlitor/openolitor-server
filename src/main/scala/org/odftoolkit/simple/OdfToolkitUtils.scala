@@ -1,3 +1,25 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package org.odftoolkit.simple
 
 import org.odftoolkit.odfdom.pkg._
@@ -8,7 +30,11 @@ import org.odftoolkit.odfdom.dom.element.text._
 import org.odftoolkit.odfdom.dom.element.draw._
 import org.odftoolkit.odfdom.dom.element.office._
 import org.odftoolkit.odfdom.`type`.Color
+import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text.Paragraph
+import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle
+import org.odftoolkit.odfdom.incubator.doc.style.OdfDefaultStyle
+import org.odftoolkit.odfdom.dom.attribute.draw.DrawTextStyleNameAttribute
 
 /**
  * Extends document to make method accessor public available
@@ -34,6 +60,39 @@ object OdfToolkitUtils {
       } else {
         self.setTextContent(content)
       }
+    }
+
+    def setBackgroundColorWithNewStyle(color: Color) = {
+      val parent = self.getOdfElement.getParentNode.asInstanceOf[DrawFrameElement]
+      val styleName = parent.getStyleName
+      val styleFamily = parent.getStyleFamily
+
+      val dom = self.getOdfElement.getOwnerDocument
+      val doc = self.getOwnerDocument()
+      val styles = if (dom.isInstanceOf[OdfContentDom]) {
+        dom.asInstanceOf[OdfContentDom].getAutomaticStyles
+      } else {
+        dom.asInstanceOf[OdfStylesDom].getAutomaticStyles
+      }
+      val baseStyle = styles.getStyle(styleName, styleFamily)
+
+      val graphicStyle = styles.newStyle(OdfStyleFamily.Graphic)
+      val props = graphicStyle.newStyleGraphicPropertiesElement()
+
+      val attrs = baseStyle.getAttributes
+      val l = attrs.getLength - 1
+      for (i <- 0 to l) {
+        val item = attrs.item(i)
+        props.setAttribute(item.getNodeName, item.getNodeValue)
+      }
+
+      props.setDrawStrokeAttribute("none")
+      props.setDrawFillAttribute("solid")
+      props.setDrawFillColorAttribute(color.toString)
+      props.setStyleRunThroughAttribute("foreground")
+
+      // set comment content
+      parent.setStyleName(graphicStyle.getStyleNameAttribute)
     }
 
     def setFontColor(color: Color) = {
@@ -72,6 +131,12 @@ object OdfToolkitUtils {
     }
   }
 
+  implicit class TableExt(self: Table) {
+    def getDotTableName = {
+      self.getTableName.replaceAll("#", ".")
+    }
+  }
+
   /**
    * Add possilbity to append frames
    */
@@ -96,6 +161,7 @@ object OdfToolkitUtils {
             newFrameEle
           }
 
+        doc.updateNames(importedNode)
         doc.updateXMLIds(importedNode)
         val parent = self.getFrameContainerElement()
         parent.appendChild(importedNode)

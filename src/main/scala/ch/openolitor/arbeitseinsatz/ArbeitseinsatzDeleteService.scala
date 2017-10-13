@@ -38,6 +38,8 @@ import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import scala.concurrent.ExecutionContext.Implicits.global
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object ArbeitseinsatzDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzDeleteService = new DefaultArbeitseinsatzDeleteService(sysConfig, system)
@@ -65,19 +67,19 @@ class ArbeitseinsatzDeleteService(override val sysConfig: SystemConfig) extends 
   }
 
   def deleteArbeitskategorie(meta: EventMetadata, id: ArbeitskategorieId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB localTxPostPublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.deleteEntity[Arbeitskategorie, ArbeitskategorieId](id)
     }
   }
 
   def deleteArbeitsangebot(meta: EventMetadata, id: ArbeitsangebotId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
-      arbeitseinsatzWriteRepository.deleteEntity[Arbeitsangebot, ArbeitsangebotId](id)
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      arbeitseinsatzWriteRepository.deleteEntity[Arbeitsangebot, ArbeitsangebotId](id, { arbeitsangebot: Arbeitsangebot => arbeitsangebot.status == ArbeitseinsatzStatus })
     }
   }
 
   def delteArbeitseinsatz(meta: EventMetadata, id: ArbeitseinsatzId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB localTxPostPublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.deleteEntity[Arbeitseinsatz, ArbeitseinsatzId](id)
     }
   }

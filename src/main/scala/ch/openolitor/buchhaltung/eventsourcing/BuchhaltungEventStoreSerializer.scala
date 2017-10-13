@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.eventsourcing
 
+import spray.json.DefaultJsonProtocol
 import stamina._
 import stamina.json._
 import ch.openolitor.buchhaltung._
@@ -33,31 +34,56 @@ import zangelo.spray.json.AutoProductFormats
 import ch.openolitor.core.JSONSerializable
 
 trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
+  import ch.openolitor.core.eventsourcing.events._
+
+  object MigrationToEmpty extends DefaultJsonProtocol {
+    case class Empty() extends JSONSerializable
+
+    val V1toV2toEmpty: JsonMigrator[V2] = from[V1].to[V2] { _ =>
+      Empty().toJson
+    }
+  }
+
+  // No longer used events
+  implicit val rechnungCreatePersisterV1 = persister[MigrationToEmpty.Empty, V2]("rechnung-create", MigrationToEmpty.V1toV2toEmpty)
+
   // V1 persisters
-  implicit val rechnungCreatePersister = persister[RechnungCreate]("rechnung-create")
+  implicit val rechnungCreatePersisterV2 = persister[RechnungCreateFromRechnungsPositionen]("rechnung-create-from-rechnungsposition")
+
   implicit val rechnungModifyPersister = persister[RechnungModify]("rechnung-modify")
-  implicit val rechnungVerschicktEventPersister = persister[RechnungVerschicktEvent]("rechnung-verschickt-event")
-  implicit val rechnungMahnungVerschicktEventPersister = persister[RechnungMahnungVerschicktEvent]("rechnung-mahnung-verschickt-event")
-  implicit val rechnungBezahltEventPersister = persister[RechnungBezahltEvent]("rechnung-bezahlt-event")
-  implicit val rechnungStorniertEventPersister = persister[RechnungStorniertEvent]("rechnung-storniert-event")
+  implicit val rechnungsPositionCreatePersister = persister[RechnungsPositionCreate]("rechnungs-position-create")
+  implicit val rechnungsPositionModifyPersister = persister[RechnungsPositionModify]("rechnungs-position-modify")
+  implicit val rechnungsPositionChangeAboIdModifyPersister = persister[RechnungsPositionAssignToRechnung]("rechnungs-position-change-abo-id")
+  implicit val rechnungVerschicktEventPersister = persister[RechnungVerschicktEvent, V2]("rechnung-verschickt-event", V1toV2metaDataMigration)
+  implicit val rechnungMahnungVerschicktEventPersister = persister[RechnungMahnungVerschicktEvent, V2]("rechnung-mahnung-verschickt-event", V1toV2metaDataMigration)
+  implicit val rechnungBezahltEventPersister = persister[RechnungBezahltEvent, V2]("rechnung-bezahlt-event", V1toV2metaDataMigration)
+  implicit val rechnungStorniertEventPersister = persister[RechnungStorniertEvent, V2]("rechnung-storniert-event", V1toV2metaDataMigration)
+  implicit val rechnungDeleteEventPersister = persister[RechnungDeleteEvent]("rechnung-delete-event")
   implicit val rechnungIdPersister = persister[RechnungId]("rechnung-id")
+  implicit val rechnungsPositionIdPersister = persister[RechnungsPositionId]("rechnungs-position-id")
 
   implicit val zahlungsImportIdPersister = persister[ZahlungsImportId]("zahlungs-import-id")
-  implicit val zahlungsImportCreatedEventPersister = persister[ZahlungsImportCreatedEvent]("zahlungs-import-created-event")
+  implicit val zahlungsImportCreatedEventPersister = persister[ZahlungsImportCreatedEvent, V2]("zahlungs-import-created-event", V1toV2metaDataMigration)
   implicit val zahlungsEingangIdPersister = persister[ZahlungsEingangId]("zahlungs-eingang-id")
-  implicit val zahlungsEingangErledigtEventPersister = persister[ZahlungsEingangErledigtEvent]("zahlungs-eingang-erledigt-event")
+  implicit val zahlungsEingangErledigtEventPersister = persister[ZahlungsEingangErledigtEvent, V2]("zahlungs-eingang-erledigt-event", V1toV2metaDataMigration)
 
-  implicit val rechnungPDFStoreEventPersister = persister[RechnungPDFStoredEvent]("rechnung-pdf-stored-event")
-  implicit val mahnungPDFStoreEventPersister = persister[MahnungPDFStoredEvent]("mahnung-pdf-stored-event")
+  implicit val rechnungPDFStoreEventPersister = persister[RechnungPDFStoredEvent, V2]("rechnung-pdf-stored-event", V1toV2metaDataMigration)
+  implicit val mahnungPDFStoreEventPersister = persister[MahnungPDFStoredEvent, V2]("mahnung-pdf-stored-event", V1toV2metaDataMigration)
 
   val buchhaltungPersisters = List(
-    rechnungCreatePersister,
+    rechnungCreatePersisterV1,
+    rechnungCreatePersisterV2,
     rechnungModifyPersister,
+    rechnungsPositionCreatePersister,
+    rechnungsPositionModifyPersister,
+    rechnungsPositionChangeAboIdModifyPersister,
     rechnungIdPersister,
+    rechnungsPositionIdPersister,
     rechnungVerschicktEventPersister,
     rechnungMahnungVerschicktEventPersister,
     rechnungBezahltEventPersister,
     rechnungStorniertEventPersister,
+    rechnungDeleteEventPersister,
     zahlungsImportIdPersister,
     zahlungsImportCreatedEventPersister,
     zahlungsEingangIdPersister,

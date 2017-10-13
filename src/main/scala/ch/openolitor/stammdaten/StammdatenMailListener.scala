@@ -31,6 +31,8 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object StammdatenMailListener {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenMailListener], sysConfig, system)
@@ -65,21 +67,19 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
 
   protected def handleBestellungMailSent(meta: EventMetadata, id: SammelbestellungId)(implicit personId: PersonId = meta.originator) = {
     log.debug(s"handleBestellungMailSent:$id")
-    DB autoCommit { implicit session =>
-      stammdatenWriteRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
-        val copy = sammelbestellung.copy(datumVersendet = Some(meta.timestamp))
-        stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](copy)
-      }
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](id)(
+        sammelbestellungMapping.column.datumVersendet -> Option(meta.timestamp)
+      )
     }
   }
 
   protected def handleEinladungMailSent(meta: EventMetadata, id: EinladungId)(implicit personId: PersonId = meta.originator) = {
     log.debug(s"handleEinladungMailSent:$id")
-    DB autoCommit { implicit session =>
-      stammdatenWriteRepository.getById(einladungMapping, id) map { einladung =>
-        val copy = einladung.copy(datumVersendet = Some(meta.timestamp))
-        stammdatenWriteRepository.updateEntity[Einladung, EinladungId](copy)
-      }
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.updateEntity[Einladung, EinladungId](id)(
+        einladungMapping.column.datumVersendet -> Option(meta.timestamp)
+      )
     }
   }
 }

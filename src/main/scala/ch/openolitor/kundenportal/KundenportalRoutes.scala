@@ -56,20 +56,20 @@ import scala.io.Source
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.core.security.Subject
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryComponent
-import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryComponent
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
+import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.RechnungReportService
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import ch.openolitor.kundenportal.repositories.KundenportalReadRepositoryComponent
+import ch.openolitor.kundenportal.repositories.KundenportalReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryComponent
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
-import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryComponent
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
+import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryAsyncComponent
 
 trait KundenportalRoutes extends HttpService with ActorReferences
     with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -77,12 +77,13 @@ trait KundenportalRoutes extends HttpService with ActorReferences
     with BuchhaltungJsonProtocol
     with ArbeitseinsatzJsonProtocol
     with StammdatenDBMappings {
-  self: KundenportalReadRepositoryComponent with FileStoreComponent =>
+  self: KundenportalReadRepositoryAsyncComponent with FileStoreComponent =>
 
   implicit val rechnungIdPath = long2BaseIdPathMatcher(RechnungId.apply)
   implicit val projektIdPath = long2BaseIdPathMatcher(ProjektId.apply)
   implicit val aboIdPath = long2BaseIdPathMatcher(AboId.apply)
   implicit val abotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
+  implicit val zusatzabotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val abwesenheitIdPath = long2BaseIdPathMatcher(AbwesenheitId.apply)
   implicit val lieferungIdPath = long2BaseIdPathMatcher(LieferungId.apply)
   implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
@@ -96,7 +97,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       pathPrefix("kundenportal") {
-        abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute
+        abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute ~ kontoDatenRoute
       }
     }
 
@@ -111,12 +112,23 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       }
   }
 
+  def kontoDatenRoute(implicit subject: Subject) = {
+    path("kontodaten") {
+      get {
+        get(detail(kundenportalReadRepository.getKontoDaten))
+      }
+    }
+  }
+
   def rechnungenRoute(implicit subject: Subject) = {
     path("rechnungen") {
       get {
         list(kundenportalReadRepository.getRechnungen)
       }
     } ~
+      path("rechnungen" / rechnungIdPath) { id =>
+        get(detail(kundenportalReadRepository.getRechnungDetail(id)))
+      } ~
       path("rechnungen" / rechnungIdPath / "aktionen" / "downloadrechnung") { id =>
         (get)(
           onSuccess(kundenportalReadRepository.getRechnungDetail(id)) { detail =>
@@ -178,9 +190,14 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   def abosRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
     path("abos") {
       get {
-        list(kundenportalReadRepository.getAbos)
+        list(kundenportalReadRepository.getHauptabos)
       }
     } ~
+      path("abos" / aboIdPath / "zusatzabos") { aboId =>
+        get {
+          list(kundenportalReadRepository.getZusatzabos(aboId))
+        }
+      } ~
       path("abos" / aboIdPath / "abwesenheiten") { aboId =>
         post {
           requestInstance { request =>
@@ -212,11 +229,17 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         get {
           get(detail(kundenportalReadRepository.getLieferungenDetail(lieferungId)))
         }
+      } ~
+      path("abos" / abotypIdPath / "zusatzabos" / zusatzabotypIdPath / "lieferungen") { (abotypId, zusatzabotypId) =>
+        get {
+          list(kundenportalReadRepository.getLieferungenDetails(zusatzabotypId))
+        }
       }
   }
 }
 
 class DefaultKundenportalRoutes(
+  override val dbEvolutionActor: ActorRef,
   override val entityStore: ActorRef,
   override val eventStore: ActorRef,
   override val mailService: ActorRef,
@@ -225,7 +248,8 @@ class DefaultKundenportalRoutes(
   override val system: ActorSystem,
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef
 )
     extends KundenportalRoutes
-    with DefaultKundenportalReadRepositoryComponent
+    with DefaultKundenportalReadRepositoryAsyncComponent

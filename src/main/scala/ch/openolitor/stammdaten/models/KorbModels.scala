@@ -82,7 +82,25 @@ case class KorbDetail(
   auslieferungId: Option[AuslieferungId],
   sort: Option[Int],
   kunde: Kunde,
-  abotyp: Abotyp,
+  abotyp: IAbotyp,
+  zusatzKoerbe: Seq[ZusatzKorbDetail],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
+
+case class ZusatzKorbDetail(
+  id: KorbId,
+  lieferungId: LieferungId,
+  abo: Abo,
+  status: KorbStatus,
+  guthabenVorLieferung: Int,
+  auslieferungId: Option[AuslieferungId],
+  sort: Option[Int],
+  kunde: Kunde,
+  abotyp: IAbotyp,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -100,6 +118,7 @@ case class KorbReport(
   sort: Option[Int],
   kunde: KundeReport,
   abotyp: Abotyp,
+  zusatzAbosString: String,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -109,6 +128,10 @@ case class KorbReport(
 
 case class KorbModify(
   id: KorbId
+) extends JSONSerializable
+
+case class KorbAuslieferungModify(
+  auslieferungId: AuslieferungId
 ) extends JSONSerializable
 
 case class KorbCreate(

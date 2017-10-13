@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.repositories
 
+import scalikejdbc._
+
 trait BaseParameter {
-  def parameter[V](value: V)(implicit binder: SqlBinder[V]): Any = binder.apply(value)
 }

@@ -22,15 +22,21 @@
 \*                                                                           */
 package ch.openolitor.kundenportal.repositories
 
-import akka.actor.ActorSystem
-import ch.openolitor.core._
+import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
+import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
 
-trait KundenportalWriteRepositoryComponent {
-  val kundenportalWriteRepository: KundenportalWriteRepository
+import akka.actor.ActorSystem
+import ch.openolitor.core.EventStream
+
+trait KundenportalWriteRepositoryComponent extends BaseWriteRepositoryComponent {
+  val buchhaltungWriteRepository: KundenportalWriteRepository
+
+  // implicitly expose the eventStream
+  implicit def buchhaltungWriteRepositoryImplicit = buchhaltungWriteRepository
 }
 
 trait DefaultKundenportalWriteRepositoryComponent extends KundenportalWriteRepositoryComponent {
   val system: ActorSystem
 
-  override val kundenportalWriteRepository: KundenportalWriteRepository = new DefaultActorSystemReference(system) with KundenportalWriteRepositoryImpl with AkkaEventStream
+  override val buchhaltungWriteRepository: KundenportalWriteRepository = new DefaultActorSystemReference(system) with KundenportalWriteRepositoryImpl with AkkaEventStream
 }

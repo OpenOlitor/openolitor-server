@@ -43,6 +43,9 @@ import scalaz._
 import Scalaz._
 import ch.openolitor.util.IdUtil
 import scalikejdbc.DBSession
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.util.IdUtil._
 
 object ArbeitseinsatzInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzInsertService = new DefaultArbeitseinsatzInsertService(sysConfig, system)
@@ -83,7 +86,7 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
       "modifikator" -> meta.originator
     )
 
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create arbeitskategorie
       arbeitseinsatzWriteRepository.insertEntity[Arbeitskategorie, ArbeitskategorieId](ak)
     }
@@ -100,7 +103,7 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
       "modifikator" -> meta.originator
     )
 
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create arbeitsangebot
       arbeitseinsatzWriteRepository.insertEntity[Arbeitsangebot, ArbeitsangebotId](aa)
     }
@@ -116,7 +119,7 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
       "modifikator" -> meta.originator
     )
 
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create arbeitseinsatz
       arbeitseinsatzWriteRepository.insertEntity[Arbeitseinsatz, ArbeitseinsatzId](ae)
     }

@@ -29,6 +29,10 @@ trait EntityStoreReference {
   val entityStore: ActorRef
 }
 
+trait DBEvolutionReference {
+  val dbEvolutionActor: ActorRef
+}
+
 trait EventStoreReference {
   val eventStore: ActorRef
 }
@@ -49,6 +53,10 @@ trait AirbrakeNotifierReference {
   val airbrakeNotifier: ActorRef
 }
 
+trait JobQueueServiceReference {
+  val jobQueueService: ActorRef
+}
+
 class DefaultActorSystemReference(override val system: ActorSystem) extends ActorSystemReference
 
 trait ActorReferences extends ActorSystemReference
@@ -56,5 +64,7 @@ trait ActorReferences extends ActorSystemReference
     with EventStoreReference
     with ReportSystemReference
     with MailServiceReference
-    with AirbrakeNotifierReference {
+    with AirbrakeNotifierReference
+    with JobQueueServiceReference
+    with DBEvolutionReference {
 }

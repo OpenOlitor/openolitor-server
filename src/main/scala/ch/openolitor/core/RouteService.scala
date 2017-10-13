@@ -47,7 +47,6 @@ import akka.pattern.ask
 import scala.concurrent.Future
 import akka.util.Timeout
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import spray.json._
 import ch.openolitor.core.BaseJsonProtocol._
 import com.typesafe.config.Config
@@ -77,6 +76,7 @@ import ch.openolitor.kundenportal.KundenportalRoutes
 import ch.openolitor.kundenportal.DefaultKundenportalRoutes
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzRoutes
 import ch.openolitor.arbeitseinsatz.DefaultArbeitseinsatzRoutes
+import ch.openolitor.reports._
 import ch.openolitor.stammdaten.models.ProjektVorlageId
 import spray.can.server.Response
 import ch.openolitor.core.ws.ExportFormat
@@ -91,14 +91,19 @@ import org.odftoolkit.simple.style.StyleTypeDefinitions
 import scala.None
 import scala.collection.Iterable
 import collection.JavaConverters._
+import java.io.File
+import java.io.FileInputStream
+import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
+import scala.concurrent.ExecutionContext
+import ch.openolitor.util.ZipBuilderWithFile
 
 sealed trait ResponseType
 case object Download extends ResponseType
 case object Fetch extends ResponseType
 
 object RouteServiceActor {
-  def props(entityStore: ActorRef, eventStore: ActorRef, mailService: ActorRef, reportSystem: ActorRef, fileStore: FileStore, airbrakeNotifier: ActorRef, loginTokenCache: Cache[Subject])(implicit sysConfig: SystemConfig, system: ActorSystem): Props =
-    Props(classOf[DefaultRouteServiceActor], entityStore, eventStore, mailService, reportSystem, fileStore, airbrakeNotifier, sysConfig, system, loginTokenCache)
+  def props(dbEvolutionActor: ActorRef, entityStore: ActorRef, eventStore: ActorRef, mailService: ActorRef, reportSystem: ActorRef, fileStore: FileStore, airbrakeNotifier: ActorRef, jobQueueService: ActorRef, loginTokenCache: Cache[Subject])(implicit sysConfig: SystemConfig, system: ActorSystem): Props =
+    Props(classOf[DefaultRouteServiceActor], dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, fileStore, airbrakeNotifier, jobQueueService, sysConfig, system, loginTokenCache)
 }
 
 trait RouteServiceComponent extends ActorReferences {
@@ -113,6 +118,8 @@ trait RouteServiceComponent extends ActorReferences {
   val stammdatenRouteService: StammdatenRoutes
   val stammdatenRouteOpenService: StammdatenOpenRoutes
   val buchhaltungRouteService: BuchhaltungRoutes
+  val reportsRouteService: ReportsRoutes
+  val syncReportsRouteService: SyncReportsRoutes
   val kundenportalRouteService: KundenportalRoutes
   val arbeitseinsatzRouteService: ArbeitseinsatzRoutes
   val systemRouteService: SystemRouteService
@@ -121,14 +128,16 @@ trait RouteServiceComponent extends ActorReferences {
 }
 
 trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache {
-  override lazy val stammdatenRouteService = new DefaultStammdatenRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
-  override lazy val stammdatenRouteOpenService = new DefaultStammdatenOpenRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
-  override lazy val buchhaltungRouteService = new DefaultBuchhaltungRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
-  override lazy val kundenportalRouteService = new DefaultKundenportalRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
-  override lazy val arbeitseinsatzRouteService = new DefaultArbeitseinsatzRoutes(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
-  override lazy val systemRouteService = new DefaultSystemRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
-  override lazy val loginRouteService = new DefaultLoginRouteService(entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, loginTokenCache)
-  override lazy val nonAuthRessourcesRouteService = new DefaultNonAuthRessourcesRouteService(sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier)
+  override lazy val stammdatenRouteService = new DefaultStammdatenRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val stammdatenRouteOpenService = new DefaultStammdatenOpenRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val buchhaltungRouteService = new DefaultBuchhaltungRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val reportsRouteService = new DefaultReportsRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val syncReportsRouteService = new DefaultSyncReportsRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val kundenportalRouteService = new DefaultKundenportalRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val arbeitseinsatzRouteService = new DefaultArbeitseinsatzRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val systemRouteService = new DefaultSystemRouteService(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val loginRouteService = new DefaultLoginRouteService(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService, loginTokenCache)
+  override lazy val nonAuthRessourcesRouteService = new DefaultNonAuthRessourcesRouteService(sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
 }
 
 // we don't implement our route structure directly in the service actor because(entityStore, sysConfig, system, fileStore, actorRefFactory)
@@ -162,9 +171,10 @@ trait RouteServiceActor
   // this actor only runs our route, but you could add
   // other things here, like request stream processing
   // or timeout handling
-  val receive = runRoute(cors(dbEvolutionRoutes))
 
-  val initializedDB = runRoute(cors(
+  val receive: Receive = runRoute(cors(dbEvolutionRoutes))
+
+  val initializedDB: Receive = runRoute(cors(
     // unsecured routes
     helloWorldRoute ~
       systemRouteService.statusRoute ~
@@ -174,11 +184,14 @@ trait RouteServiceActor
 
       // secured routes by XSRF token authenticator
       authenticate(loginRouteService.openOlitorAuthenticator) { implicit subject =>
-        loginRouteService.logoutRoute ~
+        systemRouteService.jobQueueRoute ~
+          loginRouteService.logoutRoute ~
           authorize(hasRole(AdministratorZugang)) {
             stammdatenRouteService.stammdatenRoute ~
               buchhaltungRouteService.buchhaltungRoute ~
               arbeitseinsatzRouteService.arbeitseinsatzRoute ~
+              reportsRouteService.reportsRoute ~
+              syncReportsRouteService.syncReportsRoute ~
               fileStoreRoute
           } ~
           authorize(hasRole(KundenZugang) || hasRole(AdministratorZugang)) {
@@ -214,7 +227,7 @@ trait RouteServiceActor
   def runDBEvolution() = {
     logger.debug(s"runDBEvolution:$entityStore")
     implicit val timeout = Timeout(50.seconds)
-    entityStore ? CheckDBEvolution map {
+    dbEvolutionActor ? CheckDBEvolution map {
       case Success(rev) =>
         logger.debug(s"Successfully check db with revision:$rev")
         context become initializedDB
@@ -236,6 +249,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     with DateFormats {
 
   implicit val timeout = Timeout(5.seconds)
+  implicit lazy val executionContext: ExecutionContext = system.dispatcher
+  lazy val DefaultChunkSize = ConfigLoader.loadConfig.getIntBytes("spray.can.parsing.max-chunk-size")
 
   implicit val exportFormatPath = enumPathMatcher(path =>
     path.head match {
@@ -265,7 +280,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           }
         }
       case x =>
-        complete(StatusCodes.BadRequest, s"No id generated:$x")
+        complete(StatusCodes.BadRequest, s"No id generated or CommandHandler not triggered:$x")
     }
   }
 
@@ -304,45 +319,71 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           val sheet = dataDocument.getSheetByIndex(0)
           sheet.setCellStyleInheritance(false)
 
+          def writeToRow(row: Row, element: Any, cellIndex: Int): Unit = {
+            element match {
+              case some: Some[Any] => writeToRow(row, some.x, cellIndex)
+              case None =>
+              case ite: Iterable[Any] => ite map { item => writeToRow(row, item, cellIndex) }
+              case id: BaseId => row.getCellByIndex(cellIndex).setDoubleValue(id.id)
+              case stringId: BaseStringId => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + stringId.id).trim)
+              case str: String => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + str).trim)
+              case dat: org.joda.time.DateTime => row.getCellByIndex(cellIndex).setDateTimeValue(dat.toCalendar(Locale.GERMAN))
+              case nbr: Number => row.getCellByIndex(cellIndex).setDoubleValue(nbr.doubleValue())
+              case x => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + x.toString).trim)
+            }
+          }
+
           result match {
-            case list: List[Product @unchecked] =>
-              if (list.nonEmpty) {
+            case genericList: List[Any] =>
+              if (genericList.nonEmpty) {
+                genericList.head match {
+                  case firstMapEntry: Map[_, _] =>
+                    val listOfMaps = genericList.asInstanceOf[List[Map[String, Any]]]
+                    val row = sheet.getRowByIndex(0);
 
-                val row = sheet.getRowByIndex(0);
+                    listOfMaps.head.zipWithIndex foreach {
+                      case ((fieldName, value), index) =>
+                        row.getCellByIndex(index).setStringValue(fieldName)
+                        val font = row.getCellByIndex(index).getFont
+                        font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
+                        font.setSize(10)
+                        row.getCellByIndex(index).setFont(font)
+                    }
 
-                def getCCParams(cc: Product) = cc.getClass.getDeclaredFields.map(_.getName) // all field names
-                  .zip(cc.productIterator.to).toMap // zipped with all values
+                    listOfMaps.zipWithIndex foreach {
+                      case (entry, index) =>
+                        val row = sheet.getRowByIndex(index + 1);
 
-                getCCParams(list.head).zipWithIndex foreach {
-                  case ((fieldName, value), index) =>
-                    row.getCellByIndex(index).setStringValue(fieldName)
-                    val font = row.getCellByIndex(index).getFont
-                    font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
-                    font.setSize(10)
-                    row.getCellByIndex(index).setFont(font)
-                }
+                        entry.zipWithIndex foreach {
+                          case ((fieldName, value), colIndex) =>
+                            writeToRow(row, value, colIndex)
+                        }
+                    }
 
-                def writeToRow(row: Row, element: Any, cellIndex: Int): Unit = {
-                  element match {
-                    case some: Some[Any] => writeToRow(row, some.x, cellIndex)
-                    case None =>
-                    case ite: Iterable[Any] => ite map { item => writeToRow(row, item, cellIndex) }
-                    case id: BaseId => row.getCellByIndex(cellIndex).setDoubleValue(id.id)
-                    case stringId: BaseStringId => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + stringId.id).trim)
-                    case str: String => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + str).trim)
-                    case dat: org.joda.time.DateTime => row.getCellByIndex(cellIndex).setDateTimeValue(dat.toCalendar(Locale.GERMAN))
-                    case nbr: Number => row.getCellByIndex(cellIndex).setDoubleValue(nbr.doubleValue())
-                    case x => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + x.toString).trim)
-                  }
-                }
+                  case firstProductEntry: Product =>
+                    val listOfProducts = genericList.asInstanceOf[List[Product]]
+                    val row = sheet.getRowByIndex(0);
 
-                list.zipWithIndex foreach {
-                  case (entry, index) =>
-                    val row = sheet.getRowByIndex(index + 1);
+                    def getCCParams(cc: Product) = cc.getClass.getDeclaredFields.map(_.getName) // all field names
+                      .zip(cc.productIterator.to).toMap // zipped with all values
 
-                    getCCParams(entry).zipWithIndex foreach {
-                      case ((fieldName, value), colIndex) =>
-                        writeToRow(row, value, colIndex)
+                    getCCParams(listOfProducts.head).zipWithIndex foreach {
+                      case ((fieldName, value), index) =>
+                        row.getCellByIndex(index).setStringValue(fieldName)
+                        val font = row.getCellByIndex(index).getFont
+                        font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
+                        font.setSize(10)
+                        row.getCellByIndex(index).setFont(font)
+                    }
+
+                    listOfProducts.zipWithIndex foreach {
+                      case (entry, index) =>
+                        val row = sheet.getRowByIndex(index + 1);
+
+                        getCCParams(entry).zipWithIndex foreach {
+                          case ((fieldName, value), colIndex) =>
+                            writeToRow(row, value, colIndex)
+                        }
                     }
                 }
               }
@@ -415,7 +456,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   }
 
   protected def downloadAsZip(zipFileName: String, fileReferences: Seq[FileStoreFileReference]) = {
-    val builder = new ZipBuilder()
+    val builder = new ZipBuilderWithFile()
     fileReferences map { ref =>
       fileStore.getFile(ref.fileType.bucket, ref.id.id) map {
         case Left(e) =>
@@ -429,26 +470,43 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     builder.close().map(result => streamZip(zipFileName, result)) getOrElse complete(StatusCodes.NotFound)
   }
 
+  protected def stream(input: File, deleteAfterStreaming: Boolean = false) = {
+    val streamResponse = input.toByteArrayStream(DefaultChunkSize).map(ByteString(_))
+    streamThen(streamResponse, { () =>
+      if (deleteAfterStreaming) {
+        input.delete()
+      }
+    })
+  }
+
   protected def stream(input: InputStream) = {
-    val streamResponse: Stream[ByteString] = Stream.continually(input.read).takeWhile(_ != -1).map(ByteString(_))
-    streamThenClose(streamResponse, Some(input))
+    val streamResponse = input.toByteArrayStream(DefaultChunkSize).map(ByteString(_))
+    streamThen(streamResponse, () => input.close())
   }
 
   protected def stream(input: Array[Byte]) = {
     val streamResponse: Stream[ByteString] = Stream(ByteString(input))
-    streamThenClose(streamResponse, None)
+    streamIt(streamResponse)
   }
 
   protected def stream(input: ByteString) = {
     logger.debug(s"Stream result. Length:${input.size}")
     val streamResponse: Stream[ByteString] = Stream(input)
-    streamThenClose(streamResponse, None)
+    streamIt(streamResponse)
   }
 
-  protected def streamZip(fileName: String, result: Array[Byte]) = {
+  protected def streamFile(fileName: String, mediaType: MediaType, file: File, deleteAfterStreaming: Boolean = false) = {
+    respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", fileName)))) {
+      respondWithMediaType(mediaType) {
+        stream(file, deleteAfterStreaming)
+      }
+    }
+  }
+
+  protected def streamZip(fileName: String, result: File, deleteAfterStreaming: Boolean = false) = {
     respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", fileName)))) {
       respondWithMediaType(MediaTypes.`application/zip`) {
-        stream(result)
+        stream(result, deleteAfterStreaming)
       }
     }
   }
@@ -456,7 +514,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   protected def streamPdf(fileName: String, result: Array[Byte]) = {
     respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", fileName)))) {
       respondWithMediaType(MediaTypes.`application/pdf`) {
-        stream(result)
+        complete(HttpData(result))
       }
     }
   }
@@ -464,7 +522,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   protected def streamOdt(fileName: String, result: Array[Byte]) = {
     respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", fileName)))) {
       respondWithMediaType(MediaTypes.`application/vnd.oasis.opendocument.text`) {
-        stream(result)
+        complete(HttpData(result))
       }
     }
   }
@@ -472,7 +530,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   protected def streamOds(fileName: String, result: Array[Byte]) = {
     respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", fileName)))) {
       respondWithMediaType(MediaTypes.`application/vnd.oasis.opendocument.spreadsheet`) {
-        stream(result)
+        complete(HttpData(result))
       }
     }
   }
@@ -541,45 +599,31 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
         downloadFile <- Try(!pdfAblegen || formData.fields.collectFirst {
           case b @ BodyPart(entity, headers) if b.name == Some("pdfDownloaden") =>
             entity.asString.toBoolean
-        }.getOrElse(true))
+        }.getOrElse(false))
         ids <- id.map(id => Success(Seq(id))).getOrElse(Try(formData.fields.collectFirst {
           case b @ BodyPart(entity, headers) if b.name == Some("ids") =>
             entity.asString.split(",").map(id => idFactory(id.toLong))
         }.getOrElse(Seq())))
       } yield {
-        val config = ReportConfig[I](ids, vorlage, pdfGenerieren, pdfAblegen)
+        logger.debug(s"generateReport: ids: $ids, pdfGenerieren: $pdfGenerieren, pdfAblegen: $pdfAblegen, downloadFile: $downloadFile")
+        val config = ReportConfig[I](ids, vorlage, pdfGenerieren, pdfAblegen, downloadFile)
 
         onSuccess(reportFunction(config)) {
           case Left(serviceError) =>
             complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:$serviceError")
-          case Right(result) if result.hasErrors =>
-            val errorString = result.validationErrors.map(_.message).mkString(",")
-            complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:${errorString}")
           case Right(result) =>
             result.result match {
               case ReportDataResult(id, json) =>
                 respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", s"${id}.json")))) {
                   complete(json)
                 }
-              case SingleReportResult(_, _, Left(ReportError(_, error))) => complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:$error")
-              case SingleReportResult(_, _, Right(DocumentReportResult(_, result, name))) => streamOdt(name, result)
-              case SingleReportResult(_, _, Right(PdfReportResult(_, result, name))) => streamPdf(name, result)
-              case SingleReportResult(_, _, Right(StoredPdfReportResult(_, fileType, fileStoreId))) if downloadFile => download(fileType, fileStoreId.id)
-              case SingleReportResult(_, _, Right(result: StoredPdfReportResult)) =>
-                //complete(result)
-                complete("")
-              case ZipReportResult(_, errors, zip) if !zip.isDefined =>
-                val errorString: String = errors.map(_.error).mkString("\n")
-                complete(StatusCodes.BadRequest, errorString)
-              case ZipReportResult(_, errors, zip) if zip.isDefined =>
-                //TODO: send error to client as well
-                errors.map(error => logger.warn(s"Coulnd't generate report document: $error"))
-                zip.map(result => streamZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", result)) getOrElse (complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden, es wurden keine Dateien erzeugt"))
-              case BatchStoredPdfReportResult(_, errors, results) if downloadFile =>
-                downloadAsZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", results)
-              case result: BatchStoredPdfReportResult =>
-                //complete(result)
-                complete("")
+              case AsyncReportResult(jobId) =>
+                // async result, return jobId
+                val ayncResult = AsyncReportServiceResult(jobId, result.validationErrors.map(_.asJson))
+                complete(ayncResult)
+              case x if result.hasErrors =>
+                val errorString = result.validationErrors.map(_.message).mkString(",")
+                complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:${errorString}")
               case x =>
                 logger.error(s"Received unexpected result:$x")
                 complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden")
@@ -603,12 +647,14 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 }
 
 class DefaultRouteServiceActor(
+  override val dbEvolutionActor: ActorRef,
   override val entityStore: ActorRef,
   override val eventStore: ActorRef,
   override val mailService: ActorRef,
   override val reportSystem: ActorRef,
   override val fileStore: FileStore,
   override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
   override val loginTokenCache: Cache[Subject]

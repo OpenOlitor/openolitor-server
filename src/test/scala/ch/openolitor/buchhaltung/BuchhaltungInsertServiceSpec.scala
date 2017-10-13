@@ -29,6 +29,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.MandantConfiguration
 import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
+import ch.openolitor.core.models.PersonId
 
 class BuchhaltungInsertServiceSpec extends Specification {
   "BuchhaltungInsertService" should {
@@ -36,7 +37,9 @@ class BuchhaltungInsertServiceSpec extends Specification {
       "", "", "", 0, 0, Map(), null
     ), null, null)
 
-    val service = new MockBuchhaltungInsertService(config, null, 6, 5, "777777777", "123456")
+    val kontoDaten = KontoDaten(KontoDatenId(123), Some("CH1223"), Some("777777777"), Some("123456"), new DateTime, PersonId(123), new DateTime, PersonId(123))
+
+    val service = new MockBuchhaltungInsertService(config, null, 6, 5)
 
     "calculate correct checksum according to definition matrix" in {
       service.calculateChecksum("00000001290381204712347234".toList map (_.asDigit)) === 0
@@ -59,48 +62,16 @@ class BuchhaltungInsertServiceSpec extends Specification {
     }
 
     "calculate correct referenzNummer" in {
-      val rechnung = RechnungCreate(
-        KundeId(123),
-        AboId(111),
-        "titel",
-        3,
-        CHF,
-        20.5,
-        None,
-        new DateTime,
-        new DateTime,
-        None,
-        "street",
-        None,
-        None,
-        "3000",
-        "Bern"
-      )
+      service.generateReferenzNummer(kontoDaten, KundeId(123), RechnungId(777)) === "123456000000000001230007772"
+    }
 
-      service.generateReferenzNummer(rechnung, RechnungId(777)) === "123456000000000000001237773"
+    "calculate correct referenzNummer with kundeId length same as allowed size" in {
+      service.generateReferenzNummer(kontoDaten, KundeId(12345), RechnungId(777)) === "123456000000000123450007773"
     }
 
     "calculate correct esrNummer" in {
-      val rechnung = RechnungCreate(
-        KundeId(321),
-        AboId(565656),
-        "titel",
-        5,
-        CHF,
-        20.57,
-        None,
-        new DateTime,
-        new DateTime,
-        None,
-        "street",
-        None,
-        None,
-        "3000",
-        "Bern"
-      )
-
-      val referenzNummer = service.generateReferenzNummer(rechnung, RechnungId(555))
-      service.generateEsrNummer(rechnung, referenzNummer) === "0100000020573>123456000000000000003215558+ 777777777>"
+      val referenzNummer = service.generateReferenzNummer(kontoDaten, KundeId(321), RechnungId(555))
+      service.generateEsrNummer(kontoDaten, 20.57, CHF, referenzNummer) === "0100000020573>123456000000000003210005556+ 777777777>"
     }
   }
 
@@ -109,37 +80,19 @@ class BuchhaltungInsertServiceSpec extends Specification {
       "", "", "", 0, 0, Map(), null
     ), null, null)
 
-    val service = new MockBuchhaltungInsertService(config, null, 6, 5, "132", "")
+    val kontoDaten = KontoDaten(KontoDatenId(123), Some("CH1223"), Some("132"), Some(""), new DateTime, PersonId(123), new DateTime, PersonId(123))
+
+    val service = new MockBuchhaltungInsertService(config, null, 6, 5)
 
     "fill teilnehmernummer from right" in {
-      val rechnung = RechnungCreate(
-        KundeId(321),
-        AboId(565656),
-        "titel",
-        5,
-        CHF,
-        20.57,
-        None,
-        new DateTime,
-        new DateTime,
-        None,
-        "street",
-        None,
-        None,
-        "3000",
-        "Bern"
-      )
-
-      val referenzNummer = service.generateReferenzNummer(rechnung, RechnungId(555))
-      service.generateEsrNummer(rechnung, referenzNummer) === "0100000020573>000000000000000000003215552+ 000000132>"
+      val referenzNummer = service.generateReferenzNummer(kontoDaten, KundeId(321), RechnungId(555))
+      service.generateEsrNummer(kontoDaten, 20.57, CHF, referenzNummer) === "0100000020573>000000000000000003210005550+ 000000132>"
     }
   }
 }
 
 class MockBuchhaltungInsertService(sysConfig: SystemConfig, override val system: ActorSystem, RechnungIdLengthP: Int,
-    KundeIdLengthP: Int, TeilnehmernummerP: String, ReferenznummerPrefixP: String) extends DefaultBuchhaltungInsertService(sysConfig, system) {
+    KundeIdLengthP: Int) extends DefaultBuchhaltungInsertService(sysConfig, system) {
   override lazy val RechnungIdLength = RechnungIdLengthP
   override lazy val KundeIdLength = KundeIdLengthP
-  override lazy val Teilnehmernummer = TeilnehmernummerP
-  override lazy val ReferenznummerPrefix = ReferenznummerPrefixP
 }

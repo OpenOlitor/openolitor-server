@@ -27,11 +27,11 @@ import scala.util.{ Failure, Success, Try }
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolContextAware }
-import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventMetadata, PersistentEvent, UserCommand }
+import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, PersistentEvent, UserCommand, IdFactory }
 import ch.openolitor.core.exceptions.InvalidStateException
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.security.Subject
-import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalWriteRepositoryComponent, KundenportalWriteRepositoryComponent }
+import ch.openolitor.kundenportal.repositories._
 import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId }
 import ch.openolitor.arbeitseinsatz.models._
 
@@ -46,14 +46,14 @@ object KundenportalCommandHandler {
 }
 
 trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware {
-  self: KundenportalWriteRepositoryComponent =>
+  self: KundenportalReadRepositorySyncComponent =>
   import KundenportalCommandHandler._
   import EntityStore._
 
-  override val handle: PartialFunction[UserCommand, IdFactory => EventMetadata => Try[Seq[PersistentEvent]]] = {
+  override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {
     case AbwesenheitErstellenCommand(personId, subject, entity: AbwesenheitCreate) => idFactory => meta =>
       DB readOnly { implicit session =>
-        kundenportalWriteRepository.getAbo(entity.aboId) map { abo =>
+        kundenportalReadRepository.getAbo(entity.aboId) map { abo =>
           if (subject.kundeId == abo.kundeId && abo.id == entity.aboId) {
             handleEntityInsert[AbwesenheitCreate, AbwesenheitId](idFactory, meta, entity, AbwesenheitId.apply)
           } else {
@@ -64,9 +64,9 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
 
     case AbwesenheitLoeschenCommand(personId, subject, aboId, abwesenheitId) => idFactory => meta =>
       DB readOnly { implicit session =>
-        kundenportalWriteRepository.getAbo(aboId) map { abo =>
+        kundenportalReadRepository.getAbo(aboId) map { abo =>
           if (subject.kundeId == abo.kundeId) {
-            Success(Seq(EntityDeletedEvent(meta, abwesenheitId)))
+            Success(Seq(EntityDeleteEvent(abwesenheitId)))
           } else {
             Failure(new InvalidStateException("Es können nur Abwesenheiten eigener Abos entfernt werden."))
           }
@@ -75,24 +75,24 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
 
     case ArbeitseinsatzErstellenCommand(personId, subject, entity: ArbeitseinsatzCreate) => idFactory => meta =>
       DB readOnly { implicit session =>
-        kundenportalWriteRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
+        kundenportalReadRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
           //TODO check if kunde may subscribe
-          if (arbeitsangebot.status == Offen) {
+          if (arbeitsangebot.status == Bereit) {
             handleEntityInsert[ArbeitseinsatzCreate, ArbeitseinsatzId](idFactory, meta, entity, ArbeitseinsatzId.apply)
           } else {
-            Failure(new InvalidStateException("Es können nur Arbeitseinsätze auf offenen Arbeitsangeboten erstellt werden."))
+            Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' erstellt werden."))
           }
         } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot wurde nicht gefunden.")))
       }
 
     case ArbeitseinsatzLoeschenCommand(personId, subject, arbeitseinsatzId) => idFactory => meta =>
       DB readOnly { implicit session =>
-        kundenportalWriteRepository.getArbeitseinsatzDetail(arbeitseinsatzId) map { arbeitseinsatz =>
+        kundenportalReadRepository.getArbeitseinsatzDetail(arbeitseinsatzId) map { arbeitseinsatz =>
           //TODO check better if this operation is ok
-          if (arbeitseinsatz.arbeitsangebot.status == Offen) {
-            Success(Seq(EntityDeletedEvent(meta, arbeitseinsatzId)))
+          if (arbeitseinsatz.arbeitsangebot.status == Bereit) {
+            Success(Seq(EntityDeleteEvent(arbeitseinsatzId)))
           } else {
-            Failure(new InvalidStateException("Es können nur Arbeitseinsätze offener Arbeitsangebote entfernt werden."))
+            Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' entfernt werden."))
           }
         } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot doer der Arbeitseinsatz wurden nicht gefunden.")))
       }
@@ -101,5 +101,6 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
 }
 
 class DefaultKundenportalCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends KundenportalCommandHandler
-    with DefaultKundenportalWriteRepositoryComponent {
+    with DefaultKundenportalReadRepositorySyncComponent {
+
 }

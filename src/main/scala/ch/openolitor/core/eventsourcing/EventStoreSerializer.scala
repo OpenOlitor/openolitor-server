@@ -35,6 +35,7 @@ import ch.openolitor.stammdaten.models.CustomKundentyp
 import ch.openolitor.stammdaten.models.CustomKundentypCreate
 import ch.openolitor.core.eventsourcing.events._
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
+import ch.openolitor.reports.eventsourcing.ReportsEventStoreSerializer
 
 class EventStoreSerializer extends StaminaAkkaSerializer(EventStoreSerializer.eventStorePersisters)
     with LazyLogging {
@@ -55,24 +56,25 @@ object EventStoreSerializer extends EntityStoreJsonProtocol
     with StammdatenEventStoreSerializer
     with BuchhaltungEventStoreSerializer
     with ArbeitseinsatzEventStoreSerializer
+    with ReportsEventStoreSerializer
     with CoreEventStoreSerializer
     with SystemEventSerializer {
 
   // entity store serialization
-  val entityPersisters = Persisters(corePersisters ++ stammdatenPersisters ++ arbeitseinsatzPersisters ++ buchhaltungPersisters)
-  val entityStoreInitializedPersister = persister[EntityStoreInitialized]("entity-store-initialized")
-  val entityInsertEventPersister = new EntityInsertEventPersister[V1](entityPersisters)
-  val entityUpdatedEventPersister = new EntityUpdatedEventPersister[V1](entityPersisters)
-  val entityDeletedEventPersister = new EntityDeletedEventPersister[V1](entityPersisters)
+  val entityPersisters = Persisters(corePersisters ++ stammdatenPersisters ++ arbeitseinsatzPersisters ++ buchhaltungPersisters ++ reportsPersisters)
+  val entityStoreInitializedPersister = persister[EntityStoreInitialized, V2]("entity-store-initialized", V1toV2metaDataMigration)
+  val entityInsertEventPersister = new EntityInsertEventPersister(entityPersisters)
+  val entityUpdatedEventPersister = new EntityUpdatedEventPersister(entityPersisters)
+  val entityDeletedEventPersister = new EntityDeletedEventPersister(entityPersisters)
 
   // system event serialization
   val eventPersisters = Persisters(systemEventPersisters)
-  val systemEventPersister = new SystemEventPersister[V1](eventPersisters)
+  val systemEventPersister = new SystemEventPersister(eventPersisters)
 
   // mail event serialization
-  val sendMailEventPersister = new SendMailEventPersister[V1](entityPersisters ++ eventPersisters)
-  val mailSentEventPersister = new MailSentEventPersister[V1](entityPersisters ++ eventPersisters)
-  val sendMailFailedEventPersister = new SendMailFailedEventPersister[V1](entityPersisters ++ eventPersisters)
+  val sendMailEventPersister = new SendMailEventPersister(entityPersisters ++ eventPersisters)
+  val mailSentEventPersister = new MailSentEventPersister(entityPersisters ++ eventPersisters)
+  val sendMailFailedEventPersister = new SendMailFailedEventPersister(entityPersisters ++ eventPersisters)
 
   val eventStorePersisters = List(
     entityStoreInitializedPersister,
@@ -88,5 +90,9 @@ object EventStoreSerializer extends EntityStoreJsonProtocol
     stammdatenPersisters ++
     buchhaltungPersisters ++
     arbeitseinsatzPersisters ++
+    reportsPersisters ++
     systemEventPersisters
+
+  val allPersisters = Persisters(eventStorePersisters)
+
 }

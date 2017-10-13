@@ -49,14 +49,10 @@ object RecalculateAnzahlGeliefertLieferung {
 
       getProjekt map { projekt =>
         withSQL {
-          select.from(korbMapping as korb).where.eq(korb.status, parameter(WirdGeliefert)).or.eq(korb.status, parameter(Geliefert))
+          select.from(korbMapping as korb).where.eq(korb.status, WirdGeliefert).or.eq(korb.status, Geliefert)
         }.map(korbMapping(korb)).list.apply().groupBy(_.lieferungId) map {
           case (lieferungId, koerbe) =>
-            val koerbeCount = koerbe.size
-            getById(lieferungMapping, lieferungId) map { lieferung =>
-              val copy = lieferung.copy(anzahlKoerbeZuLiefern = koerbeCount)
-              updateEntity[Lieferung, LieferungId](copy)
-            }
+            updateEntity[Lieferung, LieferungId](lieferungId)(lieferungMapping.column.anzahlKoerbeZuLiefern -> koerbe.size)
         }
       }
 

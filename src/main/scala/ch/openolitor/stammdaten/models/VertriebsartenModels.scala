@@ -22,10 +22,8 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import java.util.UUID
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 import scala.collection.immutable.TreeMap
 
@@ -55,6 +53,7 @@ case class VertriebVertriebsarten(id: VertriebId, abotypId: AbotypId, liefertag:
   modifikator: PersonId) extends BaseEntity[VertriebId]
 
 case class VertriebModify(abotypId: AbotypId, liefertag: Lieferzeitpunkt, beschrieb: Option[String]) extends JSONSerializable
+case class VertriebRecalculationsModify(anzahlLieferungen: TreeMap[String, Int], durchschnittspreis: TreeMap[String, BigDecimal]) extends JSONSerializable
 
 case class VertriebsartId(id: Long) extends BaseId
 

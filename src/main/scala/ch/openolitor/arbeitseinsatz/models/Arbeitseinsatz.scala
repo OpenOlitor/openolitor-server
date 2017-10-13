@@ -31,12 +31,12 @@ sealed trait ArbeitseinsatzStatus extends Product
 
 object ArbeitseinsatzStatus {
   def apply(value: String): ArbeitseinsatzStatus = {
-    Vector(InVorbereitung, Offen, Abgesagt) find (_.toString == value) getOrElse (Offen)
+    Vector(InVorbereitung, Bereit, Abgesagt, Archiviert) find (_.toString == value) getOrElse (Bereit)
   }
 }
 
 case object InVorbereitung extends ArbeitseinsatzStatus
-case object Offen extends ArbeitseinsatzStatus
+case object Bereit extends ArbeitseinsatzStatus
 case object Abgesagt extends ArbeitseinsatzStatus
 case object Archiviert extends ArbeitseinsatzStatus
 

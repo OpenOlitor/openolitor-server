@@ -26,43 +26,38 @@ import ch.openolitor.core.models._
 import scalikejdbc._
 import scalikejdbc.async._
 import scalikejdbc.async.FutureImplicits._
-import scala.concurrent.ExecutionContext
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
-import ch.openolitor.core.repositories.BaseRepository._
 import ch.openolitor.core.repositories.BaseWriteRepository
 import scala.concurrent._
-import akka.event.Logging
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.arbeitseinsatz.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
-import ch.openolitor.core.Boot
-import akka.actor.ActorSystem
+import ch.openolitor.kundenportal.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 
 /**
  * Synchronous Repository
  */
-trait KundenportalWriteRepository extends BaseWriteRepository with EventStream {
-  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
-  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
-  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
+trait KundenportalWriteRepository extends KundenportalReadRepositorySync
+    with KundenportalInsertRepository
+    with KundenportalUpdateRepository
+    with BaseWriteRepository
+    with EventStream {
+  def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
-trait KundenportalWriteRepositoryImpl extends KundenportalWriteRepository with LazyLogging with KundenportalRepositoryQueries {
-  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
-    getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
-  }
-  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
-    getById(arbeitsangebotMapping, id)
-  }
-  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail] = {
-    getArbeitseinsatzDetailQuery(id).apply()
+trait KundenportalWriteRepositoryImpl extends KundenportalReadRepositorySyncImpl
+    with KundenportalInsertRepositoryImpl
+    with KundenportalUpdateRepositoryImpl
+    with KundenportalWriteRepository
+    with LazyLogging
+    with KundenportalRepositoryQueries {
+  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
+
   }
 }

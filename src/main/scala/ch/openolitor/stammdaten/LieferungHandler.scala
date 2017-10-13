@@ -29,25 +29,20 @@ import ch.openolitor.stammdaten.repositories._
 import scalikejdbc._
 import ch.openolitor.util.IdUtil
 import ch.openolitor.core.domain.EventMetadata
+import ch.openolitor.core.repositories.EventPublisher
 
-trait LieferungHandler extends StammdatenDBMappings {
+trait LieferungHandler extends LieferungDurchschnittspreisHandler with StammdatenDBMappings {
   this: StammdatenWriteRepositoryComponent =>
 
-  def calcDurchschnittspreis(durchschnittspreis: BigDecimal, anzahlLieferungen: Int, neuerPreis: BigDecimal): BigDecimal =
-    if (anzahlLieferungen == 0) {
-      0
-    } else {
-      ((durchschnittspreis * (anzahlLieferungen - 1)) + neuerPreis) / anzahlLieferungen
-    }
-
-  def recreateLieferpositionen(meta: EventMetadata, lieferungId: LieferungId, positionen: LieferpositionenModify)(implicit personId: PersonId, session: DBSession) = {
+  def recreateLieferpositionen(meta: EventMetadata, lieferungId: LieferungId, positionen: LieferpositionenModify)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
     stammdatenWriteRepository.deleteLieferpositionen(lieferungId)
 
     stammdatenWriteRepository.getById(lieferungMapping, lieferungId) map { lieferung =>
       positionen.preisTotal match {
         case Some(preis) =>
-          val copy = lieferung.copy(preisTotal = preis, modifidat = meta.timestamp, modifikator = personId)
-          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](copy)
+          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
+            lieferungMapping.column.preisTotal -> preis
+          )
         case _ =>
       }
 

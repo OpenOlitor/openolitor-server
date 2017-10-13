@@ -6,6 +6,7 @@
 .cache-*
 .history
 .lib/
+.sbt
 dist/*
 target/
 lib_managed/
@@ -20,11 +21,18 @@ project/plugins/project/
 .project
 .settings
 /bin/
+.idea
 
 # ensime
 .ensime
 .ensime_cache
+ensime.sbt
 
 # ctags
 tags
 
+# vim 
+*~
+
+# Intellij Idea specifics 
+.idea/*

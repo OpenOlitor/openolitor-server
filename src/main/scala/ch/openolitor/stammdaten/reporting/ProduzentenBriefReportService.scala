@@ -25,7 +25,7 @@ package ch.openolitor.stammdaten.reporting
 import ch.openolitor.core.reporting._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryComponent
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
@@ -34,9 +34,10 @@ import ch.openolitor.core.models.PersonId
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
+import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
-  self: StammdatenReadRepositoryComponent with ActorReferences with FileStoreComponent =>
+  self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
   def generateProduzentenBriefReports(fileType: FileType)(config: ReportConfig[ProduzentId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ProduzentId]]] = {
     generateReports[ProduzentId, ProduzentDetailReport](
       config,
@@ -47,7 +48,8 @@ trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with
       GeneriertProduzentenbrief,
       x => Some(x.id.id.toString),
       name(fileType),
-      _.projekt.sprache
+      _.projekt.sprache,
+      JobId("Produzenten-Brief(e)")
     )
   }
 

@@ -26,12 +26,17 @@ import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
 import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
 
 import akka.actor.ActorSystem
+import ch.openolitor.core.EventStream
 
 trait ArbeitseinsatzWriteRepositoryComponent extends BaseWriteRepositoryComponent {
   val arbeitseinsatzWriteRepository: ArbeitseinsatzWriteRepository
+
+  // implicitly expose the eventStream
+  implicit def arbeitseinsatzWriteRepositoryImplicit = arbeitseinsatzWriteRepository
 }
 
 trait DefaultArbeitseinsatzWriteRepositoryComponent extends ArbeitseinsatzWriteRepositoryComponent {
   val system: ActorSystem
+
   override val arbeitseinsatzWriteRepository: ArbeitseinsatzWriteRepository = new DefaultActorSystemReference(system) with ArbeitseinsatzWriteRepositoryImpl with AkkaEventStream
 }

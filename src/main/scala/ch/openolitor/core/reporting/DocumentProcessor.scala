@@ -57,6 +57,8 @@ trait DocumentProcessor extends LazyLogging {
   val dateFormatPattern = """date:\s*"(.*)"""".r
   val numberFormatPattern = """number:\s*"(\[([#@]?[\w\.]+)\])?([#,.0]+)(;((\[([#@]?[\w\.]+)\])?-([#,.0]+)))?"""".r
   val backgroundColorFormatPattern = """bg-color:\s*"([#@]?[\w\.]+)"""".r
+  val foregroundColorFormatPattern = """fg-color:\s*"([#@]?[\w\.]+)"""".r
+  val replaceFormatPattern = """replace:\s*((\w+\s*\-\>\s*\w+\,?\s?)*)""".r
   val dateFormatter = ISODateTimeFormat.dateTime
   val libreOfficeDateFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss")
 
@@ -112,26 +114,27 @@ trait DocumentProcessor extends LazyLogging {
       props <- Try(extractProperties(data))
       // process header
       _ <- Try(processVariables(doc.getHeader, props))
-      _ <- Try(processTables(doc.getHeader, props, locale, Nil))
+      _ <- Try(processTables(doc.getHeader, props, locale, Nil, false))
       //_ <- Try(processLists(doc.getHeader, props, locale, ""))
       headerContainer = new GenericParagraphContainerImpl(doc.getHeader.getOdfElement)
       _ <- Try(processTextboxes(headerContainer, props, locale, Nil))
 
       // process footer
       _ <- Try(processVariables(doc.getFooter, props))
-      _ <- Try(processTables(doc.getFooter, props, locale, Nil))
+      _ <- Try(processTables(doc.getFooter, props, locale, Nil, false))
       //_ <- Try(processLists(doc.getFooter, props, locale, ""))
       footerContainer = new GenericParagraphContainerImpl(doc.getFooter.getOdfElement)
       _ <- Try(processTextboxes(footerContainer, props, locale, Nil))
 
-      // process content
+      // process content, order is important
       _ <- Try(processVariables(doc, props))
-      _ <- Try(processTables(doc, props, locale, Nil))
+      _ <- Try(processTables(doc, props, locale, Nil, false))
       _ <- Try(processLists(doc, props, locale, Nil))
       _ <- Try(processFrames(doc, props, locale))
       _ <- Try(processSections(doc, props, locale))
       _ <- Try(processTextboxes(doc, props, locale, Nil))
-      _ <- Try(registerVariables(doc, props))
+      //TODO Reactivate a smarter way (i.e. only boolean and number fields?) 
+      //_ <- Try(registerVariables(doc, props))
     } yield true
   }
 
@@ -178,24 +181,24 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  def processTables(doc: TableContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
-    doc.getTableList map (table => processTable(doc, table, props, locale, pathPrefixes))
+  def processTables(doc: TableContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
+    doc.getTableList map (table => processTable(doc, table, props, locale, pathPrefixes, withinContainer))
   }
 
   /**
    * Process table:
    * duplicate all rows except header rows. Try to replace textbox values with value from property map
    */
-  def processTable(doc: TableContainer, table: Table, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
-    val propertyKey = parsePropertyKey(table.getTableName, pathPrefixes)
+  def processTable(doc: TableContainer, table: Table, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
+    val propertyKey = parsePropertyKey(table.getDotTableName, pathPrefixes)
     props.get(propertyKey) map {
       case Value(JsArray(values), _) =>
-        logger.debug(s"processTable (dynamic): ${table.getTableName}")
-        processTableWithValues(doc, table, props, values, locale, pathPrefixes)
+        logger.debug(s"processTable (dynamic): ${table.getDotTableName}")
+        processTableWithValues(doc, table, props, values, locale, pathPrefixes, withinContainer)
 
     } getOrElse {
       //static proccesing
-      logger.debug(s"processTable (static): ${table.getTableName}: $pathPrefixes, $propertyKey")
+      logger.debug(s"processTable (static): ${table.getDotTableName}: $pathPrefixes, $propertyKey")
       processStaticTable(table, props, locale, pathPrefixes)
     }
   }
@@ -229,19 +232,19 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  def processTableWithValues(doc: TableContainer, table: Table, props: Map[String, Value], values: Vector[JsValue], locale: Locale, pathPrefixes: Seq[String]) = {
+  def processTableWithValues(doc: TableContainer, table: Table, props: Map[String, Value], values: Vector[JsValue], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
     val startIndex = Math.max(table.getHeaderRowCount, 0)
     val rows = table.getRowList.toList
     val nonHeaderRows = rows.takeRight(rows.length - startIndex)
 
-    logger.debug(s"processTable: ${table.getTableName} -> Header rows: ${table.getHeaderRowCount}")
+    logger.debug(s"processTable: ${table.getDotTableName} -> Header rows: ${table.getHeaderRowCount}")
 
     for (index <- 0 to values.length - 1) {
-      val rowPathPrefix = findPathPrefixes(table.getTableName + s".$index", pathPrefixes)
+      val rowPathPrefix = findPathPrefixes(table.getDotTableName + s".$index", pathPrefixes)
 
       //copy rows
-      val newRows = table.appendRows(nonHeaderRows.length).toList
-      logger.debug(s"processTable: ${table.getTableName} -> Appended rows: ${newRows.length}")
+      val newRows = if (withinContainer) table.appendRow() :: Nil else table.appendRows(nonHeaderRows.length).toList
+      logger.debug(s"processTable: ${table.getDotTableName} -> Appended rows: ${newRows.length}")
       for (r <- 0 to newRows.length - 1) {
         //replace textfields
         for (cell <- 0 to table.getColumnCount - 1) {
@@ -258,7 +261,7 @@ trait DocumentProcessor extends LazyLogging {
     }
 
     //remove template rows
-    logger.debug(s"processTable: ${table.getTableName} -> Remove template rows from:$startIndex, count: ${nonHeaderRows.length}.")
+    logger.debug(s"processTable: ${table.getDotTableName} -> Remove template rows from:$startIndex, count: ${nonHeaderRows.length}.")
     if (nonHeaderRows.length == table.getRowCount) {
       //remove whole table
       table.remove()
@@ -302,7 +305,7 @@ trait DocumentProcessor extends LazyLogging {
       val sectionKey = s"${section.getName}.$index"
       logger.debug(s"processSection:$sectionKey")
       processTextboxes(section, props, locale, Seq(sectionKey))
-      processTables(section, props, locale, Seq(sectionKey))
+      processTables(section, props, locale, Seq(sectionKey), true)
       processLists(section, props, locale, Seq(sectionKey))
       //append section
       doc.appendSection(section, false)
@@ -323,7 +326,7 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def processFrame(p: Paragraph, frame: Frame, props: Map[String, Value], locale: Locale) = {
-    props.get(frame.getName) map {
+    props.get(frame.getName) collect {
       case Value(JsArray(values), _) =>
         processFrameWithValues(p, frame, props, values, locale)
     } getOrElse logger.debug(s"Frame not mapped to property, will be processed statically:${frame.getName}")
@@ -346,6 +349,8 @@ trait DocumentProcessor extends LazyLogging {
 
   /**
    * Process textboxes and fill in content based on
+   *
+   * If pathPrefixes is Nil, applyFormats will not be executed
    */
   private def processTextboxes(cont: ParagraphContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
     for {
@@ -358,12 +363,14 @@ trait DocumentProcessor extends LazyLogging {
 
       // resolve textbox content from properties, otherwise only apply formats to current content
       t.removeCommonStyle()
-      val value = props.get(propertyKey) map {
-        case Value(_, value) => value
-      } getOrElse (t.getTextContent())
-
-      //apply all formats
-      applyFormats(t, formats, value, props, locale, pathPrefixes)
+      props.get(propertyKey) map {
+        case Value(_, value) =>
+          applyFormats(t, formats, value, props, locale, pathPrefixes)
+      } getOrElse {
+        if (!pathPrefixes.isEmpty) {
+          applyFormats(t, formats, t.getTextContent, props, locale, pathPrefixes)
+        }
+      }
     }
   }
 
@@ -402,11 +409,17 @@ trait DocumentProcessor extends LazyLogging {
       case backgroundColorFormatPattern(pattern) =>
         // set background to textbox
         resolveColor(pattern, props, pathPrefixes) map { color =>
-          textbox.setBackgroundColor(color)
+          textbox.setBackgroundColorWithNewStyle(color)
+        }
+        value
+      case foregroundColorFormatPattern(pattern) =>
+        // set foreground to textbox (unfortunately resets font style to default)
+        resolveColor(pattern, props, pathPrefixes) map { color =>
+          textbox.setFontColor(color)
         }
         value
       case numberFormatPattern(_, positiveColor, positivePattern, _, _, _, negativeColor, negativeFormat) =>
-        // lookup color value        
+        // lookup color value
         val number = value.toDouble
         if (number < 0 && negativeFormat != null) {
           val formattedValue = decimaleFormatForLocale(negativeFormat, locale).format(value.toDouble)
@@ -431,6 +444,9 @@ trait DocumentProcessor extends LazyLogging {
           }
           formattedValue
         }
+      case replaceFormatPattern(stringMap, _) =>
+        val replaceMap = (stringMap split ("\\s*,\\s*") map (_ split ("\\s*->\\s*")) map { case Array(k, v) => k -> v }).toMap
+        replaceMap find { case (k, v) => value.contains(k) } map { case (k, v) => value.replaceAll(k, v) } getOrElse (value)
       case x if format.length > 0 =>
         logger.warn(s"Unsupported format:$format")
         textbox.setTextContentStyleAware(value)

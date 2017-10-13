@@ -146,6 +146,10 @@ case class SammelbestellungModify(
   datum: DateTime
 ) extends JSONSerializable
 
+case class SammelbestellungStatusModify(
+  status: LieferungStatus
+) extends JSONSerializable
+
 case class SammelbestellungCreate(
   id: SammelbestellungId,
   produzentId: ProduzentId,
@@ -154,6 +158,13 @@ case class SammelbestellungCreate(
 ) extends JSONSerializable
 
 case class BestellpositionId(id: Long) extends BaseId
+
+trait BestellpositionCalculatedFields {
+  val menge: BigDecimal
+  val anzahl: Int
+
+  lazy val mengeTotal = anzahl * menge
+}
 
 case class Bestellposition(
   id: BestellpositionId,
@@ -170,7 +181,7 @@ case class Bestellposition(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
-) extends BaseEntity[BestellpositionId]
+) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
 
 case class BestellpositionModify(
   bestellungId: BestellungId,
@@ -195,3 +206,4 @@ case class ProduzentenabrechnungReport(
   //Zusatzinformationen
   projekt: ProjektReport
 ) extends JSONSerializable
+

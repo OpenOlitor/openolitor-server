@@ -29,7 +29,6 @@ import scalikejdbc.async.FutureImplicits._
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
-import ch.openolitor.core.repositories.BaseRepository._
 import ch.openolitor.core.repositories.BaseWriteRepository
 import scala.concurrent._
 import ch.openolitor.stammdaten.models._
@@ -44,12 +43,14 @@ import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
 trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMappings with StammdatenDBMappings {
   lazy val rechnung = rechnungMapping.syntax("rechnung")
+  lazy val rechnungsPosition = rechnungsPositionMapping.syntax("rechnungsPosition")
   lazy val kunde = kundeMapping.syntax("kunde")
   lazy val zahlungsImport = zahlungsImportMapping.syntax("zahlungsImport")
   lazy val zahlungsEingang = zahlungsEingangMapping.syntax("zahlungsEingang")
   lazy val depotlieferungAbo = depotlieferungAboMapping.syntax("depotlieferungAbo")
   lazy val heimlieferungAbo = heimlieferungAboMapping.syntax("heimlieferungAbo")
   lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
+  lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
 
   protected def getRechnungenQuery(filter: Option[FilterExpr]) = {
     withSQL {
@@ -60,11 +61,29 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     }.map(rechnungMapping(rechnung)).list
   }
 
+  protected def getRechnungsPositionQuery(filter: Option[FilterExpr]) = {
+    withSQL {
+      select
+        .from(rechnungsPositionMapping as rechnungsPosition)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
+        .orderBy(rechnungsPosition.id)
+    }.map(rechnungsPositionMapping(rechnungsPosition)).list
+  }
+
+  protected def getRechnungsPositionenByRechnungsIdQuery(rechnungId: RechnungId) = {
+    withSQL {
+      select
+        .from(rechnungsPositionMapping as rechnungsPosition)
+        .where.eq(rechnungsPosition.rechnungId, rechnungId)
+        .orderBy(rechnungsPosition.id)
+    }.map(rechnungsPositionMapping(rechnungsPosition)).list
+  }
+
   protected def getKundenRechnungenQuery(kundeId: KundeId) = {
     withSQL {
       select
         .from(rechnungMapping as rechnung)
-        .where.eq(rechnung.kundeId, parameter(kundeId))
+        .where.eq(rechnung.kundeId, kundeId)
         .orderBy(rechnung.rechnungsDatum)
     }.map(rechnungMapping(rechnung)).list
   }
@@ -74,22 +93,33 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
       select
         .from(rechnungMapping as rechnung)
         .leftJoin(kundeMapping as kunde).on(rechnung.kundeId, kunde.id)
-        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(rechnung.aboId, depotlieferungAbo.id)
-        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnung.aboId, heimlieferungAbo.id)
-        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnung.aboId, postlieferungAbo.id)
-        .where.eq(rechnung.id, parameter(id))
+        .leftJoin(rechnungsPositionMapping as rechnungsPosition).on(rechnung.id, rechnungsPosition.rechnungId)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(rechnungsPosition.aboId, depotlieferungAbo.id)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnungsPosition.aboId, heimlieferungAbo.id)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnungsPosition.aboId, postlieferungAbo.id)
+        .where.eq(rechnung.id, id)
         .orderBy(rechnung.rechnungsDatum)
     }.one(rechnungMapping(rechnung))
       .toManies(
         rs => kundeMapping.opt(kunde)(rs),
+        rs => rechnungsPositionMapping.opt(rechnungsPosition)(rs),
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs)
       )
-      .map({ (rechnung, kunden, pl, hl, dl) =>
+      .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl) =>
         val kunde = kunden.head
-        val abo = (pl ++ hl ++ dl).head
-        copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "abo" -> abo)
+        val abos = pl ++ hl ++ dl
+        val rechnungsPositionenDetail = {
+          for {
+            rechnungsPosition <- rechnungsPositionen
+            abo <- abos.find(_.id == rechnungsPosition.aboId.orNull)
+          } yield {
+            copyTo[RechnungsPosition, RechnungsPositionDetail](rechnungsPosition, "abo" -> abo)
+          }
+        }.sortBy(_.sort.getOrElse(0))
+
+        copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "rechnungsPositionen" -> rechnungsPositionenDetail)
       }).single
   }
 
@@ -97,7 +127,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(rechnungMapping as rechnung)
-        .where.eq(rechnung.referenzNummer, parameter(referenzNummer))
+        .where.eq(rechnung.referenzNummer, referenzNummer)
         .orderBy(rechnung.rechnungsDatum)
     }.map(rechnungMapping(rechnung)).single
   }
@@ -114,7 +144,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
       select
         .from(zahlungsImportMapping as zahlungsImport)
         .leftJoin(zahlungsEingangMapping as zahlungsEingang).on(zahlungsImport.id, zahlungsEingang.zahlungsImportId)
-        .where.eq(zahlungsImport.id, parameter(id))
+        .where.eq(zahlungsImport.id, id)
     }.one(zahlungsImportMapping(zahlungsImport))
       .toMany(
         rs => zahlungsEingangMapping.opt(zahlungsEingang)(rs)
@@ -128,8 +158,15 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(zahlungsEingangMapping as zahlungsEingang)
-        .where.eq(zahlungsEingang.referenzNummer, parameter(referenzNummer))
+        .where.eq(zahlungsEingang.referenzNummer, referenzNummer)
         .orderBy(zahlungsEingang.modifidat).desc
     }.map(zahlungsEingangMapping(zahlungsEingang)).first
+  }
+
+  protected def getKontoDatenQuery = {
+    withSQL {
+      select
+        .from(kontoDatenMapping as kontoDaten)
+    }.map(kontoDatenMapping(kontoDaten)).single
   }
 }

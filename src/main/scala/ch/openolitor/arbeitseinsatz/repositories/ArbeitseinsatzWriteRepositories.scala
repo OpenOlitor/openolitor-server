@@ -33,13 +33,22 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.core.EventStream
 
-trait ArbeitseinsatzWriteRepository extends BaseWriteRepository with EventStream {
+trait ArbeitseinsatzWriteRepository extends ArbeitseinsatzReadRepositorySync
+    with ArbeitseinsatzInsertRepository
+    with ArbeitseinsatzUpdateRepository
+    with ArbeitseinsatzDeleteRepository
+    with BaseWriteRepository
+    with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
-
 }
 
-trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzWriteRepository with LazyLogging with ArbeitseinsatzRepositoryQueries {
-
+trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzReadRepositorySyncImpl
+    with ArbeitseinsatzInsertRepositoryImpl
+    with ArbeitseinsatzUpdateRepositoryImpl
+    with ArbeitseinsatzDeleteRepositoryImpl
+    with ArbeitseinsatzWriteRepository
+    with LazyLogging
+    with ArbeitseinsatzRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
       sql"truncate table ${arbeitskategorieMapping.table}".execute.apply()

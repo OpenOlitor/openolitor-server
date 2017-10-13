@@ -26,11 +26,22 @@ import java.util.zip._
 import java.io.ByteArrayOutputStream
 import scala.util.Try
 import java.io.InputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.FileInputStream
+import java.io.OutputStream
 
-class ZipBuilder {
+class ZipBuilder(outputStream: OutputStream) {
+  val zipOutputStream: ZipOutputStream = new ZipOutputStream(outputStream)
 
-  val byteArrayOutputStream: ByteArrayOutputStream = new ByteArrayOutputStream
-  val zipOutputStream: ZipOutputStream = new ZipOutputStream(byteArrayOutputStream)
+  def addZipEntry(fileName: String, document: File): Try[Boolean] = {
+    val is = new FileInputStream(document)
+    try {
+      addZipEntry(fileName, is)
+    } finally {
+      is.close()
+    }
+  }
 
   def addZipEntry(fileName: String, document: Array[Byte]): Try[Boolean] = {
     Try {
@@ -59,13 +70,8 @@ class ZipBuilder {
     }
   }
 
-  def close(): Option[Array[Byte]] = {
-    try {
-      Try(zipOutputStream.close)
-      Try(byteArrayOutputStream.toByteArray).toOption
-    } finally {
-      //close streams
-      Try(byteArrayOutputStream.close)
-    }
+  def close(): Option[File] = {
+    Try(zipOutputStream.close)
+    None
   }
 }

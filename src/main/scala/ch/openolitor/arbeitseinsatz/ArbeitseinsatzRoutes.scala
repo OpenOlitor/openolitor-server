@@ -66,7 +66,7 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
     with ArbeitseinsatzJsonProtocol
     with ArbeitseinsatzEventStoreSerializer
     with Defaults {
-  self: ArbeitseinsatzReadRepositoryComponent =>
+  self: ArbeitseinsatzReadRepositoryAsyncComponent =>
 
   implicit val kundeIdPath = long2BaseIdPathMatcher(KundeId.apply)
 
@@ -118,6 +118,7 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
 }
 
 class DefaultArbeitseinsatzRoutes(
+  override val dbEvolutionActor: ActorRef,
   override val entityStore: ActorRef,
   override val eventStore: ActorRef,
   override val mailService: ActorRef,
@@ -126,7 +127,8 @@ class DefaultArbeitseinsatzRoutes(
   override val system: ActorSystem,
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef
 )
     extends ArbeitseinsatzRoutes
-    with DefaultArbeitseinsatzReadRepositoryComponent
+    with DefaultArbeitseinsatzReadRepositoryAsyncComponent

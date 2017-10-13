@@ -25,9 +25,11 @@ package ch.openolitor.stammdaten
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
-import org.joda.time.DateTime
-import scalikejdbc._
 import ch.openolitor.util.IdUtil
+import ch.openolitor.core.repositories.EventPublisher
+import org.joda.time.DateTime
+import com.github.nscala_time.time.Imports._
+import scalikejdbc._
 
 trait KorbHandler extends KorbStatusHandler
     with StammdatenDBMappings {
@@ -37,11 +39,18 @@ trait KorbHandler extends KorbStatusHandler
    * insert or update Korb
    * @return (created/updated, existing)
    */
-  def upsertKorb(lieferung: Lieferung, abo: Abo, abotyp: Abotyp)(implicit personId: PersonId, session: DBSession): (Option[Korb], Option[Korb]) = {
+  def upsertKorb(lieferung: Lieferung, abo: Abo, abotyp: IAbotyp)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): (Option[Korb], Option[Korb]) = {
     stammdatenWriteRepository.getKorb(lieferung.id, abo.id) match {
-      case None =>
-        val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
-        val status = calculateKorbStatus(abwCount, abo.guthaben, abotyp.guthabenMindestbestand)
+      case None if (lieferung.lieferplanungId.isDefined) =>
+        val status = abo match {
+          case zusatzAbo: ZusatzAbo =>
+            val mainAbo = stammdatenWriteRepository.getHauptAbo(zusatzAbo.id)
+            val abwCount = stammdatenWriteRepository.countAbwesend(mainAbo.get.id, lieferung.datum.toLocalDate)
+            calculateKorbStatus(abwCount, mainAbo.get.guthaben, abotyp.guthabenMindestbestand)
+          case abo: Abo =>
+            val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
+            calculateKorbStatus(abwCount, abo.guthaben, abotyp.guthabenMindestbestand)
+        }
         val korbId = KorbId(IdUtil.positiveRandomId)
         val korb = Korb(
           korbId,
@@ -57,7 +66,9 @@ trait KorbHandler extends KorbStatusHandler
           personId
         )
         (stammdatenWriteRepository.insertEntity[Korb, KorbId](korb), None)
-
+      case None =>
+        // do nothing (lieferung hast not been planned yet)
+        (None, None)
       case Some(korb) =>
         val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
         val status = calculateKorbStatus(abwCount, abo.guthaben, abotyp.guthabenMindestbestand)
@@ -69,16 +80,77 @@ trait KorbHandler extends KorbStatusHandler
 
         // only update if changed
         if (korb != copy) {
-          (stammdatenWriteRepository.updateEntity[Korb, KorbId](copy), Some(korb))
+          (stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(
+            korbMapping.column.status -> status,
+            korbMapping.column.guthabenVorLieferung -> abo.guthaben
+          ), Some(korb))
         } else {
           (Some(korb), Some(korb))
         }
     }
   }
 
-  def deleteKorb(lieferung: Lieferung, abo: Abo)(implicit personId: PersonId, session: DBSession) = {
+  def deleteKorb(lieferung: Lieferung, abo: Abo)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Option[Korb] = {
     stammdatenWriteRepository.getKorb(lieferung.id, abo.id) flatMap { korb =>
       stammdatenWriteRepository.deleteEntity[Korb, KorbId](korb.id)
     }
+  }
+
+  def modifyKoerbeForAboVertriebChange(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+    for {
+      originalAbo <- orig
+      if (abo.vertriebId != originalAbo.vertriebId)
+      abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
+    } yield {
+      stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
+        if (lieferung.vertriebId == originalAbo.vertriebId) {
+          deleteKorb(lieferung, originalAbo)
+        }
+        if (lieferung.vertriebId == abo.vertriebId) {
+          upsertKorb(lieferung, abo, abotyp)
+        }
+        recalculateNumbersLieferung(lieferung)
+      }
+    }
+  }
+
+  def modifyKoerbeForAboDatumChange(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+    for {
+      originalAbo <- orig
+      // only modify koerbe if the start or end of this abo has changed or we're creating them for a new abo
+      if (abo.start != originalAbo.start || abo.ende != originalAbo.ende)
+      abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
+    } yield {
+      stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId).map { lieferung =>
+        if ((abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
+          deleteKorb(lieferung, abo)
+        } else if ((abo.start <= lieferung.datum.toLocalDate) &&
+          (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
+
+          if (abo.vertriebId != lieferung.vertriebId) {
+            deleteKorb(lieferung, originalAbo)
+          } else {
+            upsertKorb(lieferung, abo, abotyp)
+          }
+        }
+        recalculateNumbersLieferung(lieferung)
+      }
+    }
+  }
+
+  def recalculateNumbersLieferung(lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
+    val stati: List[KorbStatus] = stammdatenWriteRepository.getNichtGelieferteKoerbe(lieferung.id).map(_.status)
+    val counts: Map[KorbStatus, Int] = stati.groupBy {
+      s => s
+    }.mapValues(_.size)
+
+    val zuLiefern: Int = counts.getOrElse(WirdGeliefert, 0)
+    val abwesenheiten: Int = counts.getOrElse(FaelltAusAbwesend, 0)
+    val saldoZuTief: Int = counts.getOrElse(FaelltAusSaldoZuTief, 0)
+    stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
+      lieferungMapping.column.anzahlKoerbeZuLiefern -> zuLiefern,
+      lieferungMapping.column.anzahlAbwesenheiten -> abwesenheiten,
+      lieferungMapping.column.anzahlSaldoZuTief -> saldoZuTief
+    ).getOrElse(lieferung)
   }
 }

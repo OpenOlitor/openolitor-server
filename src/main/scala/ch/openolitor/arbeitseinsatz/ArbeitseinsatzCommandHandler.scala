@@ -34,8 +34,6 @@ import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.Macros._
 import com.fasterxml.jackson.databind.JsonSerializable
-import ch.openolitor.buchhaltung.models.RechnungCreate
-import ch.openolitor.buchhaltung.models.RechnungId
 import org.joda.time.DateTime
 import java.util.UUID
 
@@ -48,7 +46,7 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
   import ArbeitseinsatzCommandHandler._
   import EntityStore._
 
-  override val handle: PartialFunction[UserCommand, IdFactory => EventMetadata => Try[Seq[PersistentEvent]]] = {
+  override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {
     /*
      * Insert command handling
      */

@@ -39,6 +39,8 @@ import java.util.UUID
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object BuchhaltungUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungUpdateService = new DefaultBuchhaltungUpdateService(sysConfig, system)
@@ -56,16 +58,39 @@ class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends Eve
 
   val handle: Handle = {
     case EntityUpdatedEvent(meta, id: RechnungId, entity: RechnungModify) => updateRechnung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: RechnungsPositionId, entity: RechnungsPositionModify) => updateRechnungsPosition(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: RechnungsPositionId, entity: RechnungsPositionAssignToRechnung) => assignRechnungsPositionToRechnung(meta, id, entity)
     case e =>
   }
 
+  def assignRechnungsPositionToRechnung(meta: EventMetadata, id: RechnungsPositionId, update: RechnungsPositionAssignToRechnung)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.updateEntity(id)(
+        rechnungsPositionMapping.column.rechnungId -> Option(update.rechnungId),
+        rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Zugewiesen,
+        rechnungsPositionMapping.column.sort -> Option(update.sort)
+      )
+    }
+  }
+
   def updateRechnung(meta: EventMetadata, id: RechnungId, update: RechnungModify)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.getById(rechnungMapping, id) map { entity =>
         //map all updatable fields
         val copy = copyFrom(entity, update)
-        buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](copy)
+        buchhaltungWriteRepository.updateEntityFully[Rechnung, RechnungId](copy)
       }
+    }
+  }
+
+  def updateRechnungsPosition(meta: EventMetadata, id: RechnungsPositionId, update: RechnungsPositionModify)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.updateEntity(id)(
+        rechnungsPositionMapping.column.beschrieb -> update.beschrieb,
+        rechnungsPositionMapping.column.anzahlLieferungen -> update.anzahlLieferungen,
+        rechnungsPositionMapping.column.betrag -> update.betrag,
+        rechnungsPositionMapping.column.status -> update.status
+      )
     }
   }
 }

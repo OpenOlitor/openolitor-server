@@ -29,11 +29,12 @@ import ch.openolitor.core.ws._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepository
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
+import ch.openolitor.reports.ReportsJsonProtocol
+import ch.openolitor.reports.models._
 
 object DBEvent2UserMapping extends DefaultJsonProtocol {
   def props(): Props = Props(classOf[DBEvent2UserMapping])
@@ -41,7 +42,6 @@ object DBEvent2UserMapping extends DefaultJsonProtocol {
   implicit def dbEventCreateWriter[E <: Product](implicit writer: JsonWriter[E]) = new RootJsonWriter[DBEvent[E]] {
     def write(obj: DBEvent[E]): JsValue =
       JsObject(
-        "type" -> JsString(obj.productPrefix),
         "entity" -> JsString(obj.entity.productPrefix),
         "data" -> writer.write(obj.entity)
       )
@@ -57,6 +57,7 @@ class DBEvent2UserMapping extends Actor
     with StammdatenJsonProtocol
     with BuchhaltungJsonProtocol
     with ArbeitseinsatzJsonProtocol
+    with ReportsJsonProtocol
     with AkkaEventStream {
   import DBEvent2UserMapping._
 
@@ -82,6 +83,14 @@ class DBEvent2UserMapping extends Actor
     case e @ EntityModified(personId, entity: Abotyp, _) => send(personId, e.asInstanceOf[DBEvent[Abotyp]])
     case e @ EntityCreated(personId, entity: Abotyp) => send(personId, e.asInstanceOf[DBEvent[Abotyp]])
     case e @ EntityDeleted(personId, entity: Abotyp) => send(personId, e.asInstanceOf[DBEvent[Abotyp]])
+
+    case e @ EntityModified(personId, entity: ZusatzAbotyp, _) => send(personId, e.asInstanceOf[DBEvent[ZusatzAbotyp]])
+    case e @ EntityCreated(personId, entity: ZusatzAbotyp) => send(personId, e.asInstanceOf[DBEvent[ZusatzAbotyp]])
+    case e @ EntityDeleted(personId, entity: ZusatzAbotyp) => send(personId, e.asInstanceOf[DBEvent[ZusatzAbotyp]])
+
+    case e @ EntityModified(personId, entity: ZusatzAbo, _) => send(personId, e.asInstanceOf[DBEvent[ZusatzAbo]])
+    case e @ EntityCreated(personId, entity: ZusatzAbo) => send(personId, e.asInstanceOf[DBEvent[ZusatzAbo]])
+    case e @ EntityDeleted(personId, entity: ZusatzAbo) => send(personId, e.asInstanceOf[DBEvent[ZusatzAbo]])
 
     case e @ EntityModified(personId, entity: Abo, _) => send(personId, e.asInstanceOf[DBEvent[Abo]])
     case e @ EntityCreated(personId, entity: Abo) => send(personId, e.asInstanceOf[DBEvent[Abo]])
@@ -161,6 +170,12 @@ class DBEvent2UserMapping extends Actor
     case e @ EntityModified(personId, entity: Rechnung, _) => send(personId, e.asInstanceOf[DBEvent[Rechnung]])
     case e @ EntityDeleted(personId, entity: Rechnung) => send(personId, e.asInstanceOf[DBEvent[Rechnung]])
 
+    case e @ EntityCreated(personId, entity: RechnungsPosition) => send(personId, e.asInstanceOf[DBEvent[RechnungsPosition]])
+    case e @ EntityModified(personId, entity: RechnungsPosition, _) => send(personId, e.asInstanceOf[DBEvent[RechnungsPosition]])
+    case e @ EntityDeleted(personId, entity: RechnungsPosition) => send(personId, e.asInstanceOf[DBEvent[RechnungsPosition]])
+
+    case e @ EntityModified(personId, entity: RechnungsPositionAssignToRechnung, _) => send(personId, e.asInstanceOf[DBEvent[RechnungsPositionAssignToRechnung]])
+
     case e @ EntityCreated(userId, entity: ZahlungsImport) => send(userId, e.asInstanceOf[DBEvent[ZahlungsImport]])
     case e @ EntityDeleted(userId, entity: ZahlungsImport) => send(userId, e.asInstanceOf[DBEvent[ZahlungsImport]])
 
@@ -187,6 +202,12 @@ class DBEvent2UserMapping extends Actor
     case e @ EntityCreated(userId, entity: Arbeitseinsatz) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
     case e @ EntityModified(userId, entity: Arbeitseinsatz, _) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
     case e @ EntityDeleted(userId, entity: Arbeitseinsatz) => send(userId, e.asInstanceOf[DBEvent[Arbeitseinsatz]])
+
+    // Reports Modul
+
+    case e @ EntityCreated(userId, entity: Report) => send(userId, e.asInstanceOf[DBEvent[Report]])
+    case e @ EntityModified(userId, entity: Report, _) => send(userId, e.asInstanceOf[DBEvent[Report]])
+    case e @ EntityDeleted(userId, entity: Report) => send(userId, e.asInstanceOf[DBEvent[Report]])
 
     case x => // send nothing
   }

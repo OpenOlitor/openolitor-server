@@ -23,6 +23,7 @@
 package ch.openolitor.core
 
 import scalikejdbc.config._
+
 import akka.actor.{ ActorSystem, Props, ActorRef }
 import akka.pattern.ask
 import akka.io.IO
@@ -52,12 +53,12 @@ import resource._
 import java.net.ServerSocket
 import spray.http.Uri
 import ch.openolitor.core.proxy.ProxyServiceActor
-import util.Properties
 import ch.openolitor.core.db.evolution.Evolution
-import ch.openolitor.core.domain.EntityStore.CheckDBEvolution
 import scala.util._
 import ch.openolitor.buchhaltung.BuchhaltungEntityStoreView
 import ch.openolitor.buchhaltung.BuchhaltungDBEventEntityListener
+import ch.openolitor.reports.ReportsEntityStoreView
+import ch.openolitor.reports.ReportsDBEventEntityListener
 import ch.openolitor.core.models.BaseId
 import spray.caching.LruCache
 import ch.openolitor.core.security.Subject
@@ -65,10 +66,15 @@ import ch.openolitor.core.reporting._
 import ch.openolitor.core.filestore.DefaultFileStoreComponent
 import ch.openolitor.core.mailservice.MailService
 import ch.openolitor.buchhaltung.BuchhaltungReportEventListener
-import ch.openolitor.core.calculations.OpenOlitorCalculations
-import ch.openolitor.core.calculations.Calculations.InitializeCalculation
+import ch.openolitor.core.batch.OpenOlitorBatchJobs
+import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
 import ch.openolitor.util.AirbrakeNotifier
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
+import ch.openolitor.core.jobs.JobQueueService
+import ch.openolitor.core.db.evolution.DBEvolutionActor
+import ch.openolitor.core.db.evolution.scripts.Scripts
+import ch.openolitor.core.domain.SystemEvents.SystemStarted
+import org.joda.time.DateTime
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
 
@@ -93,11 +99,13 @@ object Boot extends App with LazyLogging {
   logger.debug(s"config-file java prop: " + sys.props.get("config-file"))
   logger.debug(s"port: " + sys.env.get("PORT"))
 
+  // This config represents the whole configuration and therefore includes the http configuration
   val config = ConfigLoader.loadConfig
 
   val systemPersonId = PersonId(0)
 
   // instanciate actor system per mandant, with mandantenspecific configuration
+  // This config is a subset of config (i.e. without http configuration)
   val ooConfig = config.getConfig("openolitor")
   val configs = getMandantConfiguration(ooConfig)
   implicit val timeout = Timeout(5.seconds)
@@ -112,9 +120,10 @@ object Boot extends App with LazyLogging {
 
   lazy val rootInterface = config.getStringOption("openolitor.interface").getOrElse("0.0.0.0")
   val proxyService = config.getBooleanOption("openolitor.run-proxy-service").getOrElse(false)
+
   //start proxy service
   if (proxyService) {
-    startProxyService(mandanten, ooConfig)
+    startProxyService(mandanten, config)
   }
 
   def getMandantConfiguration(ooConfig: Config): NonEmptyList[MandantConfiguration] = {
@@ -174,29 +183,35 @@ object Boot extends App with LazyLogging {
       val duration = Duration.create(1, SECONDS);
       val airbrakeNotifier = startAirbrakeService
 
+      val evolution = new Evolution(sysCfg, Scripts.current(app))
       val system = app.actorOf(SystemActor.props(airbrakeNotifier), "oo-system")
       logger.debug(s"oo-system:$system")
-      val entityStore = Await.result(system ? SystemActor.Child(EntityStore.props(new Evolution(sysCfg)), "entity-store"), duration).asInstanceOf[ActorRef]
+      val dbEvolutionActor = Await.result(system ? SystemActor.Child(DBEvolutionActor.props(evolution), "db-evolution"), duration).asInstanceOf[ActorRef]
+      logger.debug(s"oo-system:$system -> dbEvolutionActor:$dbEvolutionActor")
+      val entityStore = Await.result(system ? SystemActor.Child(EntityStore.props(dbEvolutionActor, evolution), "entity-store"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> entityStore:$entityStore")
-      val eventStore = Await.result(system ? SystemActor.Child(SystemEventStore.props, "event-store"), duration).asInstanceOf[ActorRef]
+      val eventStore = Await.result(system ? SystemActor.Child(SystemEventStore.props(dbEvolutionActor), "event-store"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$eventStore")
-      val mailService = Await.result(system ? SystemActor.Child(MailService.props, "mail-service"), duration).asInstanceOf[ActorRef]
+      val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor), "mail-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
-      val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, entityStore), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
       val fileStoreComponent = new DefaultFileStoreComponent(cfg.name, sysCfg, app)
       val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStoreComponent.fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
+      val jobQueueService = Await.result(system ? SystemActor.Child(JobQueueService.props(cfg), "job-queue"), duration).asInstanceOf[ActorRef]
 
       //start actor listening events
       val stammdatenDBEventListener = Await.result(system ? SystemActor.Child(StammdatenDBEventEntityListener.props, "stammdaten-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val stammdatenMailSentListener = Await.result(system ? SystemActor.Child(StammdatenMailListener.props, "stammdaten-mail-listener"), duration).asInstanceOf[ActorRef]
       val stammdatenGeneratedEventsListener = Await.result(system ? SystemActor.Child(StammdatenGeneratedEventsListener.props, "stammdaten-generated-events-listener"), duration).asInstanceOf[ActorRef]
 
-      val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(entityStore), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(dbEvolutionActor), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
       val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, entityStore), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val reportsEntityStoreView = Await.result(system ? SystemActor.Child(ReportsEntityStoreView.props(dbEvolutionActor), "reports-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val reportsDBEventListener = Await.result(system ? SystemActor.Child(ReportsDBEventEntityListener.props, "reports-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
 
       //start websocket service
       val clientMessages = Await.result(system ? SystemActor.Child(ClientMessagesServer.props(loginTokenCache), "ws-client-messages"), duration).asInstanceOf[ActorRef]
@@ -204,7 +219,7 @@ object Boot extends App with LazyLogging {
       //start actor mapping dbevents to client messages
       val dbEventClientMessageMapper = Await.result(system ? SystemActor.Child(DBEvent2UserMapping.props, "db-event-mapper"), duration).asInstanceOf[ActorRef]
 
-      val calculations = Await.result(system ? SystemActor.Child(OpenOlitorCalculations.props(entityStore), "calculations"), duration).asInstanceOf[ActorRef]
+      val batchJobs = Await.result(system ? SystemActor.Child(OpenOlitorBatchJobs.props(entityStore, fileStoreComponent.fileStore), "batch-jobs"), duration).asInstanceOf[ActorRef]
 
       //initialize global persistentviews
       logger.debug(s"oo-system: send Startup to entityStoreview")
@@ -212,9 +227,10 @@ object Boot extends App with LazyLogging {
       stammdatenEntityStoreView ? DefaultMessages.Startup
       buchhaltungEntityStoreView ? DefaultMessages.Startup
       arbeitseinsatzEntityStoreView ? DefaultMessages.Startup
+      reportsEntityStoreView ? DefaultMessages.Startup
 
       // create and start our service actor
-      val service = Await.result(system ? SystemActor.Child(RouteServiceActor.props(entityStore, eventStore, mailService, reportSystem, fileStoreComponent.fileStore, airbrakeNotifier, loginTokenCache), "route-service"), duration).asInstanceOf[ActorRef]
+      val service = Await.result(system ? SystemActor.Child(RouteServiceActor.props(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, fileStoreComponent.fileStore, airbrakeNotifier, jobQueueService, loginTokenCache), "route-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system: route-service:$service")
 
       // start a new HTTP server on port 9005 with our service actor as the handler
@@ -225,7 +241,10 @@ object Boot extends App with LazyLogging {
       IO(UHttp) ? Http.Bind(clientMessages, interface = cfg.interface, port = cfg.wsPort)
       logger.debug(s"oo-system: configured ws listener on port ${cfg.wsPort}")
 
-      calculations ! InitializeCalculation
+      batchJobs ! InitializeBatchJob
+
+      // persist timestamp of system startup
+      eventStore ! SystemStarted(DateTime.now)
 
       MandantSystem(cfg, app)
     }
@@ -241,7 +260,7 @@ object Boot extends App with LazyLogging {
 
   def systemConfig(mandant: MandantConfiguration) = SystemConfig(mandant, connectionPoolContext(mandant), asyncConnectionPoolContext(mandant))
 
-  def connectionPoolContext(mandantConfig: MandantConfiguration) = MandantDBs(mandantConfig).connectionPoolContext
+  def connectionPoolContext(mandantConfig: MandantConfiguration) = MandantDBs(mandantConfig).connectionPoolContext()
 
-  def asyncConnectionPoolContext(mandantConfig: MandantConfiguration) = AsyncMandantDBs(mandantConfig).connectionPoolContext
+  def asyncConnectionPoolContext(mandantConfig: MandantConfiguration) = AsyncMandantDBs(mandantConfig).connectionPoolContext()
 }

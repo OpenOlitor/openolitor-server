@@ -31,6 +31,8 @@ import scala.collection.immutable.TreeMap
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.scalax.Tuple23
+import ch.openolitor.core.scalax.Tuple26
+import ch.openolitor.core.scalax.Tuple27
 
 sealed trait EinsatzEinheit extends Product
 
@@ -77,6 +79,14 @@ case class Geschaeftsjahr(monat: Int, tag: Int) {
       s"${startDate.getMonthOfYear}/${startDate.getYear}"
     }
   }
+
+  /**
+   * Retourniert 'true' wenn die übergebenen Daten im selben Geschäftsjahr liegen. 'false' wenn dies nicht so ist.
+   * Wird nur ein Datum übergeben wird zum aktuelle Moment verglichen.
+   */
+  def isInSame(date: LocalDate, comparteTo: LocalDate = LocalDate.now): Boolean = {
+    key(date) == key(comparteTo)
+  }
 }
 
 case class Projekt(
@@ -95,6 +105,9 @@ case class Projekt(
     geschaeftsjahrTag: Int,
     twoFactorAuthentication: Map[Rolle, Boolean],
     sprache: Locale,
+    welcomeMessage1: Option[String],
+    welcomeMessage2: Option[String],
+    maintenanceMode: Boolean,
     generierteMailsSenden: Boolean,
     einsatzEinheit: EinsatzEinheit,
     einsatzAbsageVorlaufTage: Int,
@@ -150,6 +163,8 @@ case class ProjektPublik(
   waehrung: Waehrung,
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
+  welcomeMessage1: Option[String],
+  maintenanceMode: Boolean,
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean
@@ -204,6 +219,10 @@ case class ProjektModify(
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
   sprache: Locale,
+  welcomeMessage1: Option[String],
+  welcomeMessage2: Option[String],
+  maintenanceMode: Boolean,
+
   generierteMailsSenden: Boolean,
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
@@ -214,49 +233,20 @@ case class KundentypId(id: String) extends BaseStringId
 
 case class CustomKundentypId(id: Long) extends BaseId
 
-trait Kundentyp {
-  val kundentyp: KundentypId
-  val beschreibung: Option[String] = None
-  def system: Boolean
-}
-
 case class CustomKundentyp(
-    id: CustomKundentypId,
-    override val kundentyp: KundentypId,
-    override val beschreibung: Option[String],
-    anzahlVerknuepfungen: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends BaseEntity[CustomKundentypId] with Kundentyp {
-  override def system = false
-}
+  id: CustomKundentypId,
+  val kundentyp: KundentypId,
+  val beschreibung: Option[String],
+  anzahlVerknuepfungen: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[CustomKundentypId]
 
-case class CustomKundentypModify(beschreibung: Option[String]) extends JSONSerializable
+// Don't use!
+case class CustomKundentypModifyV1(beschreibung: Option[String]) extends JSONSerializable
+
+case class CustomKundentypModify(kundentyp: KundentypId, id: CustomKundentypId, beschreibung: Option[String]) extends JSONSerializable
 case class CustomKundentypCreate(kundentyp: KundentypId, beschreibung: Option[String]) extends JSONSerializable
-
-sealed trait SystemKundentyp extends Kundentyp with Product {
-  override def system = true
-}
-
-object SystemKundentyp {
-  val ALL = Vector(Vereinsmitglied, Goenner, Genossenschafterin)
-
-  def parse(value: String): Option[SystemKundentyp] = {
-    ALL find (_.toString == value)
-  }
-}
-
-case object Vereinsmitglied extends SystemKundentyp {
-  override val kundentyp = KundentypId("Vereinsmitglied")
-}
-
-case object Goenner extends SystemKundentyp {
-  override val kundentyp = KundentypId("Goenner")
-}
-
-case object Genossenschafterin extends SystemKundentyp {
-  override val kundentyp = KundentypId("Genossenschafterin")
-}

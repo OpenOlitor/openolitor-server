@@ -33,11 +33,12 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.JSONSerializable
 import zangelo.spray.json.AutoProductFormats
 import scala.collection.immutable.TreeMap
+import ch.openolitor.core.reporting.ReportJsonProtocol
 
 /**
  * JSON Format deklarationen für das Modul Stammdaten
  */
-trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] {
+trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] {
 
   //enum formats
   implicit val wochentagFormat = enumFormat(x => Wochentag.apply(x).getOrElse(Montag))
@@ -121,15 +122,14 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   //id formats
   implicit val vertriebIdFormat = baseIdFormat(VertriebId)
   implicit val vertriebsartIdFormat = baseIdFormat(VertriebsartId)
-  implicit val abotypIdFormat = baseIdFormat(AbotypId)
+  implicit val abotypIdFormat = baseIdFormat(AbotypId.apply _)
   implicit val depotIdFormat = baseIdFormat(DepotId)
   implicit val tourIdFormat = baseIdFormat(TourId)
   implicit val auslieferungIdFormat = baseIdFormat(AuslieferungId)
   implicit val optionAuslieferungIdFormat = new OptionFormat[AuslieferungId]
-  implicit val multiAuslieferungIdFormat = baseIdFormat(MultiAuslieferungId)
   implicit val kundeIdFormat = baseIdFormat(KundeId)
   implicit val pendenzIdFormat = baseIdFormat(PendenzId)
-  implicit val aboIdFormat = baseIdFormat(AboId)
+  implicit val aboIdFormat = baseIdFormat(AboId.apply _)
   implicit val lieferungIdFormat = baseIdFormat(LieferungId)
   implicit val lieferungOnLieferplanungIdFormat = baseIdFormat(LieferungOnLieferplanungId)
   implicit val lieferplanungIdFormat = baseIdFormat(LieferplanungId)
@@ -175,6 +175,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
       }
   }
   implicit val projektIdFormat = baseIdFormat(ProjektId.apply)
+  implicit val kontoDatenIdFormat = baseIdFormat(KontoDatenId.apply)
   implicit val korbIdFormat = baseIdFormat(KorbId.apply)
   implicit val einladungIdFormat = baseIdFormat(EinladungId.apply)
 
@@ -287,32 +288,9 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   }
 
   implicit val abotypFormat = enhanceWithBooleanFlag[Abotyp]("aktiv")
-
-  implicit val systemKundentypFormat = new JsonFormat[SystemKundentyp] {
-    def write(obj: SystemKundentyp): JsValue =
-      JsString(obj.productPrefix)
-
-    def read(json: JsValue): SystemKundentyp =
-      json match {
-        case JsString(kundentyp) => SystemKundentyp.parse(kundentyp).getOrElse(sys.error(s"Unknown System-Kundentyp:$kundentyp"))
-        case pt => sys.error(s"Unknown personentyp:$pt")
-      }
-  }
-
-  implicit val kundentypFormat = new JsonFormat[Kundentyp] {
-    def write(obj: Kundentyp): JsValue =
-      obj match {
-        case s: SystemKundentyp => s.toJson
-        case c: CustomKundentyp => c.toJson
-      }
-
-    def read(json: JsValue): Kundentyp =
-      json match {
-        case system: JsString => json.convertTo[SystemKundentyp]
-        case custom: JsObject => json.convertTo[CustomKundentyp]
-        case pt => sys.error(s"Unknown personentyp:$pt")
-      }
-  }
+  implicit val zusatzabotypFormat = enhanceWithBooleanFlag[ZusatzAbotyp]("aktiv")
+  implicit val zusatzaboCreateFormat = autoProductFormat[ZusatzAboCreate]
+  implicit val zusatzaboModifyFormat = autoProductFormat[ZusatzAboModify]
 
   implicit val treeMapIntFormat = new JsonFormat[TreeMap[String, Int]] {
     def write(obj: TreeMap[String, Int]): JsValue = {
@@ -371,6 +349,23 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   implicit val postlieferungAboDetailFormat = autoProductFormat[PostlieferungAboDetail]
   implicit val postlieferungAboModifyFormat = autoProductFormat[PostlieferungAboModify]
 
+  implicit val zusatzAboFormat = autoProductFormat[ZusatzAbo]
+
+  implicit val iAbotypFormat = new RootJsonFormat[IAbotyp] {
+    def write(obj: IAbotyp): JsValue =
+      JsObject((obj match {
+        case a: Abotyp => a.toJson
+        case z: ZusatzAbotyp => z.toJson
+      }).asJsObject.fields + ("typ" -> JsString(obj.productPrefix)))
+
+    def read(json: JsValue): IAbotyp = {
+      json.asJsObject.getFields("typ") match {
+        case Seq(JsString("Abotyp")) => json.convertTo[Abotyp]
+        case Seq(JsString("ZusatzAbotyp")) => json.convertTo[ZusatzAbotyp]
+      }
+    }
+  }
+
   implicit val aboDetailFormat = new RootJsonFormat[AboDetail] {
     def write(obj: AboDetail): JsValue =
       obj match {
@@ -427,8 +422,10 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
     }
   }
 
+  implicit val vertriebRecalculationModify = autoProductFormat[VertriebRecalculationsModify]
   implicit val lieferungAbotypCreateFormat = autoProductFormat[LieferungAbotypCreate]
   implicit val lieferungModifyFormat = autoProductFormat[LieferungModify]
+  implicit val lieferungAbgeschlossenModifyFormat = autoProductFormat[LieferungAbgeschlossenModify]
   implicit val lieferplanungModifyFormat = autoProductFormat[LieferplanungModify]
   implicit val lieferplanungCreateFormat = autoProductFormat[LieferplanungCreate]
   implicit val lieferpositionModifyFormat = autoProductFormat[LieferpositionModify]
@@ -436,11 +433,14 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   implicit val lieferungPlanungAddFormat = autoProductFormat[LieferungPlanungAdd]
   implicit val lieferungPlanungRemoveFormat = autoProductFormat[LieferungPlanungRemove]
   implicit val bestellungenCreateFormat = autoProductFormat[BestellungenCreate]
+  implicit val bestellungStatusModify = autoProductFormat[SammelbestellungStatusModify]
   implicit val bestellpositionModifyFormat = autoProductFormat[BestellpositionModify]
 
   implicit val korbCreateFormat = autoProductFormat[KorbCreate]
+  implicit val korbModifyAuslieferungFormat = autoProductFormat[KorbAuslieferungModify]
 
   implicit val projektModifyFormat = autoProductFormat[ProjektModify]
+  implicit val kontoDatenModifyFormat = autoProductFormat[KontoDatenModify]
 
   // special report formats
   def enhancedProjektReportFormatDef(defaultFormat: JsonFormat[ProjektReport]): RootJsonFormat[ProjektReport] = new RootJsonFormat[ProjektReport] {
@@ -468,7 +468,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
           "strasseUndNummerLieferung" -> JsString(obj.strasseUndNummerLieferung.getOrElse("")),
           "plzOrtLieferung" -> JsString(obj.plzOrtLieferung.getOrElse("")),
           "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector),
-          "lieferAdresszeilen" -> JsArray(obj.lieferAdresszeilen.map(JsString(_)).toVector)
+          "lieferAdresszeilen" -> JsArray(obj.lieferAdresszeilen.map(JsString(_)).toVector),
+          "telefonNummern" -> JsString(obj.telefonNummern)
         ))
     }
 
@@ -477,6 +478,19 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with LazyLogging with Auto
   implicit val enhancedKundeReportFormat: RootJsonFormat[KundeReport] = enhancedKundeReportFormatDef(autoProductFormat[KundeReport])
   implicit val enhancedKundeDetailReportFormat: RootJsonFormat[KundeDetailReport] = enhancedKundeReportFormatDef(autoProductFormat[KundeDetailReport])
   implicit val korbReportFormat = autoProductFormat[KorbReport]
+
+  def enhancedBestellpositionFormatDef[T <: BestellpositionCalculatedFields](defaultFormat: JsonFormat[T]): RootJsonFormat[T] = new RootJsonFormat[T] {
+    def write(obj: T): JsValue = {
+      JsObject(defaultFormat.write(obj)
+        .asJsObject.fields +
+        (
+          "mengeTotal" -> JsNumber(obj.mengeTotal)
+        ))
+    }
+
+    def read(json: JsValue): T = defaultFormat.read(json)
+  }
+  implicit val enhancedBestellpositionFormat: RootJsonFormat[Bestellposition] = enhancedBestellpositionFormatDef(autoProductFormat[Bestellposition])
 
   def enhancedDepotReportFormatDef[D <: IDepotReport](defaultFormat: JsonFormat[D]): RootJsonFormat[D] = new RootJsonFormat[D] {
     def write(obj: D): JsValue = {

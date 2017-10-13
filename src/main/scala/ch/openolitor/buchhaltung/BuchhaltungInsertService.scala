@@ -38,9 +38,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import org.joda.time.DateTime
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
+import ch.openolitor.stammdaten.models.KontoDaten
 import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.stammdaten.models.KundeId
 
 object BuchhaltungInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungInsertService = new DefaultBuchhaltungInsertService(sysConfig, system)
@@ -65,8 +69,6 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
   lazy val config = sysConfig.mandantConfiguration.config
   lazy val RechnungIdLength = config.getIntOption(s"buchhaltung.rechnung-id-length").getOrElse(6)
   lazy val KundeIdLength = config.getIntOption(s"buchhaltung.kunde-id-length").getOrElse(6)
-  lazy val Teilnehmernummer = config.getStringOption(s"buchhaltung.teilnehmernummer").getOrElse("")
-  lazy val ReferenznummerPrefix = config.getStringOption(s"buchhaltung.referenznummer-prefix").getOrElse("")
 
   val belegarten = Map[Waehrung, String](CHF -> "01", EUR -> "21")
 
@@ -74,57 +76,80 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
   val checkSumDefinition = List(0, 9, 4, 6, 8, 2, 7, 1, 3, 5)
 
   val handle: Handle = {
-    case EntityInsertedEvent(meta, id: RechnungId, entity: RechnungCreate) =>
-      createRechnung(meta, id, entity)
+    case EntityInsertedEvent(meta, id: RechnungsPositionId, entity: RechnungsPositionCreate) =>
+      createRechnungsPosition(meta, id, entity)
+    case EntityInsertedEvent(meta, id: RechnungId, entity: RechnungCreateFromRechnungsPositionen) => createRechnung(meta, id, entity)
     case e =>
   }
 
-  def createRechnung(meta: EventMetadata, id: RechnungId, entity: RechnungCreate)(implicit personId: PersonId = meta.originator) = {
-    val referenzNummer = generateReferenzNummer(entity, id)
-    val esrNummer = generateEsrNummer(entity, referenzNummer)
+  def createRechnungsPosition(meta: EventMetadata, id: RechnungsPositionId, entity: RechnungsPositionCreate)(implicit personId: PersonId = meta.originator): Option[RechnungsPosition] = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
 
-    val typ = copyTo[RechnungCreate, Rechnung](
-      entity,
-      "id" -> id,
-      "status" -> Erstellt,
-      "referenzNummer" -> referenzNummer,
-      "fileStoreId" -> None,
-      "anzahlMahnungen" -> 0.toInt,
-      "mahnungFileStoreIds" -> Set.empty[String],
-      "esrNummer" -> esrNummer,
-      "erstelldat" -> meta.timestamp,
-      "ersteller" -> meta.originator,
-      "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      val rp = copyTo[RechnungsPositionCreate, RechnungsPosition](
+        entity,
+        "id" -> id,
+        "rechnungId" -> None,
+        "parentRechnungsPositionId" -> None,
+        "status" -> RechnungsPositionStatus.Offen,
+        "sort" -> None,
+        "erstelldat" -> meta.timestamp,
+        "ersteller" -> meta.originator,
+        "modifidat" -> meta.timestamp,
+        "modifikator" -> meta.originator
+      )
 
-    DB autoCommit { implicit session =>
-      buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
+      buchhaltungWriteRepository.insertEntity[RechnungsPosition, RechnungsPositionId](rp)
+    }
+  }
+
+  def createRechnung(meta: EventMetadata, id: RechnungId, entity: RechnungCreateFromRechnungsPositionen)(implicit personId: PersonId = meta.originator): Option[Rechnung] = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.getKontoDaten flatMap { kontoDaten =>
+        val referenzNummer = generateReferenzNummer(kontoDaten, entity.kundeId, id)
+        val esrNummer = generateEsrNummer(kontoDaten, entity.betrag, entity.waehrung, referenzNummer)
+
+        val typ = copyTo[RechnungCreateFromRechnungsPositionen, Rechnung](
+          entity,
+          "id" -> id,
+          "einbezahlterBetrag" -> None,
+          "status" -> Erstellt,
+          "referenzNummer" -> referenzNummer,
+          "fileStoreId" -> None,
+          "anzahlMahnungen" -> 0.toInt,
+          "mahnungFileStoreIds" -> Set.empty[String],
+          "esrNummer" -> esrNummer,
+          "erstelldat" -> meta.timestamp,
+          "ersteller" -> meta.originator,
+          "modifidat" -> meta.timestamp,
+          "modifikator" -> meta.originator
+        )
+        buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
+      }
     }
   }
 
   /**
    * Generieren einer Referenznummer, die die Kundennummer und Rechnungsnummer enthält.
    */
-  def generateReferenzNummer(rechnung: RechnungCreate, id: RechnungId): String = {
-    val kundeId = s"${rechnung.kundeId.id}"
-    val rechnungId = s"${id.id}"
-    val zeroesLength = ReferenznummerLength - ReferenznummerPrefix.size - kundeId.size - rechnungId.size
-    val zeroes = s"%0${zeroesLength}d".format(0)
-    val filled = (s"${ReferenznummerPrefix}${zeroes}${rechnung.kundeId.id}${id.id}") takeRight (ReferenznummerLength)
+  def generateReferenzNummer(kontoDaten: KontoDaten, kundeId: KundeId, id: RechnungId): String = {
+    val referenzNummerPrefix = kontoDaten.referenzNummerPrefix getOrElse ("")
+
+    val filled = s"${referenzNummerPrefix}%0${ReferenznummerLength - referenzNummerPrefix.size - RechnungIdLength}d%0${RechnungIdLength}d".format(kundeId.id, id.id)
     val checksum = calculateChecksum(filled.toList map (_.asDigit))
 
     s"$filled$checksum"
   }
 
-  def generateEsrNummer(rechnung: RechnungCreate, referenzNummer: String): String = {
-    val bc = belegarten(rechnung.waehrung)
-    val zeroes = s"%0${BetragLength}d".format(0)
-    val betrag = (s"$zeroes${(rechnung.betrag * 100).toBigInt}") takeRight (BetragLength)
-    val checksum = calculateChecksum((bc + betrag).toList map (_.asDigit))
-    val filledTeilnehmernummer = (s"%0${TeilnehmernummerLength}d".format(0) + Teilnehmernummer) takeRight (TeilnehmernummerLength)
+  def generateEsrNummer(kontoDaten: KontoDaten, betrag: BigDecimal, waehrung: Waehrung, referenzNummer: String): String = {
+    val teilnehmerNummer = kontoDaten.teilnehmerNummer getOrElse ("")
 
-    s"$bc$betrag$checksum>$referenzNummer+ $filledTeilnehmernummer>"
+    val bc = belegarten(waehrung)
+    val zeroes = s"%0${BetragLength}d".format(0)
+    val formated_betrag = (s"$zeroes${(betrag * 100).toBigInt}") takeRight (BetragLength)
+    val checksum = calculateChecksum((bc + formated_betrag).toList map (_.asDigit))
+    val filledTeilnehmernummer = (s"%0${TeilnehmernummerLength}d".format(0) + teilnehmerNummer) takeRight (TeilnehmernummerLength)
+
+    s"$bc$formated_betrag$checksum>$referenzNummer+ $filledTeilnehmernummer>"
   }
 
   def calculateChecksum(digits: List[Int], buffer: Int = 0): Int = digits match {

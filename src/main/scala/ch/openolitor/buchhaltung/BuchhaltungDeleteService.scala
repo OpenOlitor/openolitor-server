@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung
 
-import akka.persistence.PersistentView
 import akka.actor._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
@@ -37,6 +36,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object BuchhaltungDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungDeleteService = new DefaultBuchhaltungDeleteService(sysConfig, system)
@@ -56,12 +57,19 @@ class BuchhaltungDeleteService(override val sysConfig: SystemConfig) extends Eve
 
   val handle: Handle = {
     case EntityDeletedEvent(meta, id: RechnungId) => deleteRechnung(meta, id)
+    case EntityDeletedEvent(meta, id: RechnungsPositionId) => deleteRechnungsPosition(meta, id)
     case e =>
   }
 
   def deleteRechnung(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.deleteEntity[Rechnung, RechnungId](id, { rechnung: Rechnung => rechnung.status == Erstellt })
+    }
+  }
+
+  def deleteRechnungsPosition(meta: EventMetadata, id: RechnungsPositionId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.deleteEntity[RechnungsPosition, RechnungsPositionId](id)
     }
   }
 }

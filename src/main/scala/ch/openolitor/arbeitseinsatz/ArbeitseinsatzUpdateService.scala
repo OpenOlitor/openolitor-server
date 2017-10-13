@@ -42,6 +42,8 @@ import ch.openolitor.core.models.PersonId
 import scala.concurrent.Future
 import scalikejdbc.DBSession
 import ch.openolitor.util.IdUtil
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
 
 object ArbeitseinsatzUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzUpdateService = new DefaultArbeitseinsatzUpdateService(sysConfig, system)
@@ -67,31 +69,31 @@ class ArbeitseinsatzUpdateService(override val sysConfig: SystemConfig) extends 
   }
 
   def updateArbeitskategorie(meta: EventMetadata, id: ArbeitskategorieId, update: ArbeitskategorieModify)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.getById(arbeitskategorieMapping, id) map { arbeitskategorie =>
         //map all updatable fields
         val copy = copyFrom(arbeitskategorie, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
-        arbeitseinsatzWriteRepository.updateEntity[Arbeitskategorie, ArbeitskategorieId](copy)
+        arbeitseinsatzWriteRepository.updateEntityFully[Arbeitskategorie, ArbeitskategorieId](copy)
       }
     }
   }
 
   def updateArbeitsangebot(meta: EventMetadata, id: ArbeitsangebotId, update: ArbeitsangebotModify)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, id) map { arbeitsangebot =>
         //map all updatable fields
         val copy = copyFrom(arbeitsangebot, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
-        arbeitseinsatzWriteRepository.updateEntity[Arbeitsangebot, ArbeitsangebotId](copy)
+        arbeitseinsatzWriteRepository.updateEntityFully[Arbeitsangebot, ArbeitsangebotId](copy)
       }
     }
   }
 
   def updateArbeitseinsatz(meta: EventMetadata, id: ArbeitseinsatzId, update: ArbeitseinsatzModify)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommit { implicit session =>
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.getById(arbeitseinsatzMapping, id) map { arbeitskategorie =>
         //map all updatable fields
         val copy = copyFrom(arbeitskategorie, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
-        arbeitseinsatzWriteRepository.updateEntity[Arbeitseinsatz, ArbeitseinsatzId](copy)
+        arbeitseinsatzWriteRepository.updateEntityFully[Arbeitseinsatz, ArbeitseinsatzId](copy)
       }
     }
   }
