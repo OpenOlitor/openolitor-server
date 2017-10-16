@@ -34,6 +34,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.stammdaten.mailtemplates.model._
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.repositories.SqlBinder
 import scala.reflect._
@@ -44,6 +45,7 @@ import ch.openolitor.reports.ReportsDBMappings
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import akka.actor.ActorSystem
 import ch.openolitor.core.ActorSystemReference
+import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateDBMappings
 
 trait Script {
 
@@ -56,7 +58,7 @@ case class EvolutionException(msg: String) extends Exception
  * Base evolution class to evolve database from a specific revision to another
  */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
-    with BuchhaltungDBMappings with ReportsDBMappings {
+    with BuchhaltungDBMappings with ReportsDBMappings with MailTemplateDBMappings {
   import IteratorUtil._
 
   logger.debug(s"Evolution manager consists of:$scripts")
@@ -102,7 +104,9 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[ZahlungsEingang, ZahlungsEingangId](seeds, zahlungsEingangMapping),
           adjustSeed[Einladung, EinladungId](seeds, einladungMapping),
           adjustSeed[Sammelbestellung, SammelbestellungId](seeds, sammelbestellungMapping),
-          adjustSeed[Report, ReportId](seeds, reportMapping)
+          adjustSeed[Report, ReportId](seeds, reportMapping),
+          adjustSeed[MailTemplate, MailTemplateId](seeds, mailTemplateMapping)
+
         ).flatten
 
         Success(seeds ++ dbIds.toMap)
@@ -122,7 +126,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     val q = queries.flatten
     val overallMaxId = if (q.length > 0) q.max else 0
     seeds.get(entity).flatMap { s =>
-      if (s < overallMaxId) Some(entity -> overallMaxId) else None
+      if (s < overallMaxId) Some(entity -> overallMaxId) else Some(entity -> s)
     }
   }
 
@@ -132,7 +136,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     withSQL {
       select(max(idx))
         .from(syntax as alias)
-    }.map(_.longOpt(1)).single.apply().getOrElse(None)
+    }.map(_.longOpt(1)).single.apply().getOrElse(Some(0))
   }
 
   def evolveDatabase(fromRevision: Int = 0)(implicit cpContext: ConnectionPoolContext, personId: PersonId): Try[Int] = {

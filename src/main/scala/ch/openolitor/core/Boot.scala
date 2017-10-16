@@ -83,7 +83,7 @@ trait SystemConfigReference {
   lazy val config = sysConfig.mandantConfiguration.config
 }
 
-case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: Map[Class[_], Long], config: Config) {
+case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: Map[Class[_ <: ch.openolitor.core.models.BaseId], Long], config: Config) {
   val configKey = s"openolitor.${key}"
 
   def wsUri = s"ws://$interface:$wsPort"
@@ -253,12 +253,12 @@ object Boot extends App with LazyLogging {
     }
   }
 
-  def dbSeeds(config: Config) = {
+  def dbSeeds(config: Config): Map[Class[_ <: ch.openolitor.core.models.BaseId], Long] = {
     val models = config.getStringList("db.default.seed.models")
     val mappings: Seq[(Class[_], Long)] = models.map { model =>
       Class.forName(model) -> config.getLong(s"db.default.seed.mappings.$model")
     }.toSeq
-    mappings.toMap
+    mappings.toMap.asInstanceOf[Map[Class[_ <: ch.openolitor.core.models.BaseId], Long]]
   }
 
   def systemConfig(mandant: MandantConfiguration) = SystemConfig(mandant, connectionPoolContext(mandant), asyncConnectionPoolContext(mandant))

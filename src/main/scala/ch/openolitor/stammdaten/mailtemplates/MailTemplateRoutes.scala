@@ -67,32 +67,6 @@ trait MailTemplateRoutes extends HttpService
       path("mailtemplates" / mailTemplateIdPath) { mailTemplateId =>
         get(detail(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
           (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId))
-      } ~
-      path("mailtemplates" / mailTemplateIdPath / "dokument") { mailTemplateId =>
-        get {
-          onSuccess(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId)) {
-            case Some(template) if template.bodyFileStoreId.isDefined =>
-              download(template.templateType, template.bodyFileStoreId.get)
-            case Some(template) =>
-              complete(StatusCodes.BadRequest, s"Bei diesem Mail-Template ist kein Dokument hinterlegt: $mailTemplateId")
-            case None =>
-              complete(StatusCodes.NotFound, s"Mail-Template nicht gefunden: $mailTemplateId")
-          }
-        } ~
-          (put | post) {
-            onSuccess(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId)) {
-              case Some(template) =>
-                val fileStoreId = template.bodyFileStoreId.getOrElse(generateFileStoreId(template))
-                uploadStored(template.templateType, Some(fileStoreId)) { (storeFileStoreId, metadata) =>
-                  updated(mailTemplateId, MailTemplateUpload(storeFileStoreId))
-                }
-              case None =>
-                complete(StatusCodes.NotFound, s"Mail-Template nicht gefunden: $mailTemplateId")
-            }
-          }
       }
 
-  private def generateFileStoreId(template: MailTemplate) = {
-    template.templateName.replace(" ", "_")
-  }
 }

@@ -81,7 +81,7 @@ case class MailTemplate(
   templateName: String,
   description: Option[String],
   subject: String,
-  bodyFileStoreId: Option[String],
+  body: String,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -93,9 +93,6 @@ case class MailTemplateModify(
   templateType: MailTemplateType,
   templateName: String,
   description: Option[String],
-  subject: String
-) extends JSONSerializable
-
-case class MailTemplateUpload(
-  bodyFileStoreId: String
+  subject: String,
+  body: String
 ) extends JSONSerializable

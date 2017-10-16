@@ -45,7 +45,6 @@ trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: Bas
 
   val mailTemplateUpdateHandle: Handle = {
     case EntityUpdatedEvent(meta, id: MailTemplateId, update: MailTemplateModify) => updateMailTemplate(meta, id, update)
-    case EntityUpdatedEvent(meta, id: MailTemplateId, upload: MailTemplateUpload) => uploadedMailTemplate(meta, id, upload)
 
   }
 
@@ -58,14 +57,4 @@ trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: Bas
       }
     }
   }
-
-  def uploadedMailTemplate(meta: EventMetadata, id: MailTemplateId, upload: MailTemplateUpload)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      mailTemplateWriteRepository.getById(mailTemplateMapping, id) map { template =>
-        val copy = template.copy(bodyFileStoreId = Some(upload.bodyFileStoreId), modifidat = meta.timestamp, modifikator = personId)
-        mailTemplateWriteRepository.updateEntityFully[MailTemplate, MailTemplateId](copy)
-      }
-    }
-  }
 }
-
