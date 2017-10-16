@@ -36,7 +36,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
 
       val templateBody = """
         Person: {{ person.name }}
-        Birthdate: {{ person.birthdate | filter date format="dd.MM.yyyy" }}
+        Birthdate: {{ person.birthdate | filter date format dd.MM.yyyy }}
         Age: {{ person.age }}        
         Addresses:
         ----------

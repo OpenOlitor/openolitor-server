@@ -12,6 +12,8 @@ import ch.openolitor.util.ProductUtil._
 import ch.openolitor.util.DateTimeUtil._
 import de.zalando.beard.renderer._
 import ch.openolitor.core.filestore._
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTime
 
 /**
  * This trait provides functionality to generate mail payloads based on either custom or a default template
@@ -20,6 +22,14 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStore
   self: MailTemplateReadRepositoryComponent =>
 
   lazy val maxFileStoreResolveTimeout = config.getDuration(s"mailtemplates.max-file-store-resolve-timeout")
+
+  val format = DateTimeFormat.forPattern("yyyy-dd-MM hh:mm:ssZ")
+  /**
+   * Type converter is used to convert single values when generating the map out of the provided data object
+   */
+  val typeConverter: PartialFunction[Any, Any] = {
+    case x: DateTime => format.print(x)
+  }
 
   /**
    * Generate emails for a list of contexts.
@@ -64,7 +74,7 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStore
 
         //render mails for every context
         contexts.map { context =>
-          val contextMap = context.toMap
+          val contextMap = context.toMap(typeConverter)
 
           val subjectResult = subjectRenderer.render(
             subjectTempl,
