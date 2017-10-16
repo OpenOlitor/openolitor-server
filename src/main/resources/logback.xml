@@ -24,19 +24,19 @@
     <logger name="akka.actor" level="INFO">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
+
     <logger name="a.p.j.s.MySQLAsyncWriteJournal" level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
+
     <logger name="s.async" level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
+
     <logger name="ch.openolitor" level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
+
     <logger name="ch.openolitor.core.repositories" level="ERROR">
         <appender-ref ref="STDOUT"/>
     </logger>
@@ -48,11 +48,11 @@
     <logger name="ch.openolitor.buchhaltung.repositories" level="ERROR">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
+
     <logger name="ch.openolitor.core.ws" level="ERROR">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
+
     <logger name="ch.openolitor.core.reporting.SingleDocumentReportProcessorActor" level="ERROR">
         <appender-ref ref="STDOUT"/>
     </logger>

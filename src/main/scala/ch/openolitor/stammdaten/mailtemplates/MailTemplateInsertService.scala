@@ -51,7 +51,6 @@ trait MailTemplateInsertService extends EventService[EntityInsertedEvent[_ <: Ba
   def createMailTemplateVorlage(meta: EventMetadata, id: MailTemplateId, create: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       val template = copyTo[MailTemplateModify, MailTemplate](create, "id" -> id,
-        "bodyFileStoreId" -> None,
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
@@ -61,4 +60,3 @@ trait MailTemplateInsertService extends EventService[EntityInsertedEvent[_ <: Ba
     }
   }
 }
-
