@@ -24,20 +24,22 @@ package ch.openolitor.util
 
 object ProductUtil {
   implicit class Product2MapSupport(self: Product) {
+
     /**
      * Converts a product to a nested Map consisting of properties and names as key-value pairs.
      */
-    def toMap: Map[String, Any] = {
+    def toMap(customConverter: PartialFunction[Any, Any] = Map.empty): Map[String, Any] = {
       val fieldNames = self.getClass.getDeclaredFields.map(_.getName)
 
-      def toVals(seq: TraversableOnce[Any]): Seq[Any] = (seq map {
+      val defaultMapper: PartialFunction[Any, Any] = { case x => x }
+      val converters = customConverter orElse defaultMapper
+      def toVals(x: Any): Any = x match {
         case t: Traversable[_] => toVals(t)
-        case p: Product if p.productArity > 0 => p.toMap
-        case x => x
-      }).toSeq
+        case p: Product if p.productArity > 0 => p.toMap(customConverter)
+        case x => converters(x)
+      }
 
-      val vals = toVals(self.productIterator)
-
+      val vals = self.productIterator.map(toVals).toSeq
       fieldNames.zip(vals).toMap
     }
   }
