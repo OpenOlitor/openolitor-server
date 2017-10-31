@@ -209,7 +209,7 @@ object Boot extends App with LazyLogging {
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
-      val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, entityStore), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, dbEvolutionActor), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportsEntityStoreView = Await.result(system ? SystemActor.Child(ReportsEntityStoreView.props(dbEvolutionActor), "reports-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportsDBEventListener = Await.result(system ? SystemActor.Child(ReportsDBEventEntityListener.props, "reports-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
 

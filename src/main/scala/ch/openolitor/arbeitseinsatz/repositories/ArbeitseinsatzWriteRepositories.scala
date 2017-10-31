@@ -22,16 +22,10 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz.repositories
 
-import ch.openolitor.core.models._
-import scalikejdbc._
-import ch.openolitor.core.repositories.BaseWriteRepository
-import ch.openolitor.arbeitseinsatz._
-import ch.openolitor.arbeitseinsatz.models._
-import org.joda.time.DateTime
-import akka.actor.ActorSystem
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.core.EventStream
+import ch.openolitor.core.repositories.BaseWriteRepository
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
 trait ArbeitseinsatzWriteRepository extends ArbeitseinsatzReadRepositorySync
     with ArbeitseinsatzInsertRepository

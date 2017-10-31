@@ -22,18 +22,11 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import java.util.UUID
-import ch.openolitor.core.models._
 import ch.openolitor.arbeitseinsatz.models._
-import scalikejdbc._
-import scalikejdbc.Binders._
-import ch.openolitor.core.repositories.DBMappings
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
-import ch.openolitor.core.scalax._
+import ch.openolitor.core.repositories.{ BaseEntitySQLSyntaxSupport, BaseParameter, DBMappings }
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.core.repositories.BaseParameter
-import org.joda.time.DateTime
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
 //DB Model bindig
 trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with BaseParameter with LazyLogging {

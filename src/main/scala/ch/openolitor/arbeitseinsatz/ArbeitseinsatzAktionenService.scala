@@ -22,32 +22,13 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
+import akka.actor.{ ActorRef, ActorSystem }
+import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
+import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
-import ch.openolitor.core.Macros._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.arbeitseinsatz._
-import ch.openolitor.arbeitseinsatz.models._
-import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.domain.EntityStore._
-import akka.actor.ActorSystem
-import akka.actor.ActorRef
-import akka.pattern.ask
-import akka.util.Timeout
-import shapeless.LabelledGeneric
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.UUID
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.arbeitseinsatz.repositories._
-import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
-import org.joda.time.DateTime
-import ch.openolitor.core.mailservice.Mail
-import ch.openolitor.core.mailservice.MailService._
-import org.joda.time.format.DateTimeFormat
-import ch.openolitor.util.ConfigUtil._
-import scalikejdbc.DBSession
 
 object ArbeitseinsatzAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): ArbeitseinsatzAktionenService = new DefaultArbeitseinsatzAktionenService(sysConfig, system, mailService)

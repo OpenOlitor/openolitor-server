@@ -22,14 +22,12 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz.eventsourcing
 
-import stamina._
-import stamina.json._
 import ch.openolitor.arbeitseinsatz._
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import zangelo.spray.json.AutoProductFormats
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.domain.EntityStoreJsonProtocol
+import stamina.json._
+import zangelo.spray.json.AutoProductFormats
 
 trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
   // V1 persisters

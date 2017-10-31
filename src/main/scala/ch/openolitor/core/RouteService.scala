@@ -152,7 +152,8 @@ trait RouteServiceActor
     with CORSSupport
     with BaseJsonProtocol
     with RoleBasedAuthorization
-    with AirbrakeNotifierReference {
+    with AirbrakeNotifierReference
+    with LazyLogging {
   self: RouteServiceComponent =>
 
   //initially run db evolution
@@ -321,6 +322,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
           def writeToRow(row: Row, element: Any, cellIndex: Int): Unit = {
             element match {
+              case null =>
               case some: Some[Any] => writeToRow(row, some.x, cellIndex)
               case None =>
               case ite: Iterable[Any] => ite map { item => writeToRow(row, item, cellIndex) }
@@ -356,7 +358,10 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
                         entry.zipWithIndex foreach {
                           case ((fieldName, value), colIndex) =>
-                            writeToRow(row, value, colIndex)
+                            fieldName match {
+                              case "passwort" => writeToRow(row, "Not available", colIndex)
+                              case _ => writeToRow(row, value, colIndex)
+                            }
                         }
                     }
 

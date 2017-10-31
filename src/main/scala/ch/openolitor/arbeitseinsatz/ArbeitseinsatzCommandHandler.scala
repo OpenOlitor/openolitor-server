@@ -22,20 +22,14 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import ch.openolitor.core.domain._
-import ch.openolitor.core.models._
-import scala.util._
-import scalikejdbc.DB
+import akka.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
-import ch.openolitor.core.exceptions._
-import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.Macros._
-import com.fasterxml.jackson.databind.JsonSerializable
-import org.joda.time.DateTime
-import java.util.UUID
+import ch.openolitor.core.domain._
+
+import scala.util._
 
 object ArbeitseinsatzCommandHandler {
   //case class LieferplanungAbschliessenCommand(originator: PersonId, id: LieferplanungId) extends UserCommand
@@ -43,7 +37,6 @@ object ArbeitseinsatzCommandHandler {
 
 trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware {
   self: ArbeitseinsatzWriteRepositoryComponent =>
-  import ArbeitseinsatzCommandHandler._
   import EntityStore._
 
   override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {

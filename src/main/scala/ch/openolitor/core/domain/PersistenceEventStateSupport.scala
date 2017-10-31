@@ -70,7 +70,7 @@ trait PersistenceEventStateSupport extends Actor with ActorLogging with CoreDBMa
       case Failure(e) =>
         log.warning(s"Failed initializing DB, stopping PersistenceEventStateSupport ${persistenceStateStoreId}")
       case x =>
-        log.warning(s"Received unexpected result:$x")
+        log.warning(s"Received unexpected CheckDBEvolution-result:$x")
     }
   }
 

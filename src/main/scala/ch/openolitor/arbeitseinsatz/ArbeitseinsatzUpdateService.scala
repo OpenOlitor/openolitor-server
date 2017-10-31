@@ -22,28 +22,18 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import ch.openolitor.core._
-import ch.openolitor.core.Macros._
-import ch.openolitor.core.db._
-import ch.openolitor.core.models._
-import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.arbeitseinsatz._
+import akka.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
-import scalikejdbc.DB
-import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.Macros._
+import ch.openolitor.core._
+import ch.openolitor.core.db._
 import ch.openolitor.core.domain.EntityStore._
-import akka.actor.ActorSystem
-import shapeless.LabelledGeneric
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.UUID
+import ch.openolitor.core.domain._
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.Future
-import scalikejdbc.DBSession
-import ch.openolitor.util.IdUtil
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc.DB
 
 object ArbeitseinsatzUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzUpdateService = new DefaultArbeitseinsatzUpdateService(sysConfig, system)

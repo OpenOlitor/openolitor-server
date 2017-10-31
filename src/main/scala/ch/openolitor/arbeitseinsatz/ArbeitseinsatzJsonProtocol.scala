@@ -22,13 +22,11 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import spray.json._
-import ch.openolitor.core.BaseJsonProtocol
 import ch.openolitor.arbeitseinsatz.models._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.JSONSerializable
-import zangelo.spray.json.AutoProductFormats
+import ch.openolitor.core.{ BaseJsonProtocol, JSONSerializable }
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
+import com.typesafe.scalalogging.LazyLogging
+import zangelo.spray.json.AutoProductFormats
 
 /**
  * JSON Format deklarationen für das Modul Stammdaten

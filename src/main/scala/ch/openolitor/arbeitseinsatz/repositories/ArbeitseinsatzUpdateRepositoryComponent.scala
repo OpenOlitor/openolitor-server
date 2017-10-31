@@ -22,11 +22,9 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz.repositories
 
-import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
-import ch.openolitor.core.repositories.BaseUpdateRepositoryComponent
-
 import akka.actor.ActorSystem
-import ch.openolitor.core.EventStream
+import ch.openolitor.core.repositories.BaseUpdateRepositoryComponent
+import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
 
 trait ArbeitseinsatzUpdateRepositoryComponent extends BaseUpdateRepositoryComponent {
   val arbeitseinsatzUpdateRepository: ArbeitseinsatzUpdateRepository

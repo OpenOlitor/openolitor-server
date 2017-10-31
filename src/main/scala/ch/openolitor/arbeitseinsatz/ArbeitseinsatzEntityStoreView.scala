@@ -23,10 +23,10 @@
 package ch.openolitor.arbeitseinsatz
 
 import akka.actor._
-import ch.openolitor.core.domain._
+import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.arbeitseinsatz.repositories._
+import ch.openolitor.core.domain._
 
 object ArbeitseinsatzEntityStoreView {
   def props(mailService: ActorRef, dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultArbeitseinsatzEntityStoreView], mailService, dbEvolutionActor, sysConfig, system)
@@ -52,7 +52,6 @@ trait ArbeitseinsatzEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait ArbeitseinsatzEntityStoreViewComponent extends EntityStoreViewComponent {
-  import EntityStore._
   val mailService: ActorRef
   val sysConfig: SystemConfig
   val system: ActorSystem

@@ -22,22 +22,15 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz.repositories
 
-import ch.openolitor.core.models._
-import scalikejdbc._
-import scalikejdbc.async._
-import scala.concurrent.ExecutionContext
-import ch.openolitor.core.db._
+import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.db.OOAsyncDB._
+import ch.openolitor.core.db._
 import ch.openolitor.core.repositories._
-import scala.concurrent._
-import ch.openolitor.arbeitseinsatz.models._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.Macros._
-import ch.openolitor.util.DateTimeUtil._
-import org.joda.time.DateTime
-import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.stammdaten.models.KundeId
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc.async._
+
+import scala.concurrent._
 
 trait ArbeitseinsatzReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]]
