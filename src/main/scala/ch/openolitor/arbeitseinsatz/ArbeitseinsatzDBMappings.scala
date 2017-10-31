@@ -33,11 +33,12 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
 
   // DB type binders for read operations
   implicit val arbeitskategorieIdBinder: Binders[ArbeitskategorieId] = baseIdBinders(ArbeitskategorieId.apply _)
+  implicit val arbeitskategorieBezBinder: Binders[ArbeitskategorieBez] = baseStringIdBinders(ArbeitskategorieBez.apply)
   implicit val arbeitsangebotIdBinder: Binders[ArbeitsangebotId] = baseIdBinders(ArbeitsangebotId.apply _)
   implicit val arbeitseinsatzIdBinder: Binders[ArbeitseinsatzId] = baseIdBinders(ArbeitseinsatzId.apply _)
 
   implicit val optionArbeitsangebotIdBinder: Binders[Option[ArbeitsangebotId]] = optionBaseIdBinders(ArbeitsangebotId.apply _)
-  implicit val arbeitskategorieIdSeqBinder: Binders[Seq[ArbeitskategorieId]] = seqBaseIdBinders(ArbeitskategorieId.apply _)
+  implicit val arbeitskategorieBezSeqBinder: Binders[Set[ArbeitskategorieBez]] = setSqlBinder(ArbeitskategorieBez.apply, _.id)
 
   implicit val arbeitseinsatzStatusBinders: Binders[ArbeitseinsatzStatus] = toStringBinder(ArbeitseinsatzStatus.apply)
 
@@ -79,6 +80,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
         column.ort -> aa.ort,
         column.zeitVon -> aa.zeitVon,
         column.zeitBis -> aa.zeitBis,
+        column.anzahlEingeschriebene -> aa.anzahlEingeschriebene,
         column.anzahlPersonen -> aa.anzahlPersonen,
         column.mehrPersonenOk -> aa.mehrPersonenOk,
         column.einsatzZeit -> aa.einsatzZeit,

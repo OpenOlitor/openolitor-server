@@ -81,9 +81,12 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
   }
 
   def createArbeitsangebot(meta: EventMetadata, id: ArbeitsangebotId, arbeitsangebot: ArbeitsangebotModify)(implicit personId: PersonId = meta.originator) = {
+    val initAnzahlEingeschriebene = 0
+
     val aa = copyTo[ArbeitsangebotModify, Arbeitsangebot](
       arbeitsangebot,
       "id" -> id,
+      "anzahlEingeschriebene" -> initAnzahlEingeschriebene,
       "status" -> InVorbereitung,
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,

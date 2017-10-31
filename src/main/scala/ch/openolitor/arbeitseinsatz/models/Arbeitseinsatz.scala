@@ -41,6 +41,7 @@ case object Abgesagt extends ArbeitseinsatzStatus
 case object Archiviert extends ArbeitseinsatzStatus
 
 case class ArbeitskategorieId(id: Long) extends BaseId
+case class ArbeitskategorieBez(id: String) extends BaseStringId
 
 case class Arbeitskategorie(
     id: ArbeitskategorieId,
@@ -65,7 +66,8 @@ trait IArbeitsangebot extends BaseEntity[ArbeitsangebotId] {
   val ort: Option[String]
   val zeitVon: DateTime
   val zeitBis: DateTime
-  val arbeitskategorien: Seq[ArbeitskategorieId]
+  val arbeitskategorien: Set[ArbeitskategorieBez]
+  val anzahlEingeschriebene: Int
   val anzahlPersonen: Option[Int]
   val mehrPersonenOk: Boolean
   val einsatzZeit: Option[Int]
@@ -80,7 +82,8 @@ case class Arbeitsangebot(
   ort: Option[String],
   zeitVon: DateTime,
   zeitBis: DateTime,
-  arbeitskategorien: Seq[ArbeitskategorieId],
+  arbeitskategorien: Set[ArbeitskategorieBez],
+  anzahlEingeschriebene: Int,
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
   einsatzZeit: Option[Int],
@@ -99,7 +102,7 @@ case class ArbeitsangebotModify(
   ort: Option[String],
   zeitVon: DateTime,
   zeitBis: DateTime,
-  arbeitskategorien: Seq[ArbeitskategorieId],
+  arbeitskategorien: Set[ArbeitskategorieBez],
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
   einsatzZeit: Option[Int],
