@@ -173,15 +173,11 @@ case class ArbeitseinsatzDetail(
 
 case class ArbeitseinsatzModify(
   arbeitsangebotId: ArbeitsangebotId,
-  arbeitsangebotTitel: String,
   zeitVon: DateTime,
   zeitBis: DateTime,
   kundeId: KundeId,
-  kundeBezeichnung: String,
   personId: Option[PersonId],
-  personName: Option[String],
   aboId: Option[AboId],
-  aboBezeichnung: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String]
 ) extends JSONSerializable

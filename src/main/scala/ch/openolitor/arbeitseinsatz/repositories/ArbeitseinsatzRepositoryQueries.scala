@@ -92,6 +92,15 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
   }
 
+  protected def getArbeitseinsaetzeQuery(arbeitsangebotId: ArbeitsangebotId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .where.eq(arbeitseinsatz.arbeitsangebotId, arbeitsangebotId)
+        .orderBy(arbeitseinsatz.zeitVon)
+    }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+  }
+
   protected def getFutureArbeitseinsaetzeQuery = {
     withSQL {
       select

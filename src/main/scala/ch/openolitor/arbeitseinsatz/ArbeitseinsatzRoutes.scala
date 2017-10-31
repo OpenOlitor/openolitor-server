@@ -71,6 +71,15 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
           delete(remove(id))
       } ~
+      path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze") { id =>
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(id))) ~
+          post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
+      } ~
+      path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze" / arbeitseinsatzIdPath) { (arbeitsangebotId, arbeitseinsatzId) =>
+        get(detail(arbeitseinsatzReadRepository.getArbeitseinsatz(arbeitseinsatzId))) ~
+          (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](arbeitseinsatzId)) ~
+          delete(remove(arbeitseinsatzId))
+      } ~
       path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze)) ~
           post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))

@@ -101,18 +101,32 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
   }
 
   def createArbeitseinsatz(meta: EventMetadata, id: ArbeitseinsatzId, arbeitseinsatz: ArbeitseinsatzModify)(implicit personId: PersonId = meta.originator) = {
-    val ae = copyTo[ArbeitseinsatzModify, Arbeitseinsatz](
-      arbeitseinsatz,
-      "id" -> id,
-      "erstelldat" -> meta.timestamp,
-      "ersteller" -> meta.originator,
-      "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
-
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      //create arbeitseinsatz
-      arbeitseinsatzWriteRepository.insertEntity[Arbeitseinsatz, ArbeitseinsatzId](ae)
+      arbeitseinsatzWriteRepository.getById(kundeMapping, arbeitseinsatz.kundeId) map { kunde =>
+        val personData: Option[String] = arbeitseinsatz.personId match {
+          case Some(id) => arbeitseinsatzWriteRepository.getById(personMapping, id) map {
+            person => person.vorname + ' ' + person.name
+          }
+          case None => None
+        }
+        arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, arbeitseinsatz.arbeitsangebotId) map { arbeitsangebot =>
+          val ae = copyTo[ArbeitseinsatzModify, Arbeitseinsatz](
+            arbeitseinsatz,
+            "id" -> id,
+            "kundeBezeichnung" -> kunde.bezeichnung,
+            "personName" -> personData,
+            "arbeitsangebotTitel" -> arbeitsangebot.titel,
+            "aboId" -> None,
+            "aboBezeichnung" -> None,
+            "erstelldat" -> meta.timestamp,
+            "ersteller" -> meta.originator,
+            "modifidat" -> meta.timestamp,
+            "modifikator" -> meta.originator
+          )
+          //create arbeitseinsatz
+          arbeitseinsatzWriteRepository.insertEntity[Arbeitseinsatz, ArbeitseinsatzId](ae)
+        }
+      }
     }
   }
 
