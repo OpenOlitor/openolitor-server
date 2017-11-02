@@ -36,7 +36,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
 
       val templateBody = """
         Person: {{ person.name }}
-        Birthdate: {{ person.birthdate | filter date format dd.MM.yyyy }}
+        Birthdate: {{ person.birthdate | date format="dd.MM.yyyy" }}
         Age: {{ person.age }}        
         Addresses:
         ----------
@@ -49,21 +49,20 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
         Birthdate: 22.05.1980
         Age: 102        
         Addresses:
-        ----------      
+        ----------
         Street: street1
         Street: street2
         """
       val templateSubject = """Person detail: {{ person.name }}"""
       val resultSubject = """Person detail: Mickey Mouse"""
 
-      val fileStoreId = "123"
       val mailTemplate = MailTemplate(
         id = MailTemplateId(Random.nextLong()),
         templateType = UnknownMailTemplateType,
         templateName = "templateName",
         description = None,
         subject = templateSubject,
-        bodyFileStoreId = Some(fileStoreId),
+        body = templateBody,
         erstelldat = DateTime.now(),
         ersteller = PersonId(1L),
         modifidat = DateTime.now(),
@@ -72,16 +71,14 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
 
       val service = new MailTemplateServiceMock()
       service.mailTemplateReadRepositoryAsync.getMailTemplateByName(eqz("templateName"))(any) returns Future.successful(Some(mailTemplate))
-      service.fileStore.getFile(eqz(MailTemplateBucket), eqz(fileStoreId)) returns Future.successful(Right(FileStoreFile(null, new StringInputStream(templateBody))))
 
       val result = service.generateMail(UnknownMailTemplateType, Some("templateName"), person)
-      result must be_==(Right(MailPayload(resultSubject, resultBody))).await
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
     }
   }
 }
 
 class MailTemplateServiceMock extends MailTemplateService with Mockito with MailTemplateReadRepositoryComponent {
-  val fileStore: FileStore = mock[FileStore]
   val mailTemplateWriteRepository: MailTemplateWriteRepository = mock[MailTemplateWriteRepository]
   val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = mock[MailTemplateReadRepositoryAsync]
   val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = mock[MailTemplateReadRepositorySync]
