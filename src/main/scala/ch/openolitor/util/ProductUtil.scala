@@ -23,23 +23,43 @@
 package ch.openolitor.util
 
 object ProductUtil {
+  import StringUtil._
   implicit class Product2MapSupport(self: Product) {
 
     /**
      * Converts a product to a nested Map consisting of properties and names as key-value pairs.
+     * Root property will be the decapitablized productPrefix of the prodct itself.
+     * i.e.
+     * SimpleCaseClass(string: String, int: Int)
+     * val scc = SimpleCaseClass("anyString", 0)
+     * ssc.toMap
+     *
+     * should result in:
+     * Map(
+     * 	"simpleCaseClass" -> Map (
+     * 		"string" -> "anyString",
+     * 		"int" -> 0)
+     * )
+     *
+     * @param customConverter A customConverter partial function can be configured to convert the values before appending to the
+     * result map
      */
     def toMap(customConverter: PartialFunction[Any, Any] = Map.empty): Map[String, Any] = {
-      val fieldNames = self.getClass.getDeclaredFields.map(_.getName)
+      Map(self.productPrefix.decapitalize -> asMap(self, customConverter))
+    }
+
+    private def asMap(p: Product, customConverter: PartialFunction[Any, Any] = Map.empty): Map[String, Any] = {
+      val fieldNames = p.getClass.getDeclaredFields.map(_.getName)
 
       val defaultMapper: PartialFunction[Any, Any] = { case x => x }
       val converters = customConverter orElse defaultMapper
       def toVals(x: Any): Any = x match {
-        case t: Traversable[_] => toVals(t)
-        case p: Product if p.productArity > 0 => p.toMap(customConverter)
+        case t: Traversable[_] => t.map(toVals(_))
+        case p: Product if p.productArity > 0 => asMap(p, customConverter)
         case x => converters(x)
       }
 
-      val vals = self.productIterator.map(toVals).toSeq
+      val vals = p.productIterator.map(toVals).toSeq
       fieldNames.zip(vals).toMap
     }
   }

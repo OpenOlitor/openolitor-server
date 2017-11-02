@@ -62,10 +62,10 @@ import ch.openolitor.core.filestore.FileStoreReference
 import ch.openolitor.core.filestore.FileStore
 
 object StammdatenAktionenService {
-  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef, fileStore: FileStore): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService, fileStore)
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
 }
 
-class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef, override val fileStore: FileStore)
+class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
     extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateReadRepositoryComponent {
 }
 

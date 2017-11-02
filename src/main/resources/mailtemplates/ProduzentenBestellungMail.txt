@@ -1,6 +1,6 @@
 Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} {{ produzent.vorname }}:
 
-Lieferung: {{ sammelbestellung.datum | date format dd.MM.yyyy }}
+Lieferung: {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}
   
 Bestellpositionen:
 {{for bestellung in bestellungen}}
