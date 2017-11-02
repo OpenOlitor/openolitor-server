@@ -18,12 +18,10 @@ import org.joda.time.DateTime
 /**
  * This trait provides functionality to generate mail payloads based on either custom or a default template
  */
-trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStoreReference with SystemConfigReference {
+trait MailTemplateService extends AsyncConnectionPoolContextAware with SystemConfigReference {
   self: MailTemplateReadRepositoryComponent =>
 
-  lazy val maxFileStoreResolveTimeout = config.getDuration(s"mailtemplates.max-file-store-resolve-timeout")
-
-  val format = DateTimeFormat.forPattern("yyyy-dd-MM hh:mm:ssZ")
+  val format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
   /**
    * Type converter is used to convert single values when generating the map out of the provided data object
    */
@@ -51,7 +49,7 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStore
     // first try to resolve mail template
     templateName.map(name => mailTemplateReadRepositoryAsync.getMailTemplateByName(name)).getOrElse(Future.successful(None)).map { templateOption =>
 
-      val (subjectTemplate, bodyTemplateName) = templateOption.map(t => (t.subject, t.body)).getOrElse((mailTemplateType.defaultSubject, ""))
+      val (subjectTemplate, bodyTemplate) = templateOption.map(t => (t.subject, t.body)).getOrElse((mailTemplateType.defaultSubject, mailTemplateType.defaultBody))
 
       // prepare renderer and compiler for the whole run
       val subjectCompiler = new CustomizableTemplateCompiler(templateLoader =
@@ -59,17 +57,12 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with FileStore
       val subjectRenderer = new BeardTemplateRenderer(subjectCompiler)
 
       val bodyCompiler = new CustomizableTemplateCompiler(templateLoader =
-        new FallbackTemplateLoader(
-          // primary load templates from filestore
-          new FileStoreTemplateLoader(fileStore, MailTemplateBucket, maxFileStoreResolveTimeout),
-          // fallback to classpath resources to resolve default templates
-          new ClasspathTemplateLoader("mailtemplates/", ".txt")
-        ))
+        new MapTemplateLoader(Map("Body" -> bodyTemplate)))
       val bodyRenderer = new BeardTemplateRenderer(bodyCompiler)
 
       for {
         subjectTempl <- subjectCompiler.compile(TemplateName("Subject"))
-        bodyTempl <- bodyCompiler.compile(TemplateName(bodyTemplateName))
+        bodyTempl <- bodyCompiler.compile(TemplateName("Body"))
       } yield {
 
         //render mails for every context
