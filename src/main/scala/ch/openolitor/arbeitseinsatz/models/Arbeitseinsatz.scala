@@ -133,6 +133,7 @@ case class Arbeitseinsatz(
   arbeitsangebotTitel: String,
   zeitVon: DateTime,
   zeitBis: DateTime,
+  einsatzZeit: Option[Int],
   kundeId: KundeId,
   kundeBezeichnung: String,
   personId: Option[PersonId],
@@ -154,6 +155,7 @@ case class ArbeitseinsatzDetail(
   arbeitsangebotTitel: String,
   zeitVon: DateTime,
   zeitBis: DateTime,
+  einsatzZeit: Option[Int],
   kundeId: KundeId,
   kundeBezeichnung: String,
   aboId: Option[AboId],
@@ -175,6 +177,7 @@ case class ArbeitseinsatzModify(
   arbeitsangebotId: ArbeitsangebotId,
   zeitVon: DateTime,
   zeitBis: DateTime,
+  einsatzZeit: Option[Int],
   kundeId: KundeId,
   personId: Option[PersonId],
   aboId: Option[AboId],
@@ -187,4 +190,12 @@ case class ArbeitseinsatzCreate(
   kundeId: KundeId,
   anzahlPersonen: Int,
   bemerkungen: Option[String]
+) extends JSONSerializable
+
+case class ArbeitseinsatzAbrechnung(
+  kundeId: KundeId,
+  kundeBezeichnung: String,
+  summeEinsaetzeSoll: Int,
+  summeEinsaetzeIst: Int,
+  summeEinsaetzeDelta: Int
 ) extends JSONSerializable

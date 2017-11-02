@@ -24,16 +24,24 @@ package ch.openolitor.arbeitseinsatz.repositories
 
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.stammdaten.models._
+import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models.KundeId
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import scalikejdbc._
 
-trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings {
+trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings with StammdatenDBMappings {
 
   lazy val arbeitskategorie = arbeitskategorieMapping.syntax("arbeitskategorie")
   lazy val arbeitsangebot = arbeitsangebotMapping.syntax("arbeitsangebot")
   lazy val arbeitseinsatz = arbeitseinsatzMapping.syntax("arbeitseinsatz")
+
+  lazy val aboTyp = abotypMapping.syntax("atyp")
+  lazy val kunde = kundeMapping.syntax("kunde")
+  lazy val depotlieferungAbo = depotlieferungAboMapping.syntax("depotlieferungAbo")
+  lazy val heimlieferungAbo = heimlieferungAboMapping.syntax("heimlieferungAbo")
+  lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
 
   protected def getArbeitskategorienQuery = {
     withSQL {
@@ -118,6 +126,34 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .and.eq(arbeitseinsatz.kundeId, kundeId)
         .orderBy(arbeitseinsatz.zeitVon)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+  }
+
+  protected def getArbeitseinsatzabrechnungQuery = {
+    withSQL {
+      select
+        .from(kundeMapping as kunde)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(kunde.id, heimlieferungAbo.kundeId)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
+        .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo.abotypId).or.eq(aboTyp.id, postlieferungAbo.abotypId))
+        .join(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
+        .orderBy(kunde.bezeichnung)
+    }.one(kundeMapping(kunde))
+      .toManies(
+        rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
+        rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => abotypMapping.opt(aboTyp)(rs),
+        rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
+      )
+      .map { (kunde, pl, hl, dl, abotypen, arbeitseinsaetze) =>
+        val summeEinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(0)) sum
+        val summeEinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(0)) sum
+        val summeEinsaetzeDelta = summeEinsaetzeSoll - summeEinsaetzeIst
+
+        ArbeitseinsatzAbrechnung(kunde.id, kunde.bezeichnung, summeEinsaetzeSoll, summeEinsaetzeIst, summeEinsaetzeDelta)
+      }.list
+
   }
 
 }

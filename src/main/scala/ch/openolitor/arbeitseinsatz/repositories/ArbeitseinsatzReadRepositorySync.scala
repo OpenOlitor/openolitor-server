@@ -43,6 +43,7 @@ trait ArbeitseinsatzReadRepositorySync extends BaseReadRepositorySync {
   def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
+  def getArbeitseinsatzabrechnung(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]]
 }
 
 trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositorySync with LazyLogging with ArbeitseinsatzRepositoryQueries {
@@ -80,5 +81,9 @@ trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositoryS
 
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
     getFutureArbeitseinsaetzeQuery(kundeId).future
+  }
+
+  def getArbeitseinsatzabrechnung(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]] = {
+    getArbeitseinsatzabrechnungQuery.future
   }
 }

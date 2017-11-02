@@ -105,6 +105,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
         column.arbeitsangebotTitel -> ae.arbeitsangebotTitel,
         column.zeitVon -> ae.zeitVon,
         column.zeitBis -> ae.zeitBis,
+        column.einsatzZeit -> ae.einsatzZeit,
         column.kundeId -> ae.kundeId,
         column.kundeBezeichnung -> ae.kundeBezeichnung,
         column.personId -> ae.personId,

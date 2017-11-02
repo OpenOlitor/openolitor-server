@@ -97,6 +97,9 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
       } ~
       path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId)))
+      } ~
+      path("arbeitseinsatzabrechnung" ~ exportFormatPath.?) { exportFormat =>
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung))
       }
 }
 
