@@ -50,6 +50,30 @@ case class Sammelbestellung(
   modifikator: PersonId
 ) extends BaseEntity[SammelbestellungId]
 
+case class SammelbestellungMail(
+  id: SammelbestellungId,
+  produzentId: ProduzentId,
+  produzentKurzzeichen: String,
+  lieferplanungId: LieferplanungId,
+  status: LieferungStatus,
+  datum: DateTime,
+  datumAbrechnung: Option[DateTime],
+  datumVersendet: Option[DateTime],
+  preisTotal: BigDecimal,
+  steuerSatz: Option[BigDecimal],
+  steuer: BigDecimal,
+  totalSteuer: BigDecimal,
+  bestellungen: Seq[BestellungMail],
+  projekt: Projekt,
+  produzent: Produzent,
+
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[SammelbestellungId]
+
 case class SammelbestellungDetail(
   id: SammelbestellungId,
   produzentId: ProduzentId,
@@ -89,6 +113,28 @@ case class Bestellung(
   steuer: BigDecimal,
   totalSteuer: BigDecimal,
   adminProzente: BigDecimal,
+  // Berechneter Abzug auf preisTotal
+  adminProzenteAbzug: BigDecimal,
+  totalNachAbzugAdminProzente: BigDecimal,
+
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[BestellungId]
+
+case class BestellungMail(
+  id: BestellungId,
+  sammelbestellungId: SammelbestellungId,
+  // Summe der Preise der Bestellpositionen
+  preisTotal: BigDecimal,
+  steuerSatz: Option[BigDecimal],
+  // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+  steuer: BigDecimal,
+  totalSteuer: BigDecimal,
+  adminProzente: BigDecimal,
+  bestellpositionen: Seq[BestellpositionMail],
   // Berechneter Abzug auf preisTotal
   adminProzenteAbzug: BigDecimal,
   totalNachAbzugAdminProzente: BigDecimal,
@@ -176,6 +222,24 @@ case class Bestellposition(
   menge: BigDecimal,
   preis: Option[BigDecimal],
   anzahl: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
+
+case class BestellpositionMail(
+  id: BestellpositionId,
+  bestellungId: BestellungId,
+  produktId: Option[ProduktId],
+  produktBeschrieb: String,
+  preisEinheit: Option[BigDecimal],
+  einheit: Liefereinheit,
+  menge: BigDecimal,
+  preis: Option[BigDecimal],
+  anzahl: Int,
+  detail: String,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
