@@ -23,6 +23,7 @@
 package ch.openolitor.stammdaten
 
 import ch.openolitor.core._
+
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
@@ -55,6 +56,7 @@ import ch.openolitor.stammdaten.mailtemplates.repositories._
 import ch.openolitor.stammdaten.mailtemplates.model._
 import ch.openolitor.core.filestore.FileStoreReference
 import ch.openolitor.core.filestore.FileStore
+import ch.openolitor.stammdaten.mailtemplates.model.ProduzentenBestellungMailTemplateType
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
@@ -176,42 +178,40 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
           case sammelbestellung if (sammelbestellung.datumVersendet.isEmpty || sammelbestellung.datumVersendet.get.isBefore(meta.timestamp)) =>
             stammdatenWriteRepository.getProduzentDetail(sammelbestellung.produzentId) map { produzent =>
 
+              // prepare data for mail
               val bestellungen = stammdatenWriteRepository.getBestellungen(sammelbestellung.id) map { bestellung =>
 
                 val bestellpositionen = stammdatenWriteRepository.getBestellpositionen(bestellung.id) map {
                   bestellposition =>
                     val preisPos = (bestellposition.preisEinheit.getOrElse(0: BigDecimal) * bestellposition.menge).setScale(2, HALF_UP)
-                    val mengeTotal = bestellposition.anzahl * bestellposition.menge
                     val detail = if (bestellposition.preisEinheit.getOrElse(0: BigDecimal).compare(preisPos) == 0) "" else s""" ≙ ${preisPos}"""
-                    s"""${bestellposition.produktBeschrieb}: ${bestellposition.anzahl} x ${bestellposition.menge} ${bestellposition.einheit} à ${bestellposition.preisEinheit.getOrElse("")}${detail} = ${bestellposition.preis.getOrElse("")} ${projekt.waehrung} ⇒ ${mengeTotal} ${bestellposition.einheit}"""
+
+                    copyTo[Bestellposition, BestellpositionMail](bestellposition, "detail" -> detail)
                 }
 
-                val infoAdminproz = bestellung.adminProzente match {
-                  case x if x == 0 => ""
-                  case _           => s"""Adminprozente: ${bestellung.adminProzente}%:"""
-                }
-
-                s"""${infoAdminproz}
-
-${bestellpositionen.mkString("\n")}
-                """
-
+                copyTo[Bestellung, BestellungMail](bestellung, "bestellpositionen" -> bestellpositionen)
               }
-              val text = s"""Bestellung von ${projekt.bezeichnung} an ${produzent.name} ${produzent.vorname.getOrElse("")}:
 
-Lieferung: ${format.print(sammelbestellung.datum)}
+              val mailContext = copyTo[Sammelbestellung, SammelbestellungMail](
+                sammelbestellung,
+                "produzent" -> produzent,
+                "projekt" -> projekt,
+                "bestellungen" -> bestellungen
+              )
 
-Bestellpositionen:
-${bestellungen.mkString("\n")}
+              // generate mail
+              generateMail(ProduzentenBestellungMailTemplateType, None, mailContext) map {
+                case Success(mailPayload) =>
+                  val mail = mailPayload.toMail(1, produzent.email, None, None)
 
-Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
-              val mail = Mail(1, produzent.email, None, None, "Bestellung " + format.print(sammelbestellung.datum), text)
-
-              mailService ? SendMailCommandWithCallback(SystemEvents.SystemPersonId, mail, Some(5 minutes), id) map {
-                case _: SendMailEvent =>
-                //ok
-                case other =>
-                  logger.debug(s"Sending Mail failed resulting in $other")
+                  mailService ? SendMailCommandWithCallback(SystemEvents.SystemPersonId, mail, Some(5 minutes), id) map {
+                    case _: SendMailEvent =>
+                    //ok
+                    case other =>
+                      logger.debug(s"Sending Mail failed resulting in $other")
+                  }
+                case Failure(e) =>
+                  logger.warn(s"Failed preparing mail", e)
               }
             }
           case _ => //ignore
