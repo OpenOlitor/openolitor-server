@@ -23,16 +23,19 @@ import ch.openolitor.core.mailservice.MailPayload
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import com.typesafe.config.ConfigFactory
+import ch.openolitor.stammdaten.models._
 
 class MailTemplateServiceSpec extends Specification with Mockito with Matchers with ResultMatchers {
   "MailTemplateService with custom template" should {
 
+    case class RootObject(person: Person)
     case class Person(name: String, age: Int, birthdate: DateTime, addresses: Seq[Address]) extends Product
     case class Address(street: String)
 
-    "parse template correclty" in {
+    "parse template correctly" in {
 
       val person = Person("Mickey Mouse", 102, new DateTime(1980, 5, 22, 12, 11, 0), Seq(Address("street1"), Address("street2")))
+      val rootObject = RootObject(person)
 
       val templateBody = """
         Person: {{ person.name }}
@@ -72,7 +75,76 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
       val service = new MailTemplateServiceMock()
       service.mailTemplateReadRepositoryAsync.getMailTemplateByName(eqz("templateName"))(any) returns Future.successful(Some(mailTemplate))
 
-      val result = service.generateMail(UnknownMailTemplateType, Some("templateName"), person)
+      val result = service.generateMail(UnknownMailTemplateType, Some("templateName"), rootObject)
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+    }
+  }
+
+  "MailTemplateService with default templates" should {
+
+    val sampleEinladungsMailContext = EinladungMailContext(
+      person = Person(
+        id = PersonId(0),
+        kundeId = KundeId(0),
+        anrede = Some(Herr),
+        name = "Muster",
+        vorname = "Hans",
+        email = Some("hans.muster@email.com"),
+        emailAlternative = None,
+        telefonMobil = None,
+        telefonFestnetz = None,
+        bemerkungen = None,
+        sort = 0,
+        // security data
+        loginAktiv = false,
+        passwort = None,
+        letzteAnmeldung = None,
+        passwortWechselErforderlich = false,
+        rolle = None,
+        // modification flags
+        erstelldat = DateTime.now,
+        ersteller = PersonId(0),
+        modifidat = DateTime.now,
+        modifikator = PersonId(0)
+      ),
+      einladung = Einladung(
+        id = EinladungId(0),
+        personId = PersonId(0),
+        uid = "12345",
+        expires = DateTime.now.plusMonths(1),
+        datumVersendet = None,
+        // modification flags
+        erstelldat = DateTime.now,
+        ersteller = PersonId(0),
+        modifidat = DateTime.now,
+        modifikator = PersonId(0)
+      ),
+      baseLink = "http://my.openolitor.ch"
+    )
+
+    "parse InvitationMail correctly" in {
+
+      val resultBody = """Herr Hans Muster,
+
+Aktivieren Sie Ihren Zugang mit folgendem Link: http://my.openolitor.ch?token=12345"""
+      val resultSubject = InvitationMailTemplateType.defaultSubject
+
+      val service = new MailTemplateServiceMock()
+
+      val result = service.generateMail(InvitationMailTemplateType, None, sampleEinladungsMailContext)
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+    }
+
+    "parse PasswordResetMail correctly" in {
+
+      val resultBody = """Herr Hans Muster,
+
+Sie können Ihr Passwort mit folgendem Link neu setzten: http://my.openolitor.ch?token=12345"""
+      val resultSubject = PasswordResetMailTemplateType.defaultSubject
+
+      val service = new MailTemplateServiceMock()
+
+      val result = service.generateMail(PasswordResetMailTemplateType, None, sampleEinladungsMailContext)
       result must be_==(Success(MailPayload(resultSubject, resultBody))).await
     }
   }

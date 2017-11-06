@@ -32,10 +32,12 @@ import ch.openolitor.core.filestore.FileType
 import ch.openolitor.core.filestore.MailTemplateBucket
 import ch.openolitor.core.JSONSerializable
 import scala.io.Source
+import ch.openolitor.stammdaten.models.EinladungMailContext
 
 sealed trait MailTemplateType extends FileType {
   val defaultSubject: String
   val defaultBody: String
+  type templateDataType
 
   protected def loadTemplate(name: String): String = Source.fromInputStream(getClass.getResourceAsStream(name), "UTF-8").mkString
 
@@ -45,22 +47,28 @@ sealed trait MailTemplateType extends FileType {
 case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
   val defaultSubject = """Bestellung {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}"""
   val defaultBody = loadTemplate("/mailtemplates/ProduzentenBestellungMail.txt")
+  // TODO: define once data type is clear
+  override type templateDataType = Product
 }
 case object InvitationMailTemplateType extends MailTemplateType {
   val defaultSubject = """OpenOlitor Zugang"""
   val defaultBody = loadTemplate("/mailtemplates/InvitationMail.txt")
+  override type templateDataType = EinladungMailContext
 }
 case object PasswordResetMailTemplateType extends MailTemplateType {
   val defaultSubject = """OpenOlitor Zugang"""
   val defaultBody = loadTemplate("/mailtemplates/PasswordResetMail.txt")
+  override type templateDataType = EinladungMailContext
 }
 case object CustomMailTemplateType extends MailTemplateType {
   val defaultSubject = ""
   val defaultBody = ""
+  type templateDataType = Product
 }
 case object UnknownMailTemplateType extends MailTemplateType {
   val defaultSubject = ""
   val defaultBody = ""
+  type templateDataType = Product
 }
 
 object MailTemplateType extends LazyLogging {
