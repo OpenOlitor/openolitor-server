@@ -32,7 +32,4 @@ trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[
   implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
 
   implicit val mailTemplateTypeFormat: RootJsonFormat[MailTemplateType] = enumFormat(MailTemplateType.apply)
-
-  //  implicit val mailTemplateModifyFormat = autoProductFormat[MailTemplateModify]
-  //  implicit val mailTemplateFormat = autoProductFormat[MailTemplate]
 }
