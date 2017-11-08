@@ -25,9 +25,13 @@ import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import com.typesafe.config.ConfigFactory
 import ch.openolitor.stammdaten.models._
 import java.util.Locale
+import scala.concurrent.duration._
 
 class MailTemplateServiceSpec extends Specification with Mockito with Matchers with ResultMatchers {
   sequential =>
+
+  val timeout: FiniteDuration = FiniteDuration(5, SECONDS)
+
   "MailTemplateService with custom template" should {
 
     case class RootObject(person: Person)
@@ -78,7 +82,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
       service.mailTemplateReadRepositoryAsync.getMailTemplateByName(eqz("templateName"))(any) returns Future.successful(Some(mailTemplate))
 
       val result = service.generateMail(UnknownMailTemplateType, Some("templateName"), rootObject)
-      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await(0, timeout)
     }
   }
 
@@ -163,7 +167,7 @@ Aktivieren Sie Ihren Zugang mit folgendem Link: http://my.openolitor.ch?token=12
       val service = new MailTemplateServiceMock()
 
       val result = service.generateMail(InvitationMailTemplateType, None, sampleEinladungsMailContext)
-      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await(0, timeout)
     }
 
     "parse PasswordResetMail correctly" in {
@@ -176,7 +180,7 @@ Sie können Ihr Passwort mit folgendem Link neu setzten: http://my.openolitor.ch
       val service = new MailTemplateServiceMock()
 
       val result = service.generateMail(PasswordResetMailTemplateType, None, sampleEinladungsMailContext)
-      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await(0, timeout)
     }
 
     "parse ProduzentenBestellungMail correctly" in {
@@ -198,7 +202,7 @@ Summe [CHF]: 101.00"""
       val service = new MailTemplateServiceMock()
 
       val result = service.generateMail(ProduzentenBestellungMailTemplateType, None, sampleBestellung)
-      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await(0, timeout)
     }
   }
 }
