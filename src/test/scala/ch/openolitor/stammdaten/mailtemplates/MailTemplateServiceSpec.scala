@@ -27,6 +27,7 @@ import ch.openolitor.stammdaten.models._
 import java.util.Locale
 
 class MailTemplateServiceSpec extends Specification with Mockito with Matchers with ResultMatchers {
+  sequential =>
   "MailTemplateService with custom template" should {
 
     case class RootObject(person: Person)
