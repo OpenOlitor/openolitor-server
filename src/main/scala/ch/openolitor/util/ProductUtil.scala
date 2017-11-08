@@ -22,8 +22,19 @@
 \*                                                                           */
 package ch.openolitor.util
 
+import scala.collection.immutable.HashSet
+
 object ProductUtil {
   import StringUtil._
+
+  val defaultMethods: HashSet[String] = HashSet(
+    "hashCode",
+    "toString",
+    "productArity",
+    "productPrefix",
+    "productIterator"
+  )
+
   implicit class Product2MapSupport(self: Product) {
 
     /**
@@ -43,8 +54,6 @@ object ProductUtil {
      * result map
      */
     def toMap(customConverter: PartialFunction[Any, Any] = Map.empty): Map[String, Any] = {
-      val fieldNames = self.getClass.getDeclaredFields.map(_.getName)
-
       val defaultMapper: PartialFunction[Any, Any] = { case x => x }
       val converters = customConverter orElse defaultMapper
       def toVals(x: Any): Any = x match {
@@ -54,8 +63,40 @@ object ProductUtil {
         case x => converters(x)
       }
 
-      val vals = self.productIterator.map(toVals).toSeq
-      fieldNames.zip(vals).toMap
+      val fieldsAsPairs = for {
+        field <- self.getClass.getDeclaredFields
+        // ignore system fields
+        if (!field.getName.contains("$"))
+      } yield {
+        field.setAccessible(true)
+
+        val fieldValue = toVals(field.get(self))
+        (field.getName, fieldValue)
+      }
+
+      // extract values returned from defs
+      val methodsAsPairs: Seq[Option[(String, Any)]] = for {
+        method <- self.getClass.getDeclaredMethods
+        // only conside methods without parameters
+        if (method.getParameterCount == 0)
+        // ignore system methods
+        if (!method.getName.contains("$"))
+        // ignore other known default methods
+        if (!defaultMethods.contains(method.getName))
+      } yield {
+        method.setAccessible(true)
+        try {
+          val returnValue = toVals(method.invoke(self))
+          Some((method.getName, returnValue))
+        } catch {
+          case e: Exception => None
+        }
+      }
+      // concat field values and method return types, append methods after field that hidden methods for 
+      // lazy vals will overrite field value which will always be set to null
+      val allTuples = fieldsAsPairs ++ methodsAsPairs.flatten
+
+      Map(allTuples: _*)
     }
   }
 }
