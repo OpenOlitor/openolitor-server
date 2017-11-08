@@ -45,7 +45,7 @@ sealed trait MailTemplateType extends FileType {
 }
 
 case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
-  val defaultSubject = """Bestellung {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}"""
+  val defaultSubject = """Bestellung {{ datum | date format="dd.MM.yyyy" }}"""
   val defaultBody = loadTemplate("/mailtemplates/ProduzentenBestellungMail.txt")
   // TODO: define once data type is clear
   override type templateDataType = Product

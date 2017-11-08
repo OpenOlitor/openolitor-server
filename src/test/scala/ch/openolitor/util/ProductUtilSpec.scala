@@ -15,6 +15,16 @@ class ProductUtilSpec extends Specification {
       simple.toMap() === Map("name" -> "myName", "counter" -> 42)
     }
 
+    "create map of case class with trait" in {
+      trait SomeProps {
+        val name: String
+        lazy val doubleName = s"$name-$name"
+      }
+      case class SimpleCaseClass(name: String, counter: Int) extends Product with SomeProps
+      val simple = SimpleCaseClass("myName", 42)
+      simple.toMap() === Map("name" -> "myName", "counter" -> 42, "doubleName" -> "myName-myName")
+    }
+
     "create map of simple case class with collection" in {
       case class SimpleCaseClass(name: String, counters: Seq[Int]) extends Product
       val simple = SimpleCaseClass("myName", Seq(1, 2, 3))

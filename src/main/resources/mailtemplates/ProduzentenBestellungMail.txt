@@ -1,15 +1,13 @@
 Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} {{ produzent.vorname }}:
 
-Lieferung: {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}
-  
+Lieferung: {{ datum | date format="dd.MM.yyyy" }}
+
 Bestellpositionen:
 {{for bestellung in bestellungen}}
-{{if bestellung.adminProzente > 0}}
+{{if bestellung.hasAdminProzente }}
 Adminprozente: {{ bestellung.adminProzente }}%:
-{{/if}}          
+{{/if}}
 {{for bestellposition in bestellung.bestellpositionen}}
-{{ bestellposition.produktBeschrieb }}: {{ bestellposition.anzahl }} x {{ bestellposition.menge }} {{bestellposition.einheit }} à {{ bestellposition.preisEinheit }}{{ bestellposition.detail }} = {{ bestellposition.preis }} {{ projekt.waehrung }} ⇒ {{ bestellposition.mengeTotal }} {{ bestellposition.einheit }}
-{{/for}}
-{{/for}}
-  
-Summe [{{ projekt.waehrung }}]: {{ sammelbestellung.preisTotal | number format="#.00" }}
+{{ bestellposition.produktBeschrieb }}: {{ bestellposition.anzahl }} x {{ bestellposition.menge }} {{bestellposition.einheit }} à {{ bestellposition.preisEinheit }}{{ bestellposition.detail }} = {{ bestellposition.preis }} {{ projekt.waehrung }} ⇒ {{ bestellposition.mengeTotal }} {{ bestellposition.einheit }}{{/for}}{{/for}}
+
+Summe [{{ projekt.waehrung }}]: {{ preisTotal | number format="#.00" }}
