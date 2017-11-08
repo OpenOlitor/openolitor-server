@@ -24,6 +24,7 @@ import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import com.typesafe.config.ConfigFactory
 import ch.openolitor.stammdaten.models._
+import java.util.Locale
 
 class MailTemplateServiceSpec extends Specification with Mockito with Matchers with ResultMatchers {
   "MailTemplateService with custom template" should {
@@ -82,44 +83,73 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
 
   "MailTemplateService with default templates" should {
 
+    implicit val person = PersonId(0)
+
     val sampleEinladungsMailContext = EinladungMailContext(
-      person = Person(
-        id = PersonId(0),
-        kundeId = KundeId(0),
+      person = Person.build(
         anrede = Some(Herr),
         name = "Muster",
         vorname = "Hans",
-        email = Some("hans.muster@email.com"),
-        emailAlternative = None,
-        telefonMobil = None,
-        telefonFestnetz = None,
-        bemerkungen = None,
-        sort = 0,
-        // security data
-        loginAktiv = false,
-        passwort = None,
-        letzteAnmeldung = None,
-        passwortWechselErforderlich = false,
-        rolle = None,
-        // modification flags
-        erstelldat = DateTime.now,
-        ersteller = PersonId(0),
-        modifidat = DateTime.now,
-        modifikator = PersonId(0)
+        email = Some("hans.muster@email.com")
       ),
-      einladung = Einladung(
-        id = EinladungId(0),
-        personId = PersonId(0),
+      einladung = Einladung.build(
         uid = "12345",
-        expires = DateTime.now.plusMonths(1),
-        datumVersendet = None,
-        // modification flags
-        erstelldat = DateTime.now,
-        ersteller = PersonId(0),
-        modifidat = DateTime.now,
-        modifikator = PersonId(0)
+        expires = DateTime.now.plusMonths(1)
       ),
       baseLink = "http://my.openolitor.ch"
+    )
+
+    val sampleBestellung = SammelbestellungMail.build(
+      produzentKurzzeichen = "PRZ",
+      status = Offen,
+      datum = new DateTime(2017, 1, 15, 0, 0, 0),
+      preisTotal = BigDecimal(101),
+      steuerSatz = Some(BigDecimal(2)),
+      steuer = BigDecimal(20),
+      totalSteuer = BigDecimal(30),
+      bestellungen = Seq(
+        BestellungMail.build(
+          // Summe der Preise der Bestellpositionen
+          preisTotal = BigDecimal(11),
+          steuerSatz = Some(BigDecimal(2.1)),
+          // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+          steuer = BigDecimal(2.35),
+          totalSteuer = BigDecimal(3),
+          adminProzente = BigDecimal(15),
+          bestellpositionen = Seq(
+            BestellpositionMail.build(
+              produktBeschrieb = "Produkt1",
+              preisEinheit = Some(BigDecimal(1.4)),
+              einheit = Kilogramm,
+              menge = BigDecimal(1),
+              preis = Some(BigDecimal(5.2)),
+              anzahl = 3
+            ),
+            BestellpositionMail.build(
+              produktBeschrieb = "Produkt2",
+              preisEinheit = None,
+              einheit = Stueck,
+              menge = BigDecimal(2),
+              preis = None,
+              anzahl = 5
+            )
+          ),
+          // Berechneter Abzug auf preisTotal
+          adminProzenteAbzug = BigDecimal(1),
+          totalNachAbzugAdminProzente = BigDecimal(10)
+        )
+      ),
+      projekt = Projekt.build(
+        bezeichnung = "TestProjekt"
+      ),
+      produzent = Produzent.build(
+        name = "TestProduzent",
+        vorname = Some("Hans"),
+        kurzzeichen = "PRZ",
+        plz = "1234",
+        ort = "Bern",
+        email = "info@produzent.ch"
+      )
     )
 
     "parse InvitationMail correctly" in {
@@ -145,6 +175,28 @@ Sie können Ihr Passwort mit folgendem Link neu setzten: http://my.openolitor.ch
       val service = new MailTemplateServiceMock()
 
       val result = service.generateMail(PasswordResetMailTemplateType, None, sampleEinladungsMailContext)
+      result must be_==(Success(MailPayload(resultSubject, resultBody))).await
+    }
+
+    "parse ProduzentenBestellungMail correctly" in {
+
+      val resultBody = """Bestellung von TestProjekt an TestProduzent Hans:
+
+Lieferung: 15.01.2017
+
+Bestellpositionen:
+
+Adminprozente: 15%:
+
+Produkt1: 3 x 1 Kilogramm à 1.4 = 5.2 CHF ⇒ 3 Kilogramm
+Produkt2: 5 x 2 Stueck à  =  CHF ⇒ 10 Stueck
+
+Summe [CHF]: 101.00"""
+      val resultSubject = "Bestellung 15.01.2017"
+
+      val service = new MailTemplateServiceMock()
+
+      val result = service.generateMail(ProduzentenBestellungMailTemplateType, None, sampleBestellung)
       result must be_==(Success(MailPayload(resultSubject, resultBody))).await
     }
   }

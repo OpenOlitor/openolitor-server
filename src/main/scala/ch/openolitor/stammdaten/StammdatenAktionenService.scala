@@ -189,10 +189,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
                 val bestellpositionen = stammdatenWriteRepository.getBestellpositionen(bestellung.id) map {
                   bestellposition =>
-                    val preisPos = (bestellposition.preisEinheit.getOrElse(0: BigDecimal) * bestellposition.menge).setScale(2, HALF_UP)
-                    val detail = if (bestellposition.preisEinheit.getOrElse(0: BigDecimal).compare(preisPos) == 0) "" else s""" ≙ ${preisPos}"""
-
-                    copyTo[Bestellposition, BestellpositionMail](bestellposition, "detail" -> detail)
+                    copyTo[Bestellposition, BestellpositionMail](bestellposition)
                 }
 
                 copyTo[Bestellung, BestellungMail](bestellung, "bestellpositionen" -> bestellpositionen)
