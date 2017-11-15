@@ -23,8 +23,6 @@
 package ch.openolitor.stammdaten.mailtemplates.repositories
 
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
 
 trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
@@ -41,7 +39,7 @@ trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappi
     withSQL {
       select
         .from(mailTemplateMapping as mailTemplate)
-        .where.eq(mailTemplate.templateName, parameter(templateName))
+        .where.eq(mailTemplate.templateName, templateName)
     }.map(mailTemplateMapping(mailTemplate)).single
   }
 }

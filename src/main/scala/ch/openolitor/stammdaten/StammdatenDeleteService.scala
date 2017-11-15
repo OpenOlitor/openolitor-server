@@ -25,18 +25,13 @@ package ch.openolitor.stammdaten
 import akka.actor._
 import scalikejdbc._
 import ch.openolitor.core._
-import ch.openolitor.core.Macros._
-import ch.openolitor.core._
 import ch.openolitor.core.models._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.stammdaten.mailtemplates._
@@ -90,7 +85,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
 
   def deleteAbotyp(meta: EventMetadata, id: AbotypId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      stammdatenWriteRepository.deleteEntity[Abotyp, AbotypId](id, { abotyp: Abotyp => abotyp.anzahlAbonnenten == 0 && abotyp.anzahlAbonnentenAktiv == 0 })
+      val maybeAbotyp: Option[IAbotyp] = stammdatenWriteRepository.deleteEntity[Abotyp, AbotypId](id, { abotyp: Abotyp => abotyp.anzahlAbonnenten == 0 && abotyp.anzahlAbonnentenAktiv == 0 }) orElse
+        stammdatenWriteRepository.deleteEntity[ZusatzAbotyp, AbotypId](id, { zusatzabotyp: ZusatzAbotyp => zusatzabotyp.anzahlAbonnenten == 0 && zusatzabotyp.anzahlAbonnentenAktiv == 0 })
     }
   }
 
@@ -148,12 +144,21 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     DB localTxPostPublish { implicit session => implicit publisher =>
       val maybeAbo: Option[Abo] = stammdatenWriteRepository.deleteEntity[DepotlieferungAbo, AboId](id) orElse
         stammdatenWriteRepository.deleteEntity[HeimlieferungAbo, AboId](id) orElse
-        stammdatenWriteRepository.deleteEntity[PostlieferungAbo, AboId](id)
+        stammdatenWriteRepository.deleteEntity[PostlieferungAbo, AboId](id) orElse
+        stammdatenWriteRepository.deleteEntity[ZusatzAbo, AboId](id)
+
+      // also delete mapped zusatzabos if it's a main abo
+      maybeAbo map {
+        case _: ZusatzAbo => // do nothing
+        case _ => stammdatenWriteRepository.deleteZusatzAbos(id)
+      }
+
       // also delete corresponding Tourlieferung
       stammdatenWriteRepository.deleteEntity[Tourlieferung, AboId](id)
 
       // also delete related Korbe
       maybeAbo map (deleteKoerbeForDeletedAbo)
+      maybeAbo
     }
   }
 

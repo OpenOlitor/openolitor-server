@@ -23,11 +23,6 @@
 package ch.openolitor.stammdaten.mailtemplates.repositories
 
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
-import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.mailtemplates.model._
 import ch.openolitor.core.repositories.BaseReadRepositorySync
 

@@ -22,9 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import ch.openolitor.stammdaten._
 import ch.openolitor.core.models._
-import java.util.UUID
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 
@@ -64,7 +62,7 @@ case object Portion extends Liefereinheit
 
 object Liefereinheit {
   def apply(value: String): Liefereinheit = {
-    Vector(Stueck, Bund, Gramm, Kilogramm, Portion) find (_.toString == value) getOrElse (Kilogramm)
+    Vector(Stueck, Bund, Gramm, Kilogramm, Liter, Portion) find (_.toString == value) getOrElse (Kilogramm)
   }
 }
 

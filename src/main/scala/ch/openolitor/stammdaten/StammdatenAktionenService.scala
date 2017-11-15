@@ -28,30 +28,24 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import scala.concurrent.duration._
-import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
-import shapeless.LabelledGeneric
 import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.UUID
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import org.joda.time.DateTime
-import ch.openolitor.core.mailservice.Mail
 import ch.openolitor.core.mailservice.MailService._
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.util.ConfigUtil._
 import scalikejdbc.DBSession
-import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.stammdaten.mailtemplates.engine.MailTemplateService
@@ -59,8 +53,6 @@ import ch.openolitor.stammdaten.mailtemplates.model.MailTemplateType
 import scala.util.{ Failure, Success }
 import ch.openolitor.stammdaten.mailtemplates.repositories._
 import ch.openolitor.stammdaten.mailtemplates.model._
-import ch.openolitor.core.filestore.FileStoreReference
-import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.stammdaten.mailtemplates.model.ProduzentenBestellungMailTemplateType
 
 object StammdatenAktionenService {
@@ -143,7 +135,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
       stammdatenWriteRepository.getSammelbestellungen(id) map { sammelbestellung =>
         stammdatenWriteRepository.updateEntityIf[Sammelbestellung, SammelbestellungId](Abgeschlossen == _.status)(sammelbestellung.id)(
           sammelbestellungMapping.column.status -> Verrechnet,
-          sammelbestellungMapping.column.datumAbrechnung -> Some(DateTime.now)
+          sammelbestellungMapping.column.datumAbrechnung -> Option(DateTime.now)
         )
 
       }
@@ -226,7 +218,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
   def updatePasswort(meta: EventMetadata, id: PersonId, pwd: Array[Char], einladungId: Option[EinladungId])(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      stammdatenWriteRepository.updateEntity[Person, PersonId](id)(personMapping.column.passwort -> Some(pwd))
+      stammdatenWriteRepository.updateEntity[Person, PersonId](id)(personMapping.column.passwort -> Option(pwd))
 
       einladungId map { id =>
         stammdatenWriteRepository.updateEntity[Einladung, EinladungId](id)(einladungMapping.column.expires -> new DateTime())
@@ -305,7 +297,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
   def changeRolle(meta: EventMetadata, personId: PersonId, rolle: Rolle)(implicit originator: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      stammdatenWriteRepository.updateEntity[Person, PersonId](personId)(personMapping.column.rolle -> Some(rolle))
+      stammdatenWriteRepository.updateEntity[Person, PersonId](personId)(personMapping.column.rolle -> Option(rolle))
     }
   }
 
@@ -328,7 +320,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntityIf[Sammelbestellung, SammelbestellungId](Abgeschlossen == _.status)(id)(
         sammelbestellungMapping.column.status -> Verrechnet,
-        sammelbestellungMapping.column.datumAbrechnung -> Some(datum)
+        sammelbestellungMapping.column.datumAbrechnung -> Option(datum)
       )
 
     }

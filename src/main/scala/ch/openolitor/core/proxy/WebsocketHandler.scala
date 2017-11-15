@@ -22,13 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.proxy
 
-import spray.routing._
-import akka.actor._
 import spray.can.websocket
-import spray.can.websocket.frame.{ BinaryFrame, TextFrame }
-import spray.http._
 import spray.can.websocket._
-import spray.can.websocket.{ Send, SendStream, UpgradedToWebSocket }
 import akka.util.ByteString
 import ch.openolitor.core.Boot.MandantSystem
 import org.jfarcand.wcs._

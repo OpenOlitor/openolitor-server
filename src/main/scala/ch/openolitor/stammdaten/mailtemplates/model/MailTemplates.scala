@@ -25,7 +25,6 @@ package ch.openolitor.stammdaten.mailtemplates.model
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
-import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.filestore.FileType

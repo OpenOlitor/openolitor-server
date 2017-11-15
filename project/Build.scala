@@ -6,11 +6,11 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
 object BuildSettings {
-  val specs2V = "2.4.17" // based on spray 1.3.x built in support 
+  val specs2V = "2.4.17" // based on spray 1.3.x built in support
   val akkaV = "2.4.+"
   val sprayV = "1.3.+"
-  val scalalikeV = "2.3.+"
- 
+  val scalalikeV = "3.1.+"
+
   val buildSettings = SbtScalariform.scalariformSettings ++ Seq(
     organization := "ch.openolitor.scalamacros",
     version := "2.0.0-SNAPSHOT",
@@ -22,10 +22,10 @@ object BuildSettings {
     resolvers += "Spray" at "http://repo.spray.io",
     resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
     resolvers += "zalando-maven" at "https://dl.bintray.com/zalando/maven",
-    scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "Ywarn-unused-import"),
+    scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import"),
     mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
-    libraryDependencies ++= {	  
+    libraryDependencies ++= {
 	  Seq(
 	    "io.spray"                     %%  "spray-can"     					              % sprayV,
 	    "io.spray"                     %%  "spray-caching"     					          % sprayV,
@@ -35,11 +35,11 @@ object BuildSettings {
 	    "io.spray" 			               %%  "spray-client"  					              % sprayV,
 	    "com.wandoulabs.akka"          %%  "spray-websocket" 				              % "0.1.4",
 	    "com.typesafe.akka"            %%  "akka-actor"    					              % akkaV,
-	    "com.typesafe.akka"            %%  "akka-persistence"                     % akkaV,    
+	    "com.typesafe.akka"            %%  "akka-persistence"                     % akkaV,
 	    "com.typesafe.akka"            %%  "akka-persistence-query-experimental"  % akkaV,
 	    "com.typesafe.akka"            %%  "akka-slf4j"    					              % akkaV,
 	    "com.typesafe.akka"            %%  "akka-stream"    					              % akkaV,
-	    "com.typesafe.akka"            %%  "akka-testkit"  			    	            % akkaV       % "test",    
+	    "com.typesafe.akka"            %%  "akka-testkit"  			    	            % akkaV       % "test",
 	    "com.github.dnvriend"          %%  "akka-persistence-inmemory" 		        % "1.0.5"     % "test",
 	    "org.specs2"                   %%  "specs2-core"   					              % specs2V     % "test",
 	    "org.specs2"                   %%  "specs2-mock"                          % specs2V     % "test",
@@ -49,10 +49,11 @@ object BuildSettings {
 	    //use scala logging to log outside of the actor system
 	    "com.typesafe.scala-logging"   %%  "scala-logging"				                % "3.1.0",
 	    //akka persistence journal driver
-	    "com.okumin" 		               %%  "akka-persistence-sql-async" 	        % "0.3.+",
-	    // "org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.5.+",
-	    "com.github.mauricio"          %%  "mysql-async" 						              % "0.2.16",
-	    //                             
+	    // "com.okumin" 		               %%  "akka-persistence-sql-async" 	        % "0.4.+",
+	    // use currently own fork, until PR was merged and a new release is available
+	    "org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.9.+",
+	    "com.github.mauricio"          %%  "mysql-async" 						              % "0.2.+",
+	    //
 	    "org.scalikejdbc" 	           %%  "scalikejdbc-config"				            % scalalikeV,
 	    "org.scalikejdbc"              %%  "scalikejdbc-test"                     % scalalikeV   % "test",
 	    "com.h2database"               %   "h2"                                   % "1.4.191"    % "test",
@@ -79,7 +80,7 @@ object BuildSettings {
 
 object ScalaxbSettings {
   import sbtscalaxb.ScalaxbKeys._
-  
+
   lazy val scalaxbSettings = Seq(
       scalaxbXsdSource in (Compile, scalaxb) := baseDirectory.value / "src" / "main" / "resources" / "xsd",
       scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd"
@@ -88,14 +89,43 @@ object ScalaxbSettings {
 
 object OpenOlitorBuild extends Build {
   import BuildSettings._
+
+  lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version")
+  lazy val akkaPersistenceSqlAsync = ProjectRef(akkaPersistenceSqlAsyncUri, "core")
+
   import ScalaxbSettings._
 
-  lazy val scalikejdbcAsyncForkUri =  uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/support_up_to_9_joins")
+  lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/support_up_to_9_joins")
   lazy val scalikejdbcAsync = ProjectRef(scalikejdbcAsyncForkUri, "core")
 
   lazy val sprayJsonMacro = RootProject(uri("git://github.com/zackangelo/spray-json-macros.git"))
   lazy val macroSub = Project("macro", file("macro"), settings = buildSettings ++ Seq(
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value))
-  lazy val main = Project("main", file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings) dependsOn (macroSub, sprayJsonMacro, scalikejdbcAsync)
+  lazy val main = Project("main", file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ Seq(
+      (sourceGenerators in Compile) += task[Seq[File]]{
+        val dir = (sourceManaged in Compile).value
+        val maxParams = 30
+        val mappings = (1 to maxParams).map{ n =>
+          val file = dir / "openolitor" / "ch" / "openolitor" / "core" / "repositories" / s"Parameters${n}.scala"
+          IO.write(file, GenerateParametersMapping(n))
+          file
+        }
+        val paramsTrait = {
+          val file = dir / "openolitor" / "ch" / "openolitor" / "core" / "repositories" / s"Parameters.scala"
+          IO.write(file, GenerateParametersTrait(maxParams))
+          file
+        }
+        val tuples = (23 to maxParams).map{ n =>
+          val file = dir / "openolitor" / "ch" / "openolitor" / "core" / "scalax" / s"Tuple${n}.scala"
+          IO.write(file, GenerateTuples(n))
+          file
+        }
+        mappings ++ tuples :+ paramsTrait
+      },
+      mappings in (Compile, packageSrc) ++= (managedSources in Compile).value.map{ f =>
+        // to merge generated sources into sources.jar as well
+        (f, f.relativeTo((sourceManaged in Compile).value).get.getPath)
+      }
+      )) dependsOn (macroSub, sprayJsonMacro, akkaPersistenceSqlAsync)
   lazy val root = Project("root", file("root"), settings = buildSettings) aggregate (macroSub, main, sprayJsonMacro)
 }

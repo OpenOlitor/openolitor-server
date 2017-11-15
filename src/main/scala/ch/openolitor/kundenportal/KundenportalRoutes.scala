@@ -24,48 +24,26 @@ package ch.openolitor.kundenportal
 
 import spray.routing._
 import spray.http._
-import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
-import spray.httpx.unmarshalling.Unmarshaller
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util._
-import java.util.UUID
 import akka.pattern.ask
-import scala.concurrent.duration._
-import akka.util.Timeout
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.models._
-import spray.httpx.marshalling._
-import spray.httpx.unmarshalling._
-import scala.concurrent.Future
 import ch.openolitor.core.Macros._
-import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
-import stamina.Persister
 import ch.openolitor.buchhaltung.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
 import akka.actor._
-import scala.io.Source
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.core.security.Subject
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
-import ch.openolitor.buchhaltung.reporting.RechnungReportService
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
-import ch.openolitor.stammdaten.StammdatenJsonProtocol
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.kundenportal.repositories.KundenportalReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryAsyncComponent
 
@@ -80,6 +58,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   implicit val projektIdPath = long2BaseIdPathMatcher(ProjektId.apply)
   implicit val aboIdPath = long2BaseIdPathMatcher(AboId.apply)
   implicit val abotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
+  implicit val zusatzabotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val abwesenheitIdPath = long2BaseIdPathMatcher(AbwesenheitId.apply)
   implicit val lieferungIdPath = long2BaseIdPathMatcher(LieferungId.apply)
 
@@ -148,9 +127,14 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   def abosRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
     path("abos") {
       get {
-        list(kundenportalReadRepository.getAbos)
+        list(kundenportalReadRepository.getHauptabos)
       }
     } ~
+      path("abos" / aboIdPath / "zusatzabos") { aboId =>
+        get {
+          list(kundenportalReadRepository.getZusatzabos(aboId))
+        }
+      } ~
       path("abos" / aboIdPath / "abwesenheiten") { aboId =>
         post {
           requestInstance { request =>
@@ -181,6 +165,11 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       path("abos" / abotypIdPath / "lieferungen" / lieferungIdPath) { (abotypId, lieferungId) =>
         get {
           get(detail(kundenportalReadRepository.getLieferungenDetail(lieferungId)))
+        }
+      } ~
+      path("abos" / abotypIdPath / "zusatzabos" / zusatzabotypIdPath / "lieferungen") { (abotypId, zusatzabotypId) =>
+        get {
+          list(kundenportalReadRepository.getLieferungenDetails(zusatzabotypId))
         }
       }
   }

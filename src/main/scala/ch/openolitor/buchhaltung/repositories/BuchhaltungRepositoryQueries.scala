@@ -22,18 +22,9 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.repositories
 
-import ch.openolitor.core.models._
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
-import ch.openolitor.core.repositories._
-import ch.openolitor.core.repositories.BaseWriteRepository
-import scala.concurrent._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.EventStream
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
@@ -74,7 +65,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(rechnungsPositionMapping as rechnungsPosition)
-        .where.eq(rechnungsPosition.rechnungId, parameter(rechnungId))
+        .where.eq(rechnungsPosition.rechnungId, rechnungId)
         .orderBy(rechnungsPosition.id)
     }.map(rechnungsPositionMapping(rechnungsPosition)).list
   }
@@ -83,7 +74,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(rechnungMapping as rechnung)
-        .where.eq(rechnung.kundeId, parameter(kundeId))
+        .where.eq(rechnung.kundeId, kundeId)
         .orderBy(rechnung.rechnungsDatum)
     }.map(rechnungMapping(rechnung)).list
   }
@@ -97,7 +88,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(rechnungsPosition.aboId, depotlieferungAbo.id)
         .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnungsPosition.aboId, heimlieferungAbo.id)
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnungsPosition.aboId, postlieferungAbo.id)
-        .where.eq(rechnung.id, parameter(id))
+        .where.eq(rechnung.id, id)
         .orderBy(rechnung.rechnungsDatum)
     }.one(rechnungMapping(rechnung))
       .toManies(
@@ -127,7 +118,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(rechnungMapping as rechnung)
-        .where.eq(rechnung.referenzNummer, parameter(referenzNummer))
+        .where.eq(rechnung.referenzNummer, referenzNummer)
         .orderBy(rechnung.rechnungsDatum)
     }.map(rechnungMapping(rechnung)).single
   }
@@ -144,7 +135,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
       select
         .from(zahlungsImportMapping as zahlungsImport)
         .leftJoin(zahlungsEingangMapping as zahlungsEingang).on(zahlungsImport.id, zahlungsEingang.zahlungsImportId)
-        .where.eq(zahlungsImport.id, parameter(id))
+        .where.eq(zahlungsImport.id, id)
     }.one(zahlungsImportMapping(zahlungsImport))
       .toMany(
         rs => zahlungsEingangMapping.opt(zahlungsEingang)(rs)
@@ -158,7 +149,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(zahlungsEingangMapping as zahlungsEingang)
-        .where.eq(zahlungsEingang.referenzNummer, parameter(referenzNummer))
+        .where.eq(zahlungsEingang.referenzNummer, referenzNummer)
         .orderBy(zahlungsEingang.modifidat).desc
     }.map(zahlungsEingangMapping(zahlungsEingang)).first
   }

@@ -28,7 +28,6 @@ import ch.openolitor.core.repositories.CoreDBMappings
 import scala.util._
 import ch.openolitor.core.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.db.evolution.scripts.V1Scripts
 import ch.openolitor.util.IteratorUtil
 import org.joda.time.DateTime
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
@@ -36,16 +35,15 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.mailtemplates.model._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.core.repositories.SqlBinder
 import scala.reflect._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.reports.models._
 import ch.openolitor.reports.ReportsDBMappings
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import akka.actor.ActorSystem
 import ch.openolitor.core.ActorSystemReference
 import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateDBMappings
+import ch.openolitor.reports.models._
 
 trait Script {
 
@@ -63,53 +61,59 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
 
   logger.debug(s"Evolution manager consists of:$scripts")
 
-  def checkDBSeeds(seeds: Map[Class[_ <: BaseId], Long])(implicit cpContext: ConnectionPoolContext, personId: PersonId): Try[Map[Class[_ <: BaseId], Long]] = {
+  def checkDBSeeds(implicit cpContext: ConnectionPoolContext, personId: PersonId): Try[Map[Class[_ <: BaseId], Long]] = {
     DB readOnly { implicit session =>
       try {
         val dbIds = Seq(
-          adjustSeed[Abotyp, AbotypId](seeds, abotypMapping),
-          adjustSeed[Depot, DepotId](seeds, depotMapping),
-          adjustSeed[Vertrieb, VertriebId](seeds, vertriebMapping),
+          adjustSeeds[AbotypId](
+            maxId[Abotyp, AbotypId](abotypMapping),
+            maxId[ZusatzAbotyp, AbotypId](zusatzAbotypMapping)
+          ),
+          adjustSeed[Depot, DepotId](depotMapping),
+          adjustSeed[Vertrieb, VertriebId](vertriebMapping),
           adjustSeeds[VertriebsartId](
-            seeds,
             maxId[Depotlieferung, VertriebsartId](depotlieferungMapping),
             maxId[Heimlieferung, VertriebsartId](heimlieferungMapping),
             maxId[Postlieferung, VertriebsartId](postlieferungMapping)
           ),
           adjustSeeds[AboId](
-            seeds,
             maxId[DepotlieferungAbo, AboId](depotlieferungAboMapping),
             maxId[HeimlieferungAbo, AboId](heimlieferungAboMapping),
-            maxId[PostlieferungAbo, AboId](postlieferungAboMapping)
+            maxId[PostlieferungAbo, AboId](postlieferungAboMapping),
+            maxId[ZusatzAbo, AboId](zusatzAboMapping)
           ),
-          adjustSeed[Kunde, KundeId](seeds, kundeMapping),
-          adjustSeed[CustomKundentyp, CustomKundentypId](seeds, customKundentypMapping),
-          adjustSeed[Lieferung, LieferungId](seeds, lieferungMapping),
-          adjustSeed[Pendenz, PendenzId](seeds, pendenzMapping),
-          adjustSeed[Person, PersonId](seeds, personMapping),
-          adjustSeed[Produzent, ProduzentId](seeds, produzentMapping),
-          adjustSeed[Produkt, ProduktId](seeds, produktMapping),
-          adjustSeed[ProduktProduktekategorie, ProduktProduktekategorieId](seeds, produktProduktekategorieMapping),
-          adjustSeed[ProduktProduzent, ProduktProduzentId](seeds, produktProduzentMapping),
-          adjustSeed[Produktekategorie, ProduktekategorieId](seeds, produktekategorieMapping),
-          adjustSeed[Projekt, ProjektId](seeds, projektMapping),
-          adjustSeed[Tour, TourId](seeds, tourMapping),
-          adjustSeed[Lieferplanung, LieferplanungId](seeds, lieferplanungMapping),
-          adjustSeed[Lieferposition, LieferpositionId](seeds, lieferpositionMapping),
-          adjustSeed[Bestellung, BestellungId](seeds, bestellungMapping),
-          adjustSeed[Bestellposition, BestellpositionId](seeds, bestellpositionMapping),
-          adjustSeed[Abwesenheit, AbwesenheitId](seeds, abwesenheitMapping),
-          adjustSeed[Rechnung, RechnungId](seeds, rechnungMapping),
-          adjustSeed[ZahlungsImport, ZahlungsImportId](seeds, zahlungsImportMapping),
-          adjustSeed[ZahlungsEingang, ZahlungsEingangId](seeds, zahlungsEingangMapping),
-          adjustSeed[Einladung, EinladungId](seeds, einladungMapping),
-          adjustSeed[Sammelbestellung, SammelbestellungId](seeds, sammelbestellungMapping),
-          adjustSeed[Report, ReportId](seeds, reportMapping),
-          adjustSeed[MailTemplate, MailTemplateId](seeds, mailTemplateMapping)
-
+          adjustSeed[Kunde, KundeId](kundeMapping),
+          adjustSeed[CustomKundentyp, CustomKundentypId](customKundentypMapping),
+          adjustSeed[Lieferung, LieferungId](lieferungMapping),
+          adjustSeed[Pendenz, PendenzId](pendenzMapping),
+          adjustSeed[Person, PersonId](personMapping),
+          adjustSeed[Produzent, ProduzentId](produzentMapping),
+          adjustSeed[Produkt, ProduktId](produktMapping),
+          adjustSeed[ProduktProduktekategorie, ProduktProduktekategorieId](produktProduktekategorieMapping),
+          adjustSeed[ProduktProduzent, ProduktProduzentId](produktProduzentMapping),
+          adjustSeed[Produktekategorie, ProduktekategorieId](produktekategorieMapping),
+          adjustSeed[Projekt, ProjektId](projektMapping),
+          adjustSeed[Tour, TourId](tourMapping),
+          adjustSeed[Lieferplanung, LieferplanungId](lieferplanungMapping),
+          adjustSeed[Lieferposition, LieferpositionId](lieferpositionMapping),
+          adjustSeed[Bestellung, BestellungId](bestellungMapping),
+          adjustSeed[Bestellposition, BestellpositionId](bestellpositionMapping),
+          adjustSeed[Abwesenheit, AbwesenheitId](abwesenheitMapping),
+          adjustSeed[Rechnung, RechnungId](rechnungMapping),
+          adjustSeed[ZahlungsImport, ZahlungsImportId](zahlungsImportMapping),
+          adjustSeed[ZahlungsEingang, ZahlungsEingangId](zahlungsEingangMapping),
+          adjustSeed[Einladung, EinladungId](einladungMapping),
+          adjustSeed[Sammelbestellung, SammelbestellungId](sammelbestellungMapping),
+          adjustSeeds[AuslieferungId](
+            maxId[DepotAuslieferung, AuslieferungId](depotAuslieferungMapping),
+            maxId[TourAuslieferung, AuslieferungId](tourAuslieferungMapping),
+            maxId[PostAuslieferung, AuslieferungId](postAuslieferungMapping)
+          ),
+          adjustSeed[Report, ReportId](reportMapping),
+          adjustSeed[MailTemplate, MailTemplateId](mailTemplateMapping)
         ).flatten
 
-        Success(seeds ++ dbIds.toMap)
+        Success(dbIds.toMap)
       } catch {
         case t: Throwable =>
           Failure(t)
@@ -117,16 +121,18 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     }
   }
 
-  def adjustSeed[E <: BaseEntity[I], I <: BaseId: ClassTag](seeds: Map[Class[_ <: BaseId], Long], syntax: BaseEntitySQLSyntaxSupport[E])(implicit session: DBSession, personId: PersonId): Option[(Class[I], Long)] = {
-    adjustSeeds(seeds, maxId[E, I](syntax))
+  def adjustSeed[E <: BaseEntity[I], I <: BaseId: ClassTag](syntax: BaseEntitySQLSyntaxSupport[E])(implicit session: DBSession, personId: PersonId): Option[(Class[I], Long)] = {
+    adjustSeeds(maxId[E, I](syntax))
   }
 
-  def adjustSeeds[I <: BaseId: ClassTag](seeds: Map[Class[_ <: BaseId], Long], queries: Option[Long]*)(implicit session: DBSession, PersonId: PersonId): Option[(Class[I], Long)] = {
+  def adjustSeeds[I <: BaseId: ClassTag](queries: Option[Long]*)(implicit session: DBSession, PersonId: PersonId): Option[(Class[I], Long)] = {
     val entity: Class[I] = classTag[I].runtimeClass.asInstanceOf[Class[I]]
     val q = queries.flatten
-    val overallMaxId = if (q.length > 0) q.max else 0
-    seeds.get(entity).flatMap { s =>
-      if (s < overallMaxId) Some(entity -> overallMaxId) else Some(entity -> s)
+
+    if (q.length > 0) {
+      Some(entity -> q.max)
+    } else {
+      None
     }
   }
 
@@ -196,7 +202,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     withSQL {
       select(max(schema.revision))
         .from(dbSchemaMapping as schema)
-        .where.eq(schema.status, parameter(Done))
+        .where.eq(schema.status, Done)
     }.map(_.intOpt(1).getOrElse(0)).single.apply().getOrElse(0)
   }
 }

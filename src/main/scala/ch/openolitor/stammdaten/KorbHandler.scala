@@ -39,27 +39,35 @@ trait KorbHandler extends KorbStatusHandler
    * insert or update Korb
    * @return (created/updated, existing)
    */
-  def upsertKorb(lieferung: Lieferung, abo: Abo, abotyp: Abotyp)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): (Option[Korb], Option[Korb]) = {
+  def upsertKorb(lieferung: Lieferung, abo: Abo, abotyp: IAbotyp)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): (Option[Korb], Option[Korb]) = {
     stammdatenWriteRepository.getKorb(lieferung.id, abo.id) match {
       case None if (lieferung.lieferplanungId.isDefined) =>
-        val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
-        val status = calculateKorbStatus(abwCount, abo.guthaben, abotyp.guthabenMindestbestand)
-        val korbId = KorbId(IdUtil.positiveRandomId)
-        val korb = Korb(
-          korbId,
-          lieferung.id,
-          abo.id,
-          status,
-          abo.guthaben,
-          None,
-          None,
-          DateTime.now,
-          personId,
-          DateTime.now,
-          personId
-        )
-        (stammdatenWriteRepository.insertEntity[Korb, KorbId](korb), None)
-
+        if (lieferung.vertriebId == abo.vertriebId) {
+          val status = abo match {
+            case zusatzAbo: ZusatzAbo =>
+              val mainAbo = stammdatenWriteRepository.getHauptAbo(zusatzAbo.id)
+              val abwCount = stammdatenWriteRepository.countAbwesend(mainAbo.get.id, lieferung.datum.toLocalDate)
+              calculateKorbStatus(abwCount, mainAbo.get.guthaben, abotyp.guthabenMindestbestand)
+            case abo: Abo =>
+              val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
+              calculateKorbStatus(abwCount, abo.guthaben, abotyp.guthabenMindestbestand)
+          }
+          val korbId = KorbId(IdUtil.positiveRandomId)
+          val korb = Korb(
+            korbId,
+            lieferung.id,
+            abo.id,
+            status,
+            abo.guthaben,
+            None,
+            None,
+            DateTime.now,
+            personId,
+            DateTime.now,
+            personId
+          )
+          (stammdatenWriteRepository.insertEntity[Korb, KorbId](korb), None)
+        } else { (None, None) }
       case None =>
         // do nothing (lieferung hast not been planned yet)
         (None, None)
@@ -90,11 +98,11 @@ trait KorbHandler extends KorbStatusHandler
     }
   }
 
-  def modifyKoerbeForAboDatumVertrieb(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+  def modifyKoerbeForAboVertriebChange(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     for {
       originalAbo <- orig
       if (abo.vertriebId != originalAbo.vertriebId)
-      abotyp <- stammdatenWriteRepository.getById(abotypMapping, abo.abotypId)
+      abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
     } yield {
       stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
         if (lieferung.vertriebId == originalAbo.vertriebId) {
@@ -113,7 +121,7 @@ trait KorbHandler extends KorbStatusHandler
       originalAbo <- orig
       // only modify koerbe if the start or end of this abo has changed or we're creating them for a new abo
       if (abo.start != originalAbo.start || abo.ende != originalAbo.ende)
-      abotyp <- stammdatenWriteRepository.getById(abotypMapping, abo.abotypId)
+      abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
     } yield {
       stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId).map { lieferung =>
         if ((abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {

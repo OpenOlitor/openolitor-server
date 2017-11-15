@@ -25,15 +25,11 @@ package ch.openolitor.stammdaten.mailtemplates.repositories
 import ch.openolitor.core.repositories.DBMappings
 import ch.openolitor.stammdaten.mailtemplates.model._
 import scalikejdbc._
-import scalikejdbc.TypeBinder._
 import ch.openolitor.core.repositories._
 
 trait MailTemplateDBMappings extends DBMappings {
-  implicit val mailTemplateType: TypeBinder[MailTemplateType] = string.map(MailTemplateType.apply)
-  implicit val mailTemplateId: TypeBinder[MailTemplateId] = baseIdTypeBinder(MailTemplateId.apply)
-
-  implicit val mailTemplateTypeSqlBinder = toStringSqlBinder[MailTemplateType]
-  implicit val mailTemplateIdSqlBinder = baseIdSqlBinder[MailTemplateId]
+  implicit val mailTemplateIdBinder: Binders[MailTemplateId] = baseIdBinders(MailTemplateId.apply _)
+  implicit val mailTemplateTypeBinder: Binders[MailTemplateType] = toStringBinder(MailTemplateType.apply)
 
   implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
     override val tableName = "MailTemplate"
@@ -43,17 +39,17 @@ trait MailTemplateDBMappings extends DBMappings {
     def apply(rn: ResultName[MailTemplate])(rs: WrappedResultSet): MailTemplate =
       autoConstruct(rs, rn)
 
-    def parameterMappings(entity: MailTemplate): Seq[Any] =
+    def parameterMappings(entity: MailTemplate): Seq[ParameterBinder] =
       parameters(MailTemplate.unapply(entity).get)
 
     override def updateParameters(entity: MailTemplate) = {
       super.updateParameters(entity) ++
         Seq(
-          column.templateType -> parameter(entity.templateType),
-          column.templateName -> parameter(entity.templateName),
-          column.description -> parameter(entity.description),
-          column.subject -> parameter(entity.subject),
-          column.body -> parameter(entity.body)
+          column.templateType -> entity.templateType,
+          column.templateName -> entity.templateName,
+          column.description -> entity.description,
+          column.subject -> entity.subject,
+          column.body -> entity.body
         )
     }
   }

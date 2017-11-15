@@ -24,7 +24,6 @@ package ch.openolitor.stammdaten.models
 
 import org.joda.time.DateTime
 import ch.openolitor.core.models._
-import java.util.UUID
 import ch.openolitor.core.JSONSerializable
 
 sealed trait LieferungStatus
@@ -131,7 +130,7 @@ case class LieferungDetail(
   zielpreis: Option[BigDecimal],
   preisTotal: BigDecimal,
   lieferplanungId: Option[LieferplanungId],
-  abotyp: Option[Abotyp],
+  abotyp: Option[IAbotyp],
   lieferpositionen: Seq[Lieferposition],
   lieferplanungBemerkungen: Option[String],
   //value for actual geschaeftsjahr

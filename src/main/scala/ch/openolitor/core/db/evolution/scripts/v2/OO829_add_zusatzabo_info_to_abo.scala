@@ -20,40 +20,46 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.db.evolution.scripts.recalculations
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import ch.openolitor.core.db.evolution.Script
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.reports.ReportsDBMappings
+import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
-import scala.util.Try
-import scala.util.Success
-import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
-import ch.openolitor.core.NoPublishEventStream
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Boot
+
+import scala.util.{ Success, Try }
+import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
-object RecalculateAnzahlGeliefertLieferung {
-  val scripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with StammdatenWriteRepositoryImpl with NoPublishEventStream {
+object OO829_add_zusatzabo_info_to_abo {
 
+  val addZusatzAboInfoToAbo = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      // recalculate Körbe zu liefern
+      alterTableAddColumnIfNotExists(depotlieferungAboMapping, "zusatz_abo_ids", "VARCHAR(2000)", "aktiv")
+      alterTableAddColumnIfNotExists(depotlieferungAboMapping, "zusatz_abotyp_names", "VARCHAR(2000)", "zusatz_abo_ids")
 
-      val korb = korbMapping.syntax("korb")
-      implicit val personId = Boot.systemPersonId
+      alterTableAddColumnIfNotExists(heimlieferungAboMapping, "zusatz_abo_ids", "VARCHAR(2000)", "aktiv")
+      alterTableAddColumnIfNotExists(heimlieferungAboMapping, "zusatz_abotyp_names", "VARCHAR(2000)", "zusatz_abo_ids")
 
-      getProjekt map { projekt =>
-        withSQL {
-          select.from(korbMapping as korb).where.eq(korb.status, WirdGeliefert).or.eq(korb.status, Geliefert)
-        }.map(korbMapping(korb)).list.apply().groupBy(_.lieferungId) map {
-          case (lieferungId, koerbe) =>
-            updateEntity[Lieferung, LieferungId](lieferungId)(lieferungMapping.column.anzahlKoerbeZuLiefern -> koerbe.size)
-        }
-      }
+      alterTableAddColumnIfNotExists(postlieferungAboMapping, "zusatz_abo_ids", "VARCHAR(2000)", "aktiv")
+      alterTableAddColumnIfNotExists(postlieferungAboMapping, "zusatz_abotyp_names", "VARCHAR(2000)", "zusatz_abo_ids")
+
+      sql"""UPDATE DepotlieferungAbo a JOIN ZusatzAbo z ON a.id = z.haupt_abo_id
+SET a.zusatz_abo_ids = CONCAT(COALESCE(CONCAT(a.zusatz_abo_ids, ','), ''), z.id),
+  a.zusatz_abotyp_names = CONCAT(COALESCE(CONCAT(a.zusatz_abotyp_names, ','), ''), z.abotyp_name);""".execute.apply()
+
+      sql"""UPDATE HeimlieferungAbo a JOIN ZusatzAbo z ON a.id = z.haupt_abo_id
+SET a.zusatz_abo_ids = CONCAT(COALESCE(CONCAT(a.zusatz_abo_ids, ','), ''), z.id),
+  a.zusatz_abotyp_names = CONCAT(COALESCE(CONCAT(a.zusatz_abotyp_names, ','), ''), z.abotyp_name);""".execute.apply()
+
+      sql"""UPDATE PostlieferungAbo a JOIN ZusatzAbo z ON a.id = z.haupt_abo_id
+SET a.zusatz_abo_ids = CONCAT(COALESCE(CONCAT(a.zusatz_abo_ids, ','), ''), z.id),
+  a.zusatz_abotyp_names = CONCAT(COALESCE(CONCAT(a.zusatz_abotyp_names, ','), ''), z.abotyp_name);""".execute.apply()
 
       Success(true)
     }
   }
+
+  val scripts = Seq(addZusatzAboInfoToAbo)
 }
