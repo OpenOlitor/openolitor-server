@@ -652,36 +652,38 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     DB autoCommit { implicit session =>
       val project = stammdatenWriteRepository.getProjekt
       stammdatenWriteRepository.getById(lieferplanungMapping, data.lieferplanungId) map { lieferplanung =>
-        stammdatenWriteRepository.getById(lieferungMapping, data.id) map { lieferung =>
-          val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.datum) match {
-            case Some(lieferungVorher) if project.get.geschaftsjahr.isInSame(lieferungVorher.datum.toLocalDate(), lieferung.datum.toLocalDate()) =>
-              val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.datum, project.get.geschaftsjahr.start(lieferung.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
+        if (Offen == lieferplanung.status) {
+          stammdatenWriteRepository.getById(lieferungMapping, data.id) map { lieferung =>
+            val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.datum) match {
+              case Some(lieferungVorher) if project.get.geschaftsjahr.isInSame(lieferungVorher.datum.toLocalDate(), lieferung.datum.toLocalDate()) =>
+                val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.datum, project.get.geschaftsjahr.start(lieferung.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
 
-              val durchschnittspreisBisher: BigDecimal = lieferungVorher.anzahlLieferungen match {
-                case 0 => BigDecimal(0)
-                case _ => sum / lieferungVorher.anzahlLieferungen
-              }
-              val anzahlLieferungenNeu = lieferungVorher.anzahlLieferungen + 1
-              (durchschnittspreisBisher, anzahlLieferungenNeu)
-            case _ =>
-              (BigDecimal(0), 1)
+                val durchschnittspreisBisher: BigDecimal = lieferungVorher.anzahlLieferungen match {
+                  case 0 => BigDecimal(0)
+                  case _ => sum / lieferungVorher.anzahlLieferungen
+                }
+                val anzahlLieferungenNeu = lieferungVorher.anzahlLieferungen + 1
+                (durchschnittspreisBisher, anzahlLieferungenNeu)
+              case _ =>
+                (BigDecimal(0), 1)
+            }
+            val lpId = Some(data.lieferplanungId)
+
+            val updatedLieferung = lieferung.copy(
+              lieferplanungId = lpId,
+              status = Offen,
+              durchschnittspreis = newDurchschnittspreis,
+              anzahlLieferungen = newAnzahlLieferungen,
+              modifidat = meta.timestamp,
+              modifikator = personId
+            )
+
+            //create koerbe
+            val adjustedLieferung = createKoerbe(updatedLieferung)
+
+            //update Lieferung
+            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](adjustedLieferung)
           }
-          val lpId = Some(data.lieferplanungId)
-
-          val updatedLieferung = lieferung.copy(
-            lieferplanungId = lpId,
-            status = Offen,
-            durchschnittspreis = newDurchschnittspreis,
-            anzahlLieferungen = newAnzahlLieferungen,
-            modifidat = meta.timestamp,
-            modifikator = personId
-          )
-
-          //create koerbe
-          val adjustedLieferung = createKoerbe(updatedLieferung)
-
-          //update Lieferung
-          stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](adjustedLieferung)
         }
       }
     }
