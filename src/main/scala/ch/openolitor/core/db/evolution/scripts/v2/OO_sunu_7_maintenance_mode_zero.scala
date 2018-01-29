@@ -20,28 +20,29 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.db.evolution.scripts.v1
+package ch.openolitor.core.db.evolution.scripts.v2
 
 import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.db.evolution.Script
-import ch.openolitor.stammdaten.StammdatenDBMappings
-import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
-import scala.util.{ Success, Try }
-import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
-import scala.collection.Seq
 
-object OO556_DBScripts {
-  val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.reports.ReportsDBMappings
+import com.typesafe.scalalogging.LazyLogging
+
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+
+import scala.util.{ Success, Try }
+
+object OO_sunu_7_maintenance_mode_zero {
+
+  val maintenanceModeDefaultValue = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      alterTableAddColumnIfNotExists(projektMapping, "welcome_message1", "VARCHAR(2000)", "sprache")
-      alterTableAddColumnIfNotExists(projektMapping, "welcome_message2", "VARCHAR(2000)", "welcome_message1")
-      alterTableAddColumnIfNotExists(projektMapping, "maintenance_mode", "VARCHAR(1)", "welcome_message2")
-      sql"""UPDATE Projekt SET maintenance_mode='0' where id='1'""".execute.apply()
+      sql"""UPDATE Projekt SET maintenance_mode = 0;""".execute.apply()
 
       Success(true)
-
     }
   }
-  val scripts = Seq(StammdatenScripts)
+
+  val scripts = Seq(maintenanceModeDefaultValue)
 }
