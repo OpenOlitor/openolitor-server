@@ -229,6 +229,7 @@ object V2Scripts {
     OO942_EnlargeFileRef.scripts ++
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     OO762_Mail_Templates.scripts ++
+    OO_sunu_7_maintenance_mode_zero.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts
 }
