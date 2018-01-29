@@ -26,7 +26,6 @@ import ch.openolitor.core.SystemConfig
 import scalikejdbc._
 
 import ch.openolitor.core.db.evolution.Script
-import ch.openolitor.reports.ReportsDBMappings
 import com.typesafe.scalalogging.LazyLogging
 
 import ch.openolitor.stammdaten.StammdatenDBMappings
@@ -38,7 +37,7 @@ object OO_sunu_7_maintenance_mode_zero {
 
   val maintenanceModeDefaultValue = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      sql"""UPDATE Projekt SET maintenance_mode = 0;""".execute.apply()
+      sql"""UPDATE Projekt SET maintenance_mode = '0';""".execute.apply()
 
       Success(true)
     }
