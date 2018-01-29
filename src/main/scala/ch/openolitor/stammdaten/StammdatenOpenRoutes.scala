@@ -23,6 +23,7 @@
 package ch.openolitor.stammdaten
 
 import spray.routing._
+import java.io.File
 
 import spray.httpx.SprayJsonSupport._
 import ch.openolitor.core._
