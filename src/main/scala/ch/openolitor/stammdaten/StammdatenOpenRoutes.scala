@@ -23,10 +23,8 @@
 package ch.openolitor.stammdaten
 
 import spray.routing._
-import java.io.File
 
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import spray.http._
@@ -34,7 +32,6 @@ import spray.http._
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
-import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.stammdaten.reporting._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
