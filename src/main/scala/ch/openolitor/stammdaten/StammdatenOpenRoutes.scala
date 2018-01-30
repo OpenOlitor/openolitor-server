@@ -23,14 +23,15 @@
 package ch.openolitor.stammdaten
 
 import spray.routing._
+
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
+import spray.http._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
-import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.stammdaten.reporting._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
@@ -40,6 +41,7 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAs
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
+import spray.http.ContentType
 
 trait StammdatenOpenRoutes extends HttpService with ActorReferences
     with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -74,6 +76,9 @@ trait StammdatenOpenRoutes extends HttpService with ActorReferences
     } ~
       path("projekt" / projektIdPath / "logo") { id =>
         get(download(ProjektStammdaten, "logo"))
+      } ~
+      path("projekt" / "importFile") {
+        getFromResource("import_data_dev.ods", ContentType(MediaTypes.`application/vnd.oasis.opendocument.spreadsheet`))
       }
 
   def lieferplanungRoute =
