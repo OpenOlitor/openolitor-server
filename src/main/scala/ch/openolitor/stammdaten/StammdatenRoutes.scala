@@ -213,6 +213,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
+  private def personCategoryRoute(implicit subject: Subject): Route =
+    path("personCategory") {
+      get(list(stammdatenReadRepository.getPersonCategory)) ~
+        post(create[PersonCategoryCreate, PersonCategoryId](PersonCategoryId.apply _))
+    } ~
+      path("personCategory" / personCategoryIdPath) { (personCategoryId) =>
+        (put | post)(update[PersonCategoryModify, PersonCategoryId](personCategoryId)) ~
+          delete(remove(personCategoryId))
+      }
+
   private def kundentypenRoute(implicit subject: Subject): Route =
     path("kundentypen") {
       get(list(stammdatenReadRepository.getCustomKundentypen)) ~
