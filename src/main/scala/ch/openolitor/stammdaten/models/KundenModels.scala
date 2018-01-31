@@ -457,6 +457,9 @@ case class PersonCategory(
   modifikator: PersonId
 ) extends BaseEntity[PersonCategoryId]
 
+case class PersonCategoryModify(id: PersonCategoryId, name: String, description: Option[String]) extends JSONSerializable
+case class PersonCategoryCreate(name: String, description: Option[String]) extends JSONSerializable
+
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus
 case object Erledigt extends PendenzStatus
