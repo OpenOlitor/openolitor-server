@@ -40,6 +40,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val zusatzAboTyp = zusatzAbotypMapping.syntax("zatyp")
   lazy val person = personMapping.syntax("pers")
+  lazy val personCategory = personCategoryMapping.syntax("persCat")
   lazy val lieferplanung = lieferplanungMapping.syntax("lieferplanung")
   lazy val lieferung = lieferungMapping.syntax("lieferung")
   lazy val hauptLieferung = lieferungMapping.syntax("lieferung")

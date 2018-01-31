@@ -230,6 +230,7 @@ object V2Scripts {
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     OO762_Mail_Templates.scripts ++
     OO_sunu_7_maintenance_mode_zero.scripts ++
+    OO_sunu_4_person_category.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts
 }

@@ -134,6 +134,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val sammelbestellungIdFormat = baseIdFormat(SammelbestellungId)
   implicit val bestellpositionIdFormat = baseIdFormat(BestellpositionId)
   implicit val customKundentypIdFormat = baseIdFormat(CustomKundentypId.apply)
+  implicit val personCategoryIdFormat = baseIdFormat(PersonCategoryId.apply)
   implicit val abwesenheitIdFormat = baseIdFormat(AbwesenheitId.apply)
   implicit val projektVorlageIdFormat = baseIdFormat(ProjektVorlageId.apply)
   implicit val kundentypIdFormat = new RootJsonFormat[KundentypId] {
