@@ -82,6 +82,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: AboId, entity: DepotlieferungAboModify)               => updateDepotlieferungAbo(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: ZusatzAboModify)                       => updateZusatzAboModify(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboGuthabenModify)                     => updateAboGuthaben(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: AboPriceModify)                        => updateAboPrice(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboVertriebsartModify)                 => updateAboVertriebsart(meta, id, entity)
     case EntityUpdatedEvent(meta, id: DepotId, entity: DepotModify)                         => updateDepot(meta, id, entity)
     case EntityUpdatedEvent(meta, id: CustomKundentypId, entity: CustomKundentypModify)     => updateKundentyp(meta, id, entity)
