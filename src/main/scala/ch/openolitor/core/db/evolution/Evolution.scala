@@ -81,6 +81,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[Lieferung, LieferungId](lieferungMapping),
           adjustSeed[Pendenz, PendenzId](pendenzMapping),
           adjustSeed[Person, PersonId](personMapping),
+          adjustSeed[PersonCategory, PersonCategoryId](personCategoryMapping),
           adjustSeed[Produzent, ProduzentId](produzentMapping),
           adjustSeed[Produkt, ProduktId](produktMapping),
           adjustSeed[ProduktProduktekategorie, ProduktProduktekategorieId](produktProduktekategorieMapping),

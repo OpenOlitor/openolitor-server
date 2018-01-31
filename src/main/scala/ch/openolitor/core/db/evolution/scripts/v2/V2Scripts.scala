@@ -155,5 +155,6 @@ object V2Scripts {
     OO900_Guthaben.scripts ++
     OO942_EnlargeFileRef.scripts ++
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
-    OO_sunu_7_maintenance_mode_zero.scripts
+    OO_sunu_7_maintenance_mode_zero.scripts ++
+    OO_sunu_4_person_category.scripts
 }

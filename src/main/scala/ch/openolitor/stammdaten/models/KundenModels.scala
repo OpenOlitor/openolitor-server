@@ -446,6 +446,17 @@ case class PersonCreate(
   def fullName = name + ' ' + vorname
 }
 
+case class PersonCategoryId(id: Long) extends BaseId
+case class PersonCategory(
+  id: PersonCategoryId,
+  name: String,
+  description: String,
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonCategoryId]
+
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus
 case object Erledigt extends PendenzStatus
