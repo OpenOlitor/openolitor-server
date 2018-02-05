@@ -79,9 +79,11 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
-        kundentypenRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
+        kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
         mailingRoute
+        kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
+        produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute
     }
 
   private def kontoDatenRoute(implicit subject: Subject): Route =
@@ -214,7 +216,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def personCategoryRoute(implicit subject: Subject): Route =
-    path("personCategory") {
+    path("personCategories") {
       get(list(stammdatenReadRepository.getPersonCategory)) ~
         post(create[PersonCategoryCreate, PersonCategoryId](PersonCategoryId.apply _))
     } ~
