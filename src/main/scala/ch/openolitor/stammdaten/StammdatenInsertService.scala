@@ -268,6 +268,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "passwort" -> None,
       "passwortWechselErforderlich" -> FALSE,
       "rolle" -> rolle,
+      "categories" -> Set.empty[PersonCategoryNameId],
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
