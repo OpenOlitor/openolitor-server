@@ -22,10 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.models
 
-import java.util.UUID
-import scalikejdbc.ParameterBinder
-import ch.openolitor.core.Macros
-import spray.json.DefaultJsonProtocol
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.ws.ClientMessages.ClientMessage
