@@ -374,28 +374,29 @@ object Rolle {
 }
 
 case class Person(
-  id: PersonId,
-  kundeId: KundeId,
-  anrede: Option[Anrede],
-  name: String,
-  vorname: String,
-  email: Option[String],
-  emailAlternative: Option[String],
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  bemerkungen: Option[String],
-  sort: Int,
-  // security data
-  loginAktiv: Boolean,
-  passwort: Option[Array[Char]],
-  letzteAnmeldung: Option[DateTime],
-  passwortWechselErforderlich: Boolean,
-  rolle: Option[Rolle],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: PersonId,
+    kundeId: KundeId,
+    anrede: Option[Anrede],
+    name: String,
+    vorname: String,
+    email: Option[String],
+    emailAlternative: Option[String],
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    bemerkungen: Option[String],
+    sort: Int,
+    // security data
+    loginAktiv: Boolean,
+    passwort: Option[Array[Char]],
+    letzteAnmeldung: Option[DateTime],
+    passwortWechselErforderlich: Boolean,
+    rolle: Option[Rolle],
+    categories: Set[PersonCategoryNameId],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[PersonId] {
   def fullName = name + ' ' + vorname
 }
@@ -462,6 +463,7 @@ case class PersonDetail(
   letzteAnmeldung: Option[DateTime],
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -492,6 +494,7 @@ case class PersonUebersicht(
   loginAktiv: Boolean,
   letzteAnmeldung: Option[DateTime],
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // kundendaten
   strasse: String,
   hausNummer: Option[String],
@@ -547,10 +550,11 @@ case class PersonMailRequest(
   subject: String,
   body: String
 ) extends JSONSerializable
+case class PersonCategoryNameId(id: String) extends BaseStringId
 case class PersonCategoryId(id: Long) extends BaseId
 case class PersonCategory(
   id: PersonCategoryId,
-  name: String,
+  name: PersonCategoryNameId,
   description: String,
   erstelldat: DateTime,
   ersteller: PersonId,
