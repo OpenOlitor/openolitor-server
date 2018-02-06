@@ -344,6 +344,7 @@ case class Person(
     letzteAnmeldung: Option[DateTime],
     passwortWechselErforderlich: Boolean,
     rolle: Option[Rolle],
+    categories: Set[PersonCategoryNameId],
     // modification flags
     erstelldat: DateTime,
     ersteller: PersonId,
@@ -370,6 +371,7 @@ case class PersonDetail(
   letzteAnmeldung: Option[DateTime],
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -400,6 +402,7 @@ case class PersonUebersicht(
   loginAktiv: Boolean,
   letzteAnmeldung: Option[DateTime],
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // kundendaten
   strasse: String,
   hausNummer: Option[String],
@@ -446,10 +449,11 @@ case class PersonCreate(
   def fullName = vorname + ' ' + name
 }
 
+case class PersonCategoryNameId(id: String) extends BaseStringId
 case class PersonCategoryId(id: Long) extends BaseId
 case class PersonCategory(
   id: PersonCategoryId,
-  name: String,
+  name: PersonCategoryNameId,
   description: String,
   erstelldat: DateTime,
   ersteller: PersonId,

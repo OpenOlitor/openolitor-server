@@ -47,7 +47,7 @@ object OO_sunu_4_person_category {
         modifidat datetime not null,
         modifikator BIGINT not null)""".execute.apply()
 
-      sql"""ALTER TABLE ${personMapping.table} ADD person_category BIGINT""".execute.apply()
+      //alterTableAddColumnIfNotExists(personMapping, "categories", "VARCHAR(2000)", "categories")
       Success(true)
     }
   }
