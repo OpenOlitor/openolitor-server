@@ -216,6 +216,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(personMapping(person)).list
   }
 
+  protected def getPersonByCategoryQuery(category: PersonCategoryNameId) = {
+    val personCategoryRegex: String = SQLSyntax.createUnsafely(s"""([ ,]|^)${category.id}([ ,]|$$)+""")
+    sql"""
+      SELECT ${person.result.*} FROM ${personMapping as person}
+      WHERE categories REGEXP ${personCategoryRegex}
+    """.map(personMapping(person)).list
+  }
+
   protected def getPersonenQuery(kundeId: KundeId) = {
     withSQL {
       select
