@@ -438,6 +438,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[PendenzModify, PendenzId](idFactory, meta, entity, PendenzId.apply)
     case e @ InsertEntityCommand(personId, entity: PersonCreate) => idFactory => meta =>
       handleEntityInsert[PersonCreate, PersonId](idFactory, meta, entity, PersonId.apply)
+    case e @ InsertEntityCommand(personId, entity: PersonCategoryCreate) => idFactory => meta =>
+      handleEntityInsert[PersonCategoryCreate, PersonCategoryId](idFactory, meta, entity, PersonCategoryId.apply)
     case e @ InsertEntityCommand(personId, entity: ProduzentModify) => idFactory => meta =>
       handleEntityInsert[ProduzentModify, ProduzentId](idFactory, meta, entity, ProduzentId.apply)
     case e @ InsertEntityCommand(personId, entity: ProduktModify) => idFactory => meta =>
