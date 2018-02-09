@@ -57,6 +57,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     case EntityDeletedEvent(meta, id: AbotypId) => deleteAbotyp(meta, id)
     case EntityDeletedEvent(meta, id: AbwesenheitId) => deleteAbwesenheit(meta, id)
     case EntityDeletedEvent(meta, id: PersonId) => deletePerson(meta, id)
+    case EntityDeletedEvent(meta, id: PersonCategoryId) => deletePersonCategory(meta, id)
     case EntityDeletedEvent(meta, id: PendenzId) => deletePendenz(meta, id)
     case EntityDeletedEvent(meta, id: KundeId) => deleteKunde(meta, id)
     case EntityDeletedEvent(meta, id: DepotId) => deleteDepot(meta, id)
@@ -100,6 +101,12 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
   def deletePerson(meta: EventMetadata, id: PersonId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       noSessionDeletePerson(id)
+    }
+  }
+
+  def deletePersonCategory(meta: EventMetadata, id: PersonCategoryId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.deleteEntity[PersonCategory, PersonCategoryId](id)
     }
   }
 
