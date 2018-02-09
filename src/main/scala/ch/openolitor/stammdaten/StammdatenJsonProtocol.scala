@@ -134,6 +134,16 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val bestellpositionIdFormat = baseIdFormat(BestellpositionId)
   implicit val customKundentypIdFormat = baseIdFormat(CustomKundentypId.apply)
   implicit val personCategoryIdFormat = baseIdFormat(PersonCategoryId.apply)
+  implicit val personCategoryNameIdFormat = new RootJsonFormat[PersonCategoryNameId] {
+    def write(obj: PersonCategoryNameId): JsValue =
+      JsString(obj.id)
+
+    def read(json: JsValue): PersonCategoryNameId =
+      json match {
+        case JsString(id) => PersonCategoryNameId(id)
+        case kt => sys.error(s"Unknown PersonCategoryNameId:$kt")
+      }
+  }
   implicit val abwesenheitIdFormat = baseIdFormat(AbwesenheitId.apply)
   implicit val projektVorlageIdFormat = baseIdFormat(ProjektVorlageId.apply)
   implicit val kundentypIdFormat = new RootJsonFormat[KundentypId] {
