@@ -220,7 +220,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       get(list(stammdatenReadRepository.getPersonCategory)) ~
         post(create[PersonCategoryCreate, PersonCategoryId](PersonCategoryId.apply _))
     } ~
-      path("personCategory" / personCategoryIdPath) { (personCategoryId) =>
+      path("personCategories" / personCategoryIdPath) { (personCategoryId) =>
         (put | post)(update[PersonCategoryModify, PersonCategoryId](personCategoryId)) ~
           delete(remove(personCategoryId))
       }
