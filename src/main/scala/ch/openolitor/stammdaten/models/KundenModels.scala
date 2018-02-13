@@ -429,6 +429,7 @@ case class PersonModify(
     emailAlternative: Option[String],
     telefonMobil: Option[String],
     telefonFestnetz: Option[String],
+    categories: Set[PersonCategoryNameId],
     bemerkungen: Option[String]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
