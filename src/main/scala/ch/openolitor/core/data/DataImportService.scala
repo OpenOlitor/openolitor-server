@@ -84,7 +84,7 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
     case e: ParseError =>
       e.error.printStackTrace
       originator map (_ ! e)
-    case ParseResult(projekt, kundentypen, kunden, personen, pendenzen, touren, depots, abotypen, zusatzAbotypen, vertriebsarten, vertriebe, lieferungen,
+    case ParseResult(projekt, kundentypen, kunden, personen, personCategories, pendenzen, touren, depots, abotypen, zusatzAbotypen, vertriebsarten, vertriebe, lieferungen,
       lieferplanungen, lieferpositionen, abos, zusatzAbos, abwesenheiten, produkte, produktekategorien, produktProduktekategorien,
       produzenten, produktProduzenten, sammelbestellungen, bestellungen, bestellpositionen, tourlieferungen) =>
       log.debug(s"Received parse result, start importing...")
@@ -106,6 +106,7 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
 
           result = importEntityList[CustomKundentyp, CustomKundentypId]("Kundentypen", kundentypen, result)
           result = importEntityList[Person, PersonId]("Personen", personen, result)
+          result = importEntityList[PersonCategory, PersonCategoryId]("PersonKategorien", personCategories, result)
           result = importEntityList[Kunde, KundeId]("Kunden", kunden, result)
           result = importEntityList[Pendenz, PendenzId]("Pendenzen", pendenzen, result)
           result = importEntityList[Tour, TourId]("Touren", touren, result)
