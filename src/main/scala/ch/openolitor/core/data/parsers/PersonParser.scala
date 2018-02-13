@@ -34,7 +34,7 @@ object PersonParser extends EntityParser {
 
   def parse(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[Person, PersonId]("id", Seq("kunde_id", "anrede", "name", "vorname", "email", "email_alternative",
-      "telefon_mobil", "telefon_festnetz", "bemerkungen", "sort", "login_aktiv", "passwort", "letzte_anmeldung", "passwort_wechsel", "rolle", "categories") ++ modifyColumns) { id => indexes =>
+      "telefon_mobil", "telefon_festnetz", "bemerkungen", "sort", "login_aktiv", "passwort", "letzte_anmeldung", "passwort_wechsel", "rolle", "kategorien") ++ modifyColumns) { id => indexes =>
       row =>
         //match column indexes
         val Seq(indexKundeId, indexAnrede, indexName, indexVorname, indexEmail, indexEmailAlternative, indexTelefonMobil,
