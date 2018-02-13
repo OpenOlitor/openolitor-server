@@ -27,7 +27,6 @@ import spray.routing._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._

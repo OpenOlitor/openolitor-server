@@ -227,7 +227,6 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
           personen.filter(_.id == id).headOption.map { person =>
             logger.debug(s"Update person with at index:$index, data -> $updatePerson")
             val copy = copyFrom(person, updatePerson, "id" -> person.id, "modifidat" -> meta.timestamp, "modifikator" -> personId)
-
             stammdatenWriteRepository.updateEntityFully[Person, PersonId](copy)
           }
         }
