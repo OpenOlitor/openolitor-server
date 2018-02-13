@@ -49,6 +49,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getPersonen(implicit session: DBSession): List[Person]
   def getPersonen(kundeId: KundeId)(implicit session: DBSession): List[Person]
   def getPersonByCategory(category: PersonCategoryNameId)(implicit session: DBSession): List[Person]
+  def getPersonCategory(implicit session: DBSession): List[PersonCategory]
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz]
 
   def getLatestLieferplanung(implicit session: DBSession): Option[Lieferplanung]
@@ -245,6 +246,10 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getPersonByCategory(category: PersonCategoryNameId)(implicit session: DBSession): List[Person] = {
     getPersonByCategoryQuery(category).apply()
+  }
+
+  def getPersonCategory(implicit session: DBSession): List[PersonCategory] = {
+    getPersonCategoryQuery.apply()
   }
 
   def getPersonen(kundeId: KundeId)(implicit session: DBSession): List[Person] = {

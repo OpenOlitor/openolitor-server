@@ -421,15 +421,16 @@ case class PersonUebersicht(
 case class KundeSummary(id: KundeId, kunde: String) extends Product
 
 case class PersonModify(
-  id: Option[PersonId],
-  anrede: Option[Anrede],
-  name: String,
-  vorname: String,
-  email: Option[String],
-  emailAlternative: Option[String],
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  bemerkungen: Option[String]
+    id: Option[PersonId],
+    anrede: Option[Anrede],
+    name: String,
+    vorname: String,
+    email: Option[String],
+    emailAlternative: Option[String],
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    categories: Set[PersonCategoryNameId],
+    bemerkungen: Option[String]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
