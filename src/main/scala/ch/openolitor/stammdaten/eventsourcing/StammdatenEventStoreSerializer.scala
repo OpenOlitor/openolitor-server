@@ -54,9 +54,12 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val zusatzAboCreatePersister = persister[ZusatzAboCreate]("zusatzabo-create")
 
   implicit val kundeModifyPersister = persister[KundeModify]("kunde-modify")
+
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
   implicit val personCreatePersister = persister[PersonCreate]("person-create")
+  implicit val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
+    .to[V2](_.update('categories ! set[Set[PersonCategoryNameId]](Set(PersonCategoryNameId("caca"))))))
 
   implicit val personCategoryIdPersister = persister[PersonCategoryId]("personCategory-id")
   implicit val personCategoryCreatePersister = persister[PersonCategoryCreate]("personCategory-create")
@@ -65,6 +68,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate]("abwesenheit-create")
   implicit val abwesenheitCreateV2Persister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
     .to[V2](fixToLocalDate(_, 'datum)))
+
   implicit val abwesenheitIdPersister = persister[AbwesenheitId]("abwesenheit-id")
 
   implicit val vertriebModifyPersister = persister[VertriebModify]("vertrieb-modify")
@@ -198,7 +202,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAboCreatePersister,
     kundeModifyPersister,
     kundeIdPersister,
-    personCreatePersister,
+    personCreateV2Persister,
     personCategoryIdPersister,
     personCategoryCreatePersister,
     personCategoryModifyPersister,
@@ -316,4 +320,5 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
       in
     }
   }
+
 }

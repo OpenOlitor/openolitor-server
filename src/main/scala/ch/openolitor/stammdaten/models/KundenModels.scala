@@ -444,6 +444,7 @@ case class PersonCreate(
     emailAlternative: Option[String],
     telefonMobil: Option[String],
     telefonFestnetz: Option[String],
+    categories: Set[PersonCategoryNameId],
     bemerkungen: Option[String],
     sort: Int
 ) extends JSONSerializable {
