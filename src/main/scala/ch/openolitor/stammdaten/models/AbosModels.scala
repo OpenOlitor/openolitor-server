@@ -27,8 +27,8 @@ import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple23
-import ch.openolitor.core.scalax.Tuple25
+import ch.openolitor.core.scalax.Tuple24
+import ch.openolitor.core.scalax.Tuple26
 
 case class AboId(id: Long) extends BaseId
 
@@ -50,6 +50,7 @@ sealed trait Abo extends BaseEntity[AboId] with JSONSerializable {
   val kunde: String
   val start: LocalDate
   val ende: Option[LocalDate]
+  val price: Option[BigDecimal]
   val guthabenVertraglich: Option[Int]
   val guthaben: Int
   val guthabenInRechnung: Int
@@ -82,6 +83,7 @@ sealed trait AboDetail extends JSONSerializable {
   val kunde: String
   val start: LocalDate
   val ende: Option[LocalDate]
+  val price: Option[BigDecimal]
   val guthabenVertraglich: Option[Int]
   val guthaben: Int
   val guthabenInRechnung: Int
@@ -100,6 +102,7 @@ sealed trait AboModify extends JSONSerializable {
   val vertriebsartId: VertriebsartId
   val start: LocalDate
   val ende: Option[LocalDate]
+  val price: Option[BigDecimal]
 }
 
 case class DepotlieferungAbo(
@@ -115,6 +118,7 @@ case class DepotlieferungAbo(
   depotName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -134,7 +138,7 @@ case class DepotlieferungAbo(
 
 object DepotlieferungAbo {
   def unapply(o: DepotlieferungAbo) = {
-    Some(Tuple25(
+    Some(Tuple26(
       o.id,
       o.kundeId,
       o.kunde,
@@ -147,6 +151,7 @@ object DepotlieferungAbo {
       o.depotName,
       o.start,
       o.ende,
+      o.price,
       o.guthabenVertraglich,
       o.guthaben,
       o.guthabenInRechnung,
@@ -178,6 +183,7 @@ case class DepotlieferungAboReport(
   depotName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -206,6 +212,7 @@ case class DepotlieferungAboDetail(
   depotName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -233,7 +240,8 @@ case class DepotlieferungAboModify(
   vertriebsartId: VertriebsartId,
   depotId: DepotId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends AboModify
 
 case class HeimlieferungAbo(
@@ -249,6 +257,7 @@ case class HeimlieferungAbo(
   tourName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -268,7 +277,7 @@ case class HeimlieferungAbo(
 
 object HeimlieferungAbo {
   def unapply(o: HeimlieferungAbo) = {
-    Some(Tuple25(
+    Some(Tuple26(
       o.id,
       o.kundeId,
       o.kunde,
@@ -281,6 +290,7 @@ object HeimlieferungAbo {
       o.tourName,
       o.start,
       o.ende,
+      o.price,
       o.guthabenVertraglich,
       o.guthaben,
       o.guthabenInRechnung,
@@ -311,6 +321,7 @@ case class HeimlieferungAboDetail(
   tourName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -338,7 +349,8 @@ case class HeimlieferungAboModify(
   vertriebsartId: VertriebsartId,
   tourId: TourId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends AboModify
 
 case class PostlieferungAbo(
@@ -352,6 +364,7 @@ case class PostlieferungAbo(
   abotypName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -371,7 +384,7 @@ case class PostlieferungAbo(
 
 object PostlieferungAbo {
   def unapply(o: PostlieferungAbo) = {
-    Some(Tuple23(
+    Some(Tuple24(
       o.id,
       o.kundeId,
       o.kunde,
@@ -382,6 +395,7 @@ object PostlieferungAbo {
       o.abotypName,
       o.start,
       o.ende,
+      o.price,
       o.guthabenVertraglich,
       o.guthaben,
       o.guthabenInRechnung,
@@ -410,6 +424,7 @@ case class PostlieferungAboDetail(
   abotypName: String,
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -436,7 +451,8 @@ case class PostlieferungAboModify(
   kunde: String,
   vertriebsartId: VertriebsartId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends AboModify
 
 case class AbwesenheitId(id: Long) extends BaseId
@@ -577,6 +593,7 @@ case class ZusatzAbo(
   vertriebBeschrieb: Option[String],
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int], // we don't use this for zusatzabo
   guthaben: Int, // we don't use this for zusatzabo
   guthabenInRechnung: Int, // we don't use this for zusatzabo
@@ -594,7 +611,7 @@ case class ZusatzAbo(
 
 object ZusatzAbo {
   def unapply(o: ZusatzAbo) = {
-    Some(Tuple23(
+    Some(Tuple24(
       o.id,
       o.hauptAboId,
       o.hauptAbotypId,
@@ -607,6 +624,7 @@ object ZusatzAbo {
       o.vertriebBeschrieb,
       o.start,
       o.ende,
+      o.price,
       o.guthabenVertraglich,
       o.guthaben,
       o.guthabenInRechnung,
@@ -635,6 +653,7 @@ case class ZusatzAboDetail(
   vertriebBeschrieb: Option[String],
   start: LocalDate,
   ende: Option[LocalDate],
+  price: Option[BigDecimal],
   guthabenVertraglich: Option[Int],
   guthaben: Int,
   guthabenInRechnung: Int,
@@ -656,7 +675,8 @@ case class ZusatzAboModify(
   abotypId: AbotypId,
   kundeId: KundeId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends JSONSerializable
 
 case class ZusatzAboCreate(
