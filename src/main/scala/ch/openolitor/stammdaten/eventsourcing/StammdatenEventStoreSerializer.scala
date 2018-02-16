@@ -25,6 +25,7 @@ package ch.openolitor.stammdaten.eventsourcing
 import stamina._
 import stamina.json._
 import spray.json.lenses.JsonLenses._
+import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
@@ -35,7 +36,7 @@ import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import java.util.Locale
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import spray.json.JsValue
+import spray.json._
 
 trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
   //V1 persisters
@@ -53,13 +54,15 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val zusatzAboModifyPersister = persister[ZusatzAboModify]("zusatzabo-modify")
   implicit val zusatzAboCreatePersister = persister[ZusatzAboCreate]("zusatzabo-create")
 
-  implicit val kundeModifyPersister = persister[KundeModify]("kunde-modify")
+  val kundeModifyPersister = persister[KundeModify]("kunde-modify")
+  implicit val kundeModifyV2Persister = persister[KundeModify, V2]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen)))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
   implicit val personCreatePersister = persister[PersonCreate]("person-create")
   implicit val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
-    .to[V2](_.update('categories ! set[Set[PersonCategoryNameId]](Set(PersonCategoryNameId("caca"))))))
+    .to[V2](_.update('categories ! set[Set[PersonModify]](Set()))))
 
   implicit val personCategoryIdPersister = persister[PersonCategoryId]("personCategory-id")
   implicit val personCategoryCreatePersister = persister[PersonCategoryCreate]("personCategory-create")
@@ -206,7 +209,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAbotypModifyPersister,
     zusatzAboModifyPersister,
     zusatzAboCreatePersister,
-    kundeModifyPersister,
+    kundeModifyV2Persister,
     kundeIdPersister,
     personCreateV2Persister,
     personCategoryIdPersister,
@@ -317,6 +320,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
         in
     }
   }
+
   def fixToLocalDate(in: JsValue, attribute: Symbol): JsValue = {
     // convert wrong date js values
     val dateTime = in.extract[DateTime](attribute)
@@ -326,6 +330,15 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     } else {
       in
     }
+  }
+
+  def fixPersonModifyInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
+    val personen = in.extract[Set[PersonModifyV1]](attribute)
+    val emptySet = Set[PersonCategoryNameId]()
+    val personenV2 = personen map { person =>
+      copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet)
+    }
+    in.update(attribute ! set[Set[PersonModify]](personenV2))
   }
 
 }
