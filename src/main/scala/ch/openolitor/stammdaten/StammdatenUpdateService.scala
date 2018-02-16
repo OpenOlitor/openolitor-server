@@ -365,6 +365,23 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
+  private def updateAboPrice(meta: EventMetadata, id: AboId, update: AboPriceModify)(implicit personId: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+      }
+      stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+      }
+      stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
+      }
+    }
+  }
+
   private def adjustGuthabenVorLieferung(abo: Abo, guthaben: Int)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     stammdatenWriteRepository.getAbotypById(abo.abotypId) map { abotyp =>
       stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(abo.id).zipWithIndex.map {
