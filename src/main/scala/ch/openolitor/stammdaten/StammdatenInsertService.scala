@@ -501,6 +501,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                   "abotypName" -> z.name,
                   "start" -> startDate,
                   "ende" -> endDate,
+                  "price" -> None,
                   "letzteLieferung" -> None,
                   "anzahlAbwesenheiten" -> emptyMap,
                   "anzahlLieferungen" -> emptyMap,
