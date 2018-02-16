@@ -318,6 +318,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
   }
 
   private def rechnungsPositionAssignmentUpdateEvent(rechnungId: RechnungId, rechnungsPositionId: RechnungsPositionId, index: Int) = {
+
     EntityUpdateEvent(
       rechnungsPositionId,
       RechnungsPositionAssignToRechnung(rechnungId, index)
