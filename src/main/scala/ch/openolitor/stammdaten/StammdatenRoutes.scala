@@ -49,7 +49,6 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAs
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 
@@ -141,6 +140,9 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "vertriebsartanpassen") { (kundeId, aboId) =>
         (put | post)(update[AboVertriebsartModify, AboId](aboId))
+      } ~
+      path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "priceanpassen") { (kundeId, aboId) =>
+        (put | post)(update[AboPriceModify, AboId](aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "koerbe") { (_, aboId) =>
         get(list(stammdatenReadRepository.getKoerbe(aboId)))
