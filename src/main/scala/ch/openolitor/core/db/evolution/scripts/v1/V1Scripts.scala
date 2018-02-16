@@ -250,6 +250,7 @@ object V1Scripts {
         letzte_anmeldung datetime,
         passwort_wechsel_erforderlich varchar(1),
         rolle varchar(50),
+        categories varchar(2000),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -571,6 +572,7 @@ object V1Scripts {
         letzteAnmeldung = None,
         passwortWechselErforderlich = true,
         rolle = Some(AdministratorZugang),
+        categories = Set.empty[PersonCategoryNameId],
         // modification flags
         erstelldat = DateTime.now,
         ersteller = personId,

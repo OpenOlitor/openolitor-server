@@ -64,6 +64,7 @@ class DataImportParser extends Actor with ActorLogging {
       (projekte, _) <- Try(doc.withSheet("Projekt")(ProjektParser.parse))
       projekt = projekte.head
       (personen, _) <- Try(doc.withSheet("Personen")(PersonParser.parse))
+      (personCategories, _) <- Try(doc.withSheet("PersonKategorien")(PersonCategoryParser.parse))
       (kunden, kundeIdMapping) <- Try(doc.withSheet("Kunden")(KundeParser.parse(personen)))
       (pendenzen, _) <- Try(doc.withSheet("Pendenzen")(PendenzParser.parse(kunden)))
       (tours, tourIdMapping) <- Try(doc.withSheet("Touren")(TourParser.parse))
@@ -94,6 +95,7 @@ class DataImportParser extends Actor with ActorLogging {
         customKundentypen,
         kunden,
         personen,
+        personCategories,
         pendenzen,
         tours,
         depots,
@@ -131,6 +133,7 @@ object DataImportParser {
     kundentypen: List[CustomKundentyp],
     kunden: List[Kunde],
     personen: List[Person],
+    personCategories: List[PersonCategory],
     pendenzen: List[Pendenz],
     touren: List[Tour],
     depots: List[Depot],

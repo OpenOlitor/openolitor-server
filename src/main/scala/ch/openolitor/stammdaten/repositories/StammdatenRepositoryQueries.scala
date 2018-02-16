@@ -39,6 +39,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val zusatzAboTyp = zusatzAbotypMapping.syntax("zatyp")
   lazy val person = personMapping.syntax("pers")
+  lazy val personCategory = personCategoryMapping.syntax("persCat")
   lazy val lieferplanung = lieferplanungMapping.syntax("lieferplanung")
   lazy val lieferung = lieferungMapping.syntax("lieferung")
   lazy val hauptLieferung = lieferungMapping.syntax("lieferung")
@@ -215,6 +216,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(personMapping(person)).list
   }
 
+  protected def getPersonByCategoryQuery(category: PersonCategoryNameId) = {
+    val personCategoryRegex: String = SQLSyntax.createUnsafely(s"""([ ,]|^)${category.id}([ ,]|$$)+""")
+    sql"""
+      SELECT ${person.result.*} FROM ${personMapping as person}
+      WHERE categories REGEXP ${personCategoryRegex}
+    """.map(personMapping(person)).list
+  }
+
   protected def getPersonenQuery(kundeId: KundeId) = {
     withSQL {
       select
@@ -246,6 +255,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             "kundenBemerkungen" -> kunde.bemerkungen
           )
         }.list
+  }
+
+  protected def getPersonCategoryQuery = {
+    withSQL {
+      select
+        .from(personCategoryMapping as personCategory)
+        .orderBy(personCategory.id)
+    }.map(personCategoryMapping(personCategory)).list
   }
 
   protected def getAbotypDetailQuery(id: AbotypId) = {

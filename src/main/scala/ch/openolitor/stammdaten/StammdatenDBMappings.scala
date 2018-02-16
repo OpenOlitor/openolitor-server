@@ -57,6 +57,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val bestellungIdBinder: Binders[BestellungId] = baseIdBinders(BestellungId.apply _)
   implicit val sammelbestellungIdBinder: Binders[SammelbestellungId] = baseIdBinders(SammelbestellungId.apply _)
   implicit val bestellpositionIdBinder: Binders[BestellpositionId] = baseIdBinders(BestellpositionId.apply _)
+  implicit val personCategoryNameIdBinder: Binders[PersonCategoryNameId] = baseStringIdBinders(PersonCategoryNameId.apply)
+  implicit val personCategoryIdBinder: Binders[PersonCategoryId] = baseIdBinders(PersonCategoryId.apply)
   implicit val customKundentypIdBinder: Binders[CustomKundentypId] = baseIdBinders(CustomKundentypId.apply _)
   implicit val kundentypIdBinder: Binders[KundentypId] = baseStringIdBinders(KundentypId.apply)
   implicit val produktekategorieIdBinder: Binders[ProduktekategorieId] = baseIdBinders(ProduktekategorieId.apply _)
@@ -86,6 +88,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val lieferzeitpunktBinders: Binders[Lieferzeitpunkt] = toStringBinder(Lieferzeitpunkt.apply)
   implicit val lieferzeitpunktSetBinders: Binders[Set[Lieferzeitpunkt]] = setSqlBinder(Lieferzeitpunkt.apply, _.toString)
   implicit val kundenTypIdSetBinder: Binders[Set[KundentypId]] = setSqlBinder(KundentypId.apply, _.id)
+  implicit val PersonCategoryNameIdSetBinder: Binders[Set[PersonCategoryNameId]] = setSqlBinder(PersonCategoryNameId.apply, _.id)
   implicit val laufzeiteinheitBinders: Binders[Laufzeiteinheit] = toStringBinder(Laufzeiteinheit.apply)
   implicit val liefereinheiBinders: Binders[Liefereinheit] = toStringBinder(Liefereinheit.apply)
   implicit val liefersaisonBinders: Binders[Liefersaison] = toStringBinder(Liefersaison.apply)
@@ -287,7 +290,27 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.passwort -> person.passwort,
         column.passwortWechselErforderlich -> person.passwortWechselErforderlich,
         column.rolle -> person.rolle,
+        column.categories -> person.categories,
         column.letzteAnmeldung -> person.letzteAnmeldung
+      )
+    }
+  }
+
+  implicit val personCategoryMapping = new BaseEntitySQLSyntaxSupport[PersonCategory] {
+    override val tableName = "PersonCategory"
+
+    override lazy val columns = autoColumns[PersonCategory]()
+
+    def apply(rn: ResultName[PersonCategory])(rs: WrappedResultSet): PersonCategory =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: PersonCategory): Seq[ParameterBinder] =
+      parameters(PersonCategory.unapply(entity).get)
+
+    override def updateParameters(personCategory: PersonCategory) = {
+      super.updateParameters(personCategory) ++ Seq(
+        column.name -> personCategory.name,
+        column.description -> personCategory.description
       )
     }
   }
