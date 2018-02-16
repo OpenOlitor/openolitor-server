@@ -496,6 +496,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                   "abotypName" -> z.name,
                   "start" -> startDate,
                   "ende" -> endDate,
+                  "price" -> None,
                   "guthabenVertraglich" -> h.guthabenVertraglich,
                   "guthaben" -> h.guthaben,
                   "guthabenInRechnung" -> h.guthabenInRechnung,

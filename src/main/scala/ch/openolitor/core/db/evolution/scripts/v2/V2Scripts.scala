@@ -158,5 +158,6 @@ object V2Scripts {
     OO854_zusatzinfo_lieferung_200.scripts ++
     OO861_recalculate_lieferung_counts.scripts ++
     OO_sunu_7_maintenance_mode_zero.scripts ++
-    OO_sunu_4_person_category.scripts
+    OO_sunu_4_person_category.scripts ++
+    OO_sunu_4_2_adding_price_to_abo.scripts
 }
