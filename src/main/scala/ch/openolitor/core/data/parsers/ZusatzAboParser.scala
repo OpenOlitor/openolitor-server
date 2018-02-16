@@ -35,7 +35,6 @@ object ZusatzAboParser extends EntityParser {
 
   def parse(kundeIdMapping: Map[Long, KundeId], kunden: List[Kunde], vertriebsartIdMapping: Map[Long, VertriebsartId], vertriebsarten: List[Vertriebsart], vertriebe: List[Vertrieb],
     abotypen: List[ZusatzAbotyp], abos: List[Abo], abwesenheiten: List[Abwesenheit])(implicit loggingAdapter: LoggingAdapter) = {
-<<<<<<< HEAD
     parseEntity[ZusatzAbo, AboId]("id", Seq("haupt_abo_id", "abotyp_id", "kunde_id", "vertriebsart_id", "start", "ende", "price",
       "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen") ++ modifyColumns) { id => indexes =>
       row =>
