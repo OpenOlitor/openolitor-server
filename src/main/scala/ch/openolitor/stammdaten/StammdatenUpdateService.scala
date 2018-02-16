@@ -73,6 +73,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: AboId, entity: DepotlieferungAboModify) => updateDepotlieferungAbo(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: ZusatzAboModify) => updateZusatzAboModify(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboGuthabenModify) => updateAboGuthaben(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: AboPriceModify) => updateAboPrice(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboVertriebsartModify) => updateAboVertriebsart(meta, id, entity)
     case EntityUpdatedEvent(meta, id: DepotId, entity: DepotModify) => updateDepot(meta, id, entity)
     case EntityUpdatedEvent(meta, id: CustomKundentypId, entity: CustomKundentypModify) => updateKundentyp(meta, id, entity)
@@ -343,6 +344,23 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       }
       stammdatenWriteRepository.getZusatzAbos(id) map { zusatzAbo =>
         adjustGuthabenVorLieferung(zusatzAbo, update.guthabenNeu)
+      }
+    }
+  }
+
+  private def updateAboPrice(meta: EventMetadata, id: AboId, update: AboPriceModify)(implicit personId: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+      }
+      stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+      }
+      stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
       }
     }
   }
