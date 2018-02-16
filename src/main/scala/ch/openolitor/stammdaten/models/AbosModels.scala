@@ -489,6 +489,11 @@ case class AboGuthabenModify(
   bemerkung: String
 ) extends JSONSerializable
 
+case class AboPriceModify(
+  oldPrice: BigDecimal,
+  newPrice: Option[BigDecimal]
+) extends JSONSerializable
+
 case class AboVertriebsartModify(
   vertriebIdNeu: VertriebId,
   vertriebsartIdNeu: VertriebsartId,
