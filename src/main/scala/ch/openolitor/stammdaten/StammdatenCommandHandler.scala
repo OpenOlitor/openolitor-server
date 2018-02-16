@@ -607,7 +607,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             // has to be refactored as soon as more modes are available
             val anzahlLieferungen = aboRechnungCreate.anzahlLieferungen
             if (anzahlLieferungen > 0) {
-              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abotyp.preis * anzahlLieferungen)
+              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abo.price.getOrElse(abotyp.preis) * anzahlLieferungen)
 
               val repoType = abotyp match {
                 case a: ZusatzAbotyp => RechnungsPositionTyp.ZusatzAbo
@@ -643,7 +643,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       for (zusatzabo <- zusatzabos) yield {
         val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
         val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
-        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabosTyp.get.preis, waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
+        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabo.price.getOrElse(zusatzabosTyp.get.preis), waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
         EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
       }
     }
@@ -692,7 +692,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - guthaben), 0)
 
             if (anzahlLieferungen > 0) {
-              val hauptAboBetrag = abotyp.preis * anzahlLieferungen
+              val hauptAboBetrag = abo.price.getOrElse(abotyp.preis) * anzahlLieferungen
 
               val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
