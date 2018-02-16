@@ -157,5 +157,6 @@ object V2Scripts {
     OO846_delete_unmapped_zusatzabos.scripts ++
     OO854_zusatzinfo_lieferung_200.scripts ++
     OO861_recalculate_lieferung_counts.scripts ++
-    OO_sunu_7_maintenance_mode_zero.scripts
+    OO_sunu_7_maintenance_mode_zero.scripts ++
+    OO_sunu_4_person_category.scripts
 }

@@ -344,6 +344,7 @@ case class Person(
     letzteAnmeldung: Option[DateTime],
     passwortWechselErforderlich: Boolean,
     rolle: Option[Rolle],
+    categories: Set[PersonCategoryNameId],
     // modification flags
     erstelldat: DateTime,
     ersteller: PersonId,
@@ -370,6 +371,7 @@ case class PersonDetail(
   letzteAnmeldung: Option[DateTime],
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -400,6 +402,7 @@ case class PersonUebersicht(
   loginAktiv: Boolean,
   letzteAnmeldung: Option[DateTime],
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // kundendaten
   strasse: String,
   hausNummer: Option[String],
@@ -426,6 +429,7 @@ case class PersonModify(
     emailAlternative: Option[String],
     telefonMobil: Option[String],
     telefonFestnetz: Option[String],
+    categories: Set[PersonCategoryNameId],
     bemerkungen: Option[String]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
@@ -440,11 +444,27 @@ case class PersonCreate(
     emailAlternative: Option[String],
     telefonMobil: Option[String],
     telefonFestnetz: Option[String],
+    categories: Set[PersonCategoryNameId],
     bemerkungen: Option[String],
     sort: Int
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
+
+case class PersonCategoryNameId(id: String) extends BaseStringId
+case class PersonCategoryId(id: Long) extends BaseId
+case class PersonCategory(
+  id: PersonCategoryId,
+  name: PersonCategoryNameId,
+  description: Option[String],
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonCategoryId]
+
+case class PersonCategoryModify(id: PersonCategoryId, name: PersonCategoryNameId, description: Option[String]) extends JSONSerializable
+case class PersonCategoryCreate(name: PersonCategoryNameId, description: Option[String]) extends JSONSerializable
 
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus

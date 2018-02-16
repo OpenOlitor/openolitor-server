@@ -27,7 +27,6 @@ import spray.routing._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
@@ -80,7 +79,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ personenRoute ~
-        kundentypenRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
+        kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute
     }
 
@@ -212,6 +211,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       get(list(stammdatenReadRepository.getPersonenUebersicht, exportFormat))
     }
   }
+
+  private def personCategoryRoute(implicit subject: Subject): Route =
+    path("personCategories") {
+      get(list(stammdatenReadRepository.getPersonCategory)) ~
+        post(create[PersonCategoryCreate, PersonCategoryId](PersonCategoryId.apply _))
+    } ~
+      path("personCategories" / personCategoryIdPath) { (personCategoryId) =>
+        (put | post)(update[PersonCategoryModify, PersonCategoryId](personCategoryId)) ~
+          delete(remove(personCategoryId))
+      }
 
   private def kundentypenRoute(implicit subject: Subject): Route =
     path("kundentypen") {

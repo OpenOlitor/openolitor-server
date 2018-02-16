@@ -20,44 +20,37 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.models
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import org.joda.time.DateTime
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.ws.ClientMessages.ClientMessage
+import ch.openolitor.core.SystemConfig
+import scalikejdbc._
 
-trait BaseId extends AnyRef {
-  val id: Long
+import ch.openolitor.core.db.evolution.Script
+import com.typesafe.scalalogging.LazyLogging
+
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+
+import scala.util.{ Success, Try }
+
+object OO_sunu_4_person_category {
+
+  val personCategoryScript = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+
+      sql"""create table ${personCategoryMapping.table} (
+        id BIGINT not null,
+        name varchar(50) not null,
+        description varchar(250),
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null)""".execute.apply()
+
+      alterTableAddColumnIfNotExists(personMapping, "categories", "VARCHAR(2000)", "rolle")
+      Success(true)
+    }
+  }
+
+  val scripts = Seq(personCategoryScript)
 }
-
-trait BaseStringId extends AnyRef with JSONSerializable {
-  val id: String
-}
-
-case class PersonId(id: Long) extends BaseId
-
-trait PersonReference {
-  val personId: PersonId
-}
-
-trait BaseEntity[T <: BaseId] extends Product with JSONSerializable {
-  val id: T
-  //modification flags on all entities
-  val erstelldat: DateTime
-  val ersteller: PersonId
-  val modifidat: DateTime
-  val modifikator: PersonId
-}
-
-sealed trait DBEvent[E <: Product] extends ClientMessage {
-  val originator: PersonId
-  val entity: E
-}
-sealed trait CRUDEvent[E <: BaseEntity[_ <: BaseId]] extends DBEvent[E] {
-}
-//events raised by this aggregateroot
-case class EntityCreated[E <: BaseEntity[_ <: BaseId]](originator: PersonId, entity: E) extends CRUDEvent[E]
-case class EntityModified[E <: BaseEntity[_ <: BaseId]](originator: PersonId, entity: E, orig: E) extends CRUDEvent[E]
-case class EntityDeleted[E <: BaseEntity[_ <: BaseId]](originator: PersonId, entity: E) extends CRUDEvent[E]
-
-case class DataEvent[E <: Product](originator: PersonId, entity: E) extends DBEvent[E]

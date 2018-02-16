@@ -71,6 +71,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createKunde(meta, id, kunde)
     case EntityInsertedEvent(meta, id: PersonId, person: PersonCreate) =>
       createPerson(meta, id, person)
+    case EntityInsertedEvent(meta, id: PersonCategoryId, personCategory: PersonCategoryCreate) =>
+      createPersonCategory(meta, id, personCategory)
     case EntityInsertedEvent(meta, id: PendenzId, pendenz: PendenzCreate) =>
       createPendenz(meta, id, pendenz)
     case EntityInsertedEvent(meta, id: DepotId, depot: DepotModify) =>
@@ -268,6 +270,21 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Person, PersonId](person)
+    }
+  }
+
+  def createPersonCategory(meta: EventMetadata, id: PersonCategoryId, create: PersonCategoryCreate)(implicit personId: PersonId = meta.originator) = {
+    val personCategory = copyTo[PersonCategoryCreate, PersonCategory](
+      create,
+      "id" -> id,
+      "erstelldat" -> meta.timestamp,
+      "ersteller" -> meta.originator,
+      "modifidat" -> meta.timestamp,
+      "modifikator" -> meta.originator
+    )
+
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.insertEntity[PersonCategory, PersonCategoryId](personCategory)
     }
   }
 

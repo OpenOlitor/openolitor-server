@@ -105,6 +105,10 @@ class DBEvent2UserMapping extends Actor
       val personDetail = copyTo[Person, PersonDetail](e.asInstanceOf[DBEvent[Person]].entity)
       send(personId, EntityDeleted[PersonDetail](personId, personDetail).asInstanceOf[DBEvent[PersonDetail]])
 
+    case e @ EntityModified(personId, entity: PersonCategory, _) => send(personId, e.asInstanceOf[DBEvent[PersonCategory]])
+    case e @ EntityCreated(personId, entity: PersonCategory) => send(personId, e.asInstanceOf[DBEvent[PersonCategory]])
+    case e @ EntityDeleted(personId, entity: PersonCategory) => send(personId, e.asInstanceOf[DBEvent[PersonCategory]])
+
     case e @ EntityModified(personId, entity: Kunde, _) => send(personId, e.asInstanceOf[DBEvent[Kunde]])
     case e @ EntityCreated(personId, entity: Kunde) => send(personId, e.asInstanceOf[DBEvent[Kunde]])
     case e @ EntityDeleted(personId, entity: Kunde) => send(personId, e.asInstanceOf[DBEvent[Kunde]])
