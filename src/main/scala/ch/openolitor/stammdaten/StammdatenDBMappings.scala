@@ -1094,7 +1094,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(entity) ++ Seq(
         column.iban -> entity.iban,
         column.teilnehmerNummer -> entity.teilnehmerNummer,
-        column.referenzNummerPrefix -> entity.referenzNummerPrefix
+        column.referenzNummerPrefix -> entity.referenzNummerPrefix,
+        column.creditorIdentifier -> entity.creditorIdentifier
       )
     }
   }
