@@ -157,5 +157,6 @@ object V2Scripts {
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     OO_sunu_7_maintenance_mode_zero.scripts ++
     OO_sunu_4_person_category.scripts ++
-    OO_sunu_4_2_adding_price_to_abo.scripts
+    OO_sunu_4_2_adding_price_to_abo.scripts ++
+    OO_sunu_9_adding_creditor_identifier.scripts
 }
