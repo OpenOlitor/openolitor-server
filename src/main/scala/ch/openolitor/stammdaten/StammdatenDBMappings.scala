@@ -47,6 +47,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val vertriebsartIdSetBinder: Binders[Set[VertriebsartId]] = setBaseIdBinders(VertriebsartId.apply _)
   implicit val vertriebsartIdSeqBinder: Binders[Seq[VertriebsartId]] = seqBaseIdBinders(VertriebsartId.apply _)
   implicit val kundeIdBinder: Binders[KundeId] = baseIdBinders(KundeId.apply _)
+  implicit val optionKundeIdBinder: Binders[Option[KundeId]] = optionBaseIdBinders(KundeId.apply _)
   implicit val pendenzIdBinder: Binders[PendenzId] = baseIdBinders(PendenzId.apply _)
   implicit val aboIdBinder: Binders[AboId] = baseIdBinders(AboId.apply _)
   implicit val aboIdSetBinder: Binders[Set[AboId]] = setBaseIdBinders(AboId.apply _)
@@ -95,6 +96,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val vorlageTypeBinders: Binders[VorlageTyp] = toStringBinder(VorlageTyp.apply)
   implicit val anredeBinders: Binders[Anrede] = toStringBinder(Anrede.apply(_).getOrElse(null))
   implicit val anredeOptionBinders: Binders[Option[Anrede]] = Binders.option[Anrede]
+  implicit val paymentTypeBinders: Binders[PaymentType] = toStringBinder(PaymentType.apply(_).getOrElse(null))
+  implicit val paymentTypeOptionBinders: Binders[Option[PaymentType]] = Binders.option[PaymentType]
   implicit val fristBinders: Binders[Option[Frist]] = Binders.string.xmap(_ match {
     case fristeinheitPattern(wert, "W") => Some(Frist(wert.toInt, Wochenfrist))
     case fristeinheitPattern(wert, "M") => Some(Frist(wert.toInt, Monatsfrist))
@@ -228,7 +231,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val kundeMapping = new BaseEntitySQLSyntaxSupport[Kunde] {
     override val tableName = "Kunde"
 
-    override lazy val columns = autoColumns[Kunde]()
+    override lazy val columns: Seq[String] = autoColumns[Kunde]()
 
     def apply(rn: ResultName[Kunde])(rs: WrappedResultSet): Kunde =
       autoConstruct(rs, rn)
@@ -257,7 +260,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlAbos -> kunde.anzahlAbos,
         column.anzahlAbosAktiv -> kunde.anzahlAbosAktiv,
         column.anzahlPendenzen -> kunde.anzahlPendenzen,
-        column.anzahlPersonen -> kunde.anzahlPersonen
+        column.paymentType -> kunde.paymentType
       )
     }
   }
@@ -1050,7 +1053,11 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(entity) ++ Seq(
         column.iban -> entity.iban,
         column.teilnehmerNummer -> entity.teilnehmerNummer,
-        column.referenzNummerPrefix -> entity.referenzNummerPrefix
+        column.referenzNummerPrefix -> entity.referenzNummerPrefix,
+        column.nameAccountHolder -> entity.nameAccountHolder,
+        column.addressAccountHolder -> entity.addressAccountHolder,
+        column.bankName -> entity.bankName,
+        column.kunde -> entity.kunde
       )
     }
   }

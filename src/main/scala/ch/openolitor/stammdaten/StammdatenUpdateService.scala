@@ -205,6 +205,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       DB localTxPostPublish { implicit session => implicit publisher =>
         updateKundendaten(meta, kundeId, update)
         updatePersonen(meta, kundeId, update)
+        updateKonteDaten(meta, kundeId, update)
         updatePendenzen(meta, kundeId, update)
         updateAbos(meta, kundeId, update)
       }
@@ -232,6 +233,21 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
             stammdatenWriteRepository.updateEntityFully[Person, PersonId](copy)
           }
         }
+    }
+  }
+
+  private def updateKonteDaten(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+    val kontoDaten = stammdatenWriteRepository.getKontoDaten(kundeId)
+    kontoDaten.length match {
+      case 0 => logger.debug(s"No konto daten to update")
+      case 1 => {
+        logger.debug("Update data from the bank account for the customer : " + kontoDaten(0).kunde + " with the data ->" + update.kontoDaten)
+        update.kontoDaten map { updatedKontoDaten =>
+          val copy = copyFrom(kontoDaten(0), updatedKontoDaten, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+          stammdatenWriteRepository.updateEntityFully[KontoDaten, KontoDatenId](copy)
+        }
+      }
+      case _ => logger.error(s"Error, a customer must have only one bank account ")
     }
   }
 
