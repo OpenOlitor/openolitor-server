@@ -16,6 +16,7 @@ case class KontoDaten(
   referenzNummerPrefix: Option[String],
   kunde: Option[KundeId],
   creditorIdentifier: Option[String],
+  kunde: Option[KundeId],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,

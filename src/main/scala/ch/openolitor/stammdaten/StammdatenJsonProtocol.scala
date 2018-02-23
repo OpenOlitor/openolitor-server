@@ -121,6 +121,21 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       }
   }
 
+  implicit val paymentTypeFormat = new JsonFormat[PaymentType] {
+    def write(obj: PaymentType): JsValue =
+      obj match {
+        case DirectDebit => JsString("directDebit")
+        case Transfer => JsString("transfer")
+      }
+
+    def read(json: JsValue): PaymentType =
+      json match {
+        case JsString("directDebit") => DirectDebit
+        case JsString("transfer") => Transfer
+        case pe => sys.error(s"Unknown payment type:$pe")
+      }
+  }
+
   implicit val waehrungFormat = enumFormat(Waehrung.apply)
   implicit val einsatzEinheitFormat = enumFormat(EinsatzEinheit.apply)
   implicit val laufzeiteinheitFormat = enumFormat(Laufzeiteinheit.apply)
