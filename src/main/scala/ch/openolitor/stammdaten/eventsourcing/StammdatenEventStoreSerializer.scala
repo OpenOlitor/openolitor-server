@@ -55,8 +55,11 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val zusatzAboCreatePersister = persister[ZusatzAboCreate]("zusatzabo-create")
 
   val kundeModifyPersister = persister[KundeModify]("kunde-modify")
-  implicit val kundeModifyV2Persister = persister[KundeModify, V2]("kunde-modify", from[V1]
+  val kundeModifyV2Persister = persister[KundeModify, V2]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen)))
+  implicit val kundeModifyV3Persister = persister[KundeModify, V3]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
+    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None))))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
@@ -205,7 +208,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAbotypModifyPersister,
     zusatzAboModifyPersister,
     zusatzAboCreatePersister,
-    kundeModifyV2Persister,
+    kundeModifyV3Persister,
     kundeIdPersister,
     personCreateV2Persister,
     personCategoryIdPersister,

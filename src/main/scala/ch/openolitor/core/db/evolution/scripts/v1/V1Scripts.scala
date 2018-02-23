@@ -205,6 +205,7 @@ object V1Scripts {
         anzahl_abos_aktiv int not null,
         anzahl_pendenzen int not null,
         anzahl_personen int not null,
+        payment_type varchar(100),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -546,6 +547,7 @@ object V1Scripts {
         anzahlAbosAktiv = 0,
         anzahlPendenzen = 0,
         anzahlPersonen = 1,
+        paymentType = None,
         //modification flags
         erstelldat = DateTime.now,
         ersteller = personId,

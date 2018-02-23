@@ -131,16 +131,25 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(kundeMapping as kunde)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
-      .toMany(
-        rs => personMapping.opt(person)(rs)
+      .toManies(
+        rs => personMapping.opt(person)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map((kunde, personen) => {
+      .map((kunde, personen, kontoDaten) => {
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonSummary](p)).toSeq
-
-        copyTo[Kunde, KundeUebersicht](kunde, "ansprechpersonen" -> personenWihoutPwd)
+        val kd = kontoDaten.length match {
+          case 0 => None
+          case 1 => Some(kontoDaten(0))
+          case _ => {
+            logger.error(s"The kunde $kunde.id cannot have more than an account")
+            None
+          }
+        }
+        copyTo[Kunde, KundeUebersicht](kunde, "ansprechpersonen" -> personenWihoutPwd, "kontoDaten" -> kd)
       }).list
   }
 
@@ -161,6 +170,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
         .where.eq(kunde.id, id)
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
@@ -169,13 +179,21 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => pendenzMapping.opt(pendenz)(rs)
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map((kunde, pl, hl, dl, personen, pendenzen) => {
+      .map((kunde, pl, hl, dl, personen, pendenzen, kontoDaten) => {
         val abos = pl ++ hl ++ dl
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
-
-        copyTo[Kunde, KundeDetail](kunde, "abos" -> abos, "pendenzen" -> pendenzen, "ansprechpersonen" -> personenWihoutPwd)
+        val kd = kontoDaten.length match {
+          case 0 => None
+          case 1 => Some(kontoDaten(0))
+          case _ => {
+            logger.error(s"The kunde $kunde.id cannot have more than an account")
+            None
+          }
+        }
+        copyTo[Kunde, KundeDetail](kunde, "abos" -> abos, "pendenzen" -> pendenzen, "ansprechpersonen" -> personenWihoutPwd, "kontoDaten" -> kd)
       }).single
   }
 
@@ -189,6 +207,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
         .where.eq(kunde.id, kundeId)
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
@@ -197,14 +216,23 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => pendenzMapping.opt(pendenz)(rs)
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map { (kunde, pl, hl, dl, personen, pendenzen) =>
+      .map { (kunde, pl, hl, dl, personen, pendenzen, kontoDaten) =>
         val abos = pl ++ hl ++ dl
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
+        val kd = kontoDaten.length match {
+          case 0 => None
+          case 1 => Some(kontoDaten(0))
+          case _ => {
+            logger.error(s"The kunde $kunde.id cannot have more than an account")
+            None
+          }
+        }
 
         copyTo[Kunde, KundeDetailReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
-          "personen" -> personenWihoutPwd, "projekt" -> projekt)
+          "personen" -> personenWihoutPwd, "projekt" -> projekt, "kontoDaten" -> kd)
       }.single
   }
 
@@ -999,7 +1027,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(kontoDatenMapping as kontoDaten)
+        .where.isNull(kontoDaten.kunde)
     }.map(kontoDatenMapping(kontoDaten)).single
+  }
+
+  protected def getKontoDatenQuery(kundeId: KundeId) = {
+    withSQL {
+      select
+        .from(kontoDatenMapping as kontoDaten)
+        .where.eq(kontoDaten.kunde, kundeId)
+    }.map(kontoDatenMapping(kontoDaten)).list
   }
 
   protected def getProduktProduzentenQuery(id: ProduktId) = {
