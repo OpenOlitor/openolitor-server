@@ -11,6 +11,7 @@ case class KontoDaten(
   iban: Option[String],
   teilnehmerNummer: Option[String],
   referenzNummerPrefix: Option[String],
+  creditorIdentifier: Option[String],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -21,5 +22,6 @@ case class KontoDaten(
 case class KontoDatenModify(
   iban: Option[String],
   teilnehmerNummer: Option[String],
-  referenzNummerPrefix: Option[String]
+  referenzNummerPrefix: Option[String],
+  creditorIdentifier: Option[String]
 ) extends JSONSerializable
