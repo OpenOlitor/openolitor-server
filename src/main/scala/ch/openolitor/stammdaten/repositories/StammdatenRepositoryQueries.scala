@@ -1027,7 +1027,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(projektMapping(projekt)).single
   }
 
-  protected def getKontoDatenQuery = {
+  protected def getKontoDatenProjektQuery = {
     withSQL {
       select
         .from(kontoDatenMapping as kontoDaten)
@@ -1035,12 +1035,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(kontoDatenMapping(kontoDaten)).single
   }
 
-  protected def getKontoDatenQuery(kundeId: KundeId) = {
+  protected def getKontoDatenKundeQuery(kundeId: KundeId) = {
     withSQL {
       select
         .from(kontoDatenMapping as kontoDaten)
         .where.eq(kontoDaten.kunde, kundeId)
-    }.map(kontoDatenMapping(kontoDaten)).list
+    }.map(kontoDatenMapping(kontoDaten)).single
   }
 
   protected def getProduktProduzentenQuery(id: ProduktId) = {

@@ -84,11 +84,11 @@ trait StammdatenRoutes extends HttpService with ActorReferences
 
   private def kontoDatenRoute(implicit subject: Subject): Route =
     path("kontodaten") {
-      get(detail(stammdatenReadRepository.getKontoDaten)) ~
+      get(detail(stammdatenReadRepository.getKontoDatenProjekt)) ~
         post(create[KontoDatenModify, KontoDatenId](KontoDatenId.apply _))
     } ~
       path("kontodaten" / kontoDatenIdPath) { id =>
-        get(detail(stammdatenReadRepository.getKontoDaten)) ~
+        get(detail(stammdatenReadRepository.getKontoDatenProjekt)) ~
           (put | post)(update[KontoDatenModify, KontoDatenId](id))
       }
 

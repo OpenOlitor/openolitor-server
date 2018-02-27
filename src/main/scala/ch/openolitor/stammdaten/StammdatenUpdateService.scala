@@ -80,13 +80,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: ProduzentId, entity: ProduzentModify)                 => updateProduzent(meta, id, entity)
     case EntityUpdatedEvent(meta, id: ProduktId, entity: ProduktModify)                     => updateProdukt(meta, id, entity)
     case EntityUpdatedEvent(meta, id: ProduktekategorieId, entity: ProduktekategorieModify) => updateProduktekategorie(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: TourId, entity: TourModify)                           => updateTour(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AuslieferungId, entity: TourAuslieferungModify)       => updateAuslieferung(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: ProjektId, entity: ProjektModify)                     => updateProjekt(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: KontoDatenId, entity: KontoDatenModify)               => updateKontoDaten(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: LieferungId, entity: Lieferung)                       => updateLieferung(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: LieferungId, entity: LieferungAbgeschlossenModify)    => updateLieferungAbgeschlossen(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: LieferplanungId, entity: LieferplanungModify)         => updateLieferplanung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: TourId, entity: TourModify) => updateTour(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AuslieferungId, entity: TourAuslieferungModify) => updateAuslieferung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: ProjektId, entity: ProjektModify) => updateProjekt(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: KontoDatenId, entity: KontoDatenModify) => updateKontoDatenProjekt(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: LieferungId, entity: Lieferung) => updateLieferung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: LieferungId, entity: LieferungAbgeschlossenModify) => updateLieferungAbgeschlossen(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: LieferplanungId, entity: LieferplanungModify) => updateLieferplanung(meta, id, entity)
     case EntityUpdatedEvent(meta, id: LieferungId, lieferpositionen: LieferpositionenModify) =>
       updateLieferpositionen(meta, id, lieferpositionen)
     case EntityUpdatedEvent(meta, id: ProjektVorlageId, entity: ProjektVorlageModify) => updateProjektVorlage(meta, id, entity)
@@ -203,7 +203,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       DB localTxPostPublish { implicit session => implicit publisher =>
         updateKundendaten(meta, kundeId, update)
         updatePersonen(meta, kundeId, update)
-        updateKonteDaten(meta, kundeId, update)
+        updateKontoDatenKunde(meta, kundeId, update)
         updatePendenzen(meta, kundeId, update)
         updateAbos(meta, kundeId, update)
       }
@@ -234,18 +234,17 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKonteDaten(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
-    val kontoDaten = stammdatenWriteRepository.getKontoDaten(kundeId)
-    kontoDaten.length match {
-      case 0 => logger.debug(s"No konto daten to update")
-      case 1 => {
-        logger.debug("Update data from the bank account for the customer : " + kontoDaten(0).kunde + " with the data ->" + update.kontoDaten)
+  private def updateKontoDatenKunde(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+    val kontoDaten = stammdatenWriteRepository.getKontoDatenKunde(kundeId)
+    kontoDaten match {
+      case None => logger.debug(s"No konto daten to update")
+      case Some(kd) => {
+        logger.debug("Update data from the bank account for the customer : " + kd.kunde + " with the data ->" + update.kontoDaten)
         update.kontoDaten map { updatedKontoDaten =>
-          val copy = copyFrom(kontoDaten(0), updatedKontoDaten, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+          val copy = copyFrom(kd, updatedKontoDaten, "modifidat" -> meta.timestamp, "modifikator" -> personId)
           stammdatenWriteRepository.updateEntityFully[KontoDaten, KontoDatenId](copy)
         }
       }
-      case _ => logger.error(s"Error, a customer must have only one bank account ")
     }
   }
 
@@ -769,7 +768,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKontoDaten(meta: EventMetadata, id: KontoDatenId, update: KontoDatenModify)(implicit personId: PersonId = meta.originator): Unit = {
+  private def updateKontoDatenProjekt(meta: EventMetadata, id: KontoDatenId, update: KontoDatenModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(kontoDatenMapping, id) map { kontoDaten =>
         //map all updatable fields

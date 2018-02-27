@@ -44,5 +44,13 @@ object OO_sunu_11_adding_payment_parameters_to_kunde {
     }
   }
 
-  val scripts = Seq(addingPaymentParametersToKunde)
+  val createKontoDatenForExistentKunden = new Script with LazyLogging with StammdatenDBMappings {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql""" INSERT INTO KontoDaten (id,kunde,erstelldat,ersteller,modifidat,modifikator)
+         SELECT id, id, erstelldat, ersteller, modifidat, modifikator FROM Kunde""".execute.apply()
+      Success(true)
+    }
+  }
+
+  val scripts = Seq(addingPaymentParametersToKunde, createKontoDatenForExistentKunden)
 }
