@@ -31,4 +31,5 @@ case class KontoDatenModify(
   teilnehmerNummer: Option[String],
   referenzNummerPrefix: Option[String],
   creditorIdentifier: Option[String]
+  kunde: Option[KundeId]
 ) extends JSONSerializable
