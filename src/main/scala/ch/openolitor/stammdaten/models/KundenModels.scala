@@ -25,9 +25,21 @@ package ch.openolitor.stammdaten.models
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple25
+import ch.openolitor.core.scalax.Tuple26
 
 case class KundeId(id: Long) extends BaseId
+
+sealed trait PaymentType
+case object DirectDebit extends PaymentType
+case object Transfer extends PaymentType
+
+object PaymentType {
+  val AllePaymentTypes = Vector(DirectDebit, Transfer)
+
+  def apply(value: String): Option[PaymentType] = {
+    AllePaymentTypes.find(_.toString == value)
+  }
+}
 
 trait IKunde extends BaseEntity[KundeId] {
   val id: KundeId
@@ -53,6 +65,7 @@ trait IKunde extends BaseEntity[KundeId] {
   val anzahlAbosAktiv: Int
   val anzahlPendenzen: Int
   val anzahlPersonen: Int
+  val paymentType: Option[PaymentType]
 }
 
 case class Kunde(
@@ -78,6 +91,7 @@ case class Kunde(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -145,6 +159,7 @@ case class KundeReport(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -175,6 +190,7 @@ case class KundeDetailReport(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   //Report infos
   personen: Seq[PersonDetail],
   abos: Seq[Abo],
@@ -188,7 +204,7 @@ case class KundeDetailReport(
 ) extends BaseEntity[KundeId] with IKundeReport
 
 object Kunde {
-  def unapply(k: Kunde) = Some(Tuple25(
+  def unapply(k: Kunde) = Some(Tuple26(
     k.id: KundeId,
     k.bezeichnung: String,
     k.strasse: String,
@@ -211,6 +227,7 @@ object Kunde {
     k.anzahlAbosAktiv: Int,
     k.anzahlPendenzen: Int,
     k.anzahlPersonen: Int,
+    k.paymentType: Option[PaymentType],
     //modification flags
     k.erstelldat: DateTime,
     k.ersteller: PersonId,
@@ -241,6 +258,8 @@ case class KundeUebersicht(
   anzahlAbos: Int,
   anzahlAbosAktiv: Int,
   ansprechpersonen: Seq[PersonSummary],
+  paymentType: Option[PaymentType],
+  kontoDaten: Option[KontoDaten],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -271,9 +290,11 @@ case class KundeDetail(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   abos: Seq[Abo],
   pendenzen: Seq[Pendenz],
   ansprechpersonen: Seq[PersonDetail],
+  kontoDaten: Option[KontoDaten],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -299,7 +320,9 @@ case class KundeModify(
   zusatzinfoLieferung: Option[String],
   typen: Set[KundentypId],
   pendenzen: Seq[PendenzModify],
-  ansprechpersonen: Seq[PersonModify]
+  ansprechpersonen: Seq[PersonModify],
+  paymentType: Option[PaymentType],
+  kontoDaten: Option[KontoDatenModify]
 ) extends JSONSerializable
 
 sealed trait Anrede
