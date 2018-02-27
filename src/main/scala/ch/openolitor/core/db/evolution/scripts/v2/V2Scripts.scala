@@ -161,6 +161,6 @@ object V2Scripts {
     OO_sunu_7_maintenance_mode_zero.scripts ++
     OO_sunu_4_person_category.scripts ++
     OO_sunu_4_2_adding_price_to_abo.scripts ++
-    OO_sunu_9_adding_creditor_identifier.scripts
+    OO_sunu_9_adding_creditor_identifier.scripts ++
     OO_sunu_11_adding_payment_parameters_to_kunde.scripts
 }
