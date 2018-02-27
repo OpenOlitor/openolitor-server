@@ -119,12 +119,23 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     stammdatenWriteRepository.deleteEntity[Person, PersonId](id)
   }
 
+  def deleteKontoDaten(meta: EventMetadata, id: KontoDatenId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.deleteEntity[KontoDaten, KontoDatenId](id)
+    }
+  }
+
+  private def noSessionDeleteKontoDaten(id: KontoDatenId)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
+    stammdatenWriteRepository.deleteEntity[KontoDaten, KontoDatenId](id)
+  }
+
   def deleteKunde(meta: EventMetadata, kundeId: KundeId)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.deleteEntity[Kunde, KundeId](kundeId, { kunde: Kunde => kunde.anzahlAbos == 0 && kunde.anzahlAbosAktiv == 0 }) match {
         case Some(kunde) =>
           //delete all personen as well
           stammdatenWriteRepository.getPersonen(kundeId).map(person => noSessionDeletePerson(person.id))
+          stammdatenWriteRepository.getKontoDatenKunde(kundeId).map(kontoDaten => noSessionDeleteKontoDaten(kontoDaten.id))
           //delete all pendenzen as well
           stammdatenWriteRepository.getPendenzen(kundeId).map(pendenz => noSessionDeletePendenz(pendenz.id))
         case None =>
