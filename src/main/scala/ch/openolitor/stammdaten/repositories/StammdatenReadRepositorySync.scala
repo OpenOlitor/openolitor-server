@@ -211,8 +211,8 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getKontoDatenKundeQuery(kundeId).apply()
   }
 
-  def getKontoDaten(kundeId: KundeId)(implicit session: DBSession): List[KontoDaten] = {
-    getKontoDatenQuery(kundeId).apply()
+  def getKontoDatenKunde(kundeId: KundeId)(implicit session: DBSession): Option[KontoDaten] = {
+    getKontoDatenKundeQuery(kundeId).apply()
   }
 
   def getAboDetail(id: AboId)(implicit session: DBSession): Option[AboDetail] = {

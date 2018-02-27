@@ -635,7 +635,6 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     val kontoDaten = copyTo[KontoDatenModify, KontoDaten](
       create,
       "id" -> id,
-      "kunde" -> None,
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
