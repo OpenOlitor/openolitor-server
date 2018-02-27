@@ -37,7 +37,7 @@ class BuchhaltungInsertServiceSpec extends Specification {
       "", "", "", 0, 0, Map(), null
     ), null, null)
 
-    val kontoDaten = KontoDaten(KontoDatenId(123), Some("bank account holder"), Some("address bank account holder"), Some("Bank Name"), Some("CH1223"), Some("777777777"), Some("123456"), Some(KundeId(23)),new DateTime, PersonId(123), new DateTime, PersonId(123))
+    val kontoDaten = KontoDaten(KontoDatenId(123), Some("CH1223"), Some("123456"), Some("777777777"), Some("bank name"), Some("name account holder"), Some("address account holder"), Some(KundeId(23)), None, new DateTime, PersonId(123), new DateTime, PersonId(123))
 
     val service = new MockBuchhaltungInsertService(config, null, 6, 5)
 
@@ -80,7 +80,7 @@ class BuchhaltungInsertServiceSpec extends Specification {
       "", "", "", 0, 0, Map(), null
     ), null, null)
 
-    val kontoDaten = KontoDaten(KontoDatenId(123), None, None, None, Some("CH1223"), Some("132"), Some(""), None, None, new DateTime, PersonId(123), new DateTime, PersonId(123))
+    val kontoDaten = KontoDaten(KontoDatenId(123), Some("CH1223"), Some(""), Some("132"), Some(""), Some(""), None, None, None, new DateTime, PersonId(123), new DateTime, PersonId(123))
 
     val service = new MockBuchhaltungInsertService(config, null, 6, 5)
 
