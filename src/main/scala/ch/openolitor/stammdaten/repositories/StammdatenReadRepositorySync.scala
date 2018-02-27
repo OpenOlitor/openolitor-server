@@ -42,8 +42,8 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getAbotypById(id: AbotypId)(implicit session: DBSession): Option[IAbotyp]
 
   def getProjekt(implicit session: DBSession): Option[Projekt]
-  def getKontoDaten(implicit session: DBSession): Option[KontoDaten]
-  def getKontoDaten(kundeId: KundeId)(implicit session: DBSession): List[KontoDaten]
+  def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten]
+  def getKontoDatenKunde(kundeId: KundeId)(implicit session: DBSession): Option[KontoDaten]
   def getKunden(implicit session: DBSession): List[Kunde]
   def getKundenByKundentyp(kundentyp: KundentypId)(implicit session: DBSession): List[Kunde]
   def getCustomKundentypen(implicit session: DBSession): List[CustomKundentyp]
@@ -191,12 +191,12 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getProjektQuery.apply()
   }
 
-  def getKontoDaten(implicit session: DBSession): Option[KontoDaten] = {
-    getKontoDatenQuery.apply()
+  def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten] = {
+    getKontoDatenProjektQuery.apply()
   }
 
-  def getKontoDaten(kundeId: KundeId)(implicit session: DBSession): List[KontoDaten] = {
-    getKontoDatenQuery(kundeId).apply()
+  def getKontoDatenKunde(kundeId: KundeId)(implicit session: DBSession): Option[KontoDaten] = {
+    getKontoDatenKundeQuery(kundeId).apply()
   }
 
   def getAboDetail(id: AboId)(implicit session: DBSession): Option[AboDetail] = {

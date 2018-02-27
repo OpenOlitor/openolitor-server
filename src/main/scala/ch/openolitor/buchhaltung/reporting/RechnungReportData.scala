@@ -49,7 +49,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
 
   def rechungenById(rechnungIds: Seq[RechnungId]): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
     stammdatenReadRepository.getProjekt flatMap { maybeProjekt =>
-      stammdatenReadRepository.getKontoDaten flatMap { maybeKontoDaten =>
+      stammdatenReadRepository.getKontoDatenProjekt flatMap { maybeKontoDaten =>
         maybeProjekt flatMap { projekt =>
           maybeKontoDaten map { kontoDaten =>
             val results = Future.sequence(rechnungIds.map { rechnungId =>

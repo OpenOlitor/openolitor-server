@@ -28,5 +28,6 @@ case class KontoDatenModify(
   bankName: Option[String],
   iban: Option[String],
   teilnehmerNummer: Option[String],
-  referenzNummerPrefix: Option[String]
+  referenzNummerPrefix: Option[String],
+  kunde: Option[KundeId]
 ) extends JSONSerializable

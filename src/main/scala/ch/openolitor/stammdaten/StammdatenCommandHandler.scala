@@ -375,9 +375,12 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         Failure(new InvalidStateException(s"Zum Erstellen eines Kunden muss mindestens ein Ansprechpartner angegeben werden"))
       } else {
         logger.debug(s"created => Insert entity:$entity")
-        val kundeEvent = EntityInsertEvent(idFactory.newId(KundeId.apply), entity)
+        val kundeId = idFactory.newId(KundeId.apply)
+        val kundeEvent = EntityInsertEvent(kundeId, entity)
+        val kontoDaten = KontoDatenModify(None, None, None, None, None, None, Some(kundeId))
+        logger.debug(s"created => Insert entity:$kontoDaten")
+        val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)
 
-        val kundeId = kundeEvent.id
         val apartnerEvents = entity.ansprechpersonen.zipWithIndex.map {
           case (newPerson, index) =>
             val sort = index + 1
@@ -385,8 +388,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             logger.debug(s"created => Insert entity:$personCreate")
             EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
         }
-
-        Success(kundeEvent +: apartnerEvents)
+        Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
       }
 
     /*
