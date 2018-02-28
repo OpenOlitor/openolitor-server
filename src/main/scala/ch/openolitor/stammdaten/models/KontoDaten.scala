@@ -9,8 +9,12 @@ case class KontoDatenId(id: Long) extends BaseId
 case class KontoDaten(
   id: KontoDatenId,
   iban: Option[String],
-  teilnehmerNummer: Option[String],
   referenzNummerPrefix: Option[String],
+  teilnehmerNummer: Option[String],
+  bankName: Option[String],
+  nameAccountHolder: Option[String],
+  addressAccountHolder: Option[String],
+  kunde: Option[KundeId],
   creditorIdentifier: Option[String],
   //modification flags
   erstelldat: DateTime,
@@ -21,7 +25,11 @@ case class KontoDaten(
 
 case class KontoDatenModify(
   iban: Option[String],
-  teilnehmerNummer: Option[String],
   referenzNummerPrefix: Option[String],
+  teilnehmerNummer: Option[String],
+  bankName: Option[String],
+  nameAccountHolder: Option[String],
+  addressAccountHolder: Option[String],
+  kunde: Option[KundeId],
   creditorIdentifier: Option[String]
 ) extends JSONSerializable
