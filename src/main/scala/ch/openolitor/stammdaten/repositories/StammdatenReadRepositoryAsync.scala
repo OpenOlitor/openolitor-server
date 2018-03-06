@@ -115,6 +115,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
+  def getKontoDatenKunde(kundeId: KundeId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
 
   def getLieferplanungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferplanung]]
   def getLieferplanung(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferplanung]]
@@ -453,6 +454,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
     getKontoDatenProjektQuery.future
+  }
+
+  def getKontoDatenKunde(kundeId: KundeId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
+    getKontoDatenKundeQuery(kundeId).future
   }
 
   def getProduktProduzenten(id: ProduktId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduktProduzent]] = {

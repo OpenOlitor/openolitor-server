@@ -158,10 +158,11 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     }.map(zahlungsEingangMapping(zahlungsEingang)).first
   }
 
-  protected def getKontoDatenQuery = {
+  protected def getKontoDatenProjektQuery = {
     withSQL {
       select
         .from(kontoDatenMapping as kontoDaten)
+        .where.isNull(kontoDaten.kunde)
     }.map(kontoDatenMapping(kontoDaten)).single
   }
 

@@ -20,31 +20,25 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.zahlungsimport.iso20022
+package ch.openolitor.buchhaltung.rechnungsexport
 
-import ch.openolitor.buchhaltung.zahlungsimport._
-import ch.openolitor.generated.xsd.camt054_001_04._
 import scala.util._
-import scala.xml.XML
-import java.io.InputStream
+import java.io.ByteArrayInputStream
+import ch.openolitor.buchhaltung.models.RechnungId
 
-class Camt054Parser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    Try(XML.load(is)) flatMap { node =>
-      // try available versions for the given xml document
-      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
-        (new Camt054v06ToZahlungsImportTransformer).transform
-      } orElse {
-        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
-          (new Camt054v04ToZahlungsImportTransformer).transform
-        }
-      }
-    }
-  }
+trait RechnungExporter {
+  def export(ids: Seq[RechnungId]): RechnungExportResult
 }
 
-object Camt054Parser extends ZahlungsImportParser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    new Camt054Parser().parse(is)
+object RechnungExporter {
+  def export(ids: Seq[RechnungId]): RechnungExportResult = {
+    ???
+    //ids map { rechnungId =>
+    // buchhaltungReadRepository.getById(rechnungMapping, id) map { rechnung =>
+
+    // }
+    // importParsers map (_.parse(new ByteArrayInputStream(bytes))) find (_.isSuccess) getOrElse
+    //   Failure(new IllegalArgumentException(s"Could not parse the input stream using the following parsers: $importParsers"))
+    //}
   }
 }

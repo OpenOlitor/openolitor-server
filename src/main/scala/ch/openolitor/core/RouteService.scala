@@ -96,6 +96,7 @@ import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
 import ch.openolitor.mailtemplates.{ DefaultMailTemplateRoutes, MailTemplateRoutes }
 
 import scala.concurrent.ExecutionContext
+
 import ch.openolitor.util.ZipBuilderWithFile
 
 sealed trait ResponseType
@@ -463,7 +464,6 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
             stream(file.file)
           }
         }
-
     }
   }
 

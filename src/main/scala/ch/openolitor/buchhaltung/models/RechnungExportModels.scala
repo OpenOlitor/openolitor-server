@@ -20,31 +20,35 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.zahlungsimport.iso20022
+package ch.openolitor.buchhaltung.models
 
-import ch.openolitor.buchhaltung.zahlungsimport._
-import ch.openolitor.generated.xsd.camt054_001_04._
-import scala.util._
-import scala.xml.XML
-import java.io.InputStream
+import ch.openolitor.core.models._
+import org.joda.time.DateTime
+import ch.openolitor.core.JSONSerializable
 
-class Camt054Parser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    Try(XML.load(is)) flatMap { node =>
-      // try available versions for the given xml document
-      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
-        (new Camt054v06ToZahlungsImportTransformer).transform
-      } orElse {
-        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
-          (new Camt054v04ToZahlungsImportTransformer).transform
-        }
-      }
-    }
-  }
-}
+case class RechnungExportId(id: Long) extends BaseId
 
-object Camt054Parser extends ZahlungsImportParser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    new Camt054Parser().parse(is)
-  }
-}
+case class RechnungExport(
+  id: RechnungExportId,
+  file: String,
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[RechnungExportId]
+
+case class RechnungExportCreate(
+  id: RechnungExportId,
+  file: String
+) extends JSONSerializable
+
+case class RechnungExportDetail(
+  id: RechnungExportId,
+  file: String,
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable

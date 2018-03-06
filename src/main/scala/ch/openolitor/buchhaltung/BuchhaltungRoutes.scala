@@ -26,7 +26,6 @@ import spray.routing._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
@@ -37,6 +36,7 @@ import akka.pattern.ask
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import stamina.Persister
 import ch.openolitor.buchhaltung.models._
+import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
 import akka.actor._
@@ -52,6 +52,16 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAs
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
 import java.io._
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.Duration
+
+import ch.openolitor.buchhaltung.rechnungsexport.RechnungExportRecordResult
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008Export
+import scalikejdbc.TxBoundary.Future
+
+import scala.concurrent.Await
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -107,6 +117,30 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
             }
           }
         }
+      } ~
+      path("rechnungen" / "aktionen" / "pain_008") {
+        //get(list(buchhaltungReadRepository.getRechnungsExports)) ~
+        get(download(RechnungExportDaten, "exportFile.xml")) ~
+          (put | post) {
+            requestInstance { request =>
+              entity(as[RechnungenContainer]) { cont =>
+                onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
+                  val xml = generatePain008(rechnungen)
+                  val stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))
+                  //storeToFileStore(RechnungExportDaten, Some("exportFile"), stream, "exportFile.xml") { (id, metadata) =>
+                  //  complete("File uploaded")
+                  //}
+                  ???
+                }
+              }
+            }
+          }
+        //val xml = generatePain008()
+        //storeToFileStore(RechnungExportDaten, None, new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), "fileToDownload") { (fileId, meta) =>
+        //  createRechnungExportPain008("fileToDownload", Seq())
+        //}
+
+        //download(RechnungExportDaten, "fileToDownload")
       } ~
       path("rechnungen" / "aktionen" / "verschicken") {
         post {
@@ -366,6 +400,30 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       case _ =>
         complete("")
     }
+
+  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): String = {
+    val NbOfTxs = ids.size.toString
+
+    val kontoDatenProjektWithFuture = stammdatenReadRepository.getKontoDatenProjekt map { maybeKontoDatenProjekt =>
+      maybeKontoDatenProjekt match {
+        case Some(kdp) => kdp
+      }
+    }
+
+    val rechnungenWithFutures = ids.map {
+      rechnung =>
+        stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { maybeKontoDatenKunde =>
+          maybeKontoDatenKunde match {
+            case Some(kontoDatenKunde) => (rechnung, kontoDatenKunde)
+          }
+        }
+    }
+    val d = Duration(1, SECONDS)
+
+    //sequence will transform from list[Future] to future[list]
+    val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
+    val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
+    Pain008Export.exportPain008(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 }
 
