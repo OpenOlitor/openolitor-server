@@ -20,31 +20,20 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.zahlungsimport.iso20022
+package ch.openolitor.buchhaltung.rechnungsexport
 
-import ch.openolitor.buchhaltung.zahlungsimport._
-import ch.openolitor.generated.xsd.camt054_001_04._
-import scala.util._
-import scala.xml.XML
-import java.io.InputStream
+sealed trait Transaktionsart
+case object Gutschrift extends Transaktionsart
+case object Storno extends Transaktionsart
+case object Korrektur extends Transaktionsart
 
-class Camt054Parser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    Try(XML.load(is)) flatMap { node =>
-      // try available versions for the given xml document
-      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
-        (new Camt054v06ToZahlungsImportTransformer).transform
-      } orElse {
-        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
-          (new Camt054v04ToZahlungsImportTransformer).transform
-        }
-      }
-    }
-  }
+trait RechnungExportRecordResult {
+  val betrag: BigDecimal
+  val transaktionsart: Transaktionsart
 }
 
-object Camt054Parser extends ZahlungsImportParser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    new Camt054Parser().parse(is)
-  }
+trait RechnungExportRecord extends RechnungExportRecordResult {
+  val iban: Option[String]
 }
+
+case class RechnungExportResult(records: Seq[RechnungExportRecordResult])

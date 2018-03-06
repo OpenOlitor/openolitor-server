@@ -85,7 +85,8 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
         column.hausNummer -> entity.hausNummer,
         column.adressZusatz -> entity.adressZusatz,
         column.plz -> entity.plz,
-        column.ort -> entity.ort
+        column.ort -> entity.ort,
+        column.paymentType -> entity.paymentType
       )
     }
   }

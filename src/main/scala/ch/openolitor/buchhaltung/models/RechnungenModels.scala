@@ -25,7 +25,7 @@ package ch.openolitor.buchhaltung.models
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.scalax.Tuple24
+import ch.openolitor.core.scalax.Tuple25
 import ch.openolitor.core.JSONSerializable
 
 /**
@@ -132,6 +132,7 @@ case class Rechnung(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  paymentType: Option[PaymentType],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -141,7 +142,7 @@ case class Rechnung(
 
 object Rechnung {
   def unapply(entity: Rechnung) = {
-    Some(Tuple24(
+    Some(Tuple25(
       entity.id,
       entity.kundeId,
       entity.titel,
@@ -162,6 +163,7 @@ object Rechnung {
       entity.adressZusatz,
       entity.plz,
       entity.ort,
+      entity.paymentType,
       entity.erstelldat,
       entity.ersteller,
       entity.modifidat,
@@ -211,6 +213,7 @@ case class RechnungDetail(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  paymentType: Option[PaymentType],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -219,33 +222,34 @@ case class RechnungDetail(
 ) extends JSONSerializable
 
 case class RechnungDetailReport(
-  id: RechnungId,
-  kunde: Kunde,
-  kontoDaten: KontoDaten,
-  titel: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  rechnungsPositionen: Seq[RechnungsPositionDetail],
-  einbezahlterBetrag: Option[BigDecimal],
-  rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime,
-  eingangsDatum: Option[DateTime],
-  status: RechnungStatus,
-  referenzNummer: String,
-  esrNummer: String,
-  anzahlMahnungen: Int,
-  // rechnungsadresse
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId,
-  projekt: ProjektReport
+    id: RechnungId,
+    kunde: Kunde,
+    kontoDaten: KontoDaten,
+    titel: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    rechnungsPositionen: Seq[RechnungsPositionDetail],
+    einbezahlterBetrag: Option[BigDecimal],
+    rechnungsDatum: DateTime,
+    faelligkeitsDatum: DateTime,
+    eingangsDatum: Option[DateTime],
+    status: RechnungStatus,
+    referenzNummer: String,
+    esrNummer: String,
+    anzahlMahnungen: Int,
+    // rechnungsadresse
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    paymentType: Option[PaymentType],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId,
+    projekt: ProjektReport
 ) extends JSONSerializable {
   lazy val referenzNummerFormatiert: String = referenzNummer.reverse.grouped(5).map(_.reverse).toList.reverse.mkString(" ")
   lazy val betragRappen = (betrag - betrag.toLong) * 100
@@ -263,7 +267,8 @@ case class RechnungCreateFromRechnungsPositionen(
   hausNummer: Option[String],
   adressZusatz: Option[String],
   plz: String,
-  ort: String
+  ort: String,
+  paymentType: Option[PaymentType]
 ) extends JSONSerializable
 
 case class RechnungModify(
@@ -278,7 +283,8 @@ case class RechnungModify(
   hausNummer: Option[String],
   adressZusatz: Option[String],
   plz: String,
-  ort: String
+  ort: String,
+  paymentType: Option[PaymentType]
 ) extends JSONSerializable
 
 case class RechnungsPositionCreate(

@@ -20,31 +20,25 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.zahlungsimport.iso20022
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import ch.openolitor.buchhaltung.zahlungsimport._
-import ch.openolitor.generated.xsd.camt054_001_04._
-import scala.util._
-import scala.xml.XML
-import java.io.InputStream
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-class Camt054Parser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    Try(XML.load(is)) flatMap { node =>
-      // try available versions for the given xml document
-      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
-        (new Camt054v06ToZahlungsImportTransformer).transform
-      } orElse {
-        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
-          (new Camt054v04ToZahlungsImportTransformer).transform
-        }
-      }
+import scala.util.{ Success, Try }
+
+object OO_sunu_13_adding_payment_type_to_rechnung {
+
+  val addingPaymentTypeToRechnung = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      alterTableAddColumnIfNotExists(rechnungMapping, "payment_type", "VARCHAR(100)", "ort")
+      Success(true)
     }
   }
-}
 
-object Camt054Parser extends ZahlungsImportParser {
-  def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    new Camt054Parser().parse(is)
-  }
+  val scripts = Seq(addingPaymentTypeToRechnung)
 }
