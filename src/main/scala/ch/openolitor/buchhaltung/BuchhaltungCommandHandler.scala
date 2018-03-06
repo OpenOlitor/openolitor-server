@@ -32,6 +32,7 @@ import scalikejdbc.DB
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
+import ch.openolitor.buchhaltung.rechnungsexport.RechnungExportRecord
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.filestore.FileStoreComponent
@@ -45,13 +46,10 @@ import ch.openolitor.core.filestore.DefaultFileStoreComponent
 import ch.openolitor.core.filestore.FileStoreBucket
 
 import scala.io.Source
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportTotalRecord
+import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportParser, ZahlungsImportRecord, ZahlungsImportRecordResult, ZahlungsImportTotalRecord }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import scala.concurrent.Future
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
 
@@ -61,6 +59,7 @@ import scala.collection.immutable.TreeMap
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
+  case class Pain008CreationCommand(originator: PersonId, ids: Seq[RechnungId]) extends UserCommand
   case class RechnungenVerschickenCommand(originator: PersonId, ids: Seq[RechnungId]) extends UserCommand
   case class RechnungMahnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
   case class RechnungBezahlenCommand(originator: PersonId, id: RechnungId, entity: RechnungModifyBezahlt) extends UserCommand
@@ -258,7 +257,8 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
                 kunde.hausNummer,
                 kunde.adressZusatz,
                 kunde.plz,
-                kunde.ort
+                kunde.ort,
+                kunde.paymentType
               )
             )
 

@@ -27,21 +27,20 @@ import ch.openolitor.buchhaltung.zahlungsimport._
 import ch.openolitor.buchhaltung.zahlungsimport.esr.ZahlungsImportEsrRecord._
 import ch.openolitor.stammdaten.models.Waehrung
 import ch.openolitor.stammdaten.models.CHF
+import ch.openolitor.generated.xsd.camt054_001_04._
 import scala.util._
 import scala.io.Source
 import scala.xml.XML
 import java.io.InputStream
-import ch.openolitor.generated.xsd.DocumentType
-import ch.openolitor.generated.xsd.Document
 
 class Camt054Parser {
   def parse(is: InputStream): Try[ZahlungsImportResult] = {
     Try(XML.load(is)) flatMap { node =>
       // try available versions for the given xml document
-      Try(scalaxb.fromXML[Document](node)) flatMap {
+      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
         (new Camt054v06ToZahlungsImportTransformer).transform
       } orElse {
-        Try(scalaxb.fromXML[DocumentType](node)) flatMap {
+        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
           (new Camt054v04ToZahlungsImportTransformer).transform
         }
       }

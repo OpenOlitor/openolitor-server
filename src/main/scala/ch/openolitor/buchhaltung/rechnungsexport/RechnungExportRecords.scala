@@ -20,18 +20,20 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.buchhaltung.rechnungsexport
 
-import scala.concurrent.Future
+sealed trait Transaktionsart
+case object Gutschrift extends Transaktionsart
+case object Storno extends Transaktionsart
+case object Korrektur extends Transaktionsart
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object RechnungExportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
-
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, RechnungExportBucket, TemporaryDataBucket)
+trait RechnungExportRecordResult {
+  val betrag: BigDecimal
+  val transaktionsart: Transaktionsart
 }
+
+trait RechnungExportRecord extends RechnungExportRecordResult {
+  val iban: Option[String]
+}
+
+case class RechnungExportResult(records: Seq[RechnungExportRecordResult])

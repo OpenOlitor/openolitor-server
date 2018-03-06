@@ -25,7 +25,7 @@ package ch.openolitor.buchhaltung.zahlungsimport.iso20022
 import scala.util.Try
 
 import ch.openolitor.buchhaltung.zahlungsimport.{ Gutschrift, Transaktionsart, ZahlungsImportParseException, ZahlungsImportResult }
-import ch.openolitor.generated.xsd.{ BankToCustomerDebitCreditNotificationV06, Document }
+import ch.openolitor.generated.xsd.camt054_001_06.{ BankToCustomerDebitCreditNotificationV06, Document }
 import ch.openolitor.stammdaten.models.Waehrung
 
 import org.joda.time.format.ISODateTimeFormat

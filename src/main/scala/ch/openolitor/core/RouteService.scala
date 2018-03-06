@@ -41,28 +41,35 @@ import spray.caching._
 import HttpCharsets._
 import MediaTypes._
 import java.util.UUID
+
 import ch.openolitor.core.domain._
 import ch.openolitor.core.domain.EntityStore._
 import akka.pattern.ask
+
 import scala.concurrent.Future
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import spray.json._
 import ch.openolitor.core.BaseJsonProtocol._
 import com.typesafe.config.Config
+
 import scala.util._
 import stamina.Persister
 import stamina.json.JsonPersister
 import ch.openolitor.core.system._
 import java.io.ByteArrayInputStream
+
 import ch.openolitor.core.filestore._
 import spray.routing.StandardRoute
 import akka.util.ByteString
+
 import scala.reflect.ClassTag
 import ch.openolitor.buchhaltung._
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing.RequestContext
 import java.io.InputStream
+
 import ch.openolitor.core.security._
 import ch.openolitor.stammdaten.models.{ AdministratorZugang, KundenZugang }
 import ch.openolitor.core.reporting._
@@ -70,6 +77,7 @@ import ch.openolitor.core.reporting.ReportSystem._
 import ch.openolitor.util.InputStreamUtil._
 import java.io.InputStream
 import java.util.zip.ZipInputStream
+
 import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
 import ch.openolitor.util.ZipBuilder
 import ch.openolitor.kundenportal.KundenportalRoutes
@@ -85,14 +93,19 @@ import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.SpreadsheetDocument
 import java.io.ByteArrayOutputStream
 import java.util.Locale
+
 import org.odftoolkit.simple.style.StyleTypeDefinitions
+
 import scala.None
 import scala.collection.Iterable
 import collection.JavaConverters._
 import java.io.File
 import java.io.FileInputStream
+
 import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
+
 import scala.concurrent.ExecutionContext
+
 import ch.openolitor.util.ZipBuilderWithFile
 
 sealed trait ResponseType
@@ -451,7 +464,6 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
             stream(file.file)
           }
         }
-
     }
   }
 

@@ -20,18 +20,25 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import scala.concurrent.Future
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object RechnungExportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
+import scala.util.{ Success, Try }
 
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, RechnungExportBucket, TemporaryDataBucket)
+object OO_sunu_13_adding_payment_type_to_rechnung {
+
+  val addingPaymentTypeToRechnung = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      alterTableAddColumnIfNotExists(rechnungMapping, "payment_type", "VARCHAR(100)", "ort")
+      Success(true)
+    }
+  }
+
+  val scripts = Seq(addingPaymentTypeToRechnung)
 }

@@ -20,18 +20,35 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.buchhaltung.models
 
-import scala.concurrent.Future
+import ch.openolitor.core.models._
+import org.joda.time.DateTime
+import ch.openolitor.core.JSONSerializable
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object RechnungExportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
+case class RechnungExportId(id: Long) extends BaseId
 
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, RechnungExportBucket, TemporaryDataBucket)
-}
+case class RechnungExport(
+  id: RechnungExportId,
+  file: String,
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[RechnungExportId]
+
+case class RechnungExportCreate(
+  id: RechnungExportId,
+  file: String
+) extends JSONSerializable
+
+case class RechnungExportDetail(
+  id: RechnungExportId,
+  file: String,
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
