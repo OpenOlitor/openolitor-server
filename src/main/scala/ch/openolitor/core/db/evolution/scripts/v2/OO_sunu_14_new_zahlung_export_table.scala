@@ -20,44 +20,36 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import spray.json._
-import ch.openolitor.core.BaseJsonProtocol
-import ch.openolitor.stammdaten.StammdatenJsonProtocol
-import ch.openolitor.buchhaltung.models._
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.JSONSerializable
-import zangelo.spray.json.AutoProductFormats
+import scalikejdbc._
 
-/**
- * JSON Format deklarationen für das Modul Buchhaltung
- */
-trait BuchhaltungJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] with StammdatenJsonProtocol {
+import scala.util.{ Success, Try }
 
-  implicit val rechnungStatusFormat = enumFormat(RechnungStatus.apply)
-  implicit val rechnungsPositionStatusFormat = enumFormat(RechnungsPositionStatus.apply)
-  implicit val rechnungsPositionTypFormat = enumFormat(RechnungsPositionTyp.apply)
-  implicit val zahlungsEingangStatusFormat = enumFormat(ZahlungsEingangStatus.apply)
+object OO_sunu_14_new_zahlung_export_table {
 
-  //id formats
-  implicit val rechnungIdFormat = baseIdFormat(RechnungId)
-  implicit val rechnungsPositionIdFormat = baseIdFormat(RechnungsPositionId)
-  implicit val zahlungsImportIdFormat = baseIdFormat(ZahlungsImportId)
-  implicit val zahlungsEingangIdFormat = baseIdFormat(ZahlungsEingangId)
-  implicit val zahlungsExportIdFormat = baseIdFormat(ZahlungsExportId)
-
-  // special report formats
-  def enhancedRechnungDetailFormatDef(implicit defaultFormat: JsonFormat[RechnungDetailReport]): RootJsonFormat[RechnungDetailReport] = new RootJsonFormat[RechnungDetailReport] {
-    def write(obj: RechnungDetailReport): JsValue = {
-      JsObject(defaultFormat.write(obj)
-        .asJsObject.fields +
-        ("referenzNummerFormatiert" -> JsString(obj.referenzNummerFormatiert),
-          "betragRappen" -> JsNumber(obj.betragRappen)))
+  val addingZahlungExportTable = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""
+CREATE TABLE `ZahlungsExport` (
+  `id` bigint(20) NOT NULL,
+  `file` text,
+  `rechnungen` varchar(2000),
+  `erstelldat` datetime NOT NULL,
+  `ersteller` bigint(20) NOT NULL,
+  `modifidat` datetime NOT NULL,
+  `modifikator` bigint(20) NOT NULL,
+  KEY `id_index` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+""".execute.apply()
+      Success(true)
     }
-
-    def read(json: JsValue): RechnungDetailReport = defaultFormat.read(json)
   }
 
-  implicit val enhancedRechnungDetailFormat = enhancedRechnungDetailFormatDef
+  val scripts = Seq(addingZahlungExportTable)
 }

@@ -39,7 +39,9 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
   implicit val optionRechnungsPositionIdBinder: Binders[Option[RechnungsPositionId]] = optionBaseIdBinders(RechnungsPositionId.apply _)
   implicit val zahlungsImportIdBinder: Binders[ZahlungsImportId] = baseIdBinders(ZahlungsImportId.apply _)
   implicit val zahlungsEingangIdBinder: Binders[ZahlungsEingangId] = baseIdBinders(ZahlungsEingangId.apply _)
+  implicit val zahlungsExportIdBinder: Binders[ZahlungsExportId] = baseIdBinders(ZahlungsExportId.apply _)
 
+  implicit val rechnungIdSetBinder: Binders[Set[RechnungId]] = setBaseIdBinders(RechnungId.apply _)
   implicit val rechnungStatusBinders: Binders[RechnungStatus] = toStringBinder(RechnungStatus.apply)
   implicit val rechnungsPositionStatusBinders: Binders[RechnungsPositionStatus.RechnungsPositionStatus] = toStringBinder(RechnungsPositionStatus.apply)
   implicit val rechnungsPositionTypBinders: Binders[RechnungsPositionTyp.RechnungsPositionTyp] = toStringBinder(RechnungsPositionTyp.apply)
@@ -135,6 +137,25 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
         column.file -> entity.file,
         column.anzahlZahlungsEingaenge -> entity.anzahlZahlungsEingaenge,
         column.anzahlZahlungsEingaengeErledigt -> entity.anzahlZahlungsEingaengeErledigt
+      )
+    }
+  }
+
+  implicit val zahlungsExportMapping = new BaseEntitySQLSyntaxSupport[ZahlungsExport] {
+    override val tableName = "ZahlungsExport"
+
+    override lazy val columns = autoColumns[ZahlungsExport]()
+
+    def apply(rn: ResultName[ZahlungsExport])(rs: WrappedResultSet): ZahlungsExport =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: ZahlungsExport): Seq[ParameterBinder] =
+      parameters(ZahlungsExport.unapply(entity).get)
+
+    override def updateParameters(entity: ZahlungsExport) = {
+      super.updateParameters(entity) ++ Seq(
+        column.file -> entity.file,
+        column.rechnungen -> entity.rechnungen
       )
     }
   }
