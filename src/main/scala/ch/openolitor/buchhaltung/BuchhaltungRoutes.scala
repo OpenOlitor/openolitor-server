@@ -74,6 +74,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   implicit val rechnungsPositionIdPath = long2BaseIdPathMatcher(RechnungsPositionId.apply)
   implicit val zahlungsImportIdPath = long2BaseIdPathMatcher(ZahlungsImportId.apply)
   implicit val zahlungsEingangIdPath = long2BaseIdPathMatcher(ZahlungsEingangId.apply)
+  implicit val zahlungsExportIdPath = long2BaseIdPathMatcher(ZahlungsExportId.apply)
 
   import EntityStore._
 
@@ -82,7 +83,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute
+      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ zahlungsExportsRoute
     }
 
   def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
@@ -119,12 +120,12 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("rechnungen" / "aktionen" / "pain_008") {
         //get(list(buchhaltungReadRepository.getRechnungsExports)) ~
         get(download(RechnungExportDaten, "exportFile.xml")) ~
-          (put | post) {
+          post {
             requestInstance { request =>
               entity(as[RechnungenContainer]) { cont =>
                 onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                  val xml = generatePain008_001_07(rechnungen)
-                  ???
+                  logger.debug(s"-----------------------------------------------------------------------------")
+                  createZahlungExport(rechnungen)
                 }
               }
             }
@@ -231,6 +232,14 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         post(entity(as[Seq[ZahlungsEingangModifyErledigt]]) { entities => zahlungsEingaengeErledigen(entities) })
       }
 
+  def zahlungsExportsRoute(implicit subect: Subject) =
+    path("zahlungsexports") {
+      get(list(buchhaltungReadRepository.getZahlungsExports))
+    } ~
+      path("zahlungsexports" / zahlungsExportIdPath) { id =>
+        get(detail(buchhaltungReadRepository.getZahlungsExportDetail(id)))
+      }
+
   def verschicken(id: RechnungId)(implicit idPersister: Persister[RechnungId, _], subject: Subject) = {
     onSuccess(entityStore ? BuchhaltungCommandHandler.RechnungVerschickenCommand(subject.personId, id)) {
       case UserCommandFailed =>
@@ -332,6 +341,15 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+  def createZahlungExport(rechnungen: List[Rechnung])(implicit subject: Subject) = {
+    onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
+      case _ =>
+        complete("")
+    }
+  }
+
   def deleteRechnung(rechnungId: RechnungId)(implicit subject: Subject) = {
     onSuccess((entityStore ? BuchhaltungCommandHandler.DeleteRechnungCommand(subject.personId, rechnungId))) {
       case UserCommandFailed =>
@@ -366,31 +384,6 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       case _ =>
         complete("")
     }
-  }
-
-  def generatePain008_001_07(ids: List[Rechnung])(implicit subect: Subject): String = {
-    val NbOfTxs = ids.size.toString
-
-    val kontoDatenProjektWithFuture = stammdatenReadRepository.getKontoDatenProjekt map { maybeKontoDatenProjekt =>
-      maybeKontoDatenProjekt match {
-        case Some(kdp) => kdp
-      }
-    }
-
-    val rechnungenWithFutures = ids.map {
-      rechnung =>
-        stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { maybeKontoDatenKunde =>
-          maybeKontoDatenKunde match {
-            case Some(kontoDatenKunde) => (rechnung, kontoDatenKunde)
-          }
-        }
-    }
-    val d = Duration(1, SECONDS)
-
-    //sequence will transform from list[Future] to future[list]
-    val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
-    val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
-    Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 }
 

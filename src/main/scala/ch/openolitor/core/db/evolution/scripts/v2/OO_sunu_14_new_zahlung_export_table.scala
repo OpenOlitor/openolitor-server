@@ -20,22 +20,36 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.repositories
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
-import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-import akka.actor.ActorSystem
+import scala.util.{ Success, Try }
 
-trait BuchhaltungWriteRepositoryComponent extends BaseWriteRepositoryComponent {
-  val buchhaltungWriteRepository: BuchhaltungWriteRepository
+object OO_sunu_14_new_zahlung_export_table {
 
-  // implicitly expose the eventStream
-  implicit def buchhaltungWriteRepositoryImplicit = buchhaltungWriteRepository
-}
+  val addingZahlungExportTable = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""
+CREATE TABLE `ZahlungsExport` (
+  `id` bigint(20) NOT NULL,
+  `file` text,
+  `rechnungen` varchar(2000),
+  `erstelldat` datetime NOT NULL,
+  `ersteller` bigint(20) NOT NULL,
+  `modifidat` datetime NOT NULL,
+  `modifikator` bigint(20) NOT NULL,
+  KEY `id_index` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+""".execute.apply()
+      Success(true)
+    }
+  }
 
-trait DefaultBuchhaltungWriteRepositoryComponent extends BuchhaltungWriteRepositoryComponent {
-  val system: ActorSystem
-
-  override val buchhaltungWriteRepository: BuchhaltungWriteRepository = new DefaultActorSystemReference(system) with BuchhaltungWriteRepositoryImpl with AkkaEventStream
+  val scripts = Seq(addingZahlungExportTable)
 }

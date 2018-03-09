@@ -26,21 +26,13 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
-import ch.openolitor.buchhaltung._
 import ch.openolitor.buchhaltung.models._
-import java.util.UUID
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import ch.openolitor.core.Macros._
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.DateTime
-import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import ch.openolitor.buchhaltung.models.RechnungModifyBezahlt
-import scala.concurrent.Future
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
@@ -79,6 +71,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
       createZahlungsImport(meta, entity)
     case ZahlungsEingangErledigtEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
       zahlungsEingangErledigen(meta, entity)
+    case ZahlungsExportCreatedEvent(meta, entity: ZahlungsExportCreate) =>
+      createZahlungsExport(meta, entity)
     case RechnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
       rechnungPDFStored(meta, rechnungId, fileStoreId)
     case MahnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
@@ -225,6 +219,20 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
         }
       }
       buchhaltungWriteRepository.insertEntity[ZahlungsImport, ZahlungsImportId](zahlungsImport)
+    }
+  }
+
+  private def createZahlungsExport(meta: EventMetadata, entity: ZahlungsExportCreate)(implicit PersonId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      val zahlungsExport = copyTo[ZahlungsExportCreate, ZahlungsExport](
+        entity,
+        "erstelldat" -> meta.timestamp,
+        "ersteller" -> meta.originator,
+        "modifidat" -> meta.timestamp,
+        "modifikator" -> meta.originator
+      )
+
+      buchhaltungWriteRepository.insertEntity[ZahlungsExport, ZahlungsExportId](zahlungsExport)
     }
   }
 
