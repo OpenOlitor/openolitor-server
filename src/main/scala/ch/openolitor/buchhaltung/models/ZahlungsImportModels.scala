@@ -119,3 +119,23 @@ case class ZahlungsEingangModifyErledigt(
   id: ZahlungsEingangId,
   bemerkung: Option[String]
 ) extends JSONSerializable
+
+case class ZahlungsExportId(id: Long) extends BaseId
+
+case class ZahlungsExport(
+  id: ZahlungsExportId,
+  file: String,
+  rechnungen: Set[RechnungId],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[ZahlungsExportId]
+
+case class ZahlungsExportCreate(
+  id: ZahlungsExportId,
+  file: String,
+  rechnungen: Set[RechnungId]
+) extends JSONSerializable
+

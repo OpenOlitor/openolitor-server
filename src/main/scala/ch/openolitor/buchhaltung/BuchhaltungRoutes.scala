@@ -75,6 +75,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   implicit val rechnungsPositionIdPath = long2BaseIdPathMatcher(RechnungsPositionId.apply)
   implicit val zahlungsImportIdPath = long2BaseIdPathMatcher(ZahlungsImportId.apply)
   implicit val zahlungsEingangIdPath = long2BaseIdPathMatcher(ZahlungsEingangId.apply)
+  implicit val zahlungsExportIdPath = long2BaseIdPathMatcher(ZahlungsExportId.apply)
 
   import EntityStore._
 
@@ -83,7 +84,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute
+      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
   def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
@@ -120,12 +121,12 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("rechnungen" / "aktionen" / "pain_008") {
         //get(list(buchhaltungReadRepository.getRechnungsExports)) ~
         get(download(RechnungExportDaten, "exportFile.xml")) ~
-          (put | post) {
+          post {
             requestInstance { request =>
               entity(as[RechnungenContainer]) { cont =>
                 onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                  val xml = generatePain008_001_07(rechnungen)
-                  ???
+                  logger.debug(s"-----------------------------------------------------------------------------")
+                  createZahlungExport(rechnungen)
                 }
               }
             }
@@ -244,6 +245,13 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         }
       }
     }
+  def zahlungsExportsRoute(implicit subect: Subject) =
+    path("zahlungsexports") {
+      get(list(buchhaltungReadRepository.getZahlungsExports))
+    } ~
+      path("zahlungsexports" / zahlungsExportIdPath) { id =>
+        get(detail(buchhaltungReadRepository.getZahlungsExportDetail(id)))
+      }
 
   def verschicken(id: RechnungId)(implicit idPersister: Persister[RechnungId, _], subject: Subject) = {
     onSuccess(entityStore ? BuchhaltungCommandHandler.RechnungVerschickenCommand(subject.personId, id)) {
@@ -341,6 +349,15 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     onSuccess((entityStore ? BuchhaltungCommandHandler.CreateRechnungenCommand(subject.personId, rechnungenCreate))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen RechnungsPositionen erstellt werden.")
+      case _ =>
+        complete("")
+    }
+  }
+
+  def createZahlungExport(rechnungen: List[Rechnung])(implicit subject: Subject) = {
+    onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
       case _ =>
         complete("")
     }
