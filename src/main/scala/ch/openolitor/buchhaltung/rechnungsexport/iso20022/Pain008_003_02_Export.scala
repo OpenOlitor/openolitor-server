@@ -20,6 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
+
 package ch.openolitor.buchhaltung.rechnungsexport.iso20022
 
 import ch.openolitor.generated.xsd.camt054_001_04._
@@ -35,15 +36,16 @@ import scalaxb.DataRecord
 import java.util.GregorianCalendar
 import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.DatatypeConstants
+import com.typesafe.scalalogging.LazyLogging
 
-class Pain008Export {
+class Pain008_003_02_Export extends LazyLogging {
 
-  private def exportPain008(rechungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
-
-    val paymentInstructionInformationSDD = rechungen map { rechnung =>
+  private def exportPain008_003_02(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
+    val paymentInstructionInformationSDD = rechnungen map { rechnung =>
       getPaymentInstructionInformationSDD(rechnung._1, rechnung._2, kontoDatenProjekt, NbOfTxs)
     }
-    scalaxb.toXML[ch.openolitor.generated.xsd.pain008_003_02.Document](ch.openolitor.generated.xsd.pain008_003_02.Document(CustomerDirectDebitInitiationV02(getGroupHeaderSDD(NbOfTxs), paymentInstructionInformationSDD)), "Document", defineNamespaceBinding()).toString()
+
+    scalaxb.toXML[ch.openolitor.generated.xsd.pain008_003_02.Document](ch.openolitor.generated.xsd.pain008_003_02.Document(CustomerDirectDebitInitiationV02(getGroupHeaderSDD(rechnungen.map(_._1), kontoDatenProjekt, NbOfTxs), paymentInstructionInformationSDD)), "Document", defineNamespaceBinding()).toString()
   }
 
   private def getDate(): XMLGregorianCalendar = {
@@ -66,12 +68,12 @@ class Pain008Export {
     NamespaceBinding(null, "urn:iso:std:iso:20022:tech:xsd:pain.008.003.02", nsb3)
   }
 
-  private def getGroupHeaderSDD(nbTransactions: String): GroupHeaderSDD = {
-    val MsgId = "f851787662714268a9d0f48aee6a2b67" //
+  private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeaderSDD = {
+    val MsgId = kontoDatenProjekt.iban.get + randomAlphaNumericString(35 - kontoDatenProjekt.iban.get.length)
     val CreDtTm = getDateTime
     val NbOfTxs = nbTransactions
     val CtrlSum = None
-    val partyIdentificationSepa1 = "Musterfirma"
+    val partyIdentificationSepa1 = kontoDatenProjekt.creditorIdentifier.getOrElse("Initiator")
 
     GroupHeaderSDD(MsgId, CreDtTm, NbOfTxs, CtrlSum, PartyIdentificationSEPA1(Some(partyIdentificationSepa1), None))
   }
@@ -79,13 +81,13 @@ class Pain008Export {
   private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstructionInformationSDD = {
     (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder, kontoDatenProjekt.creditorIdentifier) match {
       case (Some(iban), Some(nameAccountHolder), Some(creditorIdentifier)) => {
-        val PmtInfId = randomStringRecursive2(35)
+        val PmtInfId = iban + randomAlphaNumericString(35 - iban.length)
         val CtrlSum = None
         val PmtMtd = DD
         val BtchBookg = None
         val PmtTpInf = PaymentTypeInformationSDD(ServiceLevelSEPA("SEPA"), LocalInstrumentSEPA("Core"), FRST, None)
         val ReqdColltnDt = getDate
-        val Cdtr = PartyIdentificationSEPA5("Musterfirma", None)
+        val Cdtr = PartyIdentificationSEPA5(nameAccountHolder, None)
 
         val CdtrAcct = CashAccountSEPA1(AccountIdentificationSEPA(iban))
         val CdtrAgt = BranchAndFinancialInstitutionIdentificationSEPA3(FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), "BFSWDE88KRL")))
@@ -97,7 +99,7 @@ class Pain008Export {
         val PmtId = PaymentIdentificationSEPA(None, "NOTPROVIDED")
         val InstdAmt = ActiveOrHistoricCurrencyAndAmountSEPA(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
         val ChrgBr_l3 = None
-        val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD("XXXLV011117XX", getDate(), None, None, None), None)
+        val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(rechnung.kundeId.toString, getDate(), None, None, None), None)
         val DbtrAgt = BranchAndFinancialInstitutionIdentificationSEPA3(FinancialInstitutionIdentificationSEPA3(DataRecord[OthrIdentification](None, Some("Othr"), OthrIdentification(NOTPROVIDED))))
         val Dbtr = PartyIdentificationSEPA2(nameAccountHolder, None, None)
         val DbtrAcct = CashAccountSEPA2(AccountIdentificationSEPA(iban))
@@ -114,17 +116,24 @@ class Pain008Export {
     }
   }
 
-  def randomStringRecursive2(n: Int): String = {
-    n match {
-      case 1 => util.Random.nextPrintableChar.toString
-      case _ => util.Random.nextPrintableChar.toString ++ randomStringRecursive2(n - 1).toString
+  def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
+    val sb = new StringBuilder
+    for (i <- 1 to length) {
+      val randomNum = util.Random.nextInt(chars.length)
+      sb.append(chars(randomNum))
     }
+    sb.toString
+  }
+
+  def randomAlphaNumericString(length: Int): String = {
+    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+    randomStringFromCharList(length, chars)
   }
 }
 
-object Pain008Export {
-  def exportPain008(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
-    new Pain008Export().exportPain008(rechnungen, kontoDatenProjekt, NbOfTxs)
+object Pain008_003_02_Export {
+  def exportPain008_003_02(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
+    new Pain008_003_02_Export().exportPain008_003_02(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 
 }

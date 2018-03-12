@@ -57,7 +57,7 @@ import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
 
 import ch.openolitor.buchhaltung.rechnungsexport.RechnungExportRecordResult
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008Export
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_003_02_Export
 import scalikejdbc.TxBoundary.Future
 
 import scala.concurrent.Await
@@ -401,7 +401,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     //sequence will transform from list[Future] to future[list]
     val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
     val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
-    Pain008Export.exportPain008(rechnungen, kontoDatenProjekt, NbOfTxs)
+    Pain008_003_02_Export.exportPain008_003_02(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 }
 
