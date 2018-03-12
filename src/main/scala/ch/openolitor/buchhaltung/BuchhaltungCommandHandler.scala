@@ -34,13 +34,14 @@ import scalikejdbc.DBSession
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
-import ch.openolitor.buchhaltung.rechnungsexport.RechnungExportRecord
 import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
+
+import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, ZahlungsImportRecordResult }
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_003_02_Export.exportPain008_003_02
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
@@ -49,7 +50,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
-  case class Pain008CreationCommand(originator: PersonId, ids: Seq[RechnungId]) extends UserCommand
+  case class Pain008_003_02CreationCommand(originator: PersonId, ids: Seq[RechnungId]) extends UserCommand
   case class RechnungenVerschickenCommand(originator: PersonId, ids: Seq[RechnungId]) extends UserCommand
   case class RechnungMahnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
   case class RechnungBezahlenCommand(originator: PersonId, id: RechnungId, entity: RechnungModifyBezahlt) extends UserCommand
@@ -78,6 +79,8 @@ object BuchhaltungCommandHandler {
 
   case class ZahlungsImportCreatedEvent(meta: EventMetadata, entity: ZahlungsImportCreate) extends PersistentEvent with JSONSerializable
   case class ZahlungsEingangErledigtEvent(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt) extends PersistentEvent with JSONSerializable
+
+  case class ZahlungsExportCreateCommand(originator: PersonId, rechnungen: List[Rechnung]) extends UserCommand
 
   case class RechnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
   case class MahnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
