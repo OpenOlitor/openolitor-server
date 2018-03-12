@@ -82,7 +82,10 @@ object ScalaxbSettings {
   lazy val scalaxbSettings = Seq(
       scalaxbXsdSource in (Compile, scalaxb) := baseDirectory.value / "src" / "main" / "resources" / "xsd",
       scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd",
-      scalaxbPackageNames in (Compile, scalaxb) := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.04") -> "ch.openolitor.generated.xsd.camt054_001_04",uri("urn:iso:std:iso:20022:tech:xsd:pain.008.003.02") -> "ch.openolitor.generated.xsd.pain008_003_02")
+      scalaxbPackageNames in (Compile, scalaxb) := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",
+                                                       uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.04") -> "ch.openolitor.generated.xsd.camt054_001_04",
+                                                       uri("urn:iso:std:iso:20022:tech:xsd:pain.008.003.02") -> "ch.openolitor.generated.xsd.pain008_003_02",
+                                                       uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.02") -> "ch.openolitor.generated.xsd.pain008_001_02")
     )
 }
 
