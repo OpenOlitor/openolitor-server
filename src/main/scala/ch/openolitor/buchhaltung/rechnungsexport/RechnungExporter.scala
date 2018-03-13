@@ -20,18 +20,25 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.filestore
+package ch.openolitor.buchhaltung.rechnungsexport
 
-import scala.concurrent.Future
+import scala.util._
+import java.io.ByteArrayInputStream
+import ch.openolitor.buchhaltung.models.RechnungId
 
-sealed trait FileStoreBucket
-case object VorlagenBucket extends FileStoreBucket
-case object GeneriertBucket extends FileStoreBucket
-case object StammdatenBucket extends FileStoreBucket
-case object ZahlungsImportBucket extends FileStoreBucket
-case object RechnungExportBucket extends FileStoreBucket
-case object TemporaryDataBucket extends FileStoreBucket
+trait RechnungExporter {
+  def export(ids: Seq[RechnungId]): RechnungExportResult
+}
 
-object FileStoreBucket {
-  val AllFileStoreBuckets = List(VorlagenBucket, GeneriertBucket, StammdatenBucket, ZahlungsImportBucket, RechnungExportBucket, TemporaryDataBucket)
+object RechnungExporter {
+  def export(ids: Seq[RechnungId]): RechnungExportResult = {
+    ???
+    //ids map { rechnungId =>
+    // buchhaltungReadRepository.getById(rechnungMapping, id) map { rechnung =>
+
+    // }
+    // importParsers map (_.parse(new ByteArrayInputStream(bytes))) find (_.isSuccess) getOrElse
+    //   Failure(new IllegalArgumentException(s"Could not parse the input stream using the following parsers: $importParsers"))
+    //}
+  }
 }
