@@ -69,7 +69,7 @@ class Pain008_001_02_Export extends LazyLogging {
   }
 
   private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeaderSDD = {
-    val MsgId = kontoDatenProjekt.iban + getDateTime().toString()
+    val MsgId = kontoDatenProjekt.iban.get + randomAlphaNumericString(34 - kontoDatenProjekt.iban.get.length)
     val CreDtTm = getDateTime
     val NbOfTxs = nbTransactions
     val CtrlSum = getSumAllRechnungs(rechnungen)
@@ -81,7 +81,7 @@ class Pain008_001_02_Export extends LazyLogging {
   private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstructionInformationSDD = {
     (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder, kontoDatenProjekt.creditorIdentifier) match {
       case (Some(iban), Some(nameAccountHolder), Some(creditorIdentifier)) => {
-        val PmtInfId = iban + getDateTime().toString
+        val PmtInfId = iban + randomAlphaNumericString(34 - iban.length)
         val CtrlSum = rechnung.betrag
         val PmtMtd = DD
         val BtchBookg = None
@@ -99,7 +99,7 @@ class Pain008_001_02_Export extends LazyLogging {
         val PmtId = PaymentIdentificationSEPA(None, "NOTPROVIDED")
         val InstdAmt = ActiveOrHistoricCurrencyAndAmountSEPA(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
         val ChrgBr_l3 = None
-        val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(rechnung.kundeId.toString, getDate(), None, None, None), None)
+        val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(rechnung.kundeId.id.toString, getDate(), None, None, None), None)
         val DbtrAgt = BranchAndFinancialInstitutionIdentificationSEPA3(FinancialInstitutionIdentificationSEPA3(DataRecord[OthrIdentification](None, Some("Othr"), OthrIdentification(NOTPROVIDED))))
         val Dbtr = PartyIdentificationSEPA2(nameAccountHolder, None, None)
         val DbtrAcct = CashAccountSEPA2(AccountIdentificationSEPA(iban))
@@ -117,6 +117,20 @@ class Pain008_001_02_Export extends LazyLogging {
 
   private def getSumAllRechnungs(rechnungen: List[Rechnung]): BigDecimal = {
     rechnungen.map(_.betrag).sum
+  }
+
+  def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
+    val sb = new StringBuilder
+    for (i <- 1 to length) {
+      val randomNum = util.Random.nextInt(chars.length)
+      sb.append(chars(randomNum))
+    }
+    sb.toString
+  }
+
+  def randomAlphaNumericString(length: Int): String = {
+    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+    randomStringFromCharList(length, chars)
   }
 }
 
