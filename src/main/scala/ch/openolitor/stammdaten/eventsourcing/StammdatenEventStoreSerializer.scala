@@ -281,8 +281,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     rolleGewechseltEventPersister,
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
-    korbIdPersister
-  )
+    korbIdPersister)
 
   def fixToOptionLocalDate(in: JsValue, attribute: Symbol): JsValue = {
     // convert wrong date js values

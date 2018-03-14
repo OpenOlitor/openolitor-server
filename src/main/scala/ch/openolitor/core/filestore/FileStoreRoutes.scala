@@ -73,7 +73,7 @@ trait FileStoreRoutes extends HttpService with ActorReferences with SprayDeseria
       pathEnd {
         get {
           onSuccess(fileStore.getFileIds(fileType.bucket)) {
-            case Left(e)     => complete(StatusCodes.InternalServerError, s"Could not list objects for the given fileType: ${fileType}")
+            case Left(e) => complete(StatusCodes.InternalServerError, s"Could not list objects for the given fileType: ${fileType}")
             case Right(list) => complete(s"Result list: $list")
           }
         }

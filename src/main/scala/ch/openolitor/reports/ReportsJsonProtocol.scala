@@ -46,7 +46,7 @@ trait ReportsJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoPro
             case _ => {
               field._1 match {
                 case "passwort" => JsString("Not available")
-                case _          => JsString(field._2.toString)
+                case _ => JsString(field._2.toString)
               }
             }
           }

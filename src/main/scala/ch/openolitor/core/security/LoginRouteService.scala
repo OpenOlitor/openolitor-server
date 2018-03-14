@@ -76,8 +76,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   val secondFactorTokenCache = LruCache[SecondFactor](
     maxCapacity = 1000,
     timeToLive = 20 minutes,
-    timeToIdle = 10 minutes
-  )
+    timeToIdle = 10 minutes)
 
   lazy val config = sysConfig.mandantConfiguration.config
   lazy val requireSecondFactorAuthentication = config.getBooleanOption(s"security.second-factor-auth.require").getOrElse(true)
@@ -133,9 +132,9 @@ trait LoginRouteService extends HttpService with ActorReferences
 
   private def containsOneOf(src: String, chars: List[String]): Boolean = {
     chars match {
-      case Nil                                   => false
+      case Nil => false
       case head :: tail if src.indexOf(head) > 0 => true
-      case head :: tail                          => containsOneOf(src, tail)
+      case head :: tail => containsOneOf(src, tail)
     }
   }
 
@@ -163,14 +162,14 @@ trait LoginRouteService extends HttpService with ActorReferences
 
     (entityStore ? PasswortWechselCommand(subjectPersonId, targetPersonId, hash.toCharArray, einladung)) map {
       case p: PasswortGewechseltEvent => true.right
-      case _                          => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
+      case _ => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
     }
   }
 
   private def resetPassword(person: Person): EitherFuture[Boolean] = EitherT {
     (entityStore ? PasswortResetCommand(person.id, person.id)) map {
       case p: PasswortResetGesendetEvent => true.right
-      case _                             => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
+      case _ => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
     }
   }
 
@@ -304,7 +303,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def handleLoggedIn(person: Person): EitherFuture[LoginResult] = {
     requireSecondFactorAuthentifcation(person) flatMap {
       case false => doLogin(person)
-      case true  => sendSecondFactorAuthentication(person)
+      case true => sendSecondFactorAuthentication(person)
     }
   }
 
@@ -355,10 +354,10 @@ trait LoginRouteService extends HttpService with ActorReferences
 
   private def requireSecondFactorAuthentifcation(person: Person): EitherFuture[Boolean] = EitherT {
     requireSecondFactorAuthentication match {
-      case false                          => Future.successful(false.right)
+      case false => Future.successful(false.right)
       case true if (person.rolle.isEmpty) => Future.successful(true.right)
       case true => stammdatenReadRepository.getProjekt map {
-        case None          => true.right
+        case None => true.right
         case Some(projekt) => projekt.twoFactorAuthentication.get(person.rolle.get).map(_.right).getOrElse(true.right)
       }
     }
@@ -383,7 +382,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def validatePerson(person: Person): EitherFuture[Boolean] = EitherT {
     Future {
       person.loginAktiv match {
-        case true  => true.right
+        case true => true.right
         case false => errorPersonLoginNotActive.left
       }
     }
@@ -447,18 +446,17 @@ trait LoginRouteService extends HttpService with ActorReferences
 }
 
 class DefaultLoginRouteService(
-    override val dbEvolutionActor: ActorRef,
-    override val entityStore: ActorRef,
-    override val eventStore: ActorRef,
-    override val mailService: ActorRef,
-    override val reportSystem: ActorRef,
-    override val sysConfig: SystemConfig,
-    override val system: ActorSystem,
-    override val fileStore: FileStore,
-    override val actorRefFactory: ActorRefFactory,
-    override val airbrakeNotifier: ActorRef,
-    override val jobQueueService: ActorRef,
-    override val loginTokenCache: Cache[Subject]
-)
+  override val dbEvolutionActor: ActorRef,
+  override val entityStore: ActorRef,
+  override val eventStore: ActorRef,
+  override val mailService: ActorRef,
+  override val reportSystem: ActorRef,
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val fileStore: FileStore,
+  override val actorRefFactory: ActorRefFactory,
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef,
+  override val loginTokenCache: Cache[Subject])
   extends LoginRouteService
   with DefaultStammdatenReadRepositoryAsyncComponent

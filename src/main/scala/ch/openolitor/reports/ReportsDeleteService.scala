@@ -53,7 +53,7 @@ class ReportsDeleteService(override val sysConfig: SystemConfig) extends EventSe
 
   val handle: Handle = {
     case EntityDeletedEvent(meta, id: ReportId) => deleteReport(meta, id)
-    case e                                      =>
+    case e =>
   }
 
   def deleteReport(meta: EventMetadata, id: ReportId)(implicit personId: PersonId = meta.originator) = {

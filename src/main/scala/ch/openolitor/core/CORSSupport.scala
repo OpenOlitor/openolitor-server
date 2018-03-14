@@ -43,8 +43,7 @@ trait CORSSupport extends LazyLogging {
   val exposeHeaders = `Access-Control-Expose-Headers`("Origin, X-Requested-With, Content-Type, Content-Disposition, Content-Length, Accept, Accept-Encoding, Accept-Language, Host, Referer, User-Agent, XSRF-TOKEN")
   val optionsCorsHeaders = List(
     allowHeaders,
-    `Access-Control-Max-Age`(1728000)
-  )
+    `Access-Control-Max-Age`(1728000))
   logger.debug(s"$this:allowOriginHeader:$allowOriginHeader")
 
   def corsDirective[T]: Directive0 = mapRequestContext { ctx =>
@@ -58,8 +57,7 @@ trait CORSSupport extends LazyLogging {
         logger.debug(s"Got cors request:${ctx.request.uri}:$x:$allowedMethods")
         ctx.complete(HttpResponse().withHeaders(
           `Access-Control-Allow-Methods`(OPTIONS, allowedMethods: _*) :: allowCredentialsHeader :: allowOriginHeader ::
-            exposeHeaders :: optionsCorsHeaders
-        ))
+            exposeHeaders :: optionsCorsHeaders))
     }).withHttpResponseHeadersMapped { headers =>
       allowCredentialsHeader :: allowOriginHeader :: exposeHeaders :: headers
     }
@@ -68,8 +66,7 @@ trait CORSSupport extends LazyLogging {
   private def preflightRequestHandler: Route = options {
     complete(HttpResponse(200).withHeaders(
       `Access-Control-Allow-Methods`(OPTIONS, POST, PUT, GET, DELETE) ::
-        allowCredentialsHeader :: allowOriginHeader :: allowHeaders :: exposeHeaders :: Nil
-    ))
+        allowCredentialsHeader :: allowOriginHeader :: allowHeaders :: exposeHeaders :: Nil))
   }
 
   def cors(r: Route) = preflightRequestHandler ~ corsDirective {

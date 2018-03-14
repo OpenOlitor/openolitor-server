@@ -53,8 +53,7 @@ class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends 
 
   val pipeline: HttpRequest => Future[HttpResponse] = {
     ((_: HttpRequest).mapEntity(_.flatMap(f => HttpEntity(
-      f.contentType.withMediaType(MediaTypes.`application/xml`), f.data
-    )))) ~> sendReceive
+      f.contentType.withMediaType(MediaTypes.`application/xml`), f.data)))) ~> sendReceive
   }
 
   def receive: Receive = {

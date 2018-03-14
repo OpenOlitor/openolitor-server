@@ -133,8 +133,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create abotyp
@@ -153,8 +152,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create abotyp
@@ -175,8 +173,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create abotyp
@@ -239,8 +236,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       //create abotyp
       stammdatenWriteRepository.insertEntity[Kunde, KundeId](kunde)
@@ -263,8 +259,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Person, PersonId](person)
@@ -296,8 +291,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Depot, DepotId](depot)
     }
@@ -386,8 +380,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
-                    "modifikator" -> meta.originator
-                  ))
+                    "modifikator" -> meta.originator))
                 case create: HeimlieferungAboModify =>
                   val tourName = tourById(create.tourId).map(_.name).getOrElse("")
 
@@ -412,8 +405,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
-                    "modifikator" -> meta.originator
-                  )) map { heimlieferungAbo =>
+                    "modifikator" -> meta.originator)) map { heimlieferungAbo =>
                     // create the corresponding tourlieferung as well
                     stammdatenWriteRepository.getById(kundeMapping, heimlieferungAbo.kundeId) map { kunde =>
                       stammdatenWriteRepository.insertEntity[Tourlieferung, AboId](Tourlieferung(heimlieferungAbo, kunde, personId))
@@ -441,8 +433,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
-                    "modifikator" -> meta.originator
-                  ))
+                    "modifikator" -> meta.originator))
               }
               // create required Koerbe for abo
               //              maybeAbo map (abo => modifyKoerbeForAboDatumChange(abo, None))
@@ -487,8 +478,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                   "erstelldat" -> meta.timestamp,
                   "ersteller" -> meta.originator,
                   "modifidat" -> meta.timestamp,
-                  "modifikator" -> meta.originator
-                )
+                  "modifikator" -> meta.originator)
                 stammdatenWriteRepository.insertEntity[ZusatzAbo, AboId](zusatzAbo)
               }
             case None => throw new RuntimeException("The id provided does not corresponde to any zusatzabotyp");
@@ -505,19 +495,19 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   def defaultDateStart(date1: LocalDate, date2: Option[LocalDate]): LocalDate = {
     val today = LocalDate.now.toDateTimeAtStartOfDay.toLocalDate
     (date1, date2) match {
-      case (d1, None) if (d1 compareTo today) > 0  => d1
+      case (d1, None) if (d1 compareTo today) > 0 => d1
       case (d1, None) if (d1 compareTo today) <= 0 => today
       case (d1, Some(d2)) if (d1 compareTo d2) > 0 => d1
-      case (_, date2)                              => date2.get
+      case (_, date2) => date2.get
     }
   }
 
   def defaultDateEnd(date1: Option[LocalDate], date2: Option[LocalDate]): Option[LocalDate] = {
     (date1, date2) match {
-      case (Some(d1), None)                              => date1
-      case (None, Some(d2))                              => date2
+      case (Some(d1), None) => date1
+      case (None, Some(d2)) => date2
       case (Some(d1), Some(d2)) if (d1 compareTo d2) < 0 => date1
-      case (_, d2)                                       => d2
+      case (_, d2) => d2
     }
   }
 
@@ -529,8 +519,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[CustomKundentyp, CustomKundentypId](kundentyp)
     }
@@ -543,8 +532,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Produkt, ProduktId](produkt)
     }
@@ -557,8 +545,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Produktekategorie, ProduktekategorieId](produktekategrie)
     }
@@ -571,8 +558,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Produzent, ProduzentId](produzent)
     }
@@ -587,8 +573,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Tour, TourId](tour)
     }
@@ -601,8 +586,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Projekt, ProjektId](projekt)
     }
@@ -615,8 +599,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator
-    )
+      "modifikator" -> meta.originator)
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[KontoDaten, KontoDatenId](kontoDaten)
     }
@@ -632,8 +615,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
             "erstelldat" -> meta.timestamp,
             "ersteller" -> meta.originator,
             "modifidat" -> meta.timestamp,
-            "modifikator" -> meta.originator
-          )
+            "modifikator" -> meta.originator)
           stammdatenWriteRepository.insertEntity[Abwesenheit, AbwesenheitId](abw)
         case _ =>
           logger.debug("Eine Abwesenheit kann nur einmal erfasst werden")
@@ -653,8 +635,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator
-      )
+        "modifikator" -> meta.originator)
       val project = stammdatenWriteRepository.getProjekt
 
       //create lieferplanung
@@ -673,8 +654,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
 
         //update lieferplanung
         stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.id)(
-          lieferplanungMapping.column.abotypDepotTour -> abotypDates
-        )
+          lieferplanungMapping.column.abotypDepotTour -> abotypDates)
       }
     }
 

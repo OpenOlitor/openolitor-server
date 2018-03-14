@@ -37,6 +37,5 @@ object OpenOlitorBatchJobs {
 class OpenOlitorBatchJobs(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef, fileStore: FileStore) extends BaseBatchJobsSupervisor {
   override lazy val batchJobs = Set(
     context.actorOf(StammdatenBatchJobs.props(sysConfig, system, entityStore)),
-    context.actorOf(FileStoreBatchJobs.props(sysConfig, system, fileStore))
-  )
+    context.actorOf(FileStoreBatchJobs.props(sysConfig, system, fileStore)))
 }

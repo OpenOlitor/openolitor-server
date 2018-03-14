@@ -28,22 +28,22 @@ import java.io.InputStream
 trait FileTypeFilenameMapping extends LazyLogging {
   def defaultFileTypeId(fileType: FileType) = {
     fileType match {
-      case VorlageRechnung              => "Rechnung.odt"
-      case VorlageDepotLieferschein     => "DepotLieferschein.odt"
-      case VorlageTourLieferschein      => "TourLieferschein.odt"
-      case VorlagePostLieferschein      => "PostLieferschein.odt"
-      case VorlageDepotLieferetiketten  => "DepotLieferetiketten.odt"
-      case VorlageTourLieferetiketten   => "TourLieferetiketten.odt"
-      case VorlagePostLieferetiketten   => "PostLieferetiketten.odt"
-      case VorlageMahnung               => "Mahnung.odt"
-      case VorlageBestellung            => "Bestellung.odt"
-      case VorlageKundenbrief           => "Kundenbrief.odt"
-      case VorlageDepotbrief            => "Depotbrief.odt"
-      case VorlageProduzentenbrief      => "Produzentenbrief.odt"
+      case VorlageRechnung => "Rechnung.odt"
+      case VorlageDepotLieferschein => "DepotLieferschein.odt"
+      case VorlageTourLieferschein => "TourLieferschein.odt"
+      case VorlagePostLieferschein => "PostLieferschein.odt"
+      case VorlageDepotLieferetiketten => "DepotLieferetiketten.odt"
+      case VorlageTourLieferetiketten => "TourLieferetiketten.odt"
+      case VorlagePostLieferetiketten => "PostLieferetiketten.odt"
+      case VorlageMahnung => "Mahnung.odt"
+      case VorlageBestellung => "Bestellung.odt"
+      case VorlageKundenbrief => "Kundenbrief.odt"
+      case VorlageDepotbrief => "Depotbrief.odt"
+      case VorlageProduzentenbrief => "Produzentenbrief.odt"
       case VorlageProduzentenabrechnung => "Produzentenabrechnung.odt"
-      case VorlageLieferplanung         => "Lieferplanung.odt"
-      case VorlageKorbUebersicht        => "Korbuebersicht.odt"
-      case _                            => "undefined.odt"
+      case VorlageLieferplanung => "Lieferplanung.odt"
+      case VorlageKorbUebersicht => "Korbuebersicht.odt"
+      case _ => "undefined.odt"
     }
   }
 
@@ -54,7 +54,7 @@ trait FileTypeFilenameMapping extends LazyLogging {
     logger.debug(s"Resolve template from resources:$resource")
     getClass.getResourceAsStream(resource) match {
       case is: InputStream => Right(is)
-      case _               => Left(resource)
+      case _ => Left(resource)
     }
   }
 }

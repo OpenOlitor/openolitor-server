@@ -61,21 +61,18 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
         val dbIds = Seq(
           adjustSeeds[AbotypId](
             maxId[Abotyp, AbotypId](abotypMapping),
-            maxId[ZusatzAbotyp, AbotypId](zusatzAbotypMapping)
-          ),
+            maxId[ZusatzAbotyp, AbotypId](zusatzAbotypMapping)),
           adjustSeed[Depot, DepotId](depotMapping),
           adjustSeed[Vertrieb, VertriebId](vertriebMapping),
           adjustSeeds[VertriebsartId](
             maxId[Depotlieferung, VertriebsartId](depotlieferungMapping),
             maxId[Heimlieferung, VertriebsartId](heimlieferungMapping),
-            maxId[Postlieferung, VertriebsartId](postlieferungMapping)
-          ),
+            maxId[Postlieferung, VertriebsartId](postlieferungMapping)),
           adjustSeeds[AboId](
             maxId[DepotlieferungAbo, AboId](depotlieferungAboMapping),
             maxId[HeimlieferungAbo, AboId](heimlieferungAboMapping),
             maxId[PostlieferungAbo, AboId](postlieferungAboMapping),
-            maxId[ZusatzAbo, AboId](zusatzAboMapping)
-          ),
+            maxId[ZusatzAbo, AboId](zusatzAboMapping)),
           adjustSeed[Kunde, KundeId](kundeMapping),
           adjustSeed[CustomKundentyp, CustomKundentypId](customKundentypMapping),
           adjustSeed[Lieferung, LieferungId](lieferungMapping),
@@ -101,9 +98,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeeds[AuslieferungId](
             maxId[DepotAuslieferung, AuslieferungId](depotAuslieferungMapping),
             maxId[TourAuslieferung, AuslieferungId](tourAuslieferungMapping),
-            maxId[PostAuslieferung, AuslieferungId](postAuslieferungMapping)
-          )
-        ).flatten
+            maxId[PostAuslieferung, AuslieferungId](postAuslieferungMapping))).flatten
 
         Success(dbIds.toMap)
       } catch {
@@ -142,7 +137,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     val revision = if (currentDBRevision > 0) currentDBRevision else fromRevision
     logger.debug(s"evolveDatabase from ($currentDBRevision, $revision) to ${scripts.length}")
     scripts.takeRight(scripts.length - revision) match {
-      case Nil            => Success(revision)
+      case Nil => Success(revision)
       case scriptsToApply => evolve(scriptsToApply, revision)
     }
   }

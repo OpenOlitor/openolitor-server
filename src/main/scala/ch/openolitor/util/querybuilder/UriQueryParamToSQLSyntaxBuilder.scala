@@ -32,7 +32,7 @@ object UriQueryParamToSQLSyntaxBuilder extends LazyLogging with DBMappings {
 
   def build[T](maybeExpr: Option[FilterExpr], sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T], exclude: Seq[String] = Seq()): Option[SQLSyntax] = {
     maybeExpr match {
-      case None       => None
+      case None => None
       case Some(expr) => build(expr, sqlSyntax, exclude)
     }
   }
@@ -74,9 +74,9 @@ object UriQueryParamToSQLSyntaxBuilder extends LazyLogging with DBMappings {
     retrieveColumn(sqlSyntax, attribute.value) map { c =>
       comparator match {
         case GTE => sqls.ge(c, value)
-        case GT  => sqls.gt(c, value)
+        case GT => sqls.gt(c, value)
         case LTE => sqls.le(c, value)
-        case LT  => sqls.lt(c, value)
+        case LT => sqls.lt(c, value)
         case NOT => sqls.ne(c, value)
       }
     }

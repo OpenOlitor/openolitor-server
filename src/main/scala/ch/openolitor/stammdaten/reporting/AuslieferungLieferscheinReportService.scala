@@ -49,17 +49,16 @@ trait AuslieferungLieferscheinReportService extends AsyncConnectionPoolContextAw
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Auslieferungs-Lieferschein(e)")
-    )
+      JobId("Auslieferungs-Lieferschein(e)"))
   }
 
   def name(fileType: FileType)(auslieferung: AuslieferungReport) = {
     fileType match {
       case VorlageDepotLieferschein => s"depot_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
-      case VorlageTourLieferschein  => s"tour_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
-      case VorlagePostLieferschein  => s"post_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
+      case VorlageTourLieferschein => s"tour_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
+      case VorlagePostLieferschein => s"post_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
 
-      case _                        => s"auslieferung_nr_${auslieferung.id.id}_${auslieferung.datum}"
+      case _ => s"auslieferung_nr_${auslieferung.id.id}_${auslieferung.datum}"
     }
   }
 

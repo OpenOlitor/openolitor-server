@@ -29,30 +29,26 @@ import ch.openolitor.core.JSONSerializable
 case class ReportId(id: Long) extends BaseId
 
 case class Report(
-    id: ReportId,
-    name: String,
-    beschreibung: Option[String],
-    query: String,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends BaseEntity[ReportId]
+  id: ReportId,
+  name: String,
+  beschreibung: Option[String],
+  query: String,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends BaseEntity[ReportId]
 
 case class ReportCreate(
-    name: String,
-    beschreibung: Option[String],
-    query: String
-) extends JSONSerializable
+  name: String,
+  beschreibung: Option[String],
+  query: String) extends JSONSerializable
 
 case class ReportModify(
-    name: String,
-    beschreibung: Option[String],
-    query: String
-) extends JSONSerializable
+  name: String,
+  beschreibung: Option[String],
+  query: String) extends JSONSerializable
 
 case class ReportExecute(
-    id: ReportId,
-    query: String
-) extends JSONSerializable
+  id: ReportId,
+  query: String) extends JSONSerializable

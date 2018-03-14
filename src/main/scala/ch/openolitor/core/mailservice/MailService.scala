@@ -114,8 +114,7 @@ trait MailService extends AggregateRoot
               maybeRequeue =>
                 maybeRequeue map { result =>
                   state = state.copy(mailQueue = state.mailQueue - enqueued + result)
-                }
-            )
+                })
         }
       }
     }
@@ -187,10 +186,10 @@ trait MailService extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed             => context become removed
-      case Created             => context become uninitialized
+      case Removed => context become removed
+      case Created => context become uninitialized
       case s: MailServiceState => this.state = s
-      case other               => log.error(s"Received unsupported state:$other")
+      case other => log.error(s"Received unsupported state:$other")
     }
   }
 

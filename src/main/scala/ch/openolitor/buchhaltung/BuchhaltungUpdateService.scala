@@ -62,8 +62,7 @@ class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends Eve
       buchhaltungWriteRepository.updateEntity(id)(
         rechnungsPositionMapping.column.rechnungId -> Option(update.rechnungId),
         rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Zugewiesen,
-        rechnungsPositionMapping.column.sort -> Option(update.sort)
-      )
+        rechnungsPositionMapping.column.sort -> Option(update.sort))
     }
   }
 
@@ -83,8 +82,7 @@ class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends Eve
         rechnungsPositionMapping.column.beschrieb -> update.beschrieb,
         rechnungsPositionMapping.column.anzahlLieferungen -> update.anzahlLieferungen,
         rechnungsPositionMapping.column.betrag -> update.betrag,
-        rechnungsPositionMapping.column.status -> update.status
-      )
+        rechnungsPositionMapping.column.status -> update.status)
     }
   }
 }

@@ -110,8 +110,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
                 download(GeneriertRechnung, fileStoreId)
               }
             } getOrElse (complete(StatusCodes.BadRequest))
-          }
-        )
+          })
       } ~
       path("rechnungen" / rechnungIdPath / "aktionen" / "download" / Segment) { (id, fileStoreId) =>
         (get)(
@@ -119,8 +118,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
             detail map { rechnung =>
               download(GeneriertMahnung, fileStoreId)
             } getOrElse (complete(StatusCodes.BadRequest))
-          }
-        )
+          })
       }
   }
 
@@ -176,17 +174,16 @@ trait KundenportalRoutes extends HttpService with ActorReferences
 }
 
 class DefaultKundenportalRoutes(
-    override val dbEvolutionActor: ActorRef,
-    override val entityStore: ActorRef,
-    override val eventStore: ActorRef,
-    override val mailService: ActorRef,
-    override val reportSystem: ActorRef,
-    override val sysConfig: SystemConfig,
-    override val system: ActorSystem,
-    override val fileStore: FileStore,
-    override val actorRefFactory: ActorRefFactory,
-    override val airbrakeNotifier: ActorRef,
-    override val jobQueueService: ActorRef
-)
+  override val dbEvolutionActor: ActorRef,
+  override val entityStore: ActorRef,
+  override val eventStore: ActorRef,
+  override val mailService: ActorRef,
+  override val reportSystem: ActorRef,
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val fileStore: FileStore,
+  override val actorRefFactory: ActorRefFactory,
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef)
   extends KundenportalRoutes
   with DefaultKundenportalReadRepositoryAsyncComponent

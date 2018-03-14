@@ -185,7 +185,7 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
       wsClient.send(msg)
     case x: FrameCommandFailed =>
       log.error("frame command failed", x)
-    case x: HttpRequest      => // do something
+    case x: HttpRequest => // do something
     case UpgradedToWebSocket =>
     case akka.io.Tcp.Closed =>
       log.debug(s"Closed")

@@ -39,13 +39,12 @@ import ch.openolitor.core.ActorReferences
 import akka.actor.ActorSystem
 
 class DefaultNonAuthRessourcesRouteService(
-    override val sysConfig: SystemConfig,
-    override val system: ActorSystem,
-    override val fileStore: FileStore,
-    override val actorRefFactory: ActorRefFactory,
-    override val airbrakeNotifier: akka.actor.ActorRef,
-    override val jobQueueService: akka.actor.ActorRef
-) extends NonAuthRessourcesRouteService
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val fileStore: FileStore,
+  override val actorRefFactory: ActorRefFactory,
+  override val airbrakeNotifier: akka.actor.ActorRef,
+  override val jobQueueService: akka.actor.ActorRef) extends NonAuthRessourcesRouteService
 
 trait NonAuthRessourcesRouteService extends HttpService with ActorReferences
   with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging with SystemJsonProtocol {

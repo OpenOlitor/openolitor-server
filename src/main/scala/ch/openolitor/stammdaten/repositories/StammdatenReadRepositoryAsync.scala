@@ -478,8 +478,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
                 prodSteuersatz,
                 sumSteuer,
                 sumTotal,
-                projekt
-              )
+                projekt)
           }
         }
       }).toList)
@@ -645,8 +644,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
               projekt,
               korb,
               Some(report.depot),
-              None
-            )
+              None)
           }
         }
       }).flatten
@@ -660,8 +658,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
               projekt,
               korb,
               None,
-              Some(report.tour)
-            )
+              Some(report.tour))
           }
         }
       }).flatten
@@ -675,8 +672,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
               projekt,
               korb,
               None,
-              None
-            )
+              None)
           }
         }
       }).flatten

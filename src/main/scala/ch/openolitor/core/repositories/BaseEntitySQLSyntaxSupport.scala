@@ -49,13 +49,11 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
 
   def defaultInsertColumns(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] = Seq(
     column.erstelldat -> entity.erstelldat,
-    column.ersteller -> entity.ersteller
-  )
+    column.ersteller -> entity.ersteller)
 
   def defaultUpdateColumns(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] = Seq(
     column.modifidat -> entity.modifidat,
-    column.modifikator -> entity.modifikator
-  )
+    column.modifikator -> entity.modifikator)
 
   /**
    * Declare update parameters for this entity used on update. Is by default an empty set

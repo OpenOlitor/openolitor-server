@@ -134,35 +134,34 @@ sealed trait IAbotyp extends BaseEntity[AbotypId] with AktivRange with Product w
 }
 
 case class Abotyp(
-    id: AbotypId,
-    name: String,
-    beschreibung: Option[String],
-    lieferrhythmus: Rhythmus,
-    aktivVon: Option[LocalDate],
-    aktivBis: Option[LocalDate],
-    preis: BigDecimal,
-    preiseinheit: Preiseinheit,
-    laufzeit: Option[Int],
-    laufzeiteinheit: Laufzeiteinheit,
-    vertragslaufzeit: Option[Frist],
-    kuendigungsfrist: Option[Frist],
-    anzahlAbwesenheiten: Option[Int],
-    farbCode: String,
-    zielpreis: Option[BigDecimal],
-    guthabenMindestbestand: Int,
-    adminProzente: BigDecimal,
-    wirdGeplant: Boolean,
-    //Zusatzinformationen
-    anzahlAbonnenten: Int,
-    anzahlAbonnentenAktiv: Int,
-    letzteLieferung: Option[DateTime],
-    waehrung: Waehrung,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends IAbotyp
+  id: AbotypId,
+  name: String,
+  beschreibung: Option[String],
+  lieferrhythmus: Rhythmus,
+  aktivVon: Option[LocalDate],
+  aktivBis: Option[LocalDate],
+  preis: BigDecimal,
+  preiseinheit: Preiseinheit,
+  laufzeit: Option[Int],
+  laufzeiteinheit: Laufzeiteinheit,
+  vertragslaufzeit: Option[Frist],
+  kuendigungsfrist: Option[Frist],
+  anzahlAbwesenheiten: Option[Int],
+  farbCode: String,
+  zielpreis: Option[BigDecimal],
+  guthabenMindestbestand: Int,
+  adminProzente: BigDecimal,
+  wirdGeplant: Boolean,
+  //Zusatzinformationen
+  anzahlAbonnenten: Int,
+  anzahlAbonnentenAktiv: Int,
+  letzteLieferung: Option[DateTime],
+  waehrung: Waehrung,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends IAbotyp
 
 object Abotyp {
   def unapply(a: Abotyp) = {
@@ -192,61 +191,58 @@ object Abotyp {
       a.erstelldat,
       a.ersteller,
       a.modifidat,
-      a.modifikator
-    ))
+      a.modifikator))
   }
 }
 
 case class AbotypSummary(id: AbotypId, name: String) extends JSONSerializable
 
 case class AbotypModify(
-    name: String,
-    beschreibung: Option[String],
-    lieferrhythmus: Rhythmus,
-    aktivVon: Option[LocalDate],
-    aktivBis: Option[LocalDate],
-    preis: BigDecimal,
-    preiseinheit: Preiseinheit,
-    laufzeit: Option[Int],
-    laufzeiteinheit: Laufzeiteinheit,
-    vertragslaufzeit: Option[Frist],
-    kuendigungsfrist: Option[Frist],
-    anzahlAbwesenheiten: Option[Int],
-    farbCode: String,
-    zielpreis: Option[BigDecimal],
-    guthabenMindestbestand: Int,
-    adminProzente: BigDecimal,
-    wirdGeplant: Boolean
-) extends AktivRange with JSONSerializable
+  name: String,
+  beschreibung: Option[String],
+  lieferrhythmus: Rhythmus,
+  aktivVon: Option[LocalDate],
+  aktivBis: Option[LocalDate],
+  preis: BigDecimal,
+  preiseinheit: Preiseinheit,
+  laufzeit: Option[Int],
+  laufzeiteinheit: Laufzeiteinheit,
+  vertragslaufzeit: Option[Frist],
+  kuendigungsfrist: Option[Frist],
+  anzahlAbwesenheiten: Option[Int],
+  farbCode: String,
+  zielpreis: Option[BigDecimal],
+  guthabenMindestbestand: Int,
+  adminProzente: BigDecimal,
+  wirdGeplant: Boolean) extends AktivRange with JSONSerializable
 
 case class ZusatzAbotyp(
-    id: AbotypId,
-    name: String,
-    beschreibung: Option[String],
-    aktivVon: Option[LocalDate],
-    aktivBis: Option[LocalDate],
-    preis: BigDecimal,
-    preiseinheit: Preiseinheit,
-    laufzeit: Option[Int],
-    laufzeiteinheit: Laufzeiteinheit,
-    vertragslaufzeit: Option[Frist],
-    kuendigungsfrist: Option[Frist],
-    anzahlAbwesenheiten: Option[Int],
-    farbCode: String,
-    zielpreis: Option[BigDecimal],
-    adminProzente: BigDecimal,
-    wirdGeplant: Boolean,
-    //Zusatzinformationen
-    anzahlAbonnenten: Int,
-    anzahlAbonnentenAktiv: Int,
-    letzteLieferung: Option[DateTime],
-    waehrung: Waehrung,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends IAbotyp
+  id: AbotypId,
+  name: String,
+  beschreibung: Option[String],
+  aktivVon: Option[LocalDate],
+  aktivBis: Option[LocalDate],
+  preis: BigDecimal,
+  preiseinheit: Preiseinheit,
+  laufzeit: Option[Int],
+  laufzeiteinheit: Laufzeiteinheit,
+  vertragslaufzeit: Option[Frist],
+  kuendigungsfrist: Option[Frist],
+  anzahlAbwesenheiten: Option[Int],
+  farbCode: String,
+  zielpreis: Option[BigDecimal],
+  adminProzente: BigDecimal,
+  wirdGeplant: Boolean,
+  //Zusatzinformationen
+  anzahlAbonnenten: Int,
+  anzahlAbonnentenAktiv: Int,
+  letzteLieferung: Option[DateTime],
+  waehrung: Waehrung,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends IAbotyp
 
 object ZusatzAbotyp {
   def unapply(a: ZusatzAbotyp) = {
@@ -274,26 +270,24 @@ object ZusatzAbotyp {
       a.erstelldat,
       a.ersteller,
       a.modifidat,
-      a.modifikator
-    ))
+      a.modifikator))
   }
 }
 
 case class ZusatzAbotypModify(
-    name: String,
-    beschreibung: Option[String],
-    aktivVon: Option[LocalDate],
-    aktivBis: Option[LocalDate],
-    preis: BigDecimal,
-    preiseinheit: Preiseinheit,
-    laufzeit: Option[Int],
-    laufzeiteinheit: Laufzeiteinheit,
-    vertragslaufzeit: Option[Frist],
-    kuendigungsfrist: Option[Frist],
-    anzahlAbwesenheiten: Option[Int],
-    farbCode: String,
-    zielpreis: Option[BigDecimal],
-    adminProzente: BigDecimal,
-    wirdGeplant: Boolean,
-    waehrung: Waehrung
-) extends AktivRange with JSONSerializable
+  name: String,
+  beschreibung: Option[String],
+  aktivVon: Option[LocalDate],
+  aktivBis: Option[LocalDate],
+  preis: BigDecimal,
+  preiseinheit: Preiseinheit,
+  laufzeit: Option[Int],
+  laufzeiteinheit: Laufzeiteinheit,
+  vertragslaufzeit: Option[Frist],
+  kuendigungsfrist: Option[Frist],
+  anzahlAbwesenheiten: Option[Int],
+  farbCode: String,
+  zielpreis: Option[BigDecimal],
+  adminProzente: BigDecimal,
+  wirdGeplant: Boolean,
+  waehrung: Waehrung) extends AktivRange with JSONSerializable

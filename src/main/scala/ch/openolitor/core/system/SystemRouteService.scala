@@ -53,18 +53,17 @@ import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.core.jobs.JobQueueRoutes
 
 class DefaultSystemRouteService(
-    override val dbEvolutionActor: ActorRef,
-    override val entityStore: ActorRef,
-    override val eventStore: ActorRef,
-    override val mailService: ActorRef,
-    override val reportSystem: ActorRef,
-    override val sysConfig: SystemConfig,
-    override val system: ActorSystem,
-    override val fileStore: FileStore,
-    override val actorRefFactory: ActorRefFactory,
-    override val airbrakeNotifier: ActorRef,
-    override val jobQueueService: ActorRef
-) extends SystemRouteService with DefaultCoreReadRepositoryComponent
+  override val dbEvolutionActor: ActorRef,
+  override val entityStore: ActorRef,
+  override val eventStore: ActorRef,
+  override val mailService: ActorRef,
+  override val reportSystem: ActorRef,
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val fileStore: FileStore,
+  override val actorRefFactory: ActorRefFactory,
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef) extends SystemRouteService with DefaultCoreReadRepositoryComponent
 
 trait SystemRouteService extends HttpService with ActorReferences
   with ConnectionPoolContextAware with SprayDeserializers
@@ -84,7 +83,7 @@ trait SystemRouteService extends HttpService with ActorReferences
     val identifyId = 1
     (system.actorSelection(system.child(serviceName)) ? Identify(identifyId)) map {
       case ActorIdentity(`identifyId`, Some(ref)) => ref
-      case ActorIdentity(`identifyId`, None)      => system.actorOf(DataImportService.props(sysConfig, entityStore, system, subject.personId), serviceName)
+      case ActorIdentity(`identifyId`, None) => system.actorOf(DataImportService.props(sysConfig, entityStore, system, subject.personId), serviceName)
     }
   }
 

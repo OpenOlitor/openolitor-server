@@ -31,9 +31,9 @@ import spray.httpx.unmarshalling._
 trait SprayDeserializers {
   implicit val string2BooleanConverter = new Deserializer[String, Boolean] {
     def apply(value: String) = value.toLowerCase match {
-      case "true" | "yes" | "on"  => Right(true)
+      case "true" | "yes" | "on" => Right(true)
       case "false" | "no" | "off" => Right(false)
-      case x                      => Left(MalformedContent("'" + x + "' is not a valid Boolean value"))
+      case x => Left(MalformedContent("'" + x + "' is not a valid Boolean value"))
     }
   }
 

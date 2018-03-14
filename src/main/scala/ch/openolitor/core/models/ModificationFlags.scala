@@ -25,8 +25,7 @@ package ch.openolitor.core.models
 import org.joda.time.DateTime
 
 case class ModificationFlags(
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-)
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId)

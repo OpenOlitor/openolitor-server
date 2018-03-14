@@ -99,8 +99,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
-      )
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
       .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl, zusatzAbos) =>
         val kunde = kunden.head
         val abos = pl ++ hl ++ dl ++ zusatzAbos
@@ -141,8 +140,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         .where.eq(zahlungsImport.id, id)
     }.one(zahlungsImportMapping(zahlungsImport))
       .toMany(
-        rs => zahlungsEingangMapping.opt(zahlungsEingang)(rs)
-      )
+        rs => zahlungsEingangMapping.opt(zahlungsEingang)(rs))
       .map({ (zahlungsImport, zahlungsEingaenge) =>
         copyTo[ZahlungsImport, ZahlungsImportDetail](zahlungsImport, "zahlungsEingaenge" -> zahlungsEingaenge)
       }).single

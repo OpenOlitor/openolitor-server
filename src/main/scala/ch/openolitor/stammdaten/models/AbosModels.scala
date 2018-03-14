@@ -103,34 +103,33 @@ sealed trait AboModify extends JSONSerializable {
 }
 
 case class DepotlieferungAbo(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    depotId: DepotId,
-    depotName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    zusatzAboIds: Set[AboId],
-    zusatzAbotypNames: Seq[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends HauptAbo
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  depotId: DepotId,
+  depotName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  zusatzAboIds: Set[AboId],
+  zusatzAbotypNames: Seq[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends HauptAbo
 
 object DepotlieferungAbo {
   def unapply(o: DepotlieferungAbo) = {
@@ -159,112 +158,107 @@ object DepotlieferungAbo {
       o.erstelldat,
       o.ersteller,
       o.modifidat,
-      o.modifikator
-    ))
+      o.modifikator))
   }
 }
 
 case class DepotlieferungAboReport(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    kundeReport: KundeReport,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    depotId: DepotId,
-    depotName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends AboReport with JSONSerializable
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  kundeReport: KundeReport,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  depotId: DepotId,
+  depotName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends AboReport with JSONSerializable
 
 case class DepotlieferungAboDetail(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    depotId: DepotId,
-    depotName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    zusatzAboIds: Set[AboId],
-    zusatzAbotypNames: Seq[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId,
-    abwesenheiten: Seq[Abwesenheit],
-    lieferdaten: Seq[Lieferung],
-    abotyp: Option[Abotyp],
-    vertrieb: Option[Vertrieb]
-) extends AboDetail
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  depotId: DepotId,
+  depotName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  zusatzAboIds: Set[AboId],
+  zusatzAbotypNames: Seq[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId,
+  abwesenheiten: Seq[Abwesenheit],
+  lieferdaten: Seq[Lieferung],
+  abotyp: Option[Abotyp],
+  vertrieb: Option[Vertrieb]) extends AboDetail
 
 case class DepotlieferungAboModify(
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    depotId: DepotId,
-    start: LocalDate,
-    ende: Option[LocalDate]
-) extends AboModify
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  depotId: DepotId,
+  start: LocalDate,
+  ende: Option[LocalDate]) extends AboModify
 
 case class HeimlieferungAbo(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    tourId: TourId,
-    tourName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    zusatzAboIds: Set[AboId],
-    zusatzAbotypNames: Seq[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends HauptAbo
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  tourId: TourId,
+  tourName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  zusatzAboIds: Set[AboId],
+  zusatzAbotypNames: Seq[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends HauptAbo
 
 object HeimlieferungAbo {
   def unapply(o: HeimlieferungAbo) = {
@@ -293,81 +287,77 @@ object HeimlieferungAbo {
       o.erstelldat,
       o.ersteller,
       o.modifidat,
-      o.modifikator
-    ))
+      o.modifikator))
   }
 }
 
 case class HeimlieferungAboDetail(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    tourId: TourId,
-    tourName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    zusatzAboIds: Set[AboId],
-    zusatzAbotypNames: Seq[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId,
-    abwesenheiten: Seq[Abwesenheit],
-    lieferdaten: Seq[Lieferung],
-    abotyp: Option[Abotyp],
-    vertrieb: Option[Vertrieb]
-) extends AboDetail
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  tourId: TourId,
+  tourName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  zusatzAboIds: Set[AboId],
+  zusatzAbotypNames: Seq[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId,
+  abwesenheiten: Seq[Abwesenheit],
+  lieferdaten: Seq[Lieferung],
+  abotyp: Option[Abotyp],
+  vertrieb: Option[Vertrieb]) extends AboDetail
 
 case class HeimlieferungAboModify(
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    tourId: TourId,
-    start: LocalDate,
-    ende: Option[LocalDate]
-) extends AboModify
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  tourId: TourId,
+  start: LocalDate,
+  ende: Option[LocalDate]) extends AboModify
 
 case class PostlieferungAbo(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    zusatzAboIds: Set[AboId],
-    zusatzAbotypNames: Seq[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends HauptAbo
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  zusatzAboIds: Set[AboId],
+  zusatzAbotypNames: Seq[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends HauptAbo
 
 object PostlieferungAbo {
   def unapply(o: PostlieferungAbo) = {
@@ -394,127 +384,116 @@ object PostlieferungAbo {
       o.erstelldat,
       o.ersteller,
       o.modifidat,
-      o.modifikator
-    ))
+      o.modifikator))
   }
 }
 
 case class PostlieferungAboDetail(
-    id: AboId,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    abotypId: AbotypId,
-    abotypName: String,
-    start: LocalDate,
-    ende: Option[LocalDate],
-    guthabenVertraglich: Option[Int],
-    guthaben: Int,
-    guthabenInRechnung: Int,
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    zusatzAboIds: Set[AboId],
-    zusatzAbotypNames: Seq[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId,
-    abwesenheiten: Seq[Abwesenheit],
-    lieferdaten: Seq[Lieferung],
-    abotyp: Option[Abotyp],
-    vertrieb: Option[Vertrieb]
-) extends AboDetail
+  id: AboId,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  abotypId: AbotypId,
+  abotypName: String,
+  start: LocalDate,
+  ende: Option[LocalDate],
+  guthabenVertraglich: Option[Int],
+  guthaben: Int,
+  guthabenInRechnung: Int,
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  zusatzAboIds: Set[AboId],
+  zusatzAbotypNames: Seq[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId,
+  abwesenheiten: Seq[Abwesenheit],
+  lieferdaten: Seq[Lieferung],
+  abotyp: Option[Abotyp],
+  vertrieb: Option[Vertrieb]) extends AboDetail
 
 case class PostlieferungAboModify(
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    start: LocalDate,
-    ende: Option[LocalDate]
-) extends AboModify
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  start: LocalDate,
+  ende: Option[LocalDate]) extends AboModify
 
 case class AbwesenheitId(id: Long) extends BaseId
 
 case class Abwesenheit(
-    id: AbwesenheitId,
-    aboId: AboId,
-    lieferungId: LieferungId,
-    datum: LocalDate,
-    bemerkung: Option[String],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends BaseEntity[AbwesenheitId] with JSONSerializable
+  id: AbwesenheitId,
+  aboId: AboId,
+  lieferungId: LieferungId,
+  datum: LocalDate,
+  bemerkung: Option[String],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends BaseEntity[AbwesenheitId] with JSONSerializable
 
 case class AbwesenheitModify(
-    lieferungId: LieferungId,
-    datum: LocalDate,
-    bemerkung: Option[String]
-) extends JSONSerializable
+  lieferungId: LieferungId,
+  datum: LocalDate,
+  bemerkung: Option[String]) extends JSONSerializable
 
 case class AbwesenheitCreate(
-    aboId: AboId,
-    lieferungId: LieferungId,
-    datum: LocalDate,
-    bemerkung: Option[String]
-) extends JSONSerializable
+  aboId: AboId,
+  lieferungId: LieferungId,
+  datum: LocalDate,
+  bemerkung: Option[String]) extends JSONSerializable
 
 case class AboGuthabenModify(
-    guthabenAlt: Int,
-    guthabenNeu: Int,
-    bemerkung: String
-) extends JSONSerializable
+  guthabenAlt: Int,
+  guthabenNeu: Int,
+  bemerkung: String) extends JSONSerializable
 
 case class AboVertriebsartModify(
-    vertriebIdNeu: VertriebId,
-    vertriebsartIdNeu: VertriebsartId,
-    bemerkung: String
-) extends JSONSerializable
+  vertriebIdNeu: VertriebId,
+  vertriebsartIdNeu: VertriebsartId,
+  bemerkung: String) extends JSONSerializable
 
 case class AboRechnungsPositionBisGuthabenCreate(
-    ids: Seq[AboId],
-    titel: String,
-    bisGuthaben: Int,
-    waehrung: Waehrung
-) extends JSONSerializable
+  ids: Seq[AboId],
+  titel: String,
+  bisGuthaben: Int,
+  waehrung: Waehrung) extends JSONSerializable
 
 case class AboRechnungsPositionBisAnzahlLieferungenCreate(
-    ids: Seq[AboId],
-    titel: String,
-    anzahlLieferungen: Int,
-    betrag: Option[BigDecimal],
-    waehrung: Waehrung
-) extends JSONSerializable
+  ids: Seq[AboId],
+  titel: String,
+  anzahlLieferungen: Int,
+  betrag: Option[BigDecimal],
+  waehrung: Waehrung) extends JSONSerializable
 
 case class Tourlieferung(
-    id: AboId,
-    tourId: TourId,
-    abotypId: AbotypId,
-    kundeId: KundeId,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    kundeBezeichnung: String,
-    strasse: String,
-    hausNummer: Option[String],
-    adressZusatz: Option[String],
-    plz: String,
-    ort: String,
-    abotypName: String,
-    sort: Option[Int],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends BaseEntity[AboId]
+  id: AboId,
+  tourId: TourId,
+  abotypId: AbotypId,
+  kundeId: KundeId,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  kundeBezeichnung: String,
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  abotypName: String,
+  sort: Option[Int],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends BaseEntity[AboId]
 
 object Tourlieferung {
   def apply(heimlieferungAbo: HeimlieferungAbo, kunde: Kunde, personId: PersonId): Tourlieferung = {
@@ -536,101 +515,94 @@ object Tourlieferung {
       DateTime.now,
       personId,
       DateTime.now,
-      personId
-    )
+      personId)
   }
 }
 
 case class TourlieferungDetail(
-    id: AboId,
-    tourId: TourId,
-    abotypId: AbotypId,
-    kundeId: KundeId,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    kundeBezeichnung: String,
-    strasse: String,
-    hausNummer: Option[String],
-    adressZusatz: Option[String],
-    plz: String,
-    ort: String,
-    abotypName: String,
-    sort: Option[Int],
-    zusatzAbos: Seq[ZusatzAbo],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends JSONSerializable
+  id: AboId,
+  tourId: TourId,
+  abotypId: AbotypId,
+  kundeId: KundeId,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  kundeBezeichnung: String,
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  abotypName: String,
+  sort: Option[Int],
+  zusatzAbos: Seq[ZusatzAbo],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends JSONSerializable
 
 case class ZusatzAbo(
-    id: AboId,
-    hauptAboId: AboId,
-    hauptAbotypId: AbotypId,
-    abotypId: AbotypId,
-    abotypName: String,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    start: LocalDate,
-    ende: Option[LocalDate],
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends Abo
+  id: AboId,
+  hauptAboId: AboId,
+  hauptAbotypId: AbotypId,
+  abotypId: AbotypId,
+  abotypName: String,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  start: LocalDate,
+  ende: Option[LocalDate],
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends Abo
 
 case class ZusatzAboDetail(
-    id: AboId,
-    hauptAboId: AboId,
-    hauptAbotypId: AbotypId,
-    abotypId: AbotypId,
-    abotypName: String,
-    kundeId: KundeId,
-    kunde: String,
-    vertriebsartId: VertriebsartId,
-    vertriebId: VertriebId,
-    vertriebBeschrieb: Option[String],
-    start: LocalDate,
-    ende: Option[LocalDate],
-    letzteLieferung: Option[DateTime],
-    //calculated fields
-    anzahlAbwesenheiten: TreeMap[String, Int],
-    anzahlLieferungen: TreeMap[String, Int],
-    aktiv: Boolean,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends JSONSerializable
+  id: AboId,
+  hauptAboId: AboId,
+  hauptAbotypId: AbotypId,
+  abotypId: AbotypId,
+  abotypName: String,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  start: LocalDate,
+  ende: Option[LocalDate],
+  letzteLieferung: Option[DateTime],
+  //calculated fields
+  anzahlAbwesenheiten: TreeMap[String, Int],
+  anzahlLieferungen: TreeMap[String, Int],
+  aktiv: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends JSONSerializable
 
 case class ZusatzAboModify(
-    id: AboId,
-    hauptAboId: AboId,
-    abotypId: AbotypId,
-    kundeId: KundeId,
-    start: LocalDate,
-    ende: Option[LocalDate]
-) extends JSONSerializable
+  id: AboId,
+  hauptAboId: AboId,
+  abotypId: AbotypId,
+  kundeId: KundeId,
+  start: LocalDate,
+  ende: Option[LocalDate]) extends JSONSerializable
 
 case class ZusatzAboCreate(
-    hauptAboId: AboId,
-    abotypId: AbotypId,
-    kundeId: KundeId
-) extends JSONSerializable
+  hauptAboId: AboId,
+  abotypId: AbotypId,
+  kundeId: KundeId) extends JSONSerializable
 
 /* Used to trigger more complex filtering on overview searches */
 
 case class AbosComplexFlags(
-    zusatzAbosAktiv: Boolean
-) extends JSONSerializable
+  zusatzAbosAktiv: Boolean) extends JSONSerializable

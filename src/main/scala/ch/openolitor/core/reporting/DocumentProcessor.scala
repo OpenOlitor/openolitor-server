@@ -99,8 +99,7 @@ trait DocumentProcessor extends LazyLogging {
     "VIOLET" -> Color.PURPLE,
     "ROUGE" -> Color.RED,
     "BLANC" -> Color.WHITE,
-    "JAUNE" -> Color.YELLOW
-  )
+    "JAUNE" -> Color.YELLOW)
 
   def processDocument(doc: TextDocument, data: JsValue, locale: Locale = Locale.getDefault): Try[Boolean] = {
     logger.debug(s"processDocument with data: ${data.prettyPrint}")
@@ -463,9 +462,9 @@ trait DocumentProcessor extends LazyLogging {
       return (name, Nil)
     }
     name.split('|').toList match {
-      case name :: Nil  => (name.trim, Nil)
+      case name :: Nil => (name.trim, Nil)
       case name :: tail => (name.trim, tail.map(_.trim))
-      case _            => (name, Nil)
+      case _ => (name, Nil)
     }
   }
 
@@ -507,7 +506,7 @@ trait DocumentProcessor extends LazyLogging {
         val convertedDate = dateFormatter.parseDateTime(value).toString(libreOfficeDateFormat)
         Map(prefix -> Value(j, convertedDate))
       case j @ JsString(value) => Map(prefix -> Value(j, value))
-      case value               => Map(prefix -> Value(value, value.toString))
+      case value => Map(prefix -> Value(value, value.toString))
     }
   }
 }

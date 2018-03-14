@@ -89,8 +89,7 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator
-      )
+        "modifikator" -> meta.originator)
 
       buchhaltungWriteRepository.insertEntity[RechnungsPosition, RechnungsPositionId](rp)
     }
@@ -115,8 +114,7 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
           "erstelldat" -> meta.timestamp,
           "ersteller" -> meta.originator,
           "modifidat" -> meta.timestamp,
-          "modifikator" -> meta.originator
-        )
+          "modifikator" -> meta.originator)
         buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
       }
     }

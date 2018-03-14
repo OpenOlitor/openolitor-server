@@ -27,13 +27,12 @@ import ch.openolitor.util.IdUtil
 
 case class PersistenceEventStateId(id: Long = IdUtil.positiveRandomId) extends BaseId
 case class PersistenceEventState(
-    id: PersistenceEventStateId,
-    persistenceId: String,
-    lastTransactionNr: Long,
-    lastSequenceNr: Long,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
-) extends BaseEntity[PersistenceEventStateId]
+  id: PersistenceEventStateId,
+  persistenceId: String,
+  lastTransactionNr: Long,
+  lastSequenceNr: Long,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends BaseEntity[PersistenceEventStateId]

@@ -52,8 +52,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Auslieferungs-KorbUebersicht")
-    )
+      JobId("Auslieferungs-KorbUebersicht"))
   }
 
   private def name(fileType: FileType)(auslieferung: MultiReport[AuslieferungKorbUebersichtReport]) = {
@@ -82,9 +81,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
               projektReport,
               datum,
               auslieferungReport.entries.size,
-              proAbotyp.toSeq
-            )
-          ), projektReport)))
+              proAbotyp.toSeq)), projektReport)))
         }
       } getOrElse Future { (Seq(ValidationError[AuslieferungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }

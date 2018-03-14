@@ -85,8 +85,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
         column.hausNummer -> entity.hausNummer,
         column.adressZusatz -> entity.adressZusatz,
         column.plz -> entity.plz,
-        column.ort -> entity.ort
-      )
+        column.ort -> entity.ort)
     }
   }
 
@@ -113,8 +112,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
         column.beschrieb -> entity.beschrieb,
         column.status -> entity.status,
         column.typ -> entity.typ,
-        column.sort -> entity.sort
-      )
+        column.sort -> entity.sort)
     }
   }
 
@@ -133,8 +131,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
       super.updateParameters(entity) ++ Seq(
         column.file -> entity.file,
         column.anzahlZahlungsEingaenge -> entity.anzahlZahlungsEingaenge,
-        column.anzahlZahlungsEingaengeErledigt -> entity.anzahlZahlungsEingaengeErledigt
-      )
+        column.anzahlZahlungsEingaengeErledigt -> entity.anzahlZahlungsEingaengeErledigt)
     }
   }
 
@@ -152,8 +149,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
     override def updateParameters(entity: ZahlungsEingang) = {
       super.updateParameters(entity) ++ Seq(
         column.erledigt -> entity.erledigt,
-        column.bemerkung -> entity.bemerkung
-      )
+        column.bemerkung -> entity.bemerkung)
     }
   }
 }

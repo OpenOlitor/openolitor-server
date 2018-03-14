@@ -1,4 +1,4 @@
-scalaVersion := "2.11.12"
+scalaVersion := "2.11.11"
 
 enablePlugins(JavaServerAppPackaging)
 
@@ -30,13 +30,10 @@ val scalalikeV = "3.1.+"
 resolvers += Resolver.typesafeRepo("releases")
 
 val buildSettings = Seq(
-  scalariformPreferences := scalariformPreferences.value
-  .setPreference(AlignSingleLineCaseStatements, true)
-  .setPreference(DoubleIndentConstructorArguments, true)
-  .setPreference(DanglingCloseParenthesis, Preserve),
+  scalariformPreferences := scalariformPreferences.value,
   organization := "ch.openolitor.scalamacros",
   version := "2.0.6-SNAPSHOT",
-  scalaVersion := "2.11.12",
+  scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += Resolver.sonatypeRepo("releases"),

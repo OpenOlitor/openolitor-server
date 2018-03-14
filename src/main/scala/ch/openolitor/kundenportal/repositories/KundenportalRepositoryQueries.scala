@@ -91,8 +91,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => lieferungMapping.opt(lieferung)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
-        rs => vertriebMapping.opt(vertrieb)(rs)
-      )
+        rs => vertriebMapping.opt(vertrieb)(rs))
       .map((abo, abw, lieferungen, aboTyp, vertriebe) => {
         val sortedAbw = abw.sortBy(_.datum)
         val sortedLieferungen = lieferungen.sortBy(_.datum)
@@ -119,8 +118,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => lieferungMapping.opt(lieferung)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
-        rs => vertriebMapping.opt(vertrieb)(rs)
-      )
+        rs => vertriebMapping.opt(vertrieb)(rs))
       .map((abo, abw, lieferungen, aboTyp, vertriebe) => {
         val sortedAbw = abw.sortBy(_.datum)
         val sortedLieferungen = lieferungen.sortBy(_.datum)
@@ -147,8 +145,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => lieferungMapping.opt(lieferung)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
-        rs => vertriebMapping.opt(vertrieb)(rs)
-      )
+        rs => vertriebMapping.opt(vertrieb)(rs))
       .map((abo, abw, lieferungen, aboTyp, vertriebe) => {
         val sortedAbw = abw.sortBy(_.datum)
         val sortedLieferungen = lieferungen.sortBy(_.datum)
@@ -175,8 +172,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => lieferungMapping.opt(lieferung)(rs),
         rs => zusatzAbotypMapping.opt(zusatzAboTyp)(rs),
-        rs => vertriebMapping.opt(vertrieb)(rs)
-      )
+        rs => vertriebMapping.opt(vertrieb)(rs))
       .map((abo, abw, lieferungen, aboTyp, vertriebe) => {
         val sortedAbw = abw.filter(_.aboId == abo.id).sortBy(_.datum)
         val sortedLieferungen = lieferungen.filter(_.abotypId == abo.abotypId).sortBy(_.datum)
@@ -203,12 +199,11 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => lieferpositionMapping.opt(lieferposition)(rs),
-        rs => lieferplanungMapping.opt(lieferplanung)(rs)
-      )
+        rs => lieferplanungMapping.opt(lieferplanung)(rs))
       .map((lieferung, abotyp, lieferposition, lieferplanung) => {
         val bemerkung = lieferplanung match {
           case Nil => None
-          case x   => x.head.bemerkungen
+          case x => x.head.bemerkungen
         }
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
       })
@@ -226,12 +221,11 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => lieferpositionMapping.opt(lieferposition)(rs),
-        rs => lieferplanungMapping.opt(lieferplanung)(rs)
-      )
+        rs => lieferplanungMapping.opt(lieferplanung)(rs))
       .map { (lieferung, abotyp, positionen, lieferplanung) =>
         val bemerkung = lieferplanung match {
           case Nil => None
-          case x   => x.head.bemerkungen
+          case x => x.head.bemerkungen
         }
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> positionen, "lieferplanungBemerkungen" -> bemerkung)
       }.single
@@ -264,8 +258,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => rechnungsPositionMapping.opt(rechnungsPosition)(rs),
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
-        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs)
-      )
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs))
       .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl) =>
         val kunde = kunden.head
         val abos = pl ++ hl ++ dl

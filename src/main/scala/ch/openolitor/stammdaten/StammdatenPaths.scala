@@ -57,7 +57,7 @@ trait StammdatenPaths extends SprayDeserializers with StammdatenJsonProtocol {
   })
   implicit val vorlageTypePath = enumPathMatcher(VorlageTyp.apply(_) match {
     case UnknownFileType => None
-    case x               => Some(x)
+    case x => Some(x)
   })
 
   implicit val abosComplexFlagsParameter = jsonDeserializer[AbosComplexFlags]

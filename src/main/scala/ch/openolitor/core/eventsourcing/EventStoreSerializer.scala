@@ -78,8 +78,7 @@ object EventStoreSerializer extends EntityStoreJsonProtocol
     systemEventPersister,
     sendMailEventPersister,
     mailSentEventPersister,
-    sendMailFailedEventPersister
-  ) ++
+    sendMailFailedEventPersister) ++
     corePersisters ++
     stammdatenPersisters ++
     buchhaltungPersisters ++

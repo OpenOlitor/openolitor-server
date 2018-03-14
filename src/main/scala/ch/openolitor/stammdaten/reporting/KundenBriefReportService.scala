@@ -50,8 +50,7 @@ trait KundenBriefReportService extends AsyncConnectionPoolContextAware with Repo
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Kunden-Brief(e)")
-    )
+      JobId("Kunden-Brief(e)"))
   }
 
   def name(fileType: FileType)(kunde: KundeDetailReport) = s"kunden_nr_${kunde.id.id}_${filenameDateFormat.print(System.currentTimeMillis())}"

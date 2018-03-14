@@ -28,18 +28,17 @@ import ch.openolitor.stammdaten.models.{ CHF, Waehrung }
 import org.joda.time.DateTime
 
 case class Camt054Record(
-    teilnehmerNummer: Option[String],
-    iban: Option[String],
-    debitor: Option[String],
-    referenzNummer: String,
-    betrag: BigDecimal,
-    waehrung: Waehrung = CHF,
-    transaktionsart: Transaktionsart,
-    aufgabereferenzen: String,
-    aufgabeDatum: DateTime,
-    verarbeitungsDatum: DateTime,
-    gutschriftsDatum: DateTime,
-    reserve: String,
-    preiseFuerEinzahlungen: BigDecimal
-) extends ZahlungsImportRecord {
+  teilnehmerNummer: Option[String],
+  iban: Option[String],
+  debitor: Option[String],
+  referenzNummer: String,
+  betrag: BigDecimal,
+  waehrung: Waehrung = CHF,
+  transaktionsart: Transaktionsart,
+  aufgabereferenzen: String,
+  aufgabeDatum: DateTime,
+  verarbeitungsDatum: DateTime,
+  gutschriftsDatum: DateTime,
+  reserve: String,
+  preiseFuerEinzahlungen: BigDecimal) extends ZahlungsImportRecord {
 }

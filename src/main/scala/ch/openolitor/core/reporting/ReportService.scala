@@ -62,8 +62,7 @@ case class ValidationError[I](id: I, message: String)(implicit format: JsonForma
 
   val asJson = JsObject(
     "message" -> JsString(message),
-    "id" -> jsonId
-  )
+    "id" -> jsonId)
 }
 case class ReportServiceResult[I](jobId: JobId, validationErrors: Seq[ValidationError[I]], result: ReportResult) {
   val hasErrors = !validationErrors.isEmpty
@@ -93,8 +92,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
     ablageIdFactory: E => Option[String],
     nameFactory: E => String,
     localeFactory: E => Locale,
-    jobId: JobId
-  )(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
+    jobId: JobId)(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
     logger.debug(s"Validate ids:${config.ids}")
     validationFunction(config.ids) flatMap {
       case (errors, Seq()) =>
@@ -142,10 +140,10 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
 
   def loadBerichtsvorlage(vorlage: BerichtsVorlage, fileType: FileType, id: Option[String]): ServiceResult[Array[Byte]] = {
     vorlage match {
-      case EinzelBerichtsVorlage(file)       => EitherT { Future { file.right } }
-      case StandardBerichtsVorlage           => resolveStandardBerichtsVorlage(fileType, id)
+      case EinzelBerichtsVorlage(file) => EitherT { Future { file.right } }
+      case StandardBerichtsVorlage => resolveStandardBerichtsVorlage(fileType, id)
       case ProjektBerichtsVorlage(vorlageId) => resolveProjektBerichtsVorlage(fileType, vorlageId)
-      case _                                 => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
+      case _ => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
     }
   }
 
@@ -181,7 +179,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
       case Left(e) => ServiceFailed(s"Vorlage konnte im FileStore nicht gefunden werden: $fileType, $id").left
       case Right(file) => file.file.toByteArray match {
         case TrySuccess(result) => result.right
-        case TryFailure(error)  => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
+        case TryFailure(error) => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
       }
     }
   }

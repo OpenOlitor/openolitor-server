@@ -60,8 +60,7 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
       maxBackoff = 1.day,
       randomFactor = 0.2 // adds 20% "noise" to vary the intervals slightly
     ).withAutoReset(60.seconds) // reset if the child does not throw any errors within 10 seconds
-      .withSupervisorStrategy(supervisorStrategy)
-  )
+      .withSupervisorStrategy(supervisorStrategy))
 
   /**
    * Use onStopBackoff Strategy for Actors which indicate stopping as an error (i.e. PersistentActor)
@@ -74,8 +73,7 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
       maxBackoff = 1.day,
       randomFactor = 0.2 // adds 20% "noise" to vary the intervals slightly
     ).withAutoReset(60.seconds) // reset if the child does not throw any errors within 10 seconds
-      .withSupervisorStrategy(supervisorStrategy)
-  )
+      .withSupervisorStrategy(supervisorStrategy))
 
   private def supervise(childProps: Props, childName: String) = {
     val svProps = onStopBackoff(onFailureBackoff(childProps, childName), s"sv2-$childName")

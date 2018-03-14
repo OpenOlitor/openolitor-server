@@ -181,8 +181,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
             result.aufgabeDatum,
             result.verarbeitungsDatum,
             result.gutschriftsDatum,
-            Ok
-          )
+            Ok)
       }
 
       Success(Seq(DefaultResultingEvent(factory => ZahlungsImportCreatedEvent(factory.newMetadata(), ZahlungsImportCreate(id, file, zahlungsEingaenge)))))
@@ -241,9 +240,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
                 kunde.hausNummer,
                 kunde.adressZusatz,
                 kunde.plz,
-                kunde.ort
-              )
-            )
+                kunde.ort))
 
             // create an ordering of the form: parent sort 100, sub sort 101, 102, parent sort 200, subsort 201
             val (zusatzabos, abos) = rechnungsPositionen sortBy (_.id.id) partition (_.parentRechnungsPositionId.isDefined)
@@ -303,8 +300,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
   private def rechnungsPositionAssignmentUpdateEvent(rechnungId: RechnungId, rechnungsPositionId: RechnungsPositionId, index: Int) = {
     EntityUpdateEvent(
       rechnungsPositionId,
-      RechnungsPositionAssignToRechnung(rechnungId, index)
-    )
+      RechnungsPositionAssignToRechnung(rechnungId, index))
   }
 }
 

@@ -67,8 +67,7 @@ class ReportsInsertService(override val sysConfig: SystemConfig) extends EventSe
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator
-      )
+        "modifikator" -> meta.originator)
 
       reportsWriteRepository.insertEntity[Report, ReportId](rp)
     }

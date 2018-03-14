@@ -167,8 +167,7 @@ object Boot extends App with LazyLogging {
       val loginTokenCache = LruCache[Subject](
         maxCapacity = 10000,
         timeToLive = 1 day,
-        timeToIdle = 4 hours
-      )
+        timeToIdle = 4 hours)
 
       // initialise root actors
       val duration = Duration.create(1, SECONDS);

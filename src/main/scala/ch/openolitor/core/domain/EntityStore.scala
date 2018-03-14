@@ -128,8 +128,7 @@ trait EntityStore extends AggregateRoot
     buchhaltungCommandHandler,
     reportsCommandHandler,
     kundenportalCommandHandler,
-    baseCommandHandler
-  )
+    baseCommandHandler)
 
   def newId[I <: BaseId: ClassTag](cons: Long => I): I = {
     val clOf = classTag[I].runtimeClass.asInstanceOf[Class[I]]
@@ -177,8 +176,8 @@ trait EntityStore extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed             => context become removed
-      case Created             => context become created
+      case Removed => context become removed
+      case Created => context become created
       case s: EntityStoreState => this.state = s
     }
   }
