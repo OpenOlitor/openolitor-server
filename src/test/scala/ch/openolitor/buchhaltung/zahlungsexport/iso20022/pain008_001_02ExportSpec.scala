@@ -41,6 +41,7 @@ class pain008_003_02_ExportSpec extends Specification {
     "export pain008_003_02 XML file" in {
       val exampleFileInputStream = getClass.getResourceAsStream("/pain_008_003_02_Sunu_Beispiel.xml")
       val exampleFileString = fromInputStream(exampleFileInputStream).mkString
+      val iban = "AD12000120302003591001000000000001"
       val rechnung = Rechnung(
         RechnungId(1),
         KundeId(1),
@@ -71,7 +72,7 @@ class pain008_003_02_ExportSpec extends Specification {
 
       val kontoDatenKunde = KontoDaten(
         KontoDatenId(1),
-        Some("AD12000120302003591001000000000001"),
+        Some(iban),
         None,
         None,
         Some("bankName"),
@@ -87,7 +88,7 @@ class pain008_003_02_ExportSpec extends Specification {
 
       val kontoDatenProjekt = KontoDaten(
         KontoDatenId(1),
-        Some("AD12000120302003591001000000000000"),
+        Some(iban),
         Some("referenzNummerPrefix"),
         Some("teilnehmerNummer"),
         None,
@@ -103,9 +104,13 @@ class pain008_003_02_ExportSpec extends Specification {
 
       val exampleFileStringNoSpaces = exampleFileString.split('\n').map(_.trim.filter(_ >= ' ')).mkString
       val result = Pain008_003_02_Export.exportPain008_003_02(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1")
-      //delete the dates from the result and the expected xml
-      val exampleFileNoDates = exampleFileStringNoSpaces.replaceAll("<CreDtTm>.*</CreDtTm>", "<CreDtTm></CreDtTm>").replaceAll("<ReqdColltnDt>.*</ReqdColltnDt>", "<ReqdColltnDt></ReqdColltnDt>").replaceAll("<DtOfSgntr>.*</DtOfSgntr>", "<DtOfSgntr></DtOfSgntr>")
+      //delete the dates and id from the result and the expected xml
+      val exampleFileNoDates = exampleFileStringNoSpaces.replaceAll("<CreDtTm>.*</CreDtTm>", "<CreDtTm></CreDtTm>")
+        .replaceAll("<ReqdColltnDt>.*</ReqdColltnDt>", "<ReqdColltnDt></ReqdColltnDt>")
+        .replaceAll("<DtOfSgntr>.*</DtOfSgntr>", "<DtOfSgntr></DtOfSgntr>")
       val resultNoDates = result.replaceAll("<CreDtTm>.*</CreDtTm>", "<CreDtTm></CreDtTm>").replaceAll("<ReqdColltnDt>.*</ReqdColltnDt>", "<ReqdColltnDt></ReqdColltnDt>").replaceAll("<DtOfSgntr>.*</DtOfSgntr>", "<DtOfSgntr></DtOfSgntr>")
+        .replaceAll("<MsgId>.*</MsgId>", "<MsgId>" + iban.slice(0, 15) + "</MsgId>")
+        .replaceAll("<PmtInfId>.*</PmtInfId>", "<PmtInfId>" + iban.slice(0, 15) + "</PmtInfId>")
       resultNoDates === exampleFileNoDates
     }
   }
