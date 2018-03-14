@@ -43,7 +43,7 @@ val buildSettings = Seq(
   resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven",
   resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import"),
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature"),
   mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
   libraryDependencies ++= {
