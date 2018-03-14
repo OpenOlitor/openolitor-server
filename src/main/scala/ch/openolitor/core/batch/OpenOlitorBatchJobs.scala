@@ -23,8 +23,6 @@
 package ch.openolitor.core.batch
 
 import akka.actor.Props
-import akka.actor.Actor
-import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.batch.StammdatenBatchJobs
 import akka.actor.ActorSystem
 import ch.openolitor.core.SystemConfig

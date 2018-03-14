@@ -29,7 +29,6 @@ import ch.openolitor.core.SystemConfig
 import scalikejdbc._
 import scala.util.Try
 import scala.util.Success
-import ch.openolitor.stammdaten.models._
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
 object OO597_DBScripts {

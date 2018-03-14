@@ -26,7 +26,6 @@ import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import akka.actor.Props
 import ch.openolitor.core.batch.BaseBatchJob
-import scala.concurrent.duration._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import scalikejdbc._
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
@@ -37,9 +36,9 @@ object KorbStatusCalculation {
 }
 
 class KorbStatusCalculation(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BaseBatchJob
-    with AsyncConnectionPoolContextAware
-    with DefaultStammdatenWriteRepositoryComponent
-    with StammdatenDBMappings {
+  with AsyncConnectionPoolContextAware
+  with DefaultStammdatenWriteRepositoryComponent
+  with StammdatenDBMappings {
 
   override def process(): Unit = {
     DB autoCommit { implicit session =>

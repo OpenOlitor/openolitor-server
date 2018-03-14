@@ -30,29 +30,29 @@ import ch.openolitor.core.JSONSerializable
 case class ProjektVorlageId(id: Long) extends BaseId
 
 case class ProjektVorlage(
-  id: ProjektVorlageId,
-  typ: VorlageTyp,
-  name: String,
-  beschreibung: Option[String],
-  fileStoreId: Option[String],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ProjektVorlageId,
+    typ: VorlageTyp,
+    name: String,
+    beschreibung: Option[String],
+    fileStoreId: Option[String],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[ProjektVorlageId] with JSONSerializable
 
 case class ProjektVorlageModify(
-  name: String,
-  beschreibung: Option[String]
+    name: String,
+    beschreibung: Option[String]
 ) extends JSONSerializable
 
 case class ProjektVorlageUpload(
-  fileStoreId: String
+    fileStoreId: String
 ) extends JSONSerializable
 
 case class ProjektVorlageCreate(
-  typ: VorlageTyp,
-  name: String,
-  beschreibung: Option[String]
+    typ: VorlageTyp,
+    name: String,
+    beschreibung: Option[String]
 ) extends JSONSerializable

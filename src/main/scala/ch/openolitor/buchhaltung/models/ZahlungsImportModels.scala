@@ -22,12 +22,10 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.models
 
-import ch.openolitor.buchhaltung._
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 
 sealed trait ZahlungsEingangStatus
 case object Ok extends ZahlungsEingangStatus
@@ -48,76 +46,76 @@ case class ZahlungsEingangId(id: Long) extends BaseId
 case class ZahlungsImportId(id: Long) extends BaseId
 
 case class ZahlungsImport(
-  id: ZahlungsImportId,
-  file: String,
-  anzahlZahlungsEingaenge: Int,
-  anzahlZahlungsEingaengeErledigt: Int,
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ZahlungsImportId,
+    file: String,
+    anzahlZahlungsEingaenge: Int,
+    anzahlZahlungsEingaengeErledigt: Int,
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[ZahlungsImportId]
 
 case class ZahlungsImportCreate(
-  id: ZahlungsImportId,
-  file: String,
-  zahlungsEingaenge: Seq[ZahlungsEingangCreate]
+    id: ZahlungsImportId,
+    file: String,
+    zahlungsEingaenge: Seq[ZahlungsEingangCreate]
 ) extends JSONSerializable
 
 case class ZahlungsImportDetail(
-  id: ZahlungsImportId,
-  file: String,
-  zahlungsEingaenge: Seq[ZahlungsEingang],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ZahlungsImportId,
+    file: String,
+    zahlungsEingaenge: Seq[ZahlungsEingang],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class ZahlungsEingang(
-  id: ZahlungsEingangId,
-  zahlungsImportId: ZahlungsImportId,
-  rechnungId: Option[RechnungId],
-  transaktionsart: String,
-  teilnehmerNummer: Option[String],
-  iban: Option[String],
-  referenzNummer: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  aufgabeDatum: DateTime,
-  verarbeitungsDatum: DateTime,
-  gutschriftsDatum: DateTime,
-  debitor: Option[String],
-  status: ZahlungsEingangStatus,
-  erledigt: Boolean,
-  bemerkung: Option[String],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ZahlungsEingangId,
+    zahlungsImportId: ZahlungsImportId,
+    rechnungId: Option[RechnungId],
+    transaktionsart: String,
+    teilnehmerNummer: Option[String],
+    iban: Option[String],
+    referenzNummer: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    aufgabeDatum: DateTime,
+    verarbeitungsDatum: DateTime,
+    gutschriftsDatum: DateTime,
+    debitor: Option[String],
+    status: ZahlungsEingangStatus,
+    erledigt: Boolean,
+    bemerkung: Option[String],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[ZahlungsEingangId]
 
 case class ZahlungsEingangCreate(
-  id: ZahlungsEingangId,
-  zahlungsImportId: ZahlungsImportId,
-  rechnungId: Option[RechnungId],
-  transaktionsart: String,
-  teilnehmerNummer: Option[String],
-  iban: Option[String],
-  debitor: Option[String],
-  referenzNummer: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  aufgabeDatum: DateTime,
-  verarbeitungsDatum: DateTime,
-  gutschriftsDatum: DateTime,
-  status: ZahlungsEingangStatus
+    id: ZahlungsEingangId,
+    zahlungsImportId: ZahlungsImportId,
+    rechnungId: Option[RechnungId],
+    transaktionsart: String,
+    teilnehmerNummer: Option[String],
+    iban: Option[String],
+    debitor: Option[String],
+    referenzNummer: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    aufgabeDatum: DateTime,
+    verarbeitungsDatum: DateTime,
+    gutschriftsDatum: DateTime,
+    status: ZahlungsEingangStatus
 ) extends JSONSerializable
 
 case class ZahlungsEingangModifyErledigt(
-  id: ZahlungsEingangId,
-  bemerkung: Option[String]
+    id: ZahlungsEingangId,
+    bemerkung: Option[String]
 ) extends JSONSerializable

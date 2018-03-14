@@ -29,8 +29,6 @@ import java.util.UUID
 import java.io.File
 import org.joda.time.DateTime
 import spray.http.MediaType
-import ch.openolitor.core.filestore.FileType
-import ch.openolitor.core.filestore.FileStoreFileId
 import ch.openolitor.core.filestore.FileStoreFileReference
 import ch.openolitor.core.ws.ClientMessages.ClientMessage
 import ch.openolitor.core.JSONSerializable
@@ -65,8 +63,6 @@ object JobQueueService {
  * This job queue service provides access to the user based job queue
  */
 class JobQueueService(mandantConfiguration: MandantConfiguration) extends Actor with ActorLogging {
-
-  import JobQueueService._
 
   /**
    * Implicit convertion from personid object model to string based representation used in akka system

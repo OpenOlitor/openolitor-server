@@ -22,9 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.repositories
 
-import scalikejdbc._
 import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.util.parsing.FilterExpr

@@ -28,7 +28,6 @@ import scala.util._
 import org.specs2.mock.Mockito
 import ch.openolitor.core.db.TestDB
 import scalikejdbc.specs2.mutable.AutoRollback
-import ch.openolitor.core.models.DBSchema
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.MandantConfiguration

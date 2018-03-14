@@ -26,7 +26,6 @@ import akka.actor._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.filestore.FileStoreActor.StoreFile
-import java.util.UUID
 import java.util.Locale
 
 object SingleDocumentStoreReportPDFProcessorActor {

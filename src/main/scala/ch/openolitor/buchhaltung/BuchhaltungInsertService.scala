@@ -46,14 +46,14 @@ object BuchhaltungInsertService {
 }
 
 class DefaultBuchhaltungInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends BuchhaltungInsertService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+  extends BuchhaltungInsertService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Buchhaltung Modul
  */
 class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware
-    with BuchhaltungDBMappings {
+  with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val Divisor = 10

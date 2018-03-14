@@ -23,15 +23,12 @@
 package ch.openolitor.core.reporting.odf
 
 import java.util.Iterator
-import org.odftoolkit.simple.form._
-import org.odftoolkit.odfdom.dom.element.form._
 import org.odftoolkit.odfdom.pkg._
 import org.apache.xerces.dom.ParentNode
 import org.w3c.dom.Node
 import org.odftoolkit.simple.draw.Textbox
 import org.odftoolkit.odfdom.dom.element.draw.DrawFrameElement
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement
-import org.odftoolkit.simple.draw.TextboxContainer
 import org.odftoolkit.simple.draw.FrameContainer
 import org.odftoolkit.simple.draw.Frame
 
@@ -84,7 +81,7 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
     startingNode.map { node =>
       findDeepChildNode(clazz, node) match {
         case r @ Some(result) => r
-        case None => findDeepFirstChildNode(clazz, parent, Some(node))
+        case None             => findDeepFirstChildNode(clazz, parent, Some(node))
       }
     }.getOrElse(None)
   }
@@ -98,7 +95,7 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
       case n: ParentNode =>
         findDeepFirstChildNode(clazz, n, None) match {
           case Some((p, c)) => Some((n, c))
-          case None => None
+          case None         => None
         }
       case _ => None
     }

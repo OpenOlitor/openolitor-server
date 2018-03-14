@@ -24,7 +24,6 @@ package ch.openolitor.core.reporting.pdf
 
 import scala.util.Try
 
-import scala.util.{ Success, Failure }
 import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import spray.http._

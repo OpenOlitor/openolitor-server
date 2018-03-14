@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.db
 
-import scalikejdbc._
 import ch.openolitor.core._
 
 trait AsyncConnectionPoolContextAware extends ConnectionPoolContextAware {

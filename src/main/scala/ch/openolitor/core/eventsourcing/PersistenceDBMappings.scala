@@ -121,7 +121,7 @@ trait PersistenceDBMappings extends DBMappings with ActorSystemReference {
 
     override lazy val columns = autoColumns[PersistenceJournal]()
 
-    //override def columnNames 
+    //override def columnNames
     def apply(p: SyntaxProvider[PersistenceJournal])(rs: WrappedResultSet): PersistenceJournal = apply(p.resultName)(rs)
 
     def opt(e: SyntaxProvider[PersistenceJournal])(rs: WrappedResultSet): Option[PersistenceJournal] = try {
@@ -138,7 +138,7 @@ trait PersistenceDBMappings extends DBMappings with ActorSystemReference {
 
     override lazy val columns = autoColumns[PersistenceMetadata]()
 
-    //override def columnNames 
+    //override def columnNames
     def apply(p: SyntaxProvider[PersistenceMetadata])(rs: WrappedResultSet): PersistenceMetadata = apply(p.resultName)(rs)
 
     def opt(e: SyntaxProvider[PersistenceMetadata])(rs: WrappedResultSet): Option[PersistenceMetadata] = try {

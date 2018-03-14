@@ -24,7 +24,6 @@ package ch.openolitor.core.filestore
 
 import akka.actor._
 import java.util.UUID
-import ch.openolitor.util.ByteBufferBackedInputStream
 import scala.concurrent.ExecutionContext
 import java.io.ByteArrayInputStream
 import scala.concurrent.Future
@@ -48,13 +47,13 @@ class FileStoreActor(fileStore: FileStore) extends Actor with ActorLogging {
     case StoreFile(bucket, id, metadata, file) =>
       val rec = sender
       storeFile(bucket, id, metadata, new FileInputStream(file)) map {
-        case Left(e) => rec ! e
+        case Left(e)       => rec ! e
         case Right(result) => rec ! result
       }
     case StoreByteArray(bucket, id, metadata, bytes) =>
       val rec = sender
       storeFile(bucket, id, metadata, new ByteArrayInputStream(bytes)) map {
-        case Left(e) => rec ! e
+        case Left(e)       => rec ! e
         case Right(result) => rec ! result
       }
   }

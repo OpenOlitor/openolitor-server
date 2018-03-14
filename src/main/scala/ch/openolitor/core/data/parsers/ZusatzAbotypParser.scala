@@ -38,7 +38,6 @@ object ZusatzAbotypParser extends EntityParser {
     parseEntity[ZusatzAbotyp, AbotypId]("id", Seq("name", "beschreibung", "preis", "preiseinheit", "aktiv_von", "aktiv_bis", "laufzeit",
       "laufzeit_einheit", "farb_code", "zielpreis", "anzahl_abwesenheiten", "admin_prozente", "wird_geplant",
       "kuendigungsfrist", "vertragslaufzeit", "anzahl_abonnenten", "anzahl_abonnenten_aktiv", "letzte_lieferung", "waehrung") ++ modifyColumns) { id => indexes => row =>
-      import DateTimeUtil._
 
       //match column indexes
       val Seq(indexName, indexBeschreibung, indexPreis, indexPreiseinheit, indexAktivVon,

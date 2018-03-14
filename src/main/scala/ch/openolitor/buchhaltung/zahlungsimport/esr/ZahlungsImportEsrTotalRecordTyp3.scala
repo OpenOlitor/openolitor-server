@@ -34,15 +34,15 @@ object EsrTotalRecordTyp3Transaktionsartcode {
 }
 
 case class EsrTotalRecordTyp3(
-  transaktionsart: Transaktionsart,
-  teilnehmerNummer: String,
-  sortierSchluessel: String,
-  betrag: BigDecimal,
-  anzahlTransaktionen: Int,
-  erstellungsDatumMedium: DateTime,
-  preiseFuerEinzahlungen: BigDecimal,
-  nachbearbeitungEsrPlus: BigDecimal,
-  reserve: String
+    transaktionsart: Transaktionsart,
+    teilnehmerNummer: String,
+    sortierSchluessel: String,
+    betrag: BigDecimal,
+    anzahlTransaktionen: Int,
+    erstellungsDatumMedium: DateTime,
+    preiseFuerEinzahlungen: BigDecimal,
+    nachbearbeitungEsrPlus: BigDecimal,
+    reserve: String
 ) extends ZahlungsImportTotalRecord
 
 object EsrTotalRecordTyp3 {

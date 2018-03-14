@@ -1,4 +1,4 @@
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
 
 enablePlugins(JavaServerAppPackaging)
 
@@ -36,14 +36,14 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Preserve),
   organization := "ch.openolitor.scalamacros",
   version := "2.0.6-SNAPSHOT",
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.11.12",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += Resolver.sonatypeRepo("releases"),
   resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven",
   resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8"/*, "-Ywarn-unused-import"*/),
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import"),
   mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
   libraryDependencies ++= {

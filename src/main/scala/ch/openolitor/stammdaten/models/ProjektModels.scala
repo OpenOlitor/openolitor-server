@@ -22,12 +22,10 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import java.util.UUID
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
-import scala.collection.immutable.TreeMap
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 
@@ -102,19 +100,19 @@ case class Projekt(
 }
 
 case class ProjektPublik(
-  id: ProjektId,
-  bezeichnung: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: Option[String],
-  ort: Option[String],
-  preiseSichtbar: Boolean,
-  waehrung: Waehrung,
-  geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int,
-  welcomeMessage1: Option[String],
-  maintenanceMode: Boolean
+    id: ProjektId,
+    bezeichnung: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: Option[String],
+    ort: Option[String],
+    preiseSichtbar: Boolean,
+    waehrung: Waehrung,
+    geschaeftsjahrMonat: Int,
+    geschaeftsjahrTag: Int,
+    welcomeMessage1: Option[String],
+    maintenanceMode: Boolean
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -152,23 +150,23 @@ case class ProjektReport(
 }
 
 case class ProjektModify(
-  bezeichnung: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: Option[String],
-  ort: Option[String],
-  preiseSichtbar: Boolean,
-  preiseEditierbar: Boolean,
-  emailErforderlich: Boolean,
-  waehrung: Waehrung,
-  geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int,
-  twoFactorAuthentication: Map[Rolle, Boolean],
-  sprache: Locale,
-  welcomeMessage1: Option[String],
-  welcomeMessage2: Option[String],
-  maintenanceMode: Boolean
+    bezeichnung: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: Option[String],
+    ort: Option[String],
+    preiseSichtbar: Boolean,
+    preiseEditierbar: Boolean,
+    emailErforderlich: Boolean,
+    waehrung: Waehrung,
+    geschaeftsjahrMonat: Int,
+    geschaeftsjahrTag: Int,
+    twoFactorAuthentication: Map[Rolle, Boolean],
+    sprache: Locale,
+    welcomeMessage1: Option[String],
+    welcomeMessage2: Option[String],
+    maintenanceMode: Boolean
 ) extends JSONSerializable
 
 case class KundentypId(id: String) extends BaseStringId
@@ -176,18 +174,18 @@ case class KundentypId(id: String) extends BaseStringId
 case class CustomKundentypId(id: Long) extends BaseId
 
 case class CustomKundentyp(
-  id: CustomKundentypId,
-  val kundentyp: KundentypId,
-  val beschreibung: Option[String],
-  anzahlVerknuepfungen: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: CustomKundentypId,
+    val kundentyp: KundentypId,
+    val beschreibung: Option[String],
+    anzahlVerknuepfungen: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[CustomKundentypId]
 
-// Don't use! 
+// Don't use!
 case class CustomKundentypModifyV1(beschreibung: Option[String]) extends JSONSerializable
 
 case class CustomKundentypModify(kundentyp: KundentypId, id: CustomKundentypId, beschreibung: Option[String]) extends JSONSerializable

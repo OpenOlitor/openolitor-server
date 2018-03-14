@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.models
 
-import java.util.UUID
 import org.joda.time.DateTime
 import ch.openolitor.util.IdUtil
 
@@ -38,8 +37,8 @@ object EvolutionStatus {
 
 case class DBSchemaId(id: Long = IdUtil.positiveRandomId) extends BaseId
 case class DBSchema(id: DBSchemaId, revision: Int, status: EvolutionStatus,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[DBSchemaId]
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[DBSchemaId]

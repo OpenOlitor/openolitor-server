@@ -23,18 +23,10 @@
 package ch.openolitor.buchhaltung
 
 import akka.actor._
-import ch.openolitor.core.models._
-import ch.openolitor.core.ws._
 import spray.json._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.core.db._
-import scalikejdbc._
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.Boot
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.EntityStoreReference
 import ch.openolitor.core.reporting.ReportSystem._
-import ch.openolitor.core.filestore.FileStoreFileId
 import ch.openolitor.core.filestore.GeneriertRechnung
 import ch.openolitor.core.filestore.GeneriertMahnung
 

@@ -22,13 +22,8 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsimport.iso20022
 
-import org.joda.time.DateTime
 import ch.openolitor.buchhaltung.zahlungsimport._
-import ch.openolitor.buchhaltung.zahlungsimport.esr.ZahlungsImportEsrRecord._
-import ch.openolitor.stammdaten.models.Waehrung
-import ch.openolitor.stammdaten.models.CHF
 import scala.util._
-import scala.io.Source
 import scala.xml.XML
 import java.io.InputStream
 import ch.openolitor.generated.xsd.DocumentType

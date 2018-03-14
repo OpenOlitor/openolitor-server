@@ -90,53 +90,53 @@ case class RechnungId(id: Long) extends BaseId
 case class RechnungsPositionId(id: Long) extends BaseId
 
 case class RechnungsPosition(
-  id: RechnungsPositionId,
-  rechnungId: Option[RechnungId],
-  parentRechnungsPositionId: Option[RechnungsPositionId],
-  aboId: Option[AboId],
-  kundeId: KundeId,
-  betrag: BigDecimal,
-  waehrung: Waehrung,
-  anzahlLieferungen: Option[Int],
-  beschrieb: String,
-  status: RechnungsPositionStatus.RechnungsPositionStatus,
-  typ: RechnungsPositionTyp.RechnungsPositionTyp,
-  sort: Option[Int],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: RechnungsPositionId,
+    rechnungId: Option[RechnungId],
+    parentRechnungsPositionId: Option[RechnungsPositionId],
+    aboId: Option[AboId],
+    kundeId: KundeId,
+    betrag: BigDecimal,
+    waehrung: Waehrung,
+    anzahlLieferungen: Option[Int],
+    beschrieb: String,
+    status: RechnungsPositionStatus.RechnungsPositionStatus,
+    typ: RechnungsPositionTyp.RechnungsPositionTyp,
+    sort: Option[Int],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[RechnungsPositionId]
 
 // rechnungsdatum sind Zeitstempel um für ISO 20022 gerüstet zu sein.
 case class Rechnung(
-  id: RechnungId,
-  kundeId: KundeId,
-  titel: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  einbezahlterBetrag: Option[BigDecimal],
-  rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime,
-  eingangsDatum: Option[DateTime],
-  status: RechnungStatus,
-  referenzNummer: String,
-  esrNummer: String,
-  fileStoreId: Option[String],
-  anzahlMahnungen: Int,
-  mahnungFileStoreIds: Set[String],
-  // rechnungsadresse
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: RechnungId,
+    kundeId: KundeId,
+    titel: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    einbezahlterBetrag: Option[BigDecimal],
+    rechnungsDatum: DateTime,
+    faelligkeitsDatum: DateTime,
+    eingangsDatum: Option[DateTime],
+    status: RechnungStatus,
+    referenzNummer: String,
+    esrNummer: String,
+    fileStoreId: Option[String],
+    anzahlMahnungen: Int,
+    mahnungFileStoreIds: Set[String],
+    // rechnungsadresse
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[RechnungId]
 
 object Rechnung {
@@ -171,51 +171,51 @@ object Rechnung {
 }
 
 case class RechnungsPositionDetail(
-  id: RechnungsPositionId,
-  abo: Abo,
-  parentRechnungsPositionId: Option[RechnungsPositionId],
-  betrag: BigDecimal,
-  waehrung: Waehrung,
-  anzahlLieferungen: Option[Int],
-  beschrieb: String,
-  status: RechnungsPositionStatus.RechnungsPositionStatus,
-  typ: RechnungsPositionTyp.RechnungsPositionTyp,
-  sort: Option[Int],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: RechnungsPositionId,
+    abo: Abo,
+    parentRechnungsPositionId: Option[RechnungsPositionId],
+    betrag: BigDecimal,
+    waehrung: Waehrung,
+    anzahlLieferungen: Option[Int],
+    beschrieb: String,
+    status: RechnungsPositionStatus.RechnungsPositionStatus,
+    typ: RechnungsPositionTyp.RechnungsPositionTyp,
+    sort: Option[Int],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class RechnungDetail(
-  id: RechnungId,
-  kunde: Kunde,
-  titel: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  rechnungsPositionen: Seq[RechnungsPositionDetail],
-  einbezahlterBetrag: Option[BigDecimal],
-  rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime,
-  eingangsDatum: Option[DateTime],
-  status: RechnungStatus,
-  referenzNummer: String,
-  esrNummer: String,
-  fileStoreId: Option[String],
-  anzahlMahnungen: Int,
-  mahnungFileStoreIds: Set[String],
-  // rechnungsadresse
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: RechnungId,
+    kunde: Kunde,
+    titel: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    rechnungsPositionen: Seq[RechnungsPositionDetail],
+    einbezahlterBetrag: Option[BigDecimal],
+    rechnungsDatum: DateTime,
+    faelligkeitsDatum: DateTime,
+    eingangsDatum: Option[DateTime],
+    status: RechnungStatus,
+    referenzNummer: String,
+    esrNummer: String,
+    fileStoreId: Option[String],
+    anzahlMahnungen: Int,
+    mahnungFileStoreIds: Set[String],
+    // rechnungsadresse
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class RechnungDetailReport(
@@ -252,69 +252,69 @@ case class RechnungDetailReport(
 }
 
 case class RechnungCreateFromRechnungsPositionen(
-  kundeId: KundeId,
-  titel: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime,
-  eingangsDatum: Option[DateTime],
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String
+    kundeId: KundeId,
+    titel: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    rechnungsDatum: DateTime,
+    faelligkeitsDatum: DateTime,
+    eingangsDatum: Option[DateTime],
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String
 ) extends JSONSerializable
 
 case class RechnungModify(
-  titel: String,
-  waehrung: Waehrung,
-  betrag: BigDecimal,
-  einbezahlterBetrag: Option[BigDecimal],
-  rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime,
-  eingangsDatum: Option[DateTime],
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String
+    titel: String,
+    waehrung: Waehrung,
+    betrag: BigDecimal,
+    einbezahlterBetrag: Option[BigDecimal],
+    rechnungsDatum: DateTime,
+    faelligkeitsDatum: DateTime,
+    eingangsDatum: Option[DateTime],
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String
 ) extends JSONSerializable
 
 case class RechnungsPositionCreate(
-  kundeId: KundeId,
-  aboId: Option[AboId],
-  parentRechnungsPositionId: Option[RechnungsPositionId],
-  beschrieb: String,
-  anzahlLieferungen: Option[Int],
-  betrag: BigDecimal,
-  waehrung: Waehrung,
-  status: RechnungsPositionStatus.RechnungsPositionStatus,
-  typ: RechnungsPositionTyp.RechnungsPositionTyp
+    kundeId: KundeId,
+    aboId: Option[AboId],
+    parentRechnungsPositionId: Option[RechnungsPositionId],
+    beschrieb: String,
+    anzahlLieferungen: Option[Int],
+    betrag: BigDecimal,
+    waehrung: Waehrung,
+    status: RechnungsPositionStatus.RechnungsPositionStatus,
+    typ: RechnungsPositionTyp.RechnungsPositionTyp
 ) extends JSONSerializable
 
 case class RechnungsPositionModify(
-  beschrieb: String,
-  anzahlLieferungen: Option[Int],
-  betrag: BigDecimal,
-  status: RechnungsPositionStatus.RechnungsPositionStatus
+    beschrieb: String,
+    anzahlLieferungen: Option[Int],
+    betrag: BigDecimal,
+    status: RechnungsPositionStatus.RechnungsPositionStatus
 ) extends JSONSerializable
 
 case class RechnungModifyBezahlt(
-  einbezahlterBetrag: BigDecimal,
-  eingangsDatum: DateTime
+    einbezahlterBetrag: BigDecimal,
+    eingangsDatum: DateTime
 ) extends JSONSerializable
 
 case class RechnungenContainer(ids: Seq[RechnungId]) extends JSONSerializable
 
 case class RechnungsPositionenCreateRechnungen(
-  ids: Seq[RechnungsPositionId],
-  titel: String,
-  rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime
+    ids: Seq[RechnungsPositionId],
+    titel: String,
+    rechnungsDatum: DateTime,
+    faelligkeitsDatum: DateTime
 ) extends JSONSerializable
 
 case class RechnungsPositionAssignToRechnung(
-  rechnungId: RechnungId,
-  sort: Int
+    rechnungId: RechnungId,
+    sort: Int
 ) extends JSONSerializable

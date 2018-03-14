@@ -22,9 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import ch.openolitor.stammdaten._
 import ch.openolitor.core.models._
-import java.util.UUID
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 
@@ -88,55 +86,55 @@ case class ProduktekategorieModify(beschreibung: String) extends JSONSerializabl
 case class ProduktId(id: Long) extends BaseId
 
 case class Produkt(
-  id: ProduktId,
-  name: String,
-  verfuegbarVon: Liefersaison,
-  verfuegbarBis: Liefersaison,
-  kategorien: Seq[String],
-  standardmenge: Option[BigDecimal],
-  einheit: Liefereinheit,
-  preis: BigDecimal,
-  produzenten: Seq[String],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ProduktId,
+    name: String,
+    verfuegbarVon: Liefersaison,
+    verfuegbarBis: Liefersaison,
+    kategorien: Seq[String],
+    standardmenge: Option[BigDecimal],
+    einheit: Liefereinheit,
+    preis: BigDecimal,
+    produzenten: Seq[String],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[ProduktId]
 
 case class ProduktModify(
-  name: String,
-  verfuegbarVon: Liefersaison,
-  verfuegbarBis: Liefersaison,
-  kategorien: Seq[String],
-  standardmenge: Option[BigDecimal],
-  einheit: Liefereinheit,
-  preis: BigDecimal,
-  produzenten: Seq[String]
+    name: String,
+    verfuegbarVon: Liefersaison,
+    verfuegbarBis: Liefersaison,
+    kategorien: Seq[String],
+    standardmenge: Option[BigDecimal],
+    einheit: Liefereinheit,
+    preis: BigDecimal,
+    produzenten: Seq[String]
 ) extends JSONSerializable
 
 case class ProduktProduzentId(id: Long) extends BaseId
 
 case class ProduktProduzent(
-  id: ProduktProduzentId,
-  produktId: ProduktId,
-  produzentId: ProduzentId,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ProduktProduzentId,
+    produktId: ProduktId,
+    produzentId: ProduzentId,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[ProduktProduzentId]
 
 case class ProduktProduktekategorieId(id: Long) extends BaseId
 
 case class ProduktProduktekategorie(
-  id: ProduktProduktekategorieId,
-  produktId: ProduktId,
-  produktekategorieId: ProduktekategorieId,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: ProduktProduktekategorieId,
+    produktId: ProduktId,
+    produktekategorieId: ProduktekategorieId,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[ProduktProduktekategorieId]

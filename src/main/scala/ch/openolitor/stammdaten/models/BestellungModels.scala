@@ -24,54 +24,53 @@ package ch.openolitor.stammdaten.models
 
 import org.joda.time.DateTime
 import ch.openolitor.core.models._
-import java.util.UUID
 import ch.openolitor.core.JSONSerializable
 
 case class SammelbestellungId(id: Long) extends BaseId
 
 case class Sammelbestellung(
-  id: SammelbestellungId,
-  produzentId: ProduzentId,
-  produzentKurzzeichen: String,
-  lieferplanungId: LieferplanungId,
-  status: LieferungStatus,
-  datum: DateTime,
-  datumAbrechnung: Option[DateTime],
-  datumVersendet: Option[DateTime],
-  preisTotal: BigDecimal,
-  steuerSatz: Option[BigDecimal],
-  steuer: BigDecimal,
-  totalSteuer: BigDecimal,
+    id: SammelbestellungId,
+    produzentId: ProduzentId,
+    produzentKurzzeichen: String,
+    lieferplanungId: LieferplanungId,
+    status: LieferungStatus,
+    datum: DateTime,
+    datumAbrechnung: Option[DateTime],
+    datumVersendet: Option[DateTime],
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal],
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
 
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[SammelbestellungId]
 
 case class SammelbestellungDetail(
-  id: SammelbestellungId,
-  produzentId: ProduzentId,
-  produzentKurzzeichen: String,
-  lieferplanungId: LieferplanungId,
-  status: LieferungStatus,
-  datum: DateTime,
-  datumAbrechnung: Option[DateTime],
-  datumVersendet: Option[DateTime],
-  preisTotal: BigDecimal,
-  steuerSatz: Option[BigDecimal],
-  steuer: BigDecimal,
-  totalSteuer: BigDecimal,
+    id: SammelbestellungId,
+    produzentId: ProduzentId,
+    produzentKurzzeichen: String,
+    lieferplanungId: LieferplanungId,
+    status: LieferungStatus,
+    datum: DateTime,
+    datumAbrechnung: Option[DateTime],
+    datumVersendet: Option[DateTime],
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal],
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
 
-  produzent: Produzent,
-  bestellungen: Seq[BestellungDetail],
+    produzent: Produzent,
+    bestellungen: Seq[BestellungDetail],
 
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class BestellungId(id: Long) extends BaseId
@@ -80,81 +79,81 @@ case class BestellungId(id: Long) extends BaseId
  * Eine Bestellung wird pro adminProzente unter Sammelbestellung gruppiert.
  */
 case class Bestellung(
-  id: BestellungId,
-  sammelbestellungId: SammelbestellungId,
-  // Summe der Preise der Bestellpositionen
-  preisTotal: BigDecimal,
-  steuerSatz: Option[BigDecimal],
-  // Berechnete Steuer nach Abzug (adminProzenteAbzug)
-  steuer: BigDecimal,
-  totalSteuer: BigDecimal,
-  adminProzente: BigDecimal,
-  // Berechneter Abzug auf preisTotal
-  adminProzenteAbzug: BigDecimal,
-  totalNachAbzugAdminProzente: BigDecimal,
+    id: BestellungId,
+    sammelbestellungId: SammelbestellungId,
+    // Summe der Preise der Bestellpositionen
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal],
+    // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
+    adminProzente: BigDecimal,
+    // Berechneter Abzug auf preisTotal
+    adminProzenteAbzug: BigDecimal,
+    totalNachAbzugAdminProzente: BigDecimal,
 
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[BestellungId]
 
 case class BestellungDetail(
-  id: BestellungId,
-  preisTotal: BigDecimal,
-  steuerSatz: Option[BigDecimal],
-  steuer: BigDecimal,
-  totalSteuer: BigDecimal,
-  adminProzente: BigDecimal,
-  adminProzenteAbzug: BigDecimal,
-  totalNachAbzugAdminProzente: BigDecimal,
-  positionen: Seq[Bestellposition],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: BestellungId,
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal],
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
+    adminProzente: BigDecimal,
+    adminProzenteAbzug: BigDecimal,
+    totalNachAbzugAdminProzente: BigDecimal,
+    positionen: Seq[Bestellposition],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[BestellungId]
 
 @Deprecated
 case class BestellungAusgeliefert(
-  datum: DateTime,
-  ids: Seq[BestellungId]
+    datum: DateTime,
+    ids: Seq[BestellungId]
 ) extends JSONSerializable
 
 case class SammelbestellungAusgeliefert(
-  datum: DateTime,
-  ids: Seq[SammelbestellungId]
+    datum: DateTime,
+    ids: Seq[SammelbestellungId]
 ) extends JSONSerializable
 
 @Deprecated
 case class BestellungenCreate(
-  lieferplanungId: LieferplanungId
+    lieferplanungId: LieferplanungId
 ) extends JSONSerializable
 
 @Deprecated
 case class BestellungCreate(
-  produzentId: ProduzentId,
-  lieferplanungId: LieferplanungId,
-  datum: DateTime
+    produzentId: ProduzentId,
+    lieferplanungId: LieferplanungId,
+    datum: DateTime
 ) extends JSONSerializable
 
 case class SammelbestellungModify(
-  produzentId: ProduzentId,
-  lieferplanungId: LieferplanungId,
-  datum: DateTime
+    produzentId: ProduzentId,
+    lieferplanungId: LieferplanungId,
+    datum: DateTime
 ) extends JSONSerializable
 
 case class SammelbestellungStatusModify(
-  status: LieferungStatus
+    status: LieferungStatus
 ) extends JSONSerializable
 
 case class SammelbestellungCreate(
-  id: SammelbestellungId,
-  produzentId: ProduzentId,
-  lieferplanungId: LieferplanungId,
-  datum: DateTime
+    id: SammelbestellungId,
+    produzentId: ProduzentId,
+    lieferplanungId: LieferplanungId,
+    datum: DateTime
 ) extends JSONSerializable
 
 case class BestellpositionId(id: Long) extends BaseId
@@ -167,43 +166,43 @@ trait BestellpositionCalculatedFields {
 }
 
 case class Bestellposition(
-  id: BestellpositionId,
-  bestellungId: BestellungId,
-  produktId: Option[ProduktId],
-  produktBeschrieb: String,
-  preisEinheit: Option[BigDecimal],
-  einheit: Liefereinheit,
-  menge: BigDecimal,
-  preis: Option[BigDecimal],
-  anzahl: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: BestellpositionId,
+    bestellungId: BestellungId,
+    produktId: Option[ProduktId],
+    produktBeschrieb: String,
+    preisEinheit: Option[BigDecimal],
+    einheit: Liefereinheit,
+    menge: BigDecimal,
+    preis: Option[BigDecimal],
+    anzahl: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
 
 case class BestellpositionModify(
-  bestellungId: BestellungId,
-  produktId: Option[ProduktId],
-  produktBeschrieb: String,
-  preisEinheit: Option[BigDecimal],
-  einheit: Liefereinheit,
-  menge: BigDecimal,
-  preis: Option[BigDecimal],
-  anzahl: Int
+    bestellungId: BestellungId,
+    produktId: Option[ProduktId],
+    produktBeschrieb: String,
+    preisEinheit: Option[BigDecimal],
+    einheit: Liefereinheit,
+    menge: BigDecimal,
+    preis: Option[BigDecimal],
+    anzahl: Int
 ) extends JSONSerializable
 
 case class ProduzentenabrechnungReport(
-  produzentId: ProduzentId,
-  produzentKurzzeichen: String,
-  produzent: ProduzentDetailReport,
-  bestellungenDetails: Seq[SammelbestellungDetail],
-  preisTotal: BigDecimal,
-  steuerSatz: Option[BigDecimal],
-  steuer: BigDecimal,
-  totalSteuer: BigDecimal,
-  //Zusatzinformationen
-  projekt: ProjektReport
+    produzentId: ProduzentId,
+    produzentKurzzeichen: String,
+    produzent: ProduzentDetailReport,
+    bestellungenDetails: Seq[SammelbestellungDetail],
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal],
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
+    //Zusatzinformationen
+    projekt: ProjektReport
 ) extends JSONSerializable
 

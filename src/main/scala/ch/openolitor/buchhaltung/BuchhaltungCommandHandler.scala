@@ -25,7 +25,7 @@ package ch.openolitor.buchhaltung
 import ch.openolitor.core.domain._
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.models._
-import ch.openolitor.stammdaten.models.{ Kunde, KundeId }
+import ch.openolitor.stammdaten.models.KundeId
 
 import scala.util._
 import scalikejdbc.DB
@@ -34,30 +34,13 @@ import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.filestore.FileStoreComponent
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.filestore.ZahlungsImportBucket
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
-import ch.openolitor.core.filestore.FileStoreComponent
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.filestore.FileStoreBucket
-
-import scala.io.Source
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportTotalRecord
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
-import scala.concurrent.Future
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
-
-import scala.collection.immutable
-import scala.collection.immutable.SortedMap
-import scala.collection.immutable.TreeMap
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
@@ -326,5 +309,5 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 }
 
 class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungCommandHandler
-    with DefaultBuchhaltungReadRepositorySyncComponent {
+  with DefaultBuchhaltungReadRepositorySyncComponent {
 }

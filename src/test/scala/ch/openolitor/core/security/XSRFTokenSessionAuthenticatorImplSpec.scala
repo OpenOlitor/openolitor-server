@@ -28,9 +28,8 @@ import spray.caching._
 import spray.routing._
 import spray.http.HttpHeaders._
 import ch.openolitor.core.models.PersonId
-import spray.http.{ DateTime => SprayDateTime, _ }
+import spray.http._
 import org.specs2.time.NoTimeConversions
-import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
 import ch.openolitor.stammdaten.models.KundeId
 

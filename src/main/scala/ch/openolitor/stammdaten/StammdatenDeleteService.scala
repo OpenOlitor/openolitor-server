@@ -40,14 +40,14 @@ object StammdatenDeleteService {
 }
 
 class DefaultStammdatenDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
  */
 class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
-    with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler {
+  with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
   import EntityStore._
 
@@ -152,7 +152,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
       // also delete mapped zusatzabos if it's a main abo
       maybeAbo map {
         case abo: ZusatzAbo => deleteKoerbeForDeletedAbo(abo)
-        case _ => stammdatenWriteRepository.deleteZusatzAbos(id)
+        case _              => stammdatenWriteRepository.deleteZusatzAbos(id)
       }
 
       // also delete corresponding Tourlieferung

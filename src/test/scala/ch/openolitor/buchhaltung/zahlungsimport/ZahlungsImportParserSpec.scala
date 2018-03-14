@@ -24,11 +24,6 @@ package ch.openolitor.buchhaltung.zahlungsimport
 
 import org.specs2.mutable._
 import java.nio.file.{ Files, Paths }
-import java.io.FileInputStream
-import java.io.File
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.util.stream.Collectors
 
 class ZahlungsImportParserSpec extends Specification {
   "ZahlungsImportParser" should {

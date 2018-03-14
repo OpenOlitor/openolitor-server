@@ -24,12 +24,10 @@ package ch.openolitor.core.db.evolution.scripts.v2
 
 import ch.openolitor.core.db.evolution.Script
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
 import scala.util.Try
 import scala.util.Success
-import ch.openolitor.stammdaten.models._
 import ch.openolitor.reports.ReportsDBMappings
 
 object OO731_Reports {

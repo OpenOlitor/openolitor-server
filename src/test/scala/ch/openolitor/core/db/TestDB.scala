@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.db
 
-import org.specs2.execute._
 import scalikejdbc._
 
 trait TestDB {

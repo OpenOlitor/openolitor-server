@@ -42,7 +42,7 @@ class DefaultBuchhaltungEntityStoreView(override val dbEvolutionActor: ActorRef,
  * Zusammenfügen des Componenten (cake pattern) zu der persistentView
  */
 trait BuchhaltungEntityStoreView extends EntityStoreView
-    with BuchhaltungEntityStoreViewComponent with ConnectionPoolContextAware {
+  with BuchhaltungEntityStoreViewComponent with ConnectionPoolContextAware {
   self: BuchhaltungWriteRepositoryComponent =>
 
   override val module = "buchhaltung"
@@ -55,7 +55,6 @@ trait BuchhaltungEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait BuchhaltungEntityStoreViewComponent extends EntityStoreViewComponent {
-  import EntityStore._
   val sysConfig: SystemConfig
   val system: ActorSystem
 

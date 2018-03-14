@@ -23,7 +23,6 @@
 package ch.openolitor.util
 
 import java.io.InputStream
-import scala.io._
 import scala.util.Try
 import akka.util.ByteString
 

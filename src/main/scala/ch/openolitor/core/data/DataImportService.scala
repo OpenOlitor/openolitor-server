@@ -50,18 +50,18 @@ trait DataImportServiceComponent {
 }
 
 class DefaultDataImportService(override val sysConfig: SystemConfig, override val entityStore: ActorRef,
-  override val system: ActorSystem, override implicit val personId: PersonId) extends DataImportService()(personId)
-    with DefaultStammdatenWriteRepositoryComponent
-    with DefaultBuchhaltungWriteRepositoryComponent
+    override val system: ActorSystem, override implicit val personId: PersonId) extends DataImportService()(personId)
+  with DefaultStammdatenWriteRepositoryComponent
+  with DefaultBuchhaltungWriteRepositoryComponent
 
 abstract class DataImportService(implicit val personId: PersonId) extends Actor with ActorLogging
-    with BaseWriteRepository
-    with NoPublishEventStream
-    with StammdatenDBMappings
-    with BuchhaltungDBMappings
-    with ConnectionPoolContextAware
-    with StammdatenWriteRepositoryComponent
-    with BuchhaltungWriteRepositoryComponent {
+  with BaseWriteRepository
+  with NoPublishEventStream
+  with StammdatenDBMappings
+  with BuchhaltungDBMappings
+  with ConnectionPoolContextAware
+  with StammdatenWriteRepositoryComponent
+  with BuchhaltungWriteRepositoryComponent {
 
   import DataImportService._
   import DataImportParser._

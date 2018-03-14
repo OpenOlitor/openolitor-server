@@ -26,18 +26,10 @@ import akka.persistence.PersistentView
 import akka.actor._
 import scala.concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
-import ch.openolitor._
-import ch.openolitor.core.models.BaseEntity
-import ch.openolitor.core.domain._
-import ch.openolitor.core.AkkaEventStream
 import DefaultMessages._
-import ch.openolitor.core.EntityStoreReference
-import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.actor._
-import akka.pattern.ask
 import scala.util._
-import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.DBEvolutionReference
 
@@ -72,7 +64,6 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
   self: EntityStoreViewComponent =>
 
   import EntityStore._
-  import EntityStoreView._
 
   val module: String
 

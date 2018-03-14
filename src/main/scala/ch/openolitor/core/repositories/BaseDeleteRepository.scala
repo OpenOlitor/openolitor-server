@@ -23,18 +23,7 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseDeleteRepository extends BaseReadRepositorySync with DeleteRepository {
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Validator[E])(implicit

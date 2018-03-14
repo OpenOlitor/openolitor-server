@@ -56,33 +56,33 @@ trait IKunde extends BaseEntity[KundeId] {
 }
 
 case class Kunde(
-  id: KundeId,
-  bezeichnung: String,
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  abweichendeLieferadresse: Boolean,
-  bezeichnungLieferung: Option[String],
-  strasseLieferung: Option[String],
-  hausNummerLieferung: Option[String],
-  adressZusatzLieferung: Option[String],
-  plzLieferung: Option[String],
-  ortLieferung: Option[String],
-  zusatzinfoLieferung: Option[String],
-  typen: Set[KundentypId],
-  //Zusatzinformationen
-  anzahlAbos: Int,
-  anzahlAbosAktiv: Int,
-  anzahlPendenzen: Int,
-  anzahlPersonen: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: KundeId,
+    bezeichnung: String,
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    abweichendeLieferadresse: Boolean,
+    bezeichnungLieferung: Option[String],
+    strasseLieferung: Option[String],
+    hausNummerLieferung: Option[String],
+    adressZusatzLieferung: Option[String],
+    plzLieferung: Option[String],
+    ortLieferung: Option[String],
+    zusatzinfoLieferung: Option[String],
+    typen: Set[KundentypId],
+    //Zusatzinformationen
+    anzahlAbos: Int,
+    anzahlAbosAktiv: Int,
+    anzahlPendenzen: Int,
+    anzahlPersonen: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[KundeId]
 
 trait IKundeReport extends IKunde {
@@ -113,78 +113,78 @@ trait IKundeReport extends IKunde {
   lazy val telefonNummern: String = (personen map { p =>
     (p.telefonMobil :: p.telefonFestnetz :: Nil).map {
       _ match {
-        case Some("") => None
+        case Some("")                        => None
         case Some(text) if text.trim.isEmpty => None
-        case entry => entry
+        case entry                           => entry
       }
     }.flatten.mkString(" / ")
   }).mkString(" / ")
 }
 
 case class KundeReport(
-  id: KundeId,
-  bezeichnung: String,
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  abweichendeLieferadresse: Boolean,
-  bezeichnungLieferung: Option[String],
-  strasseLieferung: Option[String],
-  hausNummerLieferung: Option[String],
-  adressZusatzLieferung: Option[String],
-  plzLieferung: Option[String],
-  ortLieferung: Option[String],
-  zusatzinfoLieferung: Option[String],
-  typen: Set[KundentypId],
-  personen: Seq[PersonDetail],
-  //Zusatzinformationen
-  anzahlAbos: Int,
-  anzahlAbosAktiv: Int,
-  anzahlPendenzen: Int,
-  anzahlPersonen: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: KundeId,
+    bezeichnung: String,
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    abweichendeLieferadresse: Boolean,
+    bezeichnungLieferung: Option[String],
+    strasseLieferung: Option[String],
+    hausNummerLieferung: Option[String],
+    adressZusatzLieferung: Option[String],
+    plzLieferung: Option[String],
+    ortLieferung: Option[String],
+    zusatzinfoLieferung: Option[String],
+    typen: Set[KundentypId],
+    personen: Seq[PersonDetail],
+    //Zusatzinformationen
+    anzahlAbos: Int,
+    anzahlAbosAktiv: Int,
+    anzahlPendenzen: Int,
+    anzahlPersonen: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[KundeId] with IKundeReport
 
 case class KundeDetailReport(
-  id: KundeId,
-  bezeichnung: String,
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  abweichendeLieferadresse: Boolean,
-  bezeichnungLieferung: Option[String],
-  strasseLieferung: Option[String],
-  hausNummerLieferung: Option[String],
-  adressZusatzLieferung: Option[String],
-  plzLieferung: Option[String],
-  ortLieferung: Option[String],
-  zusatzinfoLieferung: Option[String],
-  typen: Set[KundentypId],
-  //Zusatzinformationen
-  anzahlAbos: Int,
-  anzahlAbosAktiv: Int,
-  anzahlPendenzen: Int,
-  anzahlPersonen: Int,
-  //Report infos
-  personen: Seq[PersonDetail],
-  abos: Seq[Abo],
-  pendenzen: Seq[Pendenz],
-  projekt: ProjektReport,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: KundeId,
+    bezeichnung: String,
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    abweichendeLieferadresse: Boolean,
+    bezeichnungLieferung: Option[String],
+    strasseLieferung: Option[String],
+    hausNummerLieferung: Option[String],
+    adressZusatzLieferung: Option[String],
+    plzLieferung: Option[String],
+    ortLieferung: Option[String],
+    zusatzinfoLieferung: Option[String],
+    typen: Set[KundentypId],
+    //Zusatzinformationen
+    anzahlAbos: Int,
+    anzahlAbosAktiv: Int,
+    anzahlPendenzen: Int,
+    anzahlPersonen: Int,
+    //Report infos
+    personen: Seq[PersonDetail],
+    abos: Seq[Abo],
+    pendenzen: Seq[Pendenz],
+    projekt: ProjektReport,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[KundeId] with IKundeReport
 
 object Kunde {
@@ -220,86 +220,86 @@ object Kunde {
 }
 
 case class KundeUebersicht(
-  id: KundeId,
-  bezeichnung: String,
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  abweichendeLieferadresse: Boolean,
-  bezeichnungLieferung: Option[String],
-  strasseLieferung: Option[String],
-  hausNummerLieferung: Option[String],
-  adressZusatzLieferung: Option[String],
-  plzLieferung: Option[String],
-  ortLieferung: Option[String],
-  zusatzinfoLieferung: Option[String],
-  typen: Set[KundentypId],
-  //Zusatzinformationen
-  anzahlAbos: Int,
-  anzahlAbosAktiv: Int,
-  ansprechpersonen: Seq[PersonSummary],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: KundeId,
+    bezeichnung: String,
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    abweichendeLieferadresse: Boolean,
+    bezeichnungLieferung: Option[String],
+    strasseLieferung: Option[String],
+    hausNummerLieferung: Option[String],
+    adressZusatzLieferung: Option[String],
+    plzLieferung: Option[String],
+    ortLieferung: Option[String],
+    zusatzinfoLieferung: Option[String],
+    typen: Set[KundentypId],
+    //Zusatzinformationen
+    anzahlAbos: Int,
+    anzahlAbosAktiv: Int,
+    ansprechpersonen: Seq[PersonSummary],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class KundeDetail(
-  id: KundeId,
-  bezeichnung: String,
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  abweichendeLieferadresse: Boolean,
-  bezeichnungLieferung: Option[String],
-  strasseLieferung: Option[String],
-  hausNummerLieferung: Option[String],
-  adressZusatzLieferung: Option[String],
-  plzLieferung: Option[String],
-  ortLieferung: Option[String],
-  zusatzinfoLieferung: Option[String],
-  typen: Set[KundentypId],
-  //Zusatzinformationen
-  anzahlAbos: Int,
-  anzahlAbosAktiv: Int,
-  anzahlPendenzen: Int,
-  anzahlPersonen: Int,
-  abos: Seq[Abo],
-  pendenzen: Seq[Pendenz],
-  ansprechpersonen: Seq[PersonDetail],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: KundeId,
+    bezeichnung: String,
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    abweichendeLieferadresse: Boolean,
+    bezeichnungLieferung: Option[String],
+    strasseLieferung: Option[String],
+    hausNummerLieferung: Option[String],
+    adressZusatzLieferung: Option[String],
+    plzLieferung: Option[String],
+    ortLieferung: Option[String],
+    zusatzinfoLieferung: Option[String],
+    typen: Set[KundentypId],
+    //Zusatzinformationen
+    anzahlAbos: Int,
+    anzahlAbosAktiv: Int,
+    anzahlPendenzen: Int,
+    anzahlPersonen: Int,
+    abos: Seq[Abo],
+    pendenzen: Seq[Pendenz],
+    ansprechpersonen: Seq[PersonDetail],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class KundeModify(
-  bezeichnung: Option[String],
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  abweichendeLieferadresse: Boolean,
-  bezeichnungLieferung: Option[String],
-  strasseLieferung: Option[String],
-  hausNummerLieferung: Option[String],
-  adressZusatzLieferung: Option[String],
-  plzLieferung: Option[String],
-  ortLieferung: Option[String],
-  zusatzinfoLieferung: Option[String],
-  typen: Set[KundentypId],
-  pendenzen: Seq[PendenzModify],
-  ansprechpersonen: Seq[PersonModify]
+    bezeichnung: Option[String],
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    abweichendeLieferadresse: Boolean,
+    bezeichnungLieferung: Option[String],
+    strasseLieferung: Option[String],
+    hausNummerLieferung: Option[String],
+    adressZusatzLieferung: Option[String],
+    plzLieferung: Option[String],
+    ortLieferung: Option[String],
+    zusatzinfoLieferung: Option[String],
+    typen: Set[KundentypId],
+    pendenzen: Seq[PendenzModify],
+    ansprechpersonen: Seq[PersonModify]
 ) extends JSONSerializable
 
 sealed trait Anrede
@@ -354,65 +354,65 @@ case class Person(
 }
 
 case class PersonDetail(
-  id: PersonId,
-  kundeId: KundeId,
-  anrede: Option[Anrede],
-  name: String,
-  vorname: String,
-  email: Option[String],
-  emailAlternative: Option[String],
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  bemerkungen: Option[String],
-  sort: Int,
-  // security data
-  loginAktiv: Boolean,
-  letzteAnmeldung: Option[DateTime],
-  passwortWechselErforderlich: Boolean,
-  rolle: Option[Rolle],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: PersonId,
+    kundeId: KundeId,
+    anrede: Option[Anrede],
+    name: String,
+    vorname: String,
+    email: Option[String],
+    emailAlternative: Option[String],
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    bemerkungen: Option[String],
+    sort: Int,
+    // security data
+    loginAktiv: Boolean,
+    letzteAnmeldung: Option[DateTime],
+    passwortWechselErforderlich: Boolean,
+    rolle: Option[Rolle],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[PersonId]
 
 case class PersonSummary(
-  anrede: Option[Anrede],
-  name: String,
-  vorname: String,
-  email: Option[String],
-  emailAlternative: Option[String],
-  letzteAnmeldung: Option[DateTime]
+    anrede: Option[Anrede],
+    name: String,
+    vorname: String,
+    email: Option[String],
+    emailAlternative: Option[String],
+    letzteAnmeldung: Option[DateTime]
 ) extends JSONSerializable
 
 case class PersonUebersicht(
-  id: PersonId,
-  kundeId: KundeId,
-  anrede: Option[Anrede],
-  name: String,
-  vorname: String,
-  email: Option[String],
-  emailAlternative: Option[String],
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  bemerkungen: Option[String],
-  loginAktiv: Boolean,
-  letzteAnmeldung: Option[DateTime],
-  rolle: Option[Rolle],
-  // kundendaten
-  strasse: String,
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  kundentypen: Set[KundentypId],
-  kundenBemerkungen: Option[String],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: PersonId,
+    kundeId: KundeId,
+    anrede: Option[Anrede],
+    name: String,
+    vorname: String,
+    email: Option[String],
+    emailAlternative: Option[String],
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    bemerkungen: Option[String],
+    loginAktiv: Boolean,
+    letzteAnmeldung: Option[DateTime],
+    rolle: Option[Rolle],
+    // kundendaten
+    strasse: String,
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    kundentypen: Set[KundentypId],
+    kundenBemerkungen: Option[String],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends JSONSerializable
 
 case class KundeSummary(id: KundeId, kunde: String) extends Product
@@ -460,55 +460,55 @@ object PendenzStatus {
 case class PendenzId(id: Long) extends BaseId
 
 case class Pendenz(
-  id: PendenzId,
-  kundeId: KundeId,
-  kundeBezeichnung: String,
-  datum: DateTime,
-  bemerkung: Option[String],
-  status: PendenzStatus,
-  generiert: Boolean,
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: PendenzId,
+    kundeId: KundeId,
+    kundeBezeichnung: String,
+    datum: DateTime,
+    bemerkung: Option[String],
+    status: PendenzStatus,
+    generiert: Boolean,
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 ) extends BaseEntity[PendenzId]
 
 case class PendenzModify(
-  id: Option[PendenzId],
-  datum: DateTime,
-  bemerkung: Option[String],
-  status: PendenzStatus
+    id: Option[PendenzId],
+    datum: DateTime,
+    bemerkung: Option[String],
+    status: PendenzStatus
 ) extends JSONSerializable
 
 case class PendenzCreate(
-  kundeId: KundeId,
-  datum: DateTime,
-  bemerkung: Option[String],
-  status: PendenzStatus,
-  generiert: Boolean
+    kundeId: KundeId,
+    datum: DateTime,
+    bemerkung: Option[String],
+    status: PendenzStatus,
+    generiert: Boolean
 ) extends JSONSerializable
 
 case class EinladungId(id: Long) extends BaseId
 
 case class Einladung(
-  id: EinladungId,
-  personId: PersonId,
-  uid: String,
-  expires: DateTime,
-  datumVersendet: Option[DateTime],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
+    id: EinladungId,
+    personId: PersonId,
+    uid: String,
+    expires: DateTime,
+    datumVersendet: Option[DateTime],
+    // modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId
 )
-    extends BaseEntity[EinladungId]
+  extends BaseEntity[EinladungId]
 
 case class EinladungCreate(
-  id: EinladungId,
-  personId: PersonId,
-  uid: String,
-  expires: DateTime,
-  datumVersendet: Option[DateTime]
+    id: EinladungId,
+    personId: PersonId,
+    uid: String,
+    expires: DateTime,
+    datumVersendet: Option[DateTime]
 ) extends JSONSerializable
