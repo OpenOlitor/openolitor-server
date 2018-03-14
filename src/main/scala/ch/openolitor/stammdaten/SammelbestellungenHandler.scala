@@ -53,7 +53,8 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
           DateTime.now,
           personId,
           DateTime.now,
-          personId)
+          personId
+        )
         stammdatenWriteRepository.insertEntity[Sammelbestellung, SammelbestellungId](newSammelbestellung)
         newSammelbestellung
       }
@@ -84,7 +85,8 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
               DateTime.now,
               personId,
               DateTime.now,
-              personId)
+              personId
+            )
             stammdatenWriteRepository.insertEntity[Bestellung, BestellungId](newBestellung)
             newBestellung
           }
@@ -111,7 +113,8 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
                         DateTime.now,
                         personId,
                         DateTime.now,
-                        personId)
+                        personId
+                      )
                     }
                 }
             }.flatten
@@ -133,7 +136,8 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
             bestellungMapping.column.steuer -> mwst,
             bestellungMapping.column.totalSteuer -> totalInkl,
             bestellungMapping.column.adminProzenteAbzug -> adminProzenteAbzug,
-            bestellungMapping.column.totalNachAbzugAdminProzente -> totalNachAbzugAdminProzente)
+            bestellungMapping.column.totalNachAbzugAdminProzente -> totalNachAbzugAdminProzente
+          )
           (total, mwst, totalInkl)
       }
       val totals = totalsToAggregate.foldLeft((BigDecimal(0), BigDecimal(0), BigDecimal(0))) { case ((accA, accB, accC), (a, b, c)) => (accA + a, accB + b, accC + c) }
@@ -141,7 +145,8 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
       stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](sammelbestellung.id)(
         sammelbestellungMapping.column.preisTotal -> totals._1,
         sammelbestellungMapping.column.steuer -> totals._2,
-        sammelbestellungMapping.column.totalSteuer -> totals._3)
+        sammelbestellungMapping.column.totalSteuer -> totals._3
+      )
     }
 
   }

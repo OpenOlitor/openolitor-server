@@ -90,7 +90,8 @@ object ZusatzAboParser extends EntityParser {
           erstelldat = erstelldat,
           ersteller = ersteller,
           modifidat = modifidat,
-          modifikator = modifikator)
+          modifikator = modifikator
+        )
 
     }
   }

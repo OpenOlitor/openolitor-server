@@ -115,7 +115,8 @@ class DataImportParser extends Actor with ActorLogging {
         sammelbestellungen,
         bestellungen,
         bestellpositionen,
-        tourlieferungen)
+        tourlieferungen
+      )
     }
   }
 }
@@ -151,7 +152,8 @@ object DataImportParser {
     sammelbestellungen: List[Sammelbestellung],
     bestellungen: List[Bestellung],
     bestellpositionen: List[Bestellposition],
-    tourlieferung: List[Tourlieferung])
+    tourlieferung: List[Tourlieferung]
+  )
 
   def props(): Props = Props(classOf[DataImportParser])
 

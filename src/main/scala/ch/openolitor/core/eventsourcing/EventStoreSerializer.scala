@@ -33,7 +33,7 @@ import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import ch.openolitor.reports.eventsourcing.ReportsEventStoreSerializer
 
 class EventStoreSerializer extends StaminaAkkaSerializer(EventStoreSerializer.eventStorePersisters)
-  with LazyLogging {
+    with LazyLogging {
 
   override def toBinary(obj: AnyRef): Array[Byte] = {
     logger.debug(s"EventStoreSerializer: toBinary: $obj")
@@ -48,11 +48,11 @@ class EventStoreSerializer extends StaminaAkkaSerializer(EventStoreSerializer.ev
 }
 
 object EventStoreSerializer extends EntityStoreJsonProtocol
-  with StammdatenEventStoreSerializer
-  with BuchhaltungEventStoreSerializer
-  with ReportsEventStoreSerializer
-  with CoreEventStoreSerializer
-  with SystemEventSerializer {
+    with StammdatenEventStoreSerializer
+    with BuchhaltungEventStoreSerializer
+    with ReportsEventStoreSerializer
+    with CoreEventStoreSerializer
+    with SystemEventSerializer {
 
   // entity store serialization
   val entityPersisters = Persisters(corePersisters ++ stammdatenPersisters ++ buchhaltungPersisters ++ reportsPersisters)
@@ -78,7 +78,8 @@ object EventStoreSerializer extends EntityStoreJsonProtocol
     systemEventPersister,
     sendMailEventPersister,
     mailSentEventPersister,
-    sendMailFailedEventPersister) ++
+    sendMailFailedEventPersister
+  ) ++
     corePersisters ++
     stammdatenPersisters ++
     buchhaltungPersisters ++

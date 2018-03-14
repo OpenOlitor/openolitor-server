@@ -40,7 +40,7 @@ object ReportsUpdateService {
 }
 
 class DefaultReportsUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends ReportsUpdateService(sysConfig) with DefaultReportsWriteRepositoryComponent {
+    extends ReportsUpdateService(sysConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**
@@ -59,7 +59,8 @@ class ReportsUpdateService(override val sysConfig: SystemConfig) extends EventSe
       reportsWriteRepository.updateEntity(id)(
         reportMapping.column.name -> update.name,
         reportMapping.column.beschreibung -> update.beschreibung,
-        reportMapping.column.query -> update.query)
+        reportMapping.column.query -> update.query
+      )
     }
   }
 }

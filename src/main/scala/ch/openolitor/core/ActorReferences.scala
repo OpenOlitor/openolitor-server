@@ -60,11 +60,11 @@ trait JobQueueServiceReference {
 class DefaultActorSystemReference(override val system: ActorSystem) extends ActorSystemReference
 
 trait ActorReferences extends ActorSystemReference
-  with EntityStoreReference
-  with EventStoreReference
-  with ReportSystemReference
-  with MailServiceReference
-  with AirbrakeNotifierReference
-  with JobQueueServiceReference
-  with DBEvolutionReference {
+    with EntityStoreReference
+    with EventStoreReference
+    with ReportSystemReference
+    with MailServiceReference
+    with AirbrakeNotifierReference
+    with JobQueueServiceReference
+    with DBEvolutionReference {
 }

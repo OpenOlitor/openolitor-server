@@ -30,7 +30,9 @@ val scalalikeV = "3.1.+"
 resolvers += Resolver.typesafeRepo("releases")
 
 val buildSettings = Seq(
-  scalariformPreferences := scalariformPreferences.value,
+  scalariformPreferences := scalariformPreferences.value
+  .setPreference(DoubleIndentClassDeclaration, true)
+  .setPreference(DanglingCloseParenthesis, Force),
   organization := "ch.openolitor.scalamacros",
   version := "2.0.6-SNAPSHOT",
   scalaVersion := "2.11.11",

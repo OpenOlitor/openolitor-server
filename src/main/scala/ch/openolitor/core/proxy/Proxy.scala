@@ -55,7 +55,8 @@ trait Proxy extends LazyLogging {
   def updateRequest(uri: Uri, updateUri: (RequestContext, Uri) => Uri): RequestContext => HttpRequest =
     ctx => ctx.request.copy(
       uri = updateUri(ctx, uri),
-      headers = stripHeader(ctx.request.headers))
+      headers = stripHeader(ctx.request.headers)
+    )
 
   def proxyToUnmatchedPath(uri: Uri)(implicit system: ActorSystem): Route = proxyRequest(updateRequest(uri, updateUriUnmatchedPath))
 }
@@ -69,9 +70,9 @@ object ProxyServiceActor {
  * the websocket or service redirect url using their actor system
  */
 class ProxyServiceActor(mandanten: NonEmptyList[MandantSystem])
-  extends Actor
-  with ActorLogging
-  with HttpService {
+    extends Actor
+    with ActorLogging
+    with HttpService {
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test

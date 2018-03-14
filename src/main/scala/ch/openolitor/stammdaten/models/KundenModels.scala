@@ -82,7 +82,8 @@ case class Kunde(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[KundeId]
+  modifikator: PersonId
+) extends BaseEntity[KundeId]
 
 trait IKundeReport extends IKunde {
   lazy val strasseUndNummer: String = strasse + hausNummer.map(" " + _).getOrElse("")
@@ -95,7 +96,8 @@ trait IKundeReport extends IKunde {
     Some(bezeichnung),
     adressZusatz,
     Some(strasseUndNummer),
-    Some(plzOrt)).flatten.padTo(6, "")
+    Some(plzOrt)
+  ).flatten.padTo(6, "")
 
   lazy val lieferAdresszeilen = abweichendeLieferadresse match {
     case true =>
@@ -103,7 +105,8 @@ trait IKundeReport extends IKunde {
         Some(bezeichnungLieferung.getOrElse(bezeichnung)),
         adressZusatzLieferung,
         strasseUndNummerLieferung,
-        plzOrtLieferung).flatten.padTo(6, "")
+        plzOrtLieferung
+      ).flatten.padTo(6, "")
     case false => adresszeilen
   }
 
@@ -146,7 +149,8 @@ case class KundeReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[KundeId] with IKundeReport
+  modifikator: PersonId
+) extends BaseEntity[KundeId] with IKundeReport
 
 case class KundeDetailReport(
   id: KundeId,
@@ -180,7 +184,8 @@ case class KundeDetailReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[KundeId] with IKundeReport
+  modifikator: PersonId
+) extends BaseEntity[KundeId] with IKundeReport
 
 object Kunde {
   def unapply(k: Kunde) = Some(Tuple25(
@@ -210,7 +215,8 @@ object Kunde {
     k.erstelldat: DateTime,
     k.ersteller: PersonId,
     k.modifidat: DateTime,
-    k.modifikator: PersonId))
+    k.modifikator: PersonId
+  ))
 }
 
 case class KundeUebersicht(
@@ -239,7 +245,8 @@ case class KundeUebersicht(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class KundeDetail(
   id: KundeId,
@@ -271,7 +278,8 @@ case class KundeDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class KundeModify(
   bezeichnung: Option[String],
@@ -291,7 +299,8 @@ case class KundeModify(
   zusatzinfoLieferung: Option[String],
   typen: Set[KundentypId],
   pendenzen: Seq[PendenzModify],
-  ansprechpersonen: Seq[PersonModify]) extends JSONSerializable
+  ansprechpersonen: Seq[PersonModify]
+) extends JSONSerializable
 
 sealed trait Anrede
 case object Herr extends Anrede
@@ -339,7 +348,8 @@ case class Person(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[PersonId] {
+  modifikator: PersonId
+) extends BaseEntity[PersonId] {
   def fullName = name + ' ' + vorname
 }
 
@@ -364,7 +374,8 @@ case class PersonDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[PersonId]
+  modifikator: PersonId
+) extends BaseEntity[PersonId]
 
 case class PersonSummary(
   anrede: Option[Anrede],
@@ -372,7 +383,8 @@ case class PersonSummary(
   vorname: String,
   email: Option[String],
   emailAlternative: Option[String],
-  letzteAnmeldung: Option[DateTime]) extends JSONSerializable
+  letzteAnmeldung: Option[DateTime]
+) extends JSONSerializable
 
 case class PersonUebersicht(
   id: PersonId,
@@ -400,7 +412,8 @@ case class PersonUebersicht(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class KundeSummary(id: KundeId, kunde: String) extends Product
 
@@ -413,7 +426,8 @@ case class PersonModify(
   emailAlternative: Option[String],
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
-  bemerkungen: Option[String]) extends JSONSerializable {
+  bemerkungen: Option[String]
+) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
 
@@ -427,7 +441,8 @@ case class PersonCreate(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   bemerkungen: Option[String],
-  sort: Int) extends JSONSerializable {
+  sort: Int
+) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
 
@@ -456,20 +471,23 @@ case class Pendenz(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[PendenzId]
+  modifikator: PersonId
+) extends BaseEntity[PendenzId]
 
 case class PendenzModify(
   id: Option[PendenzId],
   datum: DateTime,
   bemerkung: Option[String],
-  status: PendenzStatus) extends JSONSerializable
+  status: PendenzStatus
+) extends JSONSerializable
 
 case class PendenzCreate(
   kundeId: KundeId,
   datum: DateTime,
   bemerkung: Option[String],
   status: PendenzStatus,
-  generiert: Boolean) extends JSONSerializable
+  generiert: Boolean
+) extends JSONSerializable
 
 case class EinladungId(id: Long) extends BaseId
 
@@ -483,12 +501,14 @@ case class Einladung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId)
-  extends BaseEntity[EinladungId]
+  modifikator: PersonId
+)
+    extends BaseEntity[EinladungId]
 
 case class EinladungCreate(
   id: EinladungId,
   personId: PersonId,
   uid: String,
   expires: DateTime,
-  datumVersendet: Option[DateTime]) extends JSONSerializable
+  datumVersendet: Option[DateTime]
+) extends JSONSerializable

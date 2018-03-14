@@ -36,7 +36,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     modifyEntityIf[E, I](p)(id)(_ => (updateFieldsHead +: updateFieldsTail).toMap)
   }
 
@@ -48,7 +49,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     modifyEntity[E, I](id)(_ => (updateFieldsHead +: updateFieldsTail).toMap)
   }
 
@@ -62,7 +64,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     modifyEntityIf[E, I](_ => true)(id)(updateFunction)
   }
 
@@ -77,7 +80,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     getById(syntaxSupport, id) map { orig =>
       if (p(orig)) {
         val alias = syntaxSupport.syntax("x")

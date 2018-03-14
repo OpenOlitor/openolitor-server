@@ -30,6 +30,6 @@ import ch.openolitor.core.filestore.FileStoreJsonProtocol
 import ch.openolitor.core.jobs.JobQueueJsonProtocol
 
 trait ReportJsonProtocol extends BaseJsonProtocol with FileStoreJsonProtocol with JobQueueJsonProtocol
-  with AutoProductFormats[JSONSerializable] {
+    with AutoProductFormats[JSONSerializable] {
   implicit val multiReportIdFormat = baseIdFormat(MultiReportId)
 }

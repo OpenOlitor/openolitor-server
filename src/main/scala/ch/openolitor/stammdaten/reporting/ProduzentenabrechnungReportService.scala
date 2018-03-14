@@ -50,7 +50,8 @@ trait ProduzentenabrechnungReportService extends AsyncConnectionPoolContextAware
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Produzentenabrechnung(en)"))
+      JobId("Produzentenabrechnung(en)")
+    )
   }
 
   private def name(fileType: FileType)(la: MultiReport[ProduzentenabrechnungReport]) = s"la_${la.id}_${filenameDateFormat.print(System.currentTimeMillis())}"

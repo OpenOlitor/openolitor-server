@@ -35,14 +35,14 @@ object ReportsAktionenService {
 }
 
 class DefaultReportsAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends ReportsAktionenService(sysConfig) with DefaultReportsWriteRepositoryComponent {
+    extends ReportsAktionenService(sysConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Reports Modul
  */
 class ReportsAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-  with ReportsDBMappings {
+    with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
 
   val False = false

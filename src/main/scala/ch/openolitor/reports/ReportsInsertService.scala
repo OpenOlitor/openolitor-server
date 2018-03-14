@@ -42,14 +42,14 @@ object ReportsInsertService {
 }
 
 class DefaultReportsInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends ReportsInsertService(sysConfig) with DefaultReportsWriteRepositoryComponent {
+    extends ReportsInsertService(sysConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Reports Modul
  */
 class ReportsInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware
-  with ReportsDBMappings {
+    with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
 
   val handle: Handle = {
@@ -67,7 +67,8 @@ class ReportsInsertService(override val sysConfig: SystemConfig) extends EventSe
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator)
+        "modifikator" -> meta.originator
+      )
 
       reportsWriteRepository.insertEntity[Report, ReportId](rp)
     }

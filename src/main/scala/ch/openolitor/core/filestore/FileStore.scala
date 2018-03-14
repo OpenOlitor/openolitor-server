@@ -301,7 +301,8 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
           bucketName(metadata.bucket),
           metadata.key,
           metadata.uploadId,
-          partEtags))
+          partEtags
+        ))
 
         Right(metadata)
       } catch {
@@ -315,7 +316,8 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
     Future.successful {
       try {
         client.abortMultipartUpload(new AbortMultipartUploadRequest(
-          bucketName(metadata.bucket), metadata.key, metadata.uploadId))
+          bucketName(metadata.bucket), metadata.key, metadata.uploadId
+        ))
 
         Right(metadata)
       } catch {
@@ -361,7 +363,8 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
       s3ObjectSummary.getKey,
       s3ObjectSummary.getETag,
       s3ObjectSummary.getSize,
-      new DateTime(s3ObjectSummary.getLastModified))
+      new DateTime(s3ObjectSummary.getLastModified)
+    )
   }
 
   protected def listObjects(bucket: FileStoreBucket): List[FileStoreFileSummary] = {

@@ -32,21 +32,21 @@ import ch.openolitor.core.EventStream
  * Synchronous Repository
  */
 trait ReportsWriteRepository extends ReportsReadRepositorySync
-  with ReportsInsertRepository
-  with ReportsUpdateRepository
-  with ReportsDeleteRepository
-  with BaseWriteRepository
-  with EventStream {
+    with ReportsInsertRepository
+    with ReportsUpdateRepository
+    with ReportsDeleteRepository
+    with BaseWriteRepository
+    with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
 trait ReportsWriteRepositoryImpl extends ReportsReadRepositorySyncImpl
-  with ReportsInsertRepositoryImpl
-  with ReportsUpdateRepositoryImpl
-  with ReportsDeleteRepositoryImpl
-  with ReportsWriteRepository
-  with LazyLogging
-  with ReportsRepositoryQueries {
+    with ReportsInsertRepositoryImpl
+    with ReportsUpdateRepositoryImpl
+    with ReportsDeleteRepositoryImpl
+    with ReportsWriteRepository
+    with LazyLogging
+    with ReportsRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
       sql"truncate table ${reportMapping.table}".execute.apply()

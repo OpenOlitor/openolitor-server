@@ -43,9 +43,9 @@ object AktiveAbosCalculation {
 }
 
 class AktiveAbosCalculation(override val sysConfig: SystemConfig, override val system: ActorSystem, val entityStore: ActorRef) extends BaseBatchJob
-  with AsyncConnectionPoolContextAware
-  with DefaultStammdatenWriteRepositoryComponent
-  with StammdatenRepositoryQueries {
+    with AsyncConnectionPoolContextAware
+    with DefaultStammdatenWriteRepositoryComponent
+    with StammdatenRepositoryQueries {
 
   override def process(): Unit = {
     DB autoCommit { implicit session =>

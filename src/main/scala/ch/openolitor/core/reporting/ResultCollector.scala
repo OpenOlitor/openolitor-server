@@ -40,7 +40,8 @@ trait ResultCollector extends Actor with ActorLogging with JobQueueServiceRefere
       jobId = stats.jobId,
       numberOfSuccess = stats.numberOfSuccess,
       numberOfFailures = stats.numberOfFailures,
-      payload = payload)
+      payload = payload
+    )
     jobQueueService ! jobResult
   }
 
@@ -53,7 +54,8 @@ trait ResultCollector extends Actor with ActorLogging with JobQueueServiceRefere
       jobId = stats.jobId,
       numberOfTasksInProgress = stats.numberOfReportsInProgress,
       numberOfSuccess = stats.numberOfSuccess,
-      numberOfFailures = stats.numberOfFailures)
+      numberOfFailures = stats.numberOfFailures
+    )
     jobQueueService ! progress
   }
 }

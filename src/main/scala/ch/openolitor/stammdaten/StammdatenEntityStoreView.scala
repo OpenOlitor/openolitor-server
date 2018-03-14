@@ -39,7 +39,7 @@ class DefaultStammdatenEntityStoreView(override val mailService: ActorRef, overr
  * Zusammenfügen des Componenten (cake pattern) zu der persistentView
  */
 trait StammdatenEntityStoreView extends EntityStoreView
-  with StammdatenEntityStoreViewComponent with ConnectionPoolContextAware {
+    with StammdatenEntityStoreViewComponent with ConnectionPoolContextAware {
   self: StammdatenWriteRepositoryComponent =>
 
   override val module = "stammdaten"

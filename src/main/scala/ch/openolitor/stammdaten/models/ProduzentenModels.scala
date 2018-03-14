@@ -77,7 +77,8 @@ case class Produzent(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends IProduzent
+  modifikator: PersonId
+) extends IProduzent
 
 object Produzent {
   def unapply(p: Produzent) = {
@@ -105,7 +106,8 @@ object Produzent {
       p.erstelldat: DateTime,
       p.ersteller: PersonId,
       p.modifidat: DateTime,
-      p.modifikator: PersonId))
+      p.modifikator: PersonId
+    ))
   }
 }
 
@@ -127,7 +129,8 @@ case class ProduzentModify(
   mwst: Boolean,
   mwstSatz: Option[BigDecimal],
   mwstNr: Option[String],
-  aktiv: Boolean) extends JSONSerializable
+  aktiv: Boolean
+) extends JSONSerializable
 
 case class ProduzentDetailReport(
   id: ProduzentId,
@@ -155,7 +158,8 @@ case class ProduzentDetailReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProduzentId] with IProduzentReport with JSONSerializable
+  modifikator: PersonId
+) extends BaseEntity[ProduzentId] with IProduzentReport with JSONSerializable
 
 trait IProduzentReport extends IProduzent {
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
@@ -164,5 +168,6 @@ trait IProduzentReport extends IProduzent {
   lazy val adresszeilen = Seq(
     Some(name),
     strasseUndNummer,
-    Some(plzOrt)).flatten.padTo(6, "")
+    Some(plzOrt)
+  ).flatten.padTo(6, "")
 }

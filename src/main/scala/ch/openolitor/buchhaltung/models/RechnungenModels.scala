@@ -106,7 +106,8 @@ case class RechnungsPosition(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[RechnungsPositionId]
+  modifikator: PersonId
+) extends BaseEntity[RechnungsPositionId]
 
 // rechnungsdatum sind Zeitstempel um für ISO 20022 gerüstet zu sein.
 case class Rechnung(
@@ -135,7 +136,8 @@ case class Rechnung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[RechnungId]
+  modifikator: PersonId
+) extends BaseEntity[RechnungId]
 
 object Rechnung {
   def unapply(entity: Rechnung) = {
@@ -163,7 +165,8 @@ object Rechnung {
       entity.erstelldat,
       entity.ersteller,
       entity.modifidat,
-      entity.modifikator))
+      entity.modifikator
+    ))
   }
 }
 
@@ -182,7 +185,8 @@ case class RechnungsPositionDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class RechnungDetail(
   id: RechnungId,
@@ -211,7 +215,8 @@ case class RechnungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class RechnungDetailReport(
   id: RechnungId,
@@ -240,7 +245,8 @@ case class RechnungDetailReport(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId,
-  projekt: ProjektReport) extends JSONSerializable {
+  projekt: ProjektReport
+) extends JSONSerializable {
   lazy val referenzNummerFormatiert: String = referenzNummer.reverse.grouped(5).map(_.reverse).toList.reverse.mkString(" ")
   lazy val betragRappen = (betrag - betrag.toLong) * 100
 }
@@ -257,7 +263,8 @@ case class RechnungCreateFromRechnungsPositionen(
   hausNummer: Option[String],
   adressZusatz: Option[String],
   plz: String,
-  ort: String) extends JSONSerializable
+  ort: String
+) extends JSONSerializable
 
 case class RechnungModify(
   titel: String,
@@ -271,7 +278,8 @@ case class RechnungModify(
   hausNummer: Option[String],
   adressZusatz: Option[String],
   plz: String,
-  ort: String) extends JSONSerializable
+  ort: String
+) extends JSONSerializable
 
 case class RechnungsPositionCreate(
   kundeId: KundeId,
@@ -282,17 +290,20 @@ case class RechnungsPositionCreate(
   betrag: BigDecimal,
   waehrung: Waehrung,
   status: RechnungsPositionStatus.RechnungsPositionStatus,
-  typ: RechnungsPositionTyp.RechnungsPositionTyp) extends JSONSerializable
+  typ: RechnungsPositionTyp.RechnungsPositionTyp
+) extends JSONSerializable
 
 case class RechnungsPositionModify(
   beschrieb: String,
   anzahlLieferungen: Option[Int],
   betrag: BigDecimal,
-  status: RechnungsPositionStatus.RechnungsPositionStatus) extends JSONSerializable
+  status: RechnungsPositionStatus.RechnungsPositionStatus
+) extends JSONSerializable
 
 case class RechnungModifyBezahlt(
   einbezahlterBetrag: BigDecimal,
-  eingangsDatum: DateTime) extends JSONSerializable
+  eingangsDatum: DateTime
+) extends JSONSerializable
 
 case class RechnungenContainer(ids: Seq[RechnungId]) extends JSONSerializable
 
@@ -300,8 +311,10 @@ case class RechnungsPositionenCreateRechnungen(
   ids: Seq[RechnungsPositionId],
   titel: String,
   rechnungsDatum: DateTime,
-  faelligkeitsDatum: DateTime) extends JSONSerializable
+  faelligkeitsDatum: DateTime
+) extends JSONSerializable
 
 case class RechnungsPositionAssignToRechnung(
   rechnungId: RechnungId,
-  sort: Int) extends JSONSerializable
+  sort: Int
+) extends JSONSerializable

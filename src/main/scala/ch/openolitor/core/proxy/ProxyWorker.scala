@@ -45,9 +45,9 @@ object ProxyWorker {
  * normal httprequest to a httpserver
  */
 class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, MandantSystem], val wsHandler: WebsocketHandler)
-  extends HttpServiceActor
-  with websocket.WebSocketServerWorker
-  with Proxy {
+    extends HttpServiceActor
+    with websocket.WebSocketServerWorker
+    with Proxy {
   //Use system's dispatcher as ExecutionContext
 
   var url: Option[String] = None

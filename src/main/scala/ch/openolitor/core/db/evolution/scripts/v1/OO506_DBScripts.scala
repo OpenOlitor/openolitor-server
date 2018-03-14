@@ -28,5 +28,6 @@ import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlG
 object OO506_DBScripts {
   val scripts = Seq(
     RecalculateAnzahlAbwesenheitenLieferung.scripts,
-    RecalculateAnzahlGeliefertLieferung.scripts)
+    RecalculateAnzahlGeliefertLieferung.scripts
+  )
 }

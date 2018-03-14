@@ -35,4 +35,5 @@ case class PersistenceEventState(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[PersistenceEventStateId]
+  modifikator: PersonId
+) extends BaseEntity[PersistenceEventStateId]

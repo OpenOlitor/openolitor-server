@@ -67,7 +67,8 @@ class Camt054v04ToZahlungsImportTransformer {
               ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.BookgDt.get.dateanddatetimechoicetypeoption.as[XMLGregorianCalendar].toString),
               ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.ValDt.get.dateanddatetimechoicetypeoption.as[XMLGregorianCalendar].toString),
               "",
-              0.0)
+              0.0
+            )
           }
         }
       }

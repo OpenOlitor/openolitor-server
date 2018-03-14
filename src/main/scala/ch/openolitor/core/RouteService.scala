@@ -127,17 +127,17 @@ trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache
 // we don't implement our route structure directly in the service actor because(entityStore, sysConfig, system, fileStore, actorRefFactory)
 // we want to be able to test it independently, without having to spin up an actor
 trait RouteServiceActor
-  extends Actor with ActorReferences
-  with DefaultRouteService
-  with HelloWorldRoutes
-  with StatusRoutes
-  with FileStoreRoutes
-  with FileStoreComponent
-  with CORSSupport
-  with BaseJsonProtocol
-  with RoleBasedAuthorization
-  with AirbrakeNotifierReference
-  with LazyLogging {
+    extends Actor with ActorReferences
+    with DefaultRouteService
+    with HelloWorldRoutes
+    with StatusRoutes
+    with FileStoreRoutes
+    with FileStoreComponent
+    with CORSSupport
+    with BaseJsonProtocol
+    with RoleBasedAuthorization
+    with AirbrakeNotifierReference
+    with LazyLogging {
   self: RouteServiceComponent =>
 
   //initially run db evolution
@@ -193,7 +193,8 @@ trait RouteServiceActor
         authorize(hasRole(AdministratorZugang)) {
           systemRouteService.adminRoutes
         }
-      }))
+      }
+  ))
 
   val dbEvolutionRoutes =
     pathPrefix("db") {
@@ -225,11 +226,11 @@ trait RouteServiceActor
 
 // this trait defines our service behavior independently from the service actor
 trait DefaultRouteService extends HttpService with ActorReferences with BaseJsonProtocol with StreamSupport
-  with FileStoreComponent
-  with LazyLogging
-  with SprayDeserializers
-  with ReportJsonProtocol
-  with DateFormats {
+    with FileStoreComponent
+    with LazyLogging
+    with SprayDeserializers
+    with ReportJsonProtocol
+    with DateFormats {
 
   implicit val timeout = Timeout(5.seconds)
   implicit lazy val executionContext: ExecutionContext = system.dispatcher
@@ -245,7 +246,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def create[E <: AnyRef: ClassTag, I <: BaseId](idFactory: Long => I)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject
+  ) = {
     requestInstance { request =>
       entity(as[E]) { entity =>
         created(request)(entity)
@@ -269,13 +271,15 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject
+  ) = {
     entity(as[E]) { entity => updated(id, entity) }
   }
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I, entity: E)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject
+  ) = {
     updated(id, entity)
   }
 
@@ -561,7 +565,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def generateReport[I](
     id: Option[I],
-    reportFunction: ReportConfig[I] => Future[Either[ServiceFailed, ReportServiceResult[I]]])(idFactory: Long => I)(implicit subject: Subject) = {
+    reportFunction: ReportConfig[I] => Future[Either[ServiceFailed, ReportServiceResult[I]]]
+  )(idFactory: Long => I)(implicit subject: Subject) = {
     uploadOpt("vorlage") { formData => file =>
       //use custom or default template whether content was delivered or not
       (for {
@@ -643,5 +648,6 @@ class DefaultRouteServiceActor(
   override val jobQueueService: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val loginTokenCache: Cache[Subject]) extends RouteServiceActor
-  with DefaultRouteServiceComponent
+  override val loginTokenCache: Cache[Subject]
+) extends RouteServiceActor
+    with DefaultRouteServiceComponent

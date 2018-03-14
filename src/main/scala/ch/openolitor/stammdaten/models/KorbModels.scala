@@ -53,7 +53,8 @@ case class Korb(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[KorbId]
+  modifikator: PersonId
+) extends BaseEntity[KorbId]
 
 case class KorbLieferung(
   id: KorbId,
@@ -68,7 +69,8 @@ case class KorbLieferung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class KorbDetail(
   id: KorbId,
@@ -85,7 +87,8 @@ case class KorbDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class ZusatzKorbDetail(
   id: KorbId,
@@ -101,7 +104,8 @@ case class ZusatzKorbDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class KorbReport(
   id: KorbId,
@@ -118,17 +122,21 @@ case class KorbReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class KorbModify(
-  id: KorbId) extends JSONSerializable
+  id: KorbId
+) extends JSONSerializable
 
 case class KorbAuslieferungModify(
   auslieferungId: AuslieferungId,
-  sort: Option[Int]) extends JSONSerializable
+  sort: Option[Int]
+) extends JSONSerializable
 
 case class KorbCreate(
   LieferungId: LieferungId,
   aboId: AboId,
   status: KorbStatus,
-  guthabenVorLieferung: Int) extends JSONSerializable
+  guthabenVorLieferung: Int
+) extends JSONSerializable

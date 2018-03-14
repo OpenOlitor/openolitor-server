@@ -44,14 +44,14 @@ object BuchhaltungAktionenService {
 }
 
 class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+    extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Buchhaltung Modul
  */
 class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-  with BuchhaltungDBMappings {
+    with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val False = false
@@ -84,7 +84,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
 
       buchhaltungWriteRepository.updateEntity[Rechnung, RechnungId](id)(
-        rechnungMapping.column.fileStoreId -> Option(fileStoreId))
+        rechnungMapping.column.fileStoreId -> Option(fileStoreId)
+      )
     }
   }
 
@@ -99,7 +100,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
   private def rechnungVerschicken(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.updateEntityIf[Rechnung, RechnungId](Erstellt == _.status)(id)(
-        rechnungMapping.column.status -> Verschickt)
+        rechnungMapping.column.status -> Verschickt
+      )
     }
   }
 
@@ -108,7 +110,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
       buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](Verschickt == _.status)(id) { rechnung =>
         Map(
           rechnungMapping.column.status -> MahnungVerschickt,
-          rechnungMapping.column.anzahlMahnungen -> (rechnung.anzahlMahnungen + 1))
+          rechnungMapping.column.anzahlMahnungen -> (rechnung.anzahlMahnungen + 1)
+        )
       }
     }
   }
@@ -125,7 +128,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
         Map(
           rechnungMapping.column.status -> Bezahlt,
           rechnungMapping.column.einbezahlterBetrag -> Option(entity.einbezahlterBetrag),
-          rechnungMapping.column.eingangsDatum -> Option(entity.eingangsDatum))
+          rechnungMapping.column.eingangsDatum -> Option(entity.eingangsDatum)
+        )
       }.map { _ =>
         val rechnungsPositionen = buchhaltungWriteRepository.getRechnungsPositionenByRechnungsId(rechnung.id)
         rechnungsPositionen.map { rp =>
@@ -144,7 +148,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
           buchhaltungWriteRepository.modifyEntity[RechnungsPosition, RechnungsPositionId](rp.id) { _ =>
             Map(
               rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Offen,
-              rechnungsPositionMapping.column.rechnungId -> Option.empty[RechnungId])
+              rechnungsPositionMapping.column.rechnungId -> Option.empty[RechnungId]
+            )
           }
         }
       }
@@ -154,7 +159,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
   private def rechungUndRechnungsPositionenStornieren(meta: EventMetadata, id: RechnungId)(implicit personId: PersonId = meta.originator): Unit = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.updateEntityIf[Rechnung, RechnungId](Bezahlt != _.status)(id)(
-        rechnungMapping.column.status -> Storniert).map { _ =>
+        rechnungMapping.column.status -> Storniert
+      ).map { _ =>
           buchhaltungWriteRepository.getRechnungsPositionenByRechnungsId(id).map { rp =>
             buchhaltungWriteRepository.modifyEntity[RechnungsPosition, RechnungsPositionId](rp.id) { r =>
               Map(rechnungsPositionMapping.column.status -> RechnungsPositionStatus.Storniert)
@@ -174,7 +180,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator)
+        "modifikator" -> meta.originator
+      )
 
       buchhaltungWriteRepository.insertEntity[ZahlungsEingang, ZahlungsEingangId](zahlungsEingang)
     }
@@ -186,7 +193,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
-      "modifikator" -> meta.originator)
+      "modifikator" -> meta.originator
+    )
 
     DB localTxPostPublish { implicit session => implicit publisher =>
       entity.zahlungsEingaenge map { eingang =>
@@ -224,7 +232,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
 
         Map(
           zahlungsEingangMapping.column.erledigt -> true,
-          zahlungsEingangMapping.column.bemerkung -> entity.bemerkung)
+          zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
+        )
       }
     }
   }

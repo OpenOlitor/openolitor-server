@@ -38,6 +38,7 @@ class DefaultFileStoreComponent(mandant: String, sysConfig: SystemConfig, system
   fileStore.createBuckets map {
     _.fold(
       error => logger.error(s"Error creating buckets for $mandant: ${error.message}"),
-      success => logger.debug(s"Created file store buckets for $mandant"))
+      success => logger.debug(s"Created file store buckets for $mandant")
+    )
   }
 }

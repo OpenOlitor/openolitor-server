@@ -278,7 +278,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       JsObject(defaultFormat.write(obj)
         .asJsObject.fields +
         (flag -> JsBoolean(
-          obj.aktiv)))
+          obj.aktiv
+        )))
     }
 
     def read(json: JsValue): E = defaultFormat.read(json)
@@ -447,7 +448,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         (
           "strasseUndNummer" -> JsString(obj.strasseUndNummer.getOrElse("")),
           "plzOrt" -> JsString(obj.plzOrt.getOrElse("")),
-          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)))
+          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)
+        ))
     }
 
     def read(json: JsValue): ProjektReport = defaultFormat.read(json)
@@ -465,7 +467,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
           "plzOrtLieferung" -> JsString(obj.plzOrtLieferung.getOrElse("")),
           "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector),
           "lieferAdresszeilen" -> JsArray(obj.lieferAdresszeilen.map(JsString(_)).toVector),
-          "telefonNummern" -> JsString(obj.telefonNummern)))
+          "telefonNummern" -> JsString(obj.telefonNummern)
+        ))
     }
 
     def read(json: JsValue): K = defaultFormat.read(json)
@@ -479,7 +482,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       JsObject(defaultFormat.write(obj)
         .asJsObject.fields +
         (
-          "mengeTotal" -> JsNumber(obj.mengeTotal)))
+          "mengeTotal" -> JsNumber(obj.mengeTotal)
+        ))
     }
 
     def read(json: JsValue): T = defaultFormat.read(json)
@@ -493,7 +497,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         (
           "strasseUndNummer" -> JsString(obj.strasseUndNummer.getOrElse("")),
           "plzOrt" -> JsString(obj.plzOrt),
-          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)))
+          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)
+        ))
     }
 
     def read(json: JsValue): D = defaultFormat.read(json)
@@ -510,7 +515,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         (
           "strasseUndNummer" -> JsString(obj.strasseUndNummer.getOrElse("")),
           "plzOrt" -> JsString(obj.plzOrt),
-          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)))
+          "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)
+        ))
     }
 
     def read(json: JsValue): D = defaultFormat.read(json)

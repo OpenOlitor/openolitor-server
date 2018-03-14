@@ -51,5 +51,5 @@ trait ReportsCommandHandler extends CommandHandler with ReportsDBMappings with C
 }
 
 class DefaultReportsCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends ReportsCommandHandler
-  with DefaultReportsReadRepositorySyncComponent {
+    with DefaultReportsReadRepositorySyncComponent {
 }

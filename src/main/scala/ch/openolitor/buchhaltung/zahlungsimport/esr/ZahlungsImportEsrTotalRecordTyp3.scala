@@ -42,7 +42,8 @@ case class EsrTotalRecordTyp3(
   erstellungsDatumMedium: DateTime,
   preiseFuerEinzahlungen: BigDecimal,
   nachbearbeitungEsrPlus: BigDecimal,
-  reserve: String) extends ZahlungsImportTotalRecord
+  reserve: String
+) extends ZahlungsImportTotalRecord
 
 object EsrTotalRecordTyp3 {
   private val R = """(\w{3})(\d{9})(\d{27})(\d{12})(\d{12})(\d{6})(\d{9})(\d{9})([\w\s]{0,13})""".r
@@ -58,7 +59,8 @@ object EsrTotalRecordTyp3 {
         DateTime.parse(erstellungsDatumMedium, Format),
         BigDecimal(preiseFuerEinzahlungen.toInt, Scale),
         BigDecimal(nachbearbeitungEsrPlus.toInt, Scale),
-        reserve))
+        reserve
+      ))
     case _ =>
       None
   }

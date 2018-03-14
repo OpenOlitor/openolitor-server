@@ -46,7 +46,8 @@ case class Sammelbestellung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[SammelbestellungId]
+  modifikator: PersonId
+) extends BaseEntity[SammelbestellungId]
 
 case class SammelbestellungDetail(
   id: SammelbestellungId,
@@ -69,7 +70,8 @@ case class SammelbestellungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class BestellungId(id: Long) extends BaseId
 
@@ -94,7 +96,8 @@ case class Bestellung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[BestellungId]
+  modifikator: PersonId
+) extends BaseEntity[BestellungId]
 
 case class BestellungDetail(
   id: BestellungId,
@@ -110,40 +113,48 @@ case class BestellungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[BestellungId]
+  modifikator: PersonId
+) extends BaseEntity[BestellungId]
 
 @Deprecated
 case class BestellungAusgeliefert(
   datum: DateTime,
-  ids: Seq[BestellungId]) extends JSONSerializable
+  ids: Seq[BestellungId]
+) extends JSONSerializable
 
 case class SammelbestellungAusgeliefert(
   datum: DateTime,
-  ids: Seq[SammelbestellungId]) extends JSONSerializable
+  ids: Seq[SammelbestellungId]
+) extends JSONSerializable
 
 @Deprecated
 case class BestellungenCreate(
-  lieferplanungId: LieferplanungId) extends JSONSerializable
+  lieferplanungId: LieferplanungId
+) extends JSONSerializable
 
 @Deprecated
 case class BestellungCreate(
   produzentId: ProduzentId,
   lieferplanungId: LieferplanungId,
-  datum: DateTime) extends JSONSerializable
+  datum: DateTime
+) extends JSONSerializable
 
 case class SammelbestellungModify(
   produzentId: ProduzentId,
   lieferplanungId: LieferplanungId,
-  datum: DateTime) extends JSONSerializable
+  datum: DateTime
+) extends JSONSerializable
 
 case class SammelbestellungStatusModify(
-  status: LieferungStatus) extends JSONSerializable
+  status: LieferungStatus
+) extends JSONSerializable
 
 case class SammelbestellungCreate(
   id: SammelbestellungId,
   produzentId: ProduzentId,
   lieferplanungId: LieferplanungId,
-  datum: DateTime) extends JSONSerializable
+  datum: DateTime
+) extends JSONSerializable
 
 case class BestellpositionId(id: Long) extends BaseId
 
@@ -168,7 +179,8 @@ case class Bestellposition(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
+  modifikator: PersonId
+) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
 
 case class BestellpositionModify(
   bestellungId: BestellungId,
@@ -178,7 +190,8 @@ case class BestellpositionModify(
   einheit: Liefereinheit,
   menge: BigDecimal,
   preis: Option[BigDecimal],
-  anzahl: Int) extends JSONSerializable
+  anzahl: Int
+) extends JSONSerializable
 
 case class ProduzentenabrechnungReport(
   produzentId: ProduzentId,
@@ -190,5 +203,6 @@ case class ProduzentenabrechnungReport(
   steuer: BigDecimal,
   totalSteuer: BigDecimal,
   //Zusatzinformationen
-  projekt: ProjektReport) extends JSONSerializable
+  projekt: ProjektReport
+) extends JSONSerializable
 

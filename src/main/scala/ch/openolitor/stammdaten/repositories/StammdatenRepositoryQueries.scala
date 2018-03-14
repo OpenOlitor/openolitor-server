@@ -134,7 +134,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
       .toMany(
-        rs => personMapping.opt(person)(rs))
+        rs => personMapping.opt(person)(rs)
+      )
       .map((kunde, personen) => {
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonSummary](p)).toSeq
 
@@ -167,7 +168,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => pendenzMapping.opt(pendenz)(rs))
+        rs => pendenzMapping.opt(pendenz)(rs)
+      )
       .map((kunde, pl, hl, dl, personen, pendenzen) => {
         val abos = pl ++ hl ++ dl
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
@@ -194,7 +196,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => pendenzMapping.opt(pendenz)(rs))
+        rs => pendenzMapping.opt(pendenz)(rs)
+      )
       .map { (kunde, pl, hl, dl, personen, pendenzen) =>
         val abos = pl ++ hl ++ dl
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
@@ -230,7 +233,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .orderBy(person.name)
     }.one(personMapping(person))
       .toOne(
-        rs => kundeMapping(kunde)(rs)).map { (person, kunde) =>
+        rs => kundeMapping(kunde)(rs)
+      ).map { (person, kunde) =>
           copyTo[Person, PersonUebersicht](
             person,
             "strasse" -> kunde.strasse,
@@ -239,7 +243,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             "plz" -> kunde.plz,
             "ort" -> kunde.ort,
             "kundentypen" -> kunde.typen,
-            "kundenBemerkungen" -> kunde.bemerkungen)
+            "kundenBemerkungen" -> kunde.bemerkungen
+          )
         }.list
   }
 
@@ -447,7 +452,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .toManies(
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => kundeMapping.opt(kunde)(rs),
-        rs => personMapping.opt(person)(rs))
+        rs => personMapping.opt(person)(rs)
+      )
       .map((depot, abos, kunden, personen) => {
         val personenWithoutPwd = personen map (p => copyTo[Person, PersonDetail](p))
         val abosReport = abos.map { abo =>
@@ -469,7 +475,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
     }.one(depotlieferungAboMapping(depotlieferungAbo))
       .toMany(
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map((depotlieferungAbo, zusatzAbos) => {
         val zusatzAboIds = zusatzAbos.map(_.id).toSet
         val zusatzAbotypNames = zusatzAbos.map(_.abotypName).toSeq
@@ -560,7 +567,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           sqls.
             eq(depotlieferungAbo.aktiv, true)
             .or.eq(heimlieferungAbo.aktiv, true)
-            .or.eq(postlieferungAbo.aktiv, true))
+            .or.eq(postlieferungAbo.aktiv, true)
+        )
     }.map { rs =>
       copyTo[Person, PersonSummary](personMapping(person)(rs))
     }.list
@@ -587,7 +595,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toMany(
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map((heimlieferungAbo, zusatzAbos) => {
         val zusatzAboIds = zusatzAbos.map(_.id).toSet
         val zusatzAbotypNames = zusatzAbos.map(_.abotypName).toSeq
@@ -611,7 +620,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toMany(
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map((postlieferungAbo, zusatzAbos) => {
         val zusatzAboIds = zusatzAbos.map(_.id).toSet
         val zusatzAbotypNames = zusatzAbos.map(_.abotypName).toSeq
@@ -655,14 +665,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where.eq(depotlieferungAbo.id, id)
         .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
         .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))))
+          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
+        ))
     }
       .one(depotlieferungAboMapping(depotlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => vertriebMapping.opt(vertrieb)(rs),
-        rs => lieferungMapping.opt(lieferung)(rs))
+        rs => lieferungMapping.opt(lieferung)(rs)
+      )
       .map((abo, abw, aboTyp, vertriebe, lieferungen) => {
         val sortedAbw = abw.sortBy(_.datum)
         val sortedLieferungen = lieferungen.sortBy(_.datum)
@@ -688,17 +700,20 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(vertriebMapping as vertrieb).on(heimlieferungAbo.vertriebId, vertrieb.id)
         .leftJoin(lieferungMapping as lieferung).on(
           sqls.eq(vertrieb.id, lieferung.vertriebId)
-            .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId))
+            .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .where.eq(heimlieferungAbo.id, id)
         .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))))
+          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
+        ))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => vertriebMapping.opt(vertrieb)(rs),
-        rs => lieferungMapping.opt(lieferung)(rs))
+        rs => lieferungMapping.opt(lieferung)(rs)
+      )
       .map((abo, abw, aboTyp, vertriebe, lieferungen) => {
         val sortedAbw = abw.sortBy(_.datum)
         val sortedLieferungen = lieferungen.sortBy(_.datum)
@@ -727,13 +742,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where.eq(postlieferungAbo.id, id)
         .and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
         .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))))
+          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
+        ))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => vertriebMapping.opt(vertrieb)(rs),
-        rs => lieferungMapping.opt(lieferung)(rs))
+        rs => lieferungMapping.opt(lieferung)(rs)
+      )
       .map((abo, abw, aboTyp, vertriebe, lieferungen) => {
         val sortedAbw = abw.sortBy(_.datum)
         val sortedLieferungen = lieferungen.sortBy(_.datum)
@@ -916,7 +933,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .toManies(
         rs => tourlieferungMapping.opt(tourlieferung)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map({ (tour, tourlieferungen, heimlieferungAbo, zusatzAbos) =>
         val tourlieferungenDetails = tourlieferungen map { t =>
           val z = zusatzAbos filter (_.hauptAboId == t.id)
@@ -1011,7 +1029,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .toManies(
         rs => produzentMapping.opt(produzent)(rs),
         rs => bestellungMapping.opt(bestellung)(rs),
-        rs => bestellpositionMapping.opt(bestellposition)(rs))
+        rs => bestellpositionMapping.opt(bestellposition)(rs)
+      )
       .map((sammelbestellung, produzenten, bestellungen, positionen) => {
         val bestellungenDetails = bestellungen.sortBy(_.steuerSatz) map { b =>
           val p = positionen.filter(_.bestellungId == b.id).sortBy(_.produktBeschrieb)
@@ -1088,7 +1107,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => lieferungMapping.opt(lieferung)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => zusatzAbotypMapping.opt(zusatzAboTyp)(rs),
-        rs => lieferpositionMapping.opt(lieferposition)(rs))
+        rs => lieferpositionMapping.opt(lieferposition)(rs)
+      )
       .map { (lieferplanung, lieferungen, abotypen, zusatzabotypen, positionen) =>
         val lieferungenDetails = lieferungen map { l =>
           val p = positionen.filter(_.lieferungId == l.id)
@@ -1149,7 +1169,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => zusatzAbotypMapping.opt(zusatzAboTyp)(rs),
         rs => lieferpositionMapping.opt(lieferposition)(rs),
-        rs => lieferplanungMapping.opt(lieferplanung)(rs))
+        rs => lieferplanungMapping.opt(lieferplanung)(rs)
+      )
       .map { (lieferung, abotyp, zusatzAbotyp, positionen, lieferplanung) =>
         val bemerkung = lieferplanung match {
           case Nil => None
@@ -1295,7 +1316,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .toManies(
         rs => produzentMapping.opt(produzent)(rs),
         rs => bestellungMapping.opt(bestellung)(rs),
-        rs => bestellpositionMapping.opt(bestellposition)(rs))
+        rs => bestellpositionMapping.opt(bestellposition)(rs)
+      )
       .map((sammelbestellung, produzenten, bestellungen, positionen) => {
         val bestellungenDetails = bestellungen map { b =>
           val p = positionen.filter(_.bestellungId == b.id)
@@ -1403,7 +1425,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .toManies(
         rs => produzentMapping.opt(produzent)(rs),
         rs => bestellungMapping.opt(bestellung)(rs),
-        rs => bestellpositionMapping.opt(bestellposition)(rs))
+        rs => bestellpositionMapping.opt(bestellposition)(rs)
+      )
       .map((sammelbestellung, produzenten, bestellungen, positionen) => {
         val bestellungenDetails = bestellungen map { b =>
           val p = positionen.filter(_.bestellungId == b.id)
@@ -1545,7 +1568,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where.eq(korb.aboId, aboId)
     }.one(korbMapping(korb))
       .toMany(
-        rs => lieferungMapping.opt(lieferung)(rs))
+        rs => lieferungMapping.opt(lieferung)(rs)
+      )
       .map((korb, lieferung) => {
         copyTo[Korb, KorbLieferung](korb, "lieferung" -> lieferung.head)
       }).list
@@ -1571,7 +1595,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map { (korb, _, _, _, _, _) => korb }
       .list
   }
@@ -1687,7 +1712,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => kundeMapping.opt(kunde)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map((auslieferung, depots, koerbe, abos, abotypen, kunden, personen, zusatzAbos) => {
         val personenDetails = personen map (p => copyTo[Person, PersonDetail](p))
         f(auslieferung, depots.head, koerbe, abos, abotypen, kunden, personenDetails, zusatzAbos)
@@ -1732,7 +1758,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => kundeMapping.opt(kunde)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map((auslieferung, tour, koerbe, abos, abotypen, kunden, personen, zusatzAbos) => {
         val personenDetails = personen map (p => copyTo[Person, PersonDetail](p))
         f(auslieferung, tour.head, koerbe, abos, abotypen, kunden, personenDetails, zusatzAbos)
@@ -1774,7 +1801,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => kundeMapping.opt(kunde)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs))
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+      )
       .map((auslieferung, koerbe, abos, abotypen, kunden, personen, zusatzAbos) => {
         val personenDetails = personen map (p => copyTo[Person, PersonDetail](p))
         f(auslieferung, koerbe, abos, abotypen, kunden, personenDetails, zusatzAbos)
@@ -1866,7 +1894,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungMapping.opt(heimlieferung)(rs),
         rs => depotlieferungMapping.opt(depotlieferung)(rs),
         rs => depotMapping.opt(depot)(rs),
-        rs => tourMapping.opt(tour)(rs))
+        rs => tourMapping.opt(tour)(rs)
+      )
       .map({ (vertrieb, pl, hls, dls, depots, touren) =>
         val dl = dls.map { lieferung =>
           depots.find(_.id == lieferung.depotId).headOption map { depot =>
@@ -1983,7 +2012,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           select(postlieferungAbo.id).from(postlieferungAboMapping as postlieferungAbo)
             .where.le(postlieferungAbo.start, today)
             .and.withRoundBracket { _.isNull(postlieferungAbo.ende).or.ge(postlieferungAbo.ende, today) }
-            .and.eq(postlieferungAbo.aktiv, false)).union(select(zusatzAbo.id).from(zusatzAboMapping as zusatzAbo)
+            .and.eq(postlieferungAbo.aktiv, false)
+        ).union(select(zusatzAbo.id).from(zusatzAboMapping as zusatzAbo)
             .where.le(zusatzAbo.start, today)
             .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, today) }
             .and.eq(zusatzAbo.aktiv, false))
@@ -2006,11 +2036,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           select(postlieferungAbo.id).from(postlieferungAboMapping as postlieferungAbo)
             .where.le(postlieferungAbo.start, yesterday)
             .and.withRoundBracket { _.isNotNull(postlieferungAbo.ende).and.le(postlieferungAbo.ende, yesterday) }
-            .and.eq(postlieferungAbo.aktiv, true)).union(
+            .and.eq(postlieferungAbo.aktiv, true)
+        ).union(
             select(zusatzAbo.id).from(zusatzAboMapping as zusatzAbo)
               .where.le(zusatzAbo.start, yesterday)
               .and.withRoundBracket { _.isNotNull(zusatzAbo.ende).and.le(zusatzAbo.ende, yesterday) }
-              .and.eq(zusatzAbo.aktiv, true))
+              .and.eq(zusatzAbo.aktiv, true)
+          )
     }.map(res => AboId(res.long(1))).list
   }
 
@@ -2035,7 +2067,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .one(lieferplanungMapping(lieferplanung))
       .toManies(
         rs => lieferungMapping.opt(lieferung)(rs),
-        rs => lieferpositionMapping.opt(lieferposition)(rs))
+        rs => lieferpositionMapping.opt(lieferposition)(rs)
+      )
       .map((lieferplanung, lieferungen, lieferpositionen) => {
         val lieferungenDetails = lieferungen map { l =>
           val p = lieferpositionen.filter(_.lieferungId == l.id).map(p => copyTo[Lieferposition, LieferpositionOpen](p)).toSeq

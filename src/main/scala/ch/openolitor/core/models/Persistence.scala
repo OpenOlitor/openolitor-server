@@ -33,14 +33,17 @@ case class PersistenceQueryParams(key: Option[String], from: Option[Long], to: O
 case class PersistenceJournal(
   persistenceKey: Long,
   sequenceNr: Long,
-  message: Option[PersistedMessage]) extends JSONSerializable
+  message: Option[PersistedMessage]
+) extends JSONSerializable
 
 case class PersistenceMetadata(
   persistenceId: String,
   persistenceKey: Long,
-  sequenceNr: Long) extends JSONSerializable
+  sequenceNr: Long
+) extends JSONSerializable
 
 case class PersistenceMessage(
   persistenceId: String,
   sequenceNr: Long,
-  message: Option[PersistentEvent]) extends JSONSerializable
+  message: Option[PersistentEvent]
+) extends JSONSerializable

@@ -51,7 +51,8 @@ trait AuslieferungEtikettenReportService extends AsyncConnectionPoolContextAware
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Auslieferungs-Etikette(n)"))
+      JobId("Auslieferungs-Etikette(n)")
+    )
   }
 
   private def name(fileType: FileType)(auslieferung: MultiReport[AuslieferungReportEntry]) = {

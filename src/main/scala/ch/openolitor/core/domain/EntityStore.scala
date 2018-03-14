@@ -101,10 +101,10 @@ trait EntityStoreJsonProtocol extends BaseJsonProtocol {
 }
 
 trait EntityStore extends AggregateRoot
-  with ConnectionPoolContextAware
-  with CommandHandlerComponent
-  with DBEvolutionReference
-  with IdFactory {
+    with ConnectionPoolContextAware
+    with CommandHandlerComponent
+    with DBEvolutionReference
+    with IdFactory {
 
   import EntityStore._
   import AggregateRoot._
@@ -128,7 +128,8 @@ trait EntityStore extends AggregateRoot
     buchhaltungCommandHandler,
     reportsCommandHandler,
     kundenportalCommandHandler,
-    baseCommandHandler)
+    baseCommandHandler
+  )
 
   def newId[I <: BaseId: ClassTag](cons: Long => I): I = {
     val clOf = classTag[I].runtimeClass.asInstanceOf[Class[I]]
@@ -275,6 +276,6 @@ trait EntityStore extends AggregateRoot
 }
 
 class DefaultEntityStore(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val evolution: Evolution) extends EntityStore
-  with DefaultCommandHandlerComponent {
+    with DefaultCommandHandlerComponent {
   val system = context.system
 }

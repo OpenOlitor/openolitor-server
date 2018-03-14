@@ -42,19 +42,19 @@ import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 
 trait StammdatenOpenRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-  with StammdatenJsonProtocol
-  with StammdatenEventStoreSerializer
-  with BuchhaltungJsonProtocol
-  with Defaults
-  with AuslieferungLieferscheinReportService
-  with AuslieferungEtikettenReportService
-  with KundenBriefReportService
-  with DepotBriefReportService
-  with ProduzentenBriefReportService
-  with ProduzentenabrechnungReportService
-  with FileTypeFilenameMapping
-  with StammdatenPaths {
+    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+    with StammdatenJsonProtocol
+    with StammdatenEventStoreSerializer
+    with BuchhaltungJsonProtocol
+    with Defaults
+    with AuslieferungLieferscheinReportService
+    with AuslieferungEtikettenReportService
+    with KundenBriefReportService
+    with DepotBriefReportService
+    with ProduzentenBriefReportService
+    with ProduzentenabrechnungReportService
+    with FileTypeFilenameMapping
+    with StammdatenPaths {
   self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent =>
 
   def stammdatenOpenRoute =
@@ -93,7 +93,8 @@ class DefaultStammdatenOpenRoutes(
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef)
-  extends StammdatenOpenRoutes
-  with DefaultStammdatenReadRepositoryAsyncComponent
-  with DefaultBuchhaltungReadRepositoryAsyncComponent
+  override val jobQueueService: ActorRef
+)
+    extends StammdatenOpenRoutes
+    with DefaultStammdatenReadRepositoryAsyncComponent
+    with DefaultBuchhaltungReadRepositoryAsyncComponent

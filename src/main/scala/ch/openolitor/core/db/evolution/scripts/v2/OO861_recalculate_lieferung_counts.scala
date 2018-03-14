@@ -30,5 +30,6 @@ object OO861_recalculate_lieferung_counts {
   val scripts = Seq(
     RecalculateAnzahlSaldoZuTiefLieferung.scripts,
     RecalculateAnzahlAbwesenheitenLieferung.scripts,
-    RecalculateAnzahlGeliefertLieferung.scripts)
+    RecalculateAnzahlGeliefertLieferung.scripts
+  )
 }

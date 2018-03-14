@@ -50,7 +50,8 @@ case class Lieferplanung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[LieferplanungId]
+  modifikator: PersonId
+) extends BaseEntity[LieferplanungId]
 
 case class LieferplanungOpenDetail(
   id: LieferplanungId,
@@ -68,10 +69,12 @@ case class LieferplanungOpenDetail(
 ) extends BaseEntity[LieferplanungId]
 
 case class LieferplanungModify(
-  bemerkungen: Option[String]) extends JSONSerializable
+  bemerkungen: Option[String]
+) extends JSONSerializable
 
 case class LieferplanungCreate(
-  bemerkungen: Option[String]) extends JSONSerializable
+  bemerkungen: Option[String]
+) extends JSONSerializable
 
 trait BaseLieferungId extends BaseId
 
@@ -110,7 +113,8 @@ case class Lieferung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[LieferungId]
+  modifikator: PersonId
+) extends BaseEntity[LieferungId]
 
 case class LieferungDetail(
   id: LieferungId,
@@ -136,7 +140,8 @@ case class LieferungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[LieferungId]
+  modifikator: PersonId
+) extends BaseEntity[LieferungId]
 
 case class LieferungOpenDetail(
   id: LieferungId,
@@ -152,7 +157,8 @@ case class LieferungOpenDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[LieferungId]
+  modifikator: PersonId
+) extends BaseEntity[LieferungId]
 
 case class LieferungModify(
   abotypId: AbotypId,
@@ -162,22 +168,26 @@ case class LieferungModify(
   status: LieferungStatus,
   datum: DateTime,
   preisTotal: BigDecimal,
-  lieferplanungId: Option[LieferplanungId]) extends JSONSerializable
+  lieferplanungId: Option[LieferplanungId]
+) extends JSONSerializable
 
 case class LieferungAbgeschlossenModify(
   status: LieferungStatus,
-  preisTotal: BigDecimal) extends JSONSerializable
+  preisTotal: BigDecimal
+) extends JSONSerializable
 
 case class LieferungPlanungAdd(
   id: LieferungId,
-  lieferplanungId: LieferplanungId) extends JSONSerializable
+  lieferplanungId: LieferplanungId
+) extends JSONSerializable
 
 case class LieferungPlanungRemove() extends JSONSerializable
 
 case class LieferungAbotypCreate(
   abotypId: AbotypId,
   vertriebId: VertriebId,
-  datum: DateTime) extends JSONSerializable
+  datum: DateTime
+) extends JSONSerializable
 
 case class LieferungenAbotypCreate(abotypId: AbotypId, vertriebId: VertriebId, daten: Seq[DateTime]) extends JSONSerializable
 
@@ -199,7 +209,8 @@ case class Lieferposition(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[LieferpositionId]
+  modifikator: PersonId
+) extends BaseEntity[LieferpositionId]
 
 case class LieferpositionOpen(
   id: LieferpositionId,
@@ -215,7 +226,8 @@ case class LieferpositionOpen(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[LieferpositionId]
+  modifikator: PersonId
+) extends BaseEntity[LieferpositionId]
 
 case class LieferpositionModify(
   lieferungId: LieferungId,
@@ -227,24 +239,29 @@ case class LieferpositionModify(
   einheit: Liefereinheit,
   menge: Option[BigDecimal],
   preis: Option[BigDecimal],
-  anzahl: Int) extends JSONSerializable
+  anzahl: Int
+) extends JSONSerializable
 
 case class LieferplanungDataModify(
   id: LieferplanungId,
   newSammelbestellungen: Set[SammelbestellungCreate],
-  lieferungen: Set[LieferungPositionenModify]) extends JSONSerializable
+  lieferungen: Set[LieferungPositionenModify]
+) extends JSONSerializable
 
 case class LieferplanungPositionenModify(
   id: LieferplanungId,
-  lieferungen: Set[LieferungPositionenModify]) extends JSONSerializable
+  lieferungen: Set[LieferungPositionenModify]
+) extends JSONSerializable
 
 case class LieferungPositionenModify(
   id: LieferungId,
-  lieferpositionen: LieferpositionenModify) extends JSONSerializable
+  lieferpositionen: LieferpositionenModify
+) extends JSONSerializable
 
 case class LieferpositionenModify(
   preisTotal: Option[BigDecimal],
-  lieferpositionen: List[LieferpositionModify]) extends JSONSerializable
+  lieferpositionen: List[LieferpositionModify]
+) extends JSONSerializable
 
 case class LieferplanungReport(
   id: LieferplanungId,
@@ -252,4 +269,5 @@ case class LieferplanungReport(
   abotypDepotTour: String,
   status: LieferungStatus,
   lieferungen: Seq[LieferungDetail],
-  projekt: ProjektReport) extends JSONSerializable
+  projekt: ProjektReport
+) extends JSONSerializable

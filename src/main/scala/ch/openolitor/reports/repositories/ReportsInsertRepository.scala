@@ -27,8 +27,8 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 trait ReportsInsertRepository extends BaseInsertRepository
-  with ReportsReadRepositorySync
-  with EventStream {
+    with ReportsReadRepositorySync
+    with EventStream {
 }
 
 trait ReportsInsertRepositoryImpl extends ReportsInsertRepository with LazyLogging {
