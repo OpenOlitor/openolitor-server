@@ -70,7 +70,7 @@ class Pain008_003_02_Export extends LazyLogging {
   }
 
   private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeaderSDD = {
-    val MsgId = kontoDatenProjekt.iban.get + randomAlphaNumericString(34 - kontoDatenProjekt.iban.get.length)
+    val MsgId = kontoDatenProjekt.iban.get.slice(0, 15) + getSimpleDateTimeString(getDateTime())
     val CreDtTm = getDateTime
     val NbOfTxs = nbTransactions
     val CtrlSum = None
@@ -82,7 +82,7 @@ class Pain008_003_02_Export extends LazyLogging {
   private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstructionInformationSDD = {
     (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder, kontoDatenProjekt.creditorIdentifier) match {
       case (Some(iban), Some(nameAccountHolder), Some(creditorIdentifier)) => {
-        val PmtInfId = iban + randomAlphaNumericString(34 - iban.length)
+        val PmtInfId = iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
         val CtrlSum = Some(rechnung.betrag)
         val PmtMtd = DD
         val BtchBookg = None
@@ -117,18 +117,13 @@ class Pain008_003_02_Export extends LazyLogging {
     }
   }
 
-  def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
-    val sb = new StringBuilder
-    for (i <- 1 to length) {
-      val randomNum = util.Random.nextInt(chars.length)
-      sb.append(chars(randomNum))
-    }
-    sb.toString
-  }
-
-  def randomAlphaNumericString(length: Int): String = {
-    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
-    randomStringFromCharList(length, chars)
+  private def getSimpleDateTimeString(date: XMLGregorianCalendar): String = {
+    date.getYear.toString +
+      date.getMonth.toString +
+      date.getDay.toString +
+      date.getHour.toString +
+      date.getMinute.toString +
+      date.getSecond.toString
   }
 }
 
