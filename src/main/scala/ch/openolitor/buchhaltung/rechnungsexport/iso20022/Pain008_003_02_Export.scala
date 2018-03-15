@@ -24,7 +24,7 @@
 package ch.openolitor.buchhaltung.rechnungsexport.iso20022
 
 import ch.openolitor.generated.xsd.camt054_001_04._
-import ch.openolitor.generated.xsd.pain008_003_02._
+import ch.openolitor.generated.xsd.pain008_001_07._
 import ch.openolitor.buchhaltung.models.Rechnung
 import ch.openolitor.stammdaten.models.KontoDaten
 
@@ -41,12 +41,13 @@ import com.typesafe.scalalogging.LazyLogging
 class Pain008_003_02_Export extends LazyLogging {
 
   private def exportPain008_003_02(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
-    val paymentInstructionInformationSDD = rechnungen map { rechnung =>
-      getPaymentInstructionInformationSDD(rechnung._1, rechnung._2, kontoDatenProjekt, NbOfTxs)
-    }
+    //val paymentInstructionInformationSDD = rechnungen map { rechnung =>
+    //  getPaymentInstructionInformationSDD(rechnung._1, rechnung._2, kontoDatenProjekt, NbOfTxs)
+    // }
 
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-      scalaxb.toXML[ch.openolitor.generated.xsd.pain008_003_02.Document](ch.openolitor.generated.xsd.pain008_003_02.Document(CustomerDirectDebitInitiationV02(getGroupHeaderSDD(rechnungen.map(_._1), kontoDatenProjekt, NbOfTxs), paymentInstructionInformationSDD)), "Document", defineNamespaceBinding()).toString()
+    //"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+    //  scalaxb.toXML[ch.openolitor.generated.xsd.pain008_003_02.Document](ch.openolitor.generated.xsd.pain008_003_02.Document(CustomerDirectDebitInitiationV02(getGroupHeaderSDD(rechnungen.map(_._1), kontoDatenProjekt, NbOfTxs), paymentInstructionInformationSDD)), "Document", defineNamespaceBinding()).toString()
+    ???
   }
 
   private def getDate(): XMLGregorianCalendar = {
@@ -69,17 +70,17 @@ class Pain008_003_02_Export extends LazyLogging {
     NamespaceBinding(null, "urn:iso:std:iso:20022:tech:xsd:pain.008.003.02", nsb3)
   }
 
-  private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeaderSDD = {
-    val MsgId = kontoDatenProjekt.iban.get.slice(0, 15) + getSimpleDateTimeString(getDateTime())
-    val CreDtTm = getDateTime
-    val NbOfTxs = nbTransactions
-    val CtrlSum = None
-    val partyIdentificationSepa1 = kontoDatenProjekt.creditorIdentifier.getOrElse("Initiator")
+  //private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeaderSDD = {
+  //val MsgId = kontoDatenProjekt.iban.get.slice(0, 15) + getSimpleDateTimeString(getDateTime())
+  //val CreDtTm = getDateTime
+  //jval NbOfTxs = nbTransactions
+  //jval CtrlSum = None
+  //jval partyIdentificationSepa1 = kontoDatenProjekt.creditorIdentifier.getOrElse("Initiator")
 
-    GroupHeaderSDD(MsgId, CreDtTm, NbOfTxs, CtrlSum, PartyIdentificationSEPA1(Some(partyIdentificationSepa1), None))
-  }
+  //jGroupHeaderSDD(MsgId, CreDtTm, NbOfTxs, CtrlSum, PartyIdentificationSEPA1(Some(partyIdentificationSepa1), None))
+  //}
 
-  private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstructionInformationSDD = {
+  /*private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstructionInformationSDD = {
     (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder, kontoDatenProjekt.creditorIdentifier) match {
       case (Some(iban), Some(nameAccountHolder), Some(creditorIdentifier)) => {
         val PmtInfId = iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
@@ -115,7 +116,8 @@ class Pain008_003_02_Export extends LazyLogging {
           ChrgBr, CdtrSchmeId, Seq(DrctDbtTxInf))
       }
     }
-  }
+    ??
+  }*/
 
   private def getSimpleDateTimeString(date: XMLGregorianCalendar): String = {
     date.getYear.toString +

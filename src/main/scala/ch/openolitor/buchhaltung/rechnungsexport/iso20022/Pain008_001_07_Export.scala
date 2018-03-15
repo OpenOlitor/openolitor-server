@@ -23,8 +23,9 @@
 
 package ch.openolitor.buchhaltung.rechnungsexport.iso20022
 
+import ch.openolitor.generated.xsd.pain008_001_07._
+import ch.openolitor.generated.xsd.pain008_001_07
 import ch.openolitor.generated.xsd.camt054_001_04._
-import ch.openolitor.generated.xsd.pain008_001_02._
 import ch.openolitor.buchhaltung.models.Rechnung
 import ch.openolitor.stammdaten.models.KontoDaten
 
@@ -36,16 +37,18 @@ import scalaxb.DataRecord
 import java.util.GregorianCalendar
 import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.DatatypeConstants
+
 import com.typesafe.scalalogging.LazyLogging
 
-class Pain008_001_02_Export extends LazyLogging {
+class Pain008_001_07_Export extends LazyLogging {
 
-  private def exportPain008_001_02(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
+  private def exportPain008_001_07(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
     val paymentInstructionInformationSDD = rechnungen map { rechnung =>
       getPaymentInstructionInformationSDD(rechnung._1, rechnung._2, kontoDatenProjekt, NbOfTxs)
     }
 
-    scalaxb.toXML[ch.openolitor.generated.xsd.pain008_001_02.Document](ch.openolitor.generated.xsd.pain008_001_02.Document(CustomerDirectDebitInitiationV02(getGroupHeaderSDD(rechnungen.map(_._1), kontoDatenProjekt, NbOfTxs), paymentInstructionInformationSDD)), "Document", defineNamespaceBinding()).toString()
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+      scalaxb.toXML[ch.openolitor.generated.xsd.pain008_001_07.Document](ch.openolitor.generated.xsd.pain008_001_07.Document(CustomerDirectDebitInitiationV07(getGroupHeaderSDD(rechnungen.map(_._1), kontoDatenProjekt, NbOfTxs), paymentInstructionInformationSDD)), "Document", defineNamespaceBinding()).toString()
   }
 
   private def getDate(): XMLGregorianCalendar = {
@@ -63,54 +66,57 @@ class Pain008_001_02_Export extends LazyLogging {
   }
 
   private def defineNamespaceBinding(): NamespaceBinding = {
-    val nsb2 = NamespaceBinding("xsi", "http://www.w3.org/2001/XMLSchema-instance", TopScope)
-    val nsb3 = NamespaceBinding("schemaLocation", "urn:iso:std:iso:20022:tech:xsd:pain.008.001.02.xsd", nsb2)
-    NamespaceBinding(null, "urn:iso:std:iso:20022:tech:xsd:pain.008.001.02", nsb3)
+    val nsb2 = NamespaceBinding("schemaLocation", "urn:iso:std:iso:20022:tech:xsd:pain.008.001.07.xsd pain.008.001.07, TopScope)
+    val nsb3 = NamespaceBinding("xsi", "http://www.w3.org/2001/XMLSchema-instance", nsb2)
+    NamespaceBinding(null, "urn:iso:std:iso:20022:tech:xsd:pain.008.001.07", nsb3)
   }
 
-  private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeaderSDD = {
+  private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String): GroupHeader55 = {
     val MsgId = kontoDatenProjekt.iban.get.slice(0, 15) + getSimpleDateTimeString(getDateTime())
     val CreDtTm = getDateTime
     val NbOfTxs = nbTransactions
     val CtrlSum = getSumAllRechnungs(rechnungen)
-    val partyIdentificationSepa1 = kontoDatenProjekt.creditorIdentifier.getOrElse("Initiator")
+    val partyIdentification43 = kontoDatenProjekt.creditorIdentifier.getOrElse("Initiator")
 
-    GroupHeaderSDD(MsgId, CreDtTm, NbOfTxs, CtrlSum, PartyIdentificationSEPA1(Some(partyIdentificationSepa1), None))
+    GroupHeader55(MsgId, CreDtTm, Seq(), NbOfTxs, Some(CtrlSum), pain008_001_07.PartyIdentification43(Some(partyIdentification43)))
   }
 
-  private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstructionInformationSDD = {
+  private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstruction21 = {
     (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder, kontoDatenProjekt.creditorIdentifier) match {
       case (Some(iban), Some(nameAccountHolder), Some(creditorIdentifier)) => {
         val PmtInfId = iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
         val CtrlSum = rechnung.betrag
         val PmtMtd = DD
         val BtchBookg = None
-        val PmtTpInf = Some(PaymentTypeInformationSDD(ServiceLevel("SEPA"), LocalInstrumentSEPA("Core"), FRST, None))
-        val ReqdColltnDt = getDate
-        val Cdtr = PartyIdentificationSEPA5(nameAccountHolder, None)
+        val PmtTpInf = Some(PaymentTypeInformation24(None, Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))), Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None))
+        val Cdtr = pain008_001_07.PartyIdentification43(Some(nameAccountHolder), None, None, None, None)
 
-        val CdtrAcct = CashAccountSEPA1(AccountIdentificationSEPA(iban))
-        val CdtrAgt = BranchAndFinancialInstitutionIdentificationSEPA3(FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, None, "")))
+        val CdtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord[String](None, Some("iban"), iban)))
+        val CdtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
+        val CdtrAgtAcct = None
         val UltmtCdtr = None
-        val ChrgBr = Some(ch.openolitor.generated.xsd.pain008_001_02.SLEV)
-        val CdtrSchmeId = Some(PartyIdentificationSEPA3(PartySEPA2(PersonIdentificationSEPA2(RestrictedPersonIdentificationSEPA(iban, RestrictedPersonIdentificationSchemeNameSEPA(SEPA))))))
+        val ChrgBr = Some(pain008_001_07.SLEV)
+        val CdtrSchmeId = None //Some(PartyIdentification43(Party11Choice(PersonIdentificationSEPA2(RestrictedPersonIdentificationSEPA(iban, RestrictedPersonIdentificationSchemeNameSEPA(SEPA))))))
 
+        val ChrgsAcct = None
+        val ChrgsAcctAgt = None
         // direct debit parameters
-        val PmtId = PaymentIdentificationSEPA(None, "NOTPROVIDED")
-        val InstdAmt = ActiveOrHistoricCurrencyAndAmountSEPA(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
+        val PmtId = PaymentIdentification1(None, "NOTPROVIDED")
+        val InstdAmt = pain008_001_07.ActiveOrHistoricCurrencyAndAmount(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
         val ChrgBr_l3 = None
-        val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(rechnung.kundeId.id.toString, getDate(), None, None, None), None)
-        val DbtrAgt = BranchAndFinancialInstitutionIdentificationSEPA3(FinancialInstitutionIdentificationSEPA3(DataRecord[OthrIdentification](None, Some("Othr"), OthrIdentification(NOTPROVIDED))))
-        val Dbtr = PartyIdentificationSEPA2(nameAccountHolder, None, None)
-        val DbtrAcct = CashAccountSEPA2(AccountIdentificationSEPA(iban))
+        val DrctDbtTx = Some(DirectDebitTransaction9(Some(MandateRelatedInformation11(Some(rechnung.kundeId.id.toString), Some(getDate()), None, None, None)), None, None, None))
+        val DbtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
+        val Dbtr = pain008_001_07.PartyIdentification43(Option(nameAccountHolder), None, None)
+        val DbtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord(None, Some("iban"), iban)))
         val UltmtDbtr = None
         val Purp = None
         val RmtInf = None
+        val ReqdColltnDt = getDate()
 
-        val DrctDbtTxInf = DirectDebitTransactionInformationSDD(PmtId, PmtTpInf, InstdAmt, ChrgBr_l3, DrctDbtTx, UltmtCdtr, DbtrAgt, Dbtr, DbtrAcct, UltmtDbtr, Purp, RmtInf)
-        PaymentInstructionInformationSDD(PmtInfId, PmtMtd, BtchBookg, NbOfTxs, CtrlSum,
-          PmtTpInf, ReqdColltnDt, Cdtr, CdtrAcct, CdtrAgt, UltmtCdtr,
-          ChrgBr, CdtrSchmeId, Seq(DrctDbtTxInf))
+        val DrctDbtTxInf = DirectDebitTransactionInformation22(PmtId, PmtTpInf, InstdAmt, ChrgBr_l3, DrctDbtTx, UltmtCdtr, DbtrAgt, None, Dbtr, DbtrAcct, UltmtDbtr, Purp, RmtInf)
+        PaymentInstruction21(PmtInfId, PmtMtd, BtchBookg, Some(NbOfTxs), Some(CtrlSum),
+          PmtTpInf, ReqdColltnDt, Cdtr, CdtrAcct, CdtrAgt, CdtrAgtAcct, UltmtCdtr,
+          ChrgBr, ChrgsAcct, ChrgsAcctAgt, CdtrSchmeId, Seq(DrctDbtTxInf))
       }
     }
   }
@@ -129,8 +135,8 @@ class Pain008_001_02_Export extends LazyLogging {
   }
 }
 
-object Pain008_001_02_Export {
-  def exportPain008_001_02(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
-    new Pain008_001_02_Export().exportPain008_001_02(rechnungen, kontoDatenProjekt, NbOfTxs)
+object Pain008_001_07_Export {
+  def exportPain008_001_07(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): String = {
+    new Pain008_001_07_Export().exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 }
