@@ -125,6 +125,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
               entity(as[RechnungenContainer]) { cont =>
                 onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                   val xml = generatePain008_001_07(rechnungen)
+                  logger.debug(s"=================================================================== xml = $xml")
                   //val stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))
                   //storeToFileStore(RechnungExportDaten, Some("exportFile"), stream, "exportFile.xml") { (id, metadata) =>
                   //  complete("File uploaded")

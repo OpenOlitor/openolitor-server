@@ -66,7 +66,7 @@ class Pain008_001_07_Export extends LazyLogging {
   }
 
   private def defineNamespaceBinding(): NamespaceBinding = {
-    val nsb2 = NamespaceBinding("schemaLocation", "urn:iso:std:iso:20022:tech:xsd:pain.008.001.07.xsd pain.008.001.07, TopScope)
+    val nsb2 = NamespaceBinding("schemaLocation", "urn:iso:std:iso:20022:tech:xsd:pain.008.001.07.xsd pain.008.001.07", TopScope)
     val nsb3 = NamespaceBinding("xsi", "http://www.w3.org/2001/XMLSchema-instance", nsb2)
     NamespaceBinding(null, "urn:iso:std:iso:20022:tech:xsd:pain.008.001.07", nsb3)
   }
@@ -82,43 +82,63 @@ class Pain008_001_07_Export extends LazyLogging {
   }
 
   private def getPaymentInstructionInformationSDD(rechnung: Rechnung, kontoDatenKunde: KontoDaten, kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstruction21 = {
-    (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder, kontoDatenProjekt.creditorIdentifier) match {
-      case (Some(iban), Some(nameAccountHolder), Some(creditorIdentifier)) => {
-        val PmtInfId = iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
-        val CtrlSum = rechnung.betrag
-        val PmtMtd = DD
-        val BtchBookg = None
-        val PmtTpInf = Some(PaymentTypeInformation24(None, Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))), Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None))
-        val Cdtr = pain008_001_07.PartyIdentification43(Some(nameAccountHolder), None, None, None, None)
-
-        val CdtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord[String](None, Some("iban"), iban)))
-        val CdtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
-        val CdtrAgtAcct = None
-        val UltmtCdtr = None
-        val ChrgBr = Some(pain008_001_07.SLEV)
-        val CdtrSchmeId = None //Some(PartyIdentification43(Party11Choice(PersonIdentificationSEPA2(RestrictedPersonIdentificationSEPA(iban, RestrictedPersonIdentificationSchemeNameSEPA(SEPA))))))
-
-        val ChrgsAcct = None
-        val ChrgsAcctAgt = None
-        // direct debit parameters
-        val PmtId = PaymentIdentification1(None, "NOTPROVIDED")
-        val InstdAmt = pain008_001_07.ActiveOrHistoricCurrencyAndAmount(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
-        val ChrgBr_l3 = None
-        val DrctDbtTx = Some(DirectDebitTransaction9(Some(MandateRelatedInformation11(Some(rechnung.kundeId.id.toString), Some(getDate()), None, None, None)), None, None, None))
-        val DbtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
-        val Dbtr = pain008_001_07.PartyIdentification43(Option(nameAccountHolder), None, None)
-        val DbtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord(None, Some("iban"), iban)))
-        val UltmtDbtr = None
-        val Purp = None
-        val RmtInf = None
-        val ReqdColltnDt = getDate()
-
-        val DrctDbtTxInf = DirectDebitTransactionInformation22(PmtId, PmtTpInf, InstdAmt, ChrgBr_l3, DrctDbtTx, UltmtCdtr, DbtrAgt, None, Dbtr, DbtrAcct, UltmtDbtr, Purp, RmtInf)
-        PaymentInstruction21(PmtInfId, PmtMtd, BtchBookg, Some(NbOfTxs), Some(CtrlSum),
-          PmtTpInf, ReqdColltnDt, Cdtr, CdtrAcct, CdtrAgt, CdtrAgtAcct, UltmtCdtr,
-          ChrgBr, ChrgsAcct, ChrgsAcctAgt, CdtrSchmeId, Seq(DrctDbtTxInf))
+    (kontoDatenKunde.iban, kontoDatenKunde.nameAccountHolder) match {
+      case (Some(iban), Some(nameAccountHolder)) => {
+        getPaymentInstruction(iban, nameAccountHolder, rechnung, NbOfTxs)
       }
     }
+  }
+
+  private def getPaymentInstruction(iban: String, nameAccountHolder: String, rechnung: Rechnung, transactionNumber: String): PaymentInstruction21 = {
+    val PmtInfId = iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
+    val PmtMtd = DD
+    val BtchBookg = None
+    val NbOfTxs = Some(transactionNumber)
+    val CtrlSum = rechnung.betrag
+    val PmtTpInf = Some(PaymentTypeInformation24(None, Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))), Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None))
+    val ReqdColltnDt = getDate()
+    val Cdtr = pain008_001_07.PartyIdentification43(Some(nameAccountHolder), None, None, None, None)
+    val CdtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord[String](None, Some("iban"), iban)))
+    val CdtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
+    val CdtrAgtAcct = None
+    val UltmtCdtr = None
+    val ChrgBr = Some(pain008_001_07.SLEV)
+    val ChrgsAcct = None
+    val ChrgsAcctAgt = None
+    //-----------------
+    val personIdentification = pain008_001_07.PersonIdentificationSchemeName1Choice(DataRecord[String](None, Some("Prtry"), "SEPA"))
+    val genericPerson = pain008_001_07.GenericPersonIdentification1(iban, Some(personIdentification))
+    val party11Choice = pain008_001_07.Party11Choice(DataRecord(None, Some("PrvtId"), pain008_001_07.PersonIdentification5(None, Seq(genericPerson))))
+    val CdtrSchmeId = Some(pain008_001_07.PartyIdentification43(None, None, Some(party11Choice), None, None))
+    //-----------------
+    val DrctDbtTxInf = getDirectDebitTransactionInformation(iban, nameAccountHolder, rechnung)
+
+    PaymentInstruction21(PmtInfId, PmtMtd, BtchBookg, NbOfTxs, Some(CtrlSum),
+      PmtTpInf, ReqdColltnDt, Cdtr, CdtrAcct, CdtrAgt, CdtrAgtAcct, UltmtCdtr,
+      ChrgBr, ChrgsAcct, ChrgsAcctAgt, CdtrSchmeId, Seq(DrctDbtTxInf))
+  }
+
+  private def getDirectDebitTransactionInformation(iban: String, nameAccountHolder: String, rechnung: Rechnung): DirectDebitTransactionInformation22 = {
+    val PmtId = PaymentIdentification1(None, "NOTPROVIDED")
+    //val PmtTpInf = Some(PaymentTypeInformation24(None, Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))), Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None))
+    val PmtTpInf = None
+    val InstdAmt = pain008_001_07.ActiveOrHistoricCurrencyAndAmount(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
+    val ChrgBr = None
+    val DrctDbtTx = Some(DirectDebitTransaction9(Some(MandateRelatedInformation11(Some(rechnung.kundeId.id.toString), Some(getDate()), None, None, None)), None, None, None))
+    val UltmtCdtr = None
+    val DbtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, Some(pain008_001_07.GenericFinancialIdentification1("NOTPROVIDED", None, None))))
+    val DbtrAgtAcct = None
+    val Dbtr = pain008_001_07.PartyIdentification43(Option(nameAccountHolder), None, None)
+    val DbtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord(None, Some("iban"), iban)))
+    val UltmtDbtr = None
+    val InstrForCdtrAgt = None
+    val Purp = None
+    val RgltryRptg = Nil
+    val Tax = None
+    val RltdRmtInf = Nil
+    val RmtInf = Some(pain008_001_07.RemittanceInformation11(Seq("Text auf Kontoauszug Musterfrau"), Nil))
+    val SplmtryData = Nil
+    DirectDebitTransactionInformation22(PmtId, PmtTpInf, InstdAmt, ChrgBr, DrctDbtTx, UltmtCdtr, DbtrAgt, DbtrAgtAcct, Dbtr, DbtrAcct, UltmtDbtr, InstrForCdtrAgt, Purp, RgltryRptg, Tax, RltdRmtInf, RmtInf, SplmtryData)
   }
 
   private def getSimpleDateTimeString(date: XMLGregorianCalendar): String = {
