@@ -22,12 +22,14 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung
 
+import ch.openolitor.core.filestore._
 import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.models.Person
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models.KundeId
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 
+import ch.openolitor.core.RouteServiceActor._
 import scala.util._
 import scalikejdbc.DB
 import scalikejdbc.DBSession
@@ -40,7 +42,7 @@ import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, ZahlungsImportRecordResult }
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008Export.exportPain008
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_001_07_Export.exportPain008_001_07
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
@@ -221,12 +223,15 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
           if (((rechnungenWithKontoDaten.find(tuple => !tuple._2.iban.isDefined)).size > 0) || ((rechnungenWithKontoDaten.find(tuple => !tuple._2.nameAccountHolder.isDefined)).size > 0)) {
             Failure(new InvalidStateException(s"Every subscription need to have an Iban and an account holder name "))
           } else {
-            val file = exportPain008(rechnungenWithKontoDaten, kontoDatenProjekt.get, NbOfTxs)
+            val file = exportPain008_001_07(rechnungenWithKontoDaten, kontoDatenProjekt.get, NbOfTxs)
 
             val rechnungIdList = rechnungen.map { rechnung =>
               rechnung.id
-            }.toSet
-            Success(Seq(DefaultResultingEvent(factory => ZahlungsExportCreatedEvent(factory.newMetadata(), ZahlungsExportCreate(id, file, rechnungIdList)))))
+            }
+
+            val verschicktEvents = rechnungIdList.map(r => DefaultResultingEvent(factory => RechnungVerschicktEvent(factory.newMetadata(), r)))
+            val zahlungsExportEvent = DefaultResultingEvent(factory => ZahlungsExportCreatedEvent(factory.newMetadata(), ZahlungsExportCreate(id, file, rechnungIdList.toSet)))
+            Success(zahlungsExportEvent :: verschicktEvents)
           }
         }
       }

@@ -56,6 +56,7 @@ case object GeneriertLieferplanung extends FileType { val bucket = GeneriertBuck
 case object ProjektStammdaten extends FileType { val bucket = StammdatenBucket }
 case object ZahlungsImportDaten extends FileType { val bucket = ZahlungsImportBucket }
 case object RechnungExportDaten extends FileType { val bucket = RechnungExportBucket }
+case object ZahlungExportDaten extends FileType { val bucket = ZahlungExportBucket }
 case object TemporaryData extends FileType { val bucket = TemporaryDataBucket }
 case object UnknownFileType extends VorlageTyp { lazy val bucket = sys.error("This FileType has no bucket") }
 
@@ -72,6 +73,7 @@ object FileType {
     ProjektStammdaten,
     ZahlungsImportDaten,
     RechnungExportDaten,
+    ZahlungExportDaten,
     TemporaryData
   )
 

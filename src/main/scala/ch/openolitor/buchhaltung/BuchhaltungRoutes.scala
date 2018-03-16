@@ -118,19 +118,20 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
           }
         }
       } ~
-      path("rechnungen" / "aktionen" / "pain_008") {
-        //get(list(buchhaltungReadRepository.getRechnungsExports)) ~
-        get(download(RechnungExportDaten, "exportFile.xml")) ~
-          post {
-            requestInstance { request =>
-              entity(as[RechnungenContainer]) { cont =>
-                onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                  logger.debug(s"-----------------------------------------------------------------------------")
-                  createZahlungExport(rechnungen)
+      path("rechnungen" / "aktionen" / "pain_008_001_07") {
+        post {
+          requestInstance { request =>
+            entity(as[RechnungenContainer]) { cont =>
+              onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
+                val xmlString = generatePain008(rechnungen)
+                val stream = new ByteArrayInputStream(xmlString.getBytes(StandardCharsets.UTF_8))
+                storeToFileStore(ZahlungExportDaten, Some(""), stream, "") { (id, metadata) =>
+                  complete("Zahlung export file uploaded")
                 }
               }
             }
           }
+        }
       } ~
       path("rechnungen" / "aktionen" / "verschicken") {
         post {
@@ -358,8 +359,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
-      case _ =>
-        complete("")
+      case _ => complete("")
     }
   }
 
@@ -399,6 +399,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+<<<<<<< HEAD
   private def sendEmailsToInvoicesSubscribers(emailSubject: String, body: String, ids: Seq[RechnungId], attachInvoice: Boolean)(implicit subject: Subject) = {
     onSuccess((entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, ids, attachInvoice))) {
       case UserCommandFailed =>
