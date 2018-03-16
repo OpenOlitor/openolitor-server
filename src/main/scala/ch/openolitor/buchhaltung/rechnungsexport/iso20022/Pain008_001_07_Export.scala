@@ -120,7 +120,6 @@ class Pain008_001_07_Export extends LazyLogging {
 
   private def getDirectDebitTransactionInformation(iban: String, nameAccountHolder: String, rechnung: Rechnung): DirectDebitTransactionInformation22 = {
     val PmtId = PaymentIdentification1(None, "NOTPROVIDED")
-    //val PmtTpInf = Some(PaymentTypeInformation24(None, Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))), Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None))
     val PmtTpInf = None
     val InstdAmt = pain008_001_07.ActiveOrHistoricCurrencyAndAmount(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
     val ChrgBr = None
