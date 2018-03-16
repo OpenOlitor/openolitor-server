@@ -22,24 +22,19 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsexport.iso20022
 
-import ch.openolitor.buchhaltung.models.Rechnung
-import ch.openolitor.buchhaltung.models.RechnungId
-import ch.openolitor.buchhaltung.models.RechnungStatus
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_003_02_Export
-import ch.openolitor.stammdaten.models.KontoDaten
-import ch.openolitor.stammdaten.models.PaymentType
-import ch.openolitor.stammdaten.models.KontoDatenId
+import ch.openolitor.buchhaltung.models.{ Rechnung, RechnungId, RechnungStatus }
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_001_07_Export
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.models.KundeId
-import ch.openolitor.stammdaten.models.Waehrung
+import ch.openolitor.stammdaten.models._
 import org.joda.time.DateTime
 import org.specs2.mutable._
+
 import scala.io.Source.fromInputStream
 
-class pain008_003_02_ExportSpec extends Specification {
-  "Pain008_003_02_Export" should {
-    "export pain008_003_02 XML file" in {
-      val exampleFileInputStream = getClass.getResourceAsStream("/pain_008_003_02_Sunu_Beispiel.xml")
+class pain008_001_07_ExportSpec extends Specification {
+  "Pain008_001_07_Export" should {
+    "export pain008_001_07 XML file" in {
+      val exampleFileInputStream = getClass.getResourceAsStream("/pain_008_001_07_Sunu_Beispiel.xml")
       val exampleFileString = fromInputStream(exampleFileInputStream).mkString
       val iban = "AD12000120302003591001000000000001"
       val rechnung = Rechnung(
@@ -103,7 +98,7 @@ class pain008_003_02_ExportSpec extends Specification {
       )
 
       val exampleFileStringNoSpaces = exampleFileString.split('\n').map(_.trim.filter(_ >= ' ')).mkString
-      val result = Pain008_003_02_Export.exportPain008_003_02(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1")
+      val result = Pain008_001_07_Export.exportPain008_001_07(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1")
       //delete the dates and id from the result and the expected xml
       val exampleFileNoDates = exampleFileStringNoSpaces.replaceAll("<CreDtTm>.*</CreDtTm>", "<CreDtTm></CreDtTm>")
         .replaceAll("<ReqdColltnDt>.*</ReqdColltnDt>", "<ReqdColltnDt></ReqdColltnDt>")

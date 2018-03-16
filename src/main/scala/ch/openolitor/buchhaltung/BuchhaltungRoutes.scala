@@ -56,8 +56,7 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
 
-import ch.openolitor.buchhaltung.rechnungsexport.RechnungExportRecordResult
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_003_02_Export
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
 import scalikejdbc.TxBoundary.Future
 
 import scala.concurrent.Await
@@ -124,22 +123,12 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
             requestInstance { request =>
               entity(as[RechnungenContainer]) { cont =>
                 onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                  val xml = generatePain008(rechnungen)
-                  val stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))
-                  //storeToFileStore(RechnungExportDaten, Some("exportFile"), stream, "exportFile.xml") { (id, metadata) =>
-                  //  complete("File uploaded")
-                  //}
+                  val xml = generatePain008_001_07(rechnungen)
                   ???
                 }
               }
             }
           }
-        //val xml = generatePain008()
-        //storeToFileStore(RechnungExportDaten, None, new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), "fileToDownload") { (fileId, meta) =>
-        //  createRechnungExportPain008("fileToDownload", Seq())
-        //}
-
-        //download(RechnungExportDaten, "fileToDownload")
       } ~
       path("rechnungen" / "aktionen" / "verschicken") {
         post {
@@ -379,7 +368,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
-  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): String = {
+  def generatePain008_001_07(ids: List[Rechnung])(implicit subect: Subject): String = {
     val NbOfTxs = ids.size.toString
 
     val kontoDatenProjektWithFuture = stammdatenReadRepository.getKontoDatenProjekt map { maybeKontoDatenProjekt =>
@@ -401,7 +390,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     //sequence will transform from list[Future] to future[list]
     val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
     val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
-    Pain008_003_02_Export.exportPain008_003_02(rechnungen, kontoDatenProjekt, NbOfTxs)
+    Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 }
 

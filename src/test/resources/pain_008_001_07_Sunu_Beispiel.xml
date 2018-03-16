@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02 pain.008.003.02.xsd">
+    <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.07" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.008.001.07.xsd pain.008.001.07">
    <CstmrDrctDbtInitn>
        <GrpHdr>
            <MsgId>AD1200012030200</MsgId>
            <CreDtTm>2017-08-07T14:48:06</CreDtTm>
            <NbOfTxs>1</NbOfTxs>
+           <CtrlSum>99.99</CtrlSum>
            <InitgPty>
                <Nm>Musterfirma</Nm>
            </InitgPty>
@@ -25,17 +26,15 @@
            </PmtTpInf>
            <ReqdColltnDt>2017-08-07</ReqdColltnDt>
            <Cdtr>
-               <Nm>Musterfirma</Nm>
+               <Nm>Musterfrau, Birgit</Nm>
            </Cdtr>
            <CdtrAcct>
                <Id>
-                   <IBAN>AD12000120302003591001000000000001</IBAN>
+                   <iban>AD12000120302003591001000000000001</iban>
                </Id>
            </CdtrAcct>
            <CdtrAgt>
-               <FinInstnId>
-                   <BIC>BFSWDE88KRL</BIC>
-               </FinInstnId>
+               <FinInstnId/>
            </CdtrAgt>
            <ChrgBr>SLEV</ChrgBr>
            <CdtrSchmeId>
@@ -71,7 +70,7 @@
                </Dbtr>
                <DbtrAcct>
                    <Id>
-                       <IBAN>AD12000120302003591001000000000001</IBAN>
+                       <iban>AD12000120302003591001000000000001</iban>
                    </Id>
                </DbtrAcct>
                <RmtInf>
