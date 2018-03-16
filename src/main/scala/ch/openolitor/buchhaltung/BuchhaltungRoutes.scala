@@ -117,19 +117,20 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
           }
         }
       } ~
-      path("rechnungen" / "aktionen" / "pain_008") {
-        //get(list(buchhaltungReadRepository.getRechnungsExports)) ~
-        get(download(RechnungExportDaten, "exportFile.xml")) ~
-          post {
-            requestInstance { request =>
-              entity(as[RechnungenContainer]) { cont =>
-                onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                  logger.debug(s"-----------------------------------------------------------------------------")
-                  createZahlungExport(rechnungen)
+      path("rechnungen" / "aktionen" / "pain_008_001_07") {
+        post {
+          requestInstance { request =>
+            entity(as[RechnungenContainer]) { cont =>
+              onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
+                val xmlString = generatePain008(rechnungen)
+                val stream = new ByteArrayInputStream(xmlString.getBytes(StandardCharsets.UTF_8))
+                storeToFileStore(ZahlungExportDaten, Some(""), stream, "") { (id, metadata) =>
+                  complete("Zahlung export file uploaded")
                 }
               }
             }
           }
+        }
       } ~
       path("rechnungen" / "aktionen" / "verschicken") {
         post {
@@ -345,8 +346,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
-      case _ =>
-        complete("")
+      case _ => complete("")
     }
   }
 
@@ -384,6 +384,31 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       case _ =>
         complete("")
     }
+  }
+
+  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): String = {
+    val NbOfTxs = ids.size.toString
+
+    val kontoDatenProjektWithFuture = stammdatenReadRepository.getKontoDatenProjekt map { maybeKontoDatenProjekt =>
+      maybeKontoDatenProjekt match {
+        case Some(kdp) => kdp
+      }
+    }
+
+    val rechnungenWithFutures = ids.map {
+      rechnung =>
+        stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { maybeKontoDatenKunde =>
+          maybeKontoDatenKunde match {
+            case Some(kontoDatenKunde) => (rechnung, kontoDatenKunde)
+          }
+        }
+    }
+    val d = Duration(1, SECONDS)
+
+    //sequence will transform from list[Future] to future[list]
+    val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
+    val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
+    Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
   }
 }
 
