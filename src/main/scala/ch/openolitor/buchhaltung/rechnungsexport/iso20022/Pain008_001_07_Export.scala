@@ -98,7 +98,7 @@ class Pain008_001_07_Export extends LazyLogging {
     val PmtTpInf = Some(PaymentTypeInformation24(None, Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))), Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None))
     val ReqdColltnDt = getDate()
     val Cdtr = pain008_001_07.PartyIdentification43(Some(nameAccountHolder), None, None, None, None)
-    val CdtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord[String](None, Some("iban"), iban)))
+    val CdtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord[String](None, Some("IBAN"), iban)))
     val CdtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
     val CdtrAgtAcct = None
     val UltmtCdtr = None
@@ -128,7 +128,7 @@ class Pain008_001_07_Export extends LazyLogging {
     val DbtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, Some(pain008_001_07.GenericFinancialIdentification1("NOTPROVIDED", None, None))))
     val DbtrAgtAcct = None
     val Dbtr = pain008_001_07.PartyIdentification43(Option(nameAccountHolder), None, None)
-    val DbtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord(None, Some("iban"), iban)))
+    val DbtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord(None, Some("IBAN"), iban)))
     val UltmtDbtr = None
     val InstrForCdtrAgt = None
     val Purp = None
