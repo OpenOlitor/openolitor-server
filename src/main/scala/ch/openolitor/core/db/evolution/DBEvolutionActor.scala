@@ -24,12 +24,10 @@ package ch.openolitor.core.db.evolution
 
 import akka.actor._
 import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.domain.DefaultCommandHandlerComponent
 import scala.util.{ Try, Success, Failure }
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import scalikejdbc.DB
-import ch.openolitor.core.models.BaseId
 
 object DBEvolutionActor {
   case object CheckDBEvolution

@@ -24,7 +24,6 @@ package ch.openolitor.core.repositories
 
 import scalikejdbc._
 import ch.openolitor.core.models.BaseId
-import java.util.UUID
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.models.PersonId
@@ -43,7 +42,6 @@ trait DBMappings extends BaseParameter
   with Parameters28
   with LowPriorityImplicitsParameterBinderFactory1 {
   import Binders._
-  import ParameterBinderFactory._
 
   def baseIdBinders[T <: BaseId](f: Long => T): Binders[T] = Binders.long.xmap(l => f(l), _.id)
   def baseStringIdBinders[T <: BaseStringId](f: String => T): Binders[T] = Binders.string.xmap(l => f(l), _.id)
@@ -120,7 +118,6 @@ trait DBMappings extends BaseParameter
 
   // low level binders
   import TypeBinder._
-  import ParameterBinderFactory._
   implicit val stringBinder = Binders.string
   implicit val optionStringBinder = Binders.option[String]
   implicit val intBinder = Binders.int

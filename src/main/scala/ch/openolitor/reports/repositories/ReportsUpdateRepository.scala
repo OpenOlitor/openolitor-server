@@ -22,24 +22,9 @@
 \*                                                                           */
 package ch.openolitor.reports.repositories
 
-import ch.openolitor.core.models._
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
-import ch.openolitor.core.repositories.BaseWriteRepository
-import scala.concurrent._
-import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
-import ch.openolitor.reports.models._
-import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.util.parsing.FilterExpr
-import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.reports.ReportsDBMappings
 
 trait ReportsUpdateRepository extends BaseUpdateRepository
   with ReportsReadRepositorySync

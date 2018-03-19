@@ -36,8 +36,6 @@ import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.models.AbotypModify
 import ch.openolitor.core.models.PersonId
 import scalikejdbc.DBSession
-import ch.openolitor.util.ConfigUtil._
-import org.joda.time.DateTime
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 

@@ -55,7 +55,6 @@ trait BuchhaltungEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait BuchhaltungEntityStoreViewComponent extends EntityStoreViewComponent {
-  import EntityStore._
   val sysConfig: SystemConfig
   val system: ActorSystem
 

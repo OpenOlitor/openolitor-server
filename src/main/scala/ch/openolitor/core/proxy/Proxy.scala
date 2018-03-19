@@ -27,19 +27,11 @@ import spray.http._
 import akka.actor._
 import akka.io.IO
 import spray.can.server.UHttp
-import ch.openolitor.core.DefaultRouteService
-import ch.openolitor.core.ActorReferences
-import ch.openolitor.core.SystemConfig
 import scalaz.NonEmptyList
 import ch.openolitor.core.Boot.MandantSystem
-import org.jfarcand.wcs.WebSocket
 import spray.can.Http
-import spray.can.websocket._
-import spray.can.websocket.WebSocketServerWorker
 import com.typesafe.scalalogging.LazyLogging
-import akka.util.Timeout
 import scala.concurrent.duration._
-import spray.io.CommandWrapper
 
 /**
  * Borrowed from:

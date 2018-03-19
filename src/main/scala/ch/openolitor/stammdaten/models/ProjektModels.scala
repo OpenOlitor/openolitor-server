@@ -22,12 +22,10 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import java.util.UUID
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
-import scala.collection.immutable.TreeMap
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 

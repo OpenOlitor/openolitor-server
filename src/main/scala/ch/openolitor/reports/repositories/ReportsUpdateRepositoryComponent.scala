@@ -26,7 +26,6 @@ import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
 import ch.openolitor.core.repositories.BaseUpdateRepositoryComponent
 
 import akka.actor.ActorSystem
-import ch.openolitor.core.EventStream
 
 trait ReportsUpdateRepositoryComponent extends BaseUpdateRepositoryComponent {
   val reportsUpdateRepository: ReportsUpdateRepository

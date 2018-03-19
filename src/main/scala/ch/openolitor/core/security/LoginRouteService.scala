@@ -24,14 +24,10 @@ package ch.openolitor.core.security
 
 import spray.routing._
 import spray.http._
-import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 import spray.caching._
-import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
@@ -47,7 +43,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.models.PersonId
 import java.util.UUID
-import ch.openolitor.stammdaten.models.PersonDetail
 import ch.openolitor.core.Macros._
 import scala.util.Random
 import scalaz._

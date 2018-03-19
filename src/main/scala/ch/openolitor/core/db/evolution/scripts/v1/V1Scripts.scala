@@ -30,10 +30,8 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import org.mindrot.jbcrypt.BCrypt
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
 import ch.openolitor.core.SystemConfig
 import org.joda.time.DateTime
-import scala.collection.immutable.TreeMap
 import ch.openolitor.core.repositories.BaseWriteRepository
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.core.models.PersonId

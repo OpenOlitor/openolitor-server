@@ -23,11 +23,9 @@
 package ch.openolitor.core.domain
 
 import org.joda.time.DateTime
-import ch.openolitor.core.models.PersonId
 import akka.persistence._
 import ch.openolitor.core.SystemConfig
 import akka.actor._
-import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.core.domain.DefaultMessages.Startup
 
 object SystemEventStore {

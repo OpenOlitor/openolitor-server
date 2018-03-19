@@ -23,15 +23,6 @@
 package ch.openolitor.core.mailservice
 
 import org.specs2.mutable.Specification
-import ch.openolitor.core.db.TestDB
-import akka.testkit.TestKit
-import akka.actor.ActorSystem
-import org.specs2.specification.Scope
-import akka.testkit.TestProbe
-import ch.openolitor.core.ConfigLoader
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.MandantConfiguration
-import ch.openolitor.core.domain.AggregateRoot._
 import org.joda.time.DateTime
 
 class MailRetryHandlerSpec extends Specification {

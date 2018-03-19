@@ -22,14 +22,9 @@
 \*                                                                           */
 package ch.openolitor.util
 
-import java.util.zip._
-import java.io.ByteArrayOutputStream
 import scala.util.Try
-import java.io.InputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.io.FileInputStream
-import java.io.OutputStream
 
 class ZipBuilderWithFile(file: File = File.createTempFile("report", ".zip")) extends ZipBuilder(new FileOutputStream(file)) {
   file.deleteOnExit()

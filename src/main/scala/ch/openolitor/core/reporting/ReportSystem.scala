@@ -25,7 +25,6 @@ package ch.openolitor.core.reporting
 import akka.actor._
 import spray.json._
 import ch.openolitor.core.filestore._
-import java.util.zip.ZipFile
 import java.util.Locale
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.JSONSerializable

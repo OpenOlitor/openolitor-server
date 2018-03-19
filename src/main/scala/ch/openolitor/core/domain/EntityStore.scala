@@ -24,23 +24,15 @@ package ch.openolitor.core.domain
 
 import akka.actor._
 import akka.persistence._
-import java.util.UUID
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models._
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.Evolution
 import scala.util._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import scalikejdbc.DB
 import ch.openolitor.core.SystemConfig
-import spray.json.DefaultJsonProtocol
 import ch.openolitor.core.BaseJsonProtocol
 import org.joda.time.DateTime
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Macros._
 import scala.reflect._
-import scala.reflect.runtime.universe.{ Try => TTry, _ }
-import ch.openolitor.buchhaltung.models._
 import DefaultMessages._
 import ch.openolitor.core.DBEvolutionReference
 
@@ -49,7 +41,6 @@ import ch.openolitor.core.DBEvolutionReference
  * Dieser EntityStore speichert alle Events, welche zu Modifikationen am Datenmodell führen können je Mandant.
  */
 object EntityStore {
-  import AggregateRoot._
 
   val VERSION = 2
 

@@ -23,18 +23,8 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseRepositoryQueries extends DBMappings with LazyLogging {
   protected def getByIdsQuery[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit binder: Binders[I]) = {

@@ -28,7 +28,6 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.domain._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.domain.EntityStore.UserCommandFailed
 import org.joda.time.DateTime
 import akka.persistence.SnapshotMetadata
 import scala.util.Try
@@ -37,7 +36,6 @@ import scala.util.Success
 import scala.concurrent.duration._
 import courier._
 import javax.mail.internet.InternetAddress
-import scala.concurrent.Future
 import stamina.Persister
 import java.util.UUID
 import scala.collection.immutable.TreeSet
@@ -46,7 +44,6 @@ import ch.openolitor.util.ConfigUtil._
 import scala.concurrent.Await
 
 object MailService {
-  import AggregateRoot._
 
   val VERSION = 1
   val persistenceId = "mail-store"

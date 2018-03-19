@@ -24,7 +24,6 @@ package ch.openolitor.core.mailservice
 
 import ch.openolitor.core.domain.EventMetadata
 import org.joda.time.DateTime
-import ch.openolitor.core.models.BaseId
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 

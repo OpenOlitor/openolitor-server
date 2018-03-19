@@ -25,7 +25,6 @@ package ch.openolitor.core.domain
 import scala.util.Try
 import ch.openolitor.core.models._
 import scala.reflect._
-import scala.reflect.runtime.universe.{ Try => TTry, _ }
 import com.typesafe.scalalogging.LazyLogging
 import scala.util.Success
 

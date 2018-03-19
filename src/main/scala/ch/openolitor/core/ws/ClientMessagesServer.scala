@@ -65,7 +65,6 @@ object ClientMessagesServer {
 }
 class ClientMessagesServer(loginTokenCache: Cache[Subject]) extends Actor with ActorLogging {
 
-  import ClientMessagesJsonProtocol._
 
   override def preStart() {
     super.preStart()

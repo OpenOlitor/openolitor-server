@@ -22,8 +22,6 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsimport.esr
 
-import org.joda.time.DateTime
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
 import org.joda.time.format.DateTimeFormat
 
 sealed trait EsrTyp

@@ -23,25 +23,16 @@
 package ch.openolitor.buchhaltung.reporting
 
 import ch.openolitor.buchhaltung.models.RechnungId
-import scalaz._
-import scalaz.Scalaz._
 import scala.concurrent.Future
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.reporting._
-import ch.openolitor.core.reporting.ReportSystem._
-import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models.Projekt
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.stammdaten.models.ProjektReport
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
-import scala.Left
-import scala.Right
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait RechnungReportService extends AsyncConnectionPoolContextAware with ReportService with BuchhaltungJsonProtocol with RechnungReportData {

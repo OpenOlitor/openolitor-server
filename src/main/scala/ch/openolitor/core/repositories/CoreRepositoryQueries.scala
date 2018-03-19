@@ -23,8 +23,6 @@
 package ch.openolitor.core.repositories
 
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.eventsourcing.PersistenceDBMappings
 import ch.openolitor.util.parsing.FilterExpr

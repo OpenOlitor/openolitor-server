@@ -24,7 +24,6 @@ package ch.openolitor.core.filestore
 
 import akka.actor._
 import java.util.UUID
-import ch.openolitor.util.ByteBufferBackedInputStream
 import scala.concurrent.ExecutionContext
 import java.io.ByteArrayInputStream
 import scala.concurrent.Future

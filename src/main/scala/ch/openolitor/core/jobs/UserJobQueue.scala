@@ -25,10 +25,7 @@ package ch.openolitor.core.jobs
 import akka.actor._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.ws.ClientReceiver
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.AkkaEventStream
-import ch.openolitor.core.ws.ClientMessages.ClientMessage
-import ch.openolitor.core.JSONSerializable
 import com.github.blemale.scaffeine._
 import ch.openolitor.core.MandantConfiguration
 import ch.openolitor.util.ConfigUtil._
@@ -36,7 +33,6 @@ import scala.concurrent.duration._
 import com.github.benmanes.caffeine.cache.RemovalCause
 
 object UserJobQueue {
-  import JobQueueService._
 
   def props(personId: PersonId, mandantConfiguration: MandantConfiguration): Props = Props(classOf[UserJobQueue], personId, mandantConfiguration)
 }
@@ -50,7 +46,6 @@ class UserJobQueue(personId: PersonId, mandantConfiguration: MandantConfiguratio
   with JobQueueJsonProtocol
   with AkkaEventStream {
   import JobQueueService._
-  import UserJobQueue._
 
   override val system = context.system
 

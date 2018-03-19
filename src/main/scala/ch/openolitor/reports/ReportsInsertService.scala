@@ -26,23 +26,16 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
-import ch.openolitor.reports._
 import ch.openolitor.reports.models._
-import java.util.UUID
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import ch.openolitor.core.Macros._
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.DateTime
 import ch.openolitor.core.Macros._
-import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.stammdaten.models.KundeId
 
 object ReportsInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ReportsInsertService = new DefaultReportsInsertService(sysConfig, system)

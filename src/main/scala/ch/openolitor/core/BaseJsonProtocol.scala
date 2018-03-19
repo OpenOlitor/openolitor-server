@@ -28,7 +28,6 @@ import org.joda.time._
 import org.joda.time.format._
 import ch.openolitor.core.models._
 import java.util.UUID
-import java.text.SimpleDateFormat
 import zangelo.spray.json.AutoProductFormats
 import java.util.Locale
 

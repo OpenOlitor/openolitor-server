@@ -24,19 +24,14 @@ package ch.openolitor.core.jobs
 
 import spray.routing._
 import spray.http._
-import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive.pimpApply
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 import ch.openolitor.core._
-import scala.util.Properties
 import ch.openolitor.core.security.Subject
 import akka.pattern.ask
 import ch.openolitor.core.jobs.JobQueueService._
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 
 trait JobQueueRoutes extends HttpService with DefaultRouteService with JobQueueJsonProtocol with JobQueueServiceReference {
 

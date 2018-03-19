@@ -24,11 +24,8 @@ package ch.openolitor.core.reporting
 
 import akka.actor._
 import ch.openolitor.core.reporting.ReportSystem._
-import java.io.ByteArrayOutputStream
 import scala.util._
-import ch.openolitor.util.ZipBuilder
 import ch.openolitor.core.filestore.FileStoreFileReference
-import ch.openolitor.core.jobs.JobQueueService
 import ch.openolitor.core.jobs.JobQueueService.FileStoreResultPayload
 
 object FileStoreReportResultCollector {

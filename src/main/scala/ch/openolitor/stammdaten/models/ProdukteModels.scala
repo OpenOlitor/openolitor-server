@@ -22,9 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import ch.openolitor.stammdaten._
 import ch.openolitor.core.models._
-import java.util.UUID
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 

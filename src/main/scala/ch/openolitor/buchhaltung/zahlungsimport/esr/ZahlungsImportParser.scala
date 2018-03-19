@@ -22,8 +22,6 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsimport.esr
 
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import scala.util._
 import scala.io.Source
 import java.io.InputStream

@@ -24,20 +24,15 @@ package ch.openolitor.core.reporting
 
 import org.odftoolkit.odfdom.`type`.Color
 import org.odftoolkit.odfdom.pkg.OdfElement
-import org.odftoolkit.odfdom.dom._
-import org.odftoolkit.odfdom.dom.element.text._
-import org.odftoolkit.odfdom.dom.style._
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.common.field._
 import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text._
 import org.odftoolkit.simple.text.list._
 import org.odftoolkit.simple.draw._
-import org.odftoolkit.simple.style._
 import scala.util.Try
 import spray.json._
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import org.joda.time.format.ISODateTimeFormat
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.format.DateTimeFormat

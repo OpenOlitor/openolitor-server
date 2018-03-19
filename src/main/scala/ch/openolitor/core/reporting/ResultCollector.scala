@@ -25,11 +25,7 @@ package ch.openolitor.core.reporting
 import akka.actor._
 import ch.openolitor.core.JobQueueServiceReference
 import ch.openolitor.core.reporting.ReportSystem._
-import spray.http.MediaType
-import java.io.File
 import ch.openolitor.core.jobs.JobQueueService._
-import ch.openolitor.core.filestore.FileType
-import ch.openolitor.core.filestore.FileStoreFileId
 
 /**
  *

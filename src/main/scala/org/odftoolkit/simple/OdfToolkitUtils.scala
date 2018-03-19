@@ -22,19 +22,14 @@
 \*                                                                           */
 package org.odftoolkit.simple
 
-import org.odftoolkit.odfdom.pkg._
 import org.odftoolkit.simple.draw._
 import org.odftoolkit.odfdom.dom._
 import org.odftoolkit.odfdom.dom.style._
 import org.odftoolkit.odfdom.dom.element.text._
 import org.odftoolkit.odfdom.dom.element.draw._
-import org.odftoolkit.odfdom.dom.element.office._
 import org.odftoolkit.odfdom.`type`.Color
 import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text.Paragraph
-import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle
-import org.odftoolkit.odfdom.incubator.doc.style.OdfDefaultStyle
-import org.odftoolkit.odfdom.dom.attribute.draw.DrawTextStyleNameAttribute
 
 /**
  * Extends document to make method accessor public available

@@ -23,7 +23,6 @@
 package ch.openolitor.core.eventsourcing
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe._
 import stamina._
 import stamina.json._
 import ch.openolitor.core.domain._
@@ -34,7 +33,6 @@ import ch.openolitor.core.models.BaseId
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.mailservice._
 import ch.openolitor.core.mailservice.MailService._
-import zangelo.spray.json.AutoProductFormats
 
 package object events extends DefaultJsonProtocol {
   import spray.json.lenses.JsonLenses._

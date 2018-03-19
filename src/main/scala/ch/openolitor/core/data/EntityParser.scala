@@ -25,18 +25,14 @@ package ch.openolitor.core.data
 import java.util.Date
 import scala.collection.immutable.TreeMap
 import scala.collection.JavaConversions._
-import scala.util._
-import scala.reflect.runtime.universe.{ Try => UTry, _ }
+import scala.reflect.runtime.universe._
 import akka.event.LoggingAdapter
-import java.io.InputStream
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
-import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
 import ch.openolitor.core.models._
-import ch.openolitor.stammdaten.models._
 
 trait EntityParser {
   import EntityParser._

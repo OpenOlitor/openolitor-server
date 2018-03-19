@@ -24,7 +24,6 @@ package ch.openolitor.core.jobs
 
 import ch.openolitor.core.BaseJsonProtocol
 import zangelo.spray.json.AutoProductFormats
-import spray.json._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.jobs.JobQueueService.JobId
 

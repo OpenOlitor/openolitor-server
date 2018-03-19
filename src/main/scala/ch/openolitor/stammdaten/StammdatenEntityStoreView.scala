@@ -59,7 +59,6 @@ trait StammdatenEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent {
-  import EntityStore._
   val mailService: ActorRef
   val sysConfig: SystemConfig
   val system: ActorSystem

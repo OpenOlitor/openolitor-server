@@ -55,7 +55,6 @@ trait ReportsEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait ReportsEntityStoreViewComponent extends EntityStoreViewComponent {
-  import EntityStore._
   val sysConfig: SystemConfig
   val system: ActorSystem
 

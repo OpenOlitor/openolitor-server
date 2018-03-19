@@ -26,7 +26,6 @@ import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import akka.actor.Props
 import ch.openolitor.core.batch.BaseBatchJob
-import scala.concurrent.duration._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import scalikejdbc._
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent

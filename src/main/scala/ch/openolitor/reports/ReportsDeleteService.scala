@@ -26,18 +26,14 @@ import akka.actor._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.reports._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.reports.models._
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 
 object ReportsDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ReportsDeleteService = new DefaultReportsDeleteService(sysConfig, system)

@@ -28,19 +28,15 @@ import com.typesafe.scalalogging.LazyLogging
 import akka.actor._
 import spray.routing._
 import spray.http._
-import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive.pimpApply
-import scala.util.Properties
-import spray.json.DefaultJsonProtocol._
 import java.io.ByteArrayInputStream
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.SprayDeserializers
 import ch.openolitor.core.DefaultRouteService
 import ch.openolitor.core.data.DataImportService
-import scala.reflect.io.File
 import akka.util.Timeout
 import scala.concurrent.duration._
 import ch.openolitor.core.data.DataImportService.ImportData
@@ -48,14 +44,11 @@ import akka.pattern.ask
 import ch.openolitor.core.data.DataImportService.ImportResult
 import spray.json._
 import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.Boot
-import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.security.Subject
 import ch.openolitor.core.repositories._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.eventsourcing._
-import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.core.jobs.JobQueueRoutes
 
