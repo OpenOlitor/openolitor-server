@@ -424,9 +424,9 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def generateCode = (Random.alphanumeric take 6).mkString.toLowerCase
 
   /**
-    * Validate user password used by basic authentication. Using basic auth we never to a two factor
-    * authentication
-    */
+   * Validate user password used by basic authentication. Using basic auth we never to a two factor
+   * authentication
+   */
   def basicAuthValidation(userPass: Option[UserPass]): Future[Option[Subject]] = {
     logger.debug(s"Perform basic authentication")
     (for {

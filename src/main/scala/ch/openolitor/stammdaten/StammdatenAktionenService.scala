@@ -59,8 +59,8 @@ class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val sys
 }
 
 /**
-  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
-  */
+ * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
+ */
 class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
   with LazyLogging
   with AsyncConnectionPoolContextAware
@@ -294,8 +294,8 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
   }
 
   /**
-    * @deprecated handling already persisted events. auslieferungAusgeliefert is now done in update service.
-    */
+   * @deprecated handling already persisted events. auslieferungAusgeliefert is now done in update service.
+   */
   def auslieferungAusgeliefert(meta: EventMetadata, id: AuslieferungId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntityIf[DepotAuslieferung, AuslieferungId](Erfasst == _.status)(id) {

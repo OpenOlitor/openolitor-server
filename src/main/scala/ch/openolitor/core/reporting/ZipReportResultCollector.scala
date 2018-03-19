@@ -36,9 +36,9 @@ object ZipReportResultCollector {
 }
 
 /**
-  * Collect all results into a zip file. Send back the zip result when all reports got generated.
-  * This ResultCollector stores the generated documents in a local zip which will eventually cause out of disk space errors.
-  */
+ * Collect all results into a zip file. Send back the zip result when all reports got generated.
+ * This ResultCollector stores the generated documents in a local zip which will eventually cause out of disk space errors.
+ */
 class ZipReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector with DateFormats {
 
   var origSender: Option[ActorRef] = None

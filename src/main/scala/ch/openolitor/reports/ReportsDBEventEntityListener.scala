@@ -38,8 +38,8 @@ object ReportsDBEventEntityListener extends DefaultJsonProtocol {
 class DefaultReportsDBEventEntityListener(sysConfig: SystemConfig, override val system: ActorSystem) extends ReportsDBEventEntityListener(sysConfig) with DefaultReportsUpdateRepositoryComponent
 
 /**
-  * Listen on DBEvents and adjust calculated fields within this module
-  */
+ * Listen on DBEvents and adjust calculated fields within this module
+ */
 class ReportsDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with ReportsDBMappings with AsyncConnectionPoolContextAware {
   this: ReportsUpdateRepositoryComponent =>
 

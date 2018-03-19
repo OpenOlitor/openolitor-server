@@ -29,28 +29,28 @@ import ch.openolitor.core.scalax.Tuple24
 import ch.openolitor.core.JSONSerializable
 
 /**
-  *        +
-  *        |
-  *   +----v-----+
-  *   | ERSTELLT |
-  *   +----+-----+
-  *        |
-  *   +----v-------+
-  *   | VERSCHICKT +-----------+
-  *   +----+-------+           |
-  *        |                   |
-  *   +----v----+              |
-  *   | BEZAHLT |              |
-  *   +---------+              |
-  *                            |
-  *   +--------------------+   |
-  *   | MAHNUNG_VERSCHICKT <---+
-  *   +--------------------+   |
-  *                            |
-  *   +-----------+            |
-  *   | STORNIERT <------------+
-  *   +-----------+
-  */
+ *        +
+ *        |
+ *   +----v-----+
+ *   | ERSTELLT |
+ *   +----+-----+
+ *        |
+ *   +----v-------+
+ *   | VERSCHICKT +-----------+
+ *   +----+-------+           |
+ *        |                   |
+ *   +----v----+              |
+ *   | BEZAHLT |              |
+ *   +---------+              |
+ *                            |
+ *   +--------------------+   |
+ *   | MAHNUNG_VERSCHICKT <---+
+ *   +--------------------+   |
+ *                            |
+ *   +-----------+            |
+ *   | STORNIERT <------------+
+ *   +-----------+
+ */
 sealed trait RechnungStatus
 case object Erstellt extends RechnungStatus
 case object Verschickt extends RechnungStatus

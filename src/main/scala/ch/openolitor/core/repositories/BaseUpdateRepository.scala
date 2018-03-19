@@ -28,9 +28,9 @@ import org.joda.time.DateTime
 
 trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository {
   /**
-    * Modify the entity with the given id according to the provided field/value list
-    * if the predicate p succeeds for the entity fetched by the given id.
-    */
+   * Modify the entity with the given id according to the provided field/value list
+   * if the predicate p succeeds for the entity fetched by the given id.
+   */
   def updateEntityIf[E <: BaseEntity[I], I <: BaseId](p: (E) => Boolean)(id: I)(updateFieldsHead: (SQLSyntax, ParameterBinder), updateFieldsTail: (SQLSyntax, ParameterBinder)*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
@@ -41,8 +41,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   }
 
   /**
-    * Modify the entity with the given id according to the provided field/value list.
-    */
+   * Modify the entity with the given id according to the provided field/value list.
+   */
   def updateEntity[E <: BaseEntity[I], I <: BaseId](id: I)(updateFieldsHead: (SQLSyntax, ParameterBinder), updateFieldsTail: (SQLSyntax, ParameterBinder)*)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
@@ -53,10 +53,10 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   }
 
   /**
-    * Modify the entity with the given id according to the given updateFunction.
-    * The updateFunction is a Map of the form SQLSyntax -> ParameterBinder. E.g.:
-    * Map(property.column.status -> value)
-    */
+   * Modify the entity with the given id according to the given updateFunction.
+   * The updateFunction is a Map of the form SQLSyntax -> ParameterBinder. E.g.:
+   * Map(property.column.status -> value)
+   */
   def modifyEntity[E <: BaseEntity[I], I <: BaseId](id: I)(updateFunction: (E) => Map[SQLSyntax, ParameterBinder])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
@@ -67,11 +67,11 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
   }
 
   /**
-    * Modify the entity with the given id according to the given updateFunction.
-    * The predicate will be evaluated against the entity fetched by the given id.
-    * The updateFunction is a Map of the form SQLSyntax -> ParameterBinder. E.g.:
-    * Map(property.column.status -> value)
-    */
+   * Modify the entity with the given id according to the given updateFunction.
+   * The predicate will be evaluated against the entity fetched by the given id.
+   * The updateFunction is a Map of the form SQLSyntax -> ParameterBinder. E.g.:
+   * Map(property.column.status -> value)
+   */
   def modifyEntityIf[E <: BaseEntity[I], I <: BaseId](p: (E) => Boolean)(id: I)(updateFunction: (E) => Map[SQLSyntax, ParameterBinder])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],

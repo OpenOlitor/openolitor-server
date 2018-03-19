@@ -48,8 +48,8 @@ class DefaultStammdatenUpdateService(sysConfig: SystemConfig, override val syste
 }
 
 /**
-  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
-  */
+ * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
+ */
 class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]]
   with LazyLogging
   with AsyncConnectionPoolContextAware

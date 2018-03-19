@@ -26,20 +26,20 @@ import com.typesafe.config._
 import scala.collection.JavaConversions._
 
 /**
-  * The OO-ConfigLoader is used to represent environmental config lists of the form:
-  *   "ENV_VAR_ID": {
-  *     "db": [
-  *       {
-  *         "credentials": {
-  *           "host": "",
-  *         },
-  *         "name": "unique-name",
-  *       },
-  * as a configuration object which can be accessed using the index of the desired list object
-  * (${?ENV_VAR_ID.db-object.0.credentials.host})
-  * and using the name if configured
-  * (${?ENV_VAR_ID.db-object.unique-name.credentials.host}).
-  */
+ * The OO-ConfigLoader is used to represent environmental config lists of the form:
+ *   "ENV_VAR_ID": {
+ *     "db": [
+ *       {
+ *         "credentials": {
+ *           "host": "",
+ *         },
+ *         "name": "unique-name",
+ *       },
+ * as a configuration object which can be accessed using the index of the desired list object
+ * (${?ENV_VAR_ID.db-object.0.credentials.host})
+ * and using the name if configured
+ * (${?ENV_VAR_ID.db-object.unique-name.credentials.host}).
+ */
 object ConfigLoader {
   val ObjectIdentifier = "-object"
   val NameIdentifier = "name"
@@ -78,8 +78,8 @@ object ConfigLoader {
   }
 
   /**
-    * Creates list objects identified by their index and name if present.
-    */
+   * Creates list objects identified by their index and name if present.
+   */
   def listToObject(config: ConfigList): ConfigObject = {
     val configObject = (config.indices zip config flatMap {
       case (i, v) =>

@@ -38,8 +38,8 @@ object SystemEventStore {
 }
 
 /**
-  * PersistentActor welcher SystemEvents speichert
-  */
+ * PersistentActor welcher SystemEvents speichert
+ */
 trait SystemEventStore extends AggregateRoot {
   import SystemEvents._
   import SystemEventStore._
@@ -50,10 +50,10 @@ trait SystemEventStore extends AggregateRoot {
   override var state: SystemEventStoreState = SystemEventStoreState(DateTime.now, 0L)
 
   /**
-    * Updates internal processor state according to event that is to be applied.
-    *
-    * @param evt Event to apply
-    */
+   * Updates internal processor state according to event that is to be applied.
+   *
+   * @param evt Event to apply
+   */
   override def updateState(recovery: Boolean = false)(evt: PersistentEvent): Unit = {
     evt match {
       case PersistentSystemEvent(meta, event) if !recovery =>
@@ -79,8 +79,8 @@ trait SystemEventStore extends AggregateRoot {
   }
 
   /**
-    * Eventlog initialized, handle entity events
-    */
+   * Eventlog initialized, handle entity events
+   */
   val created: Receive = {
     case Startup =>
       log.debug(s"Startup")

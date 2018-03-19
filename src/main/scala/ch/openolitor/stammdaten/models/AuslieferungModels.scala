@@ -40,8 +40,8 @@ object AuslieferungStatus {
 }
 
 /**
-  * Die Auslieferung repräsentiert eine Sammlung von Körben zu einem Bestimmten Lieferzeitpunkt mit einem Ziel.
-  */
+ * Die Auslieferung repräsentiert eine Sammlung von Körben zu einem Bestimmten Lieferzeitpunkt mit einem Ziel.
+ */
 trait Auslieferung extends BaseEntity[AuslieferungId] {
   val status: AuslieferungStatus
   val datum: DateTime
@@ -71,8 +71,8 @@ case class AuslieferungReportEntry(
     tour: Option[Tour]) extends JSONSerializable
 
 /**
-  * Auslieferung pro Depot
-  */
+ * Auslieferung pro Depot
+ */
 case class DepotAuslieferung(
     id: AuslieferungId,
     status: AuslieferungStatus,
@@ -114,8 +114,8 @@ case class DepotAuslieferungReport(
     modifikator: PersonId) extends AuslieferungReport with JSONSerializable
 
 /**
-  * Auslieferung pro Tour
-  */
+ * Auslieferung pro Tour
+ */
 case class TourAuslieferung(
     id: AuslieferungId,
     status: AuslieferungStatus,
@@ -159,8 +159,8 @@ case class TourAuslieferungReport(
     modifikator: PersonId) extends AuslieferungReport with JSONSerializable
 
 /**
-  * Auslieferung zur Post
-  */
+ * Auslieferung zur Post
+ */
 case class PostAuslieferung(
     id: AuslieferungId,
     status: AuslieferungStatus,

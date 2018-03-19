@@ -34,9 +34,9 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration._
 
 /**
-  * Borrowed from:
-  * http://www.cakesolutions.net/teamblogs/http-proxy-with-spray
-  */
+ * Borrowed from:
+ * http://www.cakesolutions.net/teamblogs/http-proxy-with-spray
+ */
 trait Proxy extends LazyLogging {
 
   private def proxyRequest(updateRequest: RequestContext => HttpRequest)(implicit system: ActorSystem): Route =
@@ -65,9 +65,9 @@ object ProxyServiceActor {
 }
 
 /**
-  * Proxy Service which redirects routes matching a mandant key in first row to either
-  * the websocket or service redirect url using their actor system
-  */
+ * Proxy Service which redirects routes matching a mandant key in first row to either
+ * the websocket or service redirect url using their actor system
+ */
 class ProxyServiceActor(mandanten: NonEmptyList[MandantSystem])
   extends Actor
   with ActorLogging

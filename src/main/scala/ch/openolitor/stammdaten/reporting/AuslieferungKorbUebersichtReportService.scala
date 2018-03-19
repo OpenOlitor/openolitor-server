@@ -88,8 +88,8 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
   }
 
   /**
-    * This will result in titles containing Abotyp +Z1, Z2
-    */
+   * This will result in titles containing Abotyp +Z1, Z2
+   */
   private def groupIdentifier(reportEntry: AuslieferungReportEntry) = {
     val zusatzAbos = if (!reportEntry.korb.zusatzAbosString.isEmpty()) s" +${reportEntry.korb.zusatzAbosString}" else ""
     s"${reportEntry.korb.abotyp.name}${zusatzAbos}"

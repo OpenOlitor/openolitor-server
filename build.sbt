@@ -31,8 +31,7 @@ resolvers += Resolver.typesafeRepo("releases")
 
 val buildSettings = Seq(
   scalariformPreferences := scalariformPreferences.value
-  .setPreference(DoubleIndentConstructorArguments, true)
-  .setPreference(PlaceScaladocAsterisksBeneathSecondAsterisk, true),
+  .setPreference(DoubleIndentConstructorArguments, true),
   organization := "ch.openolitor.scalamacros",
   version := "2.0.6-SNAPSHOT",
   scalaVersion := "2.11.11",

@@ -35,8 +35,8 @@ object SystemActor {
 }
 
 /**
-  * SystemActor wird benutzt, damit die Supervisor Strategy über alle child actors definiert werden kann
-  */
+ * SystemActor wird benutzt, damit die Supervisor Strategy über alle child actors definiert werden kann
+ */
 class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends Actor with ActorLogging {
   import SystemActor._
 
@@ -50,8 +50,8 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
   }
 
   /**
-    * Use onFailureBackoff to restart after Exceptions delayed by an exponential backoff function
-    */
+   * Use onFailureBackoff to restart after Exceptions delayed by an exponential backoff function
+   */
   private def onFailureBackoff(childProps: Props, childName: String) = BackoffSupervisor.props(
     Backoff.onFailure(
       childProps,
@@ -63,8 +63,8 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
       .withSupervisorStrategy(supervisorStrategy))
 
   /**
-    * Use onStopBackoff Strategy for Actors which indicate stopping as an error (i.e. PersistentActor)
-    */
+   * Use onStopBackoff Strategy for Actors which indicate stopping as an error (i.e. PersistentActor)
+   */
   private def onStopBackoff(childProps: Props, childName: String) = BackoffSupervisor.props(
     Backoff.onStop(
       childProps,

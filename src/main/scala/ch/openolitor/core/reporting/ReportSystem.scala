@@ -74,8 +74,8 @@ object ReportSystem {
 }
 
 /**
-  * The reportsystem is responsible to dispatch report generating request to processor actors
-  */
+ * The reportsystem is responsible to dispatch report generating request to processor actors
+ */
 class ReportSystem(fileStore: FileStore, sysConfig: SystemConfig) extends Actor with ActorLogging {
   import ReportSystem._
 

@@ -41,8 +41,8 @@ object StammdatenGeneratedEventsListener {
 class DefaultStammdatenGeneratedEventsListener(sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenGeneratedEventsListener(sysConfig) with DefaultStammdatenUpdateRepositoryComponent
 
 /**
-  * Listens to succesful sent mails
-  */
+ * Listens to succesful sent mails
+ */
 class StammdatenGeneratedEventsListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging
   with StammdatenDBMappings
   with ConnectionPoolContextAware

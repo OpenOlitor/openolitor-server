@@ -42,10 +42,10 @@ import ch.openolitor.reports.repositories.ReportsReadRepositorySyncComponent
 import scalikejdbc.DB
 
 /**
-  * This is using a Sync-Repository as there is no way to fetch the MetaData on the
-  * scalikejdbc-async - RowDataResultSet
-  * TODO Revert as soon as possible
-  */
+ * This is using a Sync-Repository as there is no way to fetch the MetaData on the
+ * scalikejdbc-async - RowDataResultSet
+ * TODO Revert as soon as possible
+ */
 trait SyncReportsRoutes extends HttpService with ActorReferences
   with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
   with ReportsJsonProtocol

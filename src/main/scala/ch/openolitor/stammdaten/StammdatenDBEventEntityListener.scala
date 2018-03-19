@@ -47,8 +47,8 @@ object StammdatenDBEventEntityListener extends DefaultJsonProtocol {
 class DefaultStammdatenDBEventEntityListener(sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenDBEventEntityListener(sysConfig) with DefaultStammdatenUpdateRepositoryComponent
 
 /**
-  * Listen on DBEvents and adjust calculated fields within this module
-  */
+ * Listen on DBEvents and adjust calculated fields within this module
+ */
 class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging
   with StammdatenDBMappings
   with ConnectionPoolContextAware

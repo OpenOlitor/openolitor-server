@@ -46,8 +46,8 @@ class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val syste
   extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent
 
 /**
-  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
-  */
+ * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
+ */
 class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
   with LazyLogging
   with AsyncConnectionPoolContextAware

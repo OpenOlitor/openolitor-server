@@ -80,8 +80,8 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   type ServiceResult[T] = EitherT[Future, ServiceFailed, T]
 
   /**
-    *
-    */
+   *
+   */
   def generateReports[I, E](
     config: ReportConfig[I],
     validationFunction: Seq[I] => Future[(Seq[ValidationError[I]], Seq[E])],
@@ -148,8 +148,8 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   }
 
   /**
-    * Resolve from S3 or as a local resource
-    */
+   * Resolve from S3 or as a local resource
+   */
   def resolveStandardBerichtsVorlage(fileType: FileType, id: Option[String] = None): ServiceResult[Array[Byte]] = {
     resolveBerichtsVorlageFromFileStore(fileType, id) ||| resolveBerichtsVorlageFromResources(fileType, id)
   }

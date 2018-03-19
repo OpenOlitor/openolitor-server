@@ -29,13 +29,13 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.util.Success
 
 /**
-  * Used for handling custom module specific commands.
-  * Validates the preconditions for a given command and returns resulting events.
-  *
-  * The validation has to be thorough so that resulting persistent events will never result in an exception.
-  * An exception thrown by processing a successfully persisted event will cause the persistent view to go
-  * into recovery and finally stopping the persistent view actor after the last (maxNumberOfRetries) onRecoveryFailure.
-  */
+ * Used for handling custom module specific commands.
+ * Validates the preconditions for a given command and returns resulting events.
+ *
+ * The validation has to be thorough so that resulting persistent events will never result in an exception.
+ * An exception thrown by processing a successfully persisted event will cause the persistent view to go
+ * into recovery and finally stopping the persistent view actor after the last (maxNumberOfRetries) onRecoveryFailure.
+ */
 trait CommandHandler extends LazyLogging with Defaults {
   import EntityStore._
 

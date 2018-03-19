@@ -36,10 +36,10 @@ object ReportProcessorActor {
 }
 
 /**
-  * This actor generates a report document per json data object in a sequence with the same report template
-  * object. The same report template object should be shared across all reports. As a result the actor returns a list of successful
-  * and unsuccessful sources which might then get processed further
-  */
+ * This actor generates a report document per json data object in a sequence with the same report template
+ * object. The same report template object should be shared across all reports. As a result the actor returns a list of successful
+ * and unsuccessful sources which might then get processed further
+ */
 class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extends Actor with ActorLogging with DateFormats {
   import ReportSystem._
 

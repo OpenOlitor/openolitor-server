@@ -33,8 +33,8 @@ import ch.openolitor.buchhaltung.models._
 import ch.openolitor.util.parsing.FilterExpr
 
 /**
-  * Asynchronous Repository
-  */
+ * Asynchronous Repository
+ */
 trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Rechnung]]
   def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[RechnungsPosition]]

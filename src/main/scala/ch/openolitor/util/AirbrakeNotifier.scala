@@ -31,8 +31,8 @@ import scala.concurrent.Future
 import ch.openolitor.core.SystemConfig
 
 /**
-  * Based on https://raw.githubusercontent.com/tegonal/play-airbrake/master/src/main/scala/play/airbrake/Airbrake.scala
-  */
+ * Based on https://raw.githubusercontent.com/tegonal/play-airbrake/master/src/main/scala/play/airbrake/Airbrake.scala
+ */
 object AirbrakeNotifier {
   def props(implicit system: ActorSystem, systemConfig: SystemConfig): Props = Props(classOf[AirbrakeNotifier], system, systemConfig)
 

@@ -74,8 +74,8 @@ case class SammelbestellungDetail(
 case class BestellungId(id: Long) extends BaseId
 
 /**
-  * Eine Bestellung wird pro adminProzente unter Sammelbestellung gruppiert.
-  */
+ * Eine Bestellung wird pro adminProzente unter Sammelbestellung gruppiert.
+ */
 case class Bestellung(
     id: BestellungId,
     sammelbestellungId: SammelbestellungId,

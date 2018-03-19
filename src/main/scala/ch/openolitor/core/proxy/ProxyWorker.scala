@@ -41,9 +41,9 @@ object ProxyWorker {
 }
 
 /**
-  * This Proxy Worker proxies either websocket messages to a websocket server or
-  * normal httprequest to a httpserver
-  */
+ * This Proxy Worker proxies either websocket messages to a websocket server or
+ * normal httprequest to a httpserver
+ */
 class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, MandantSystem], val wsHandler: WebsocketHandler)
   extends HttpServiceActor
   with websocket.WebSocketServerWorker
@@ -90,26 +90,26 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
       }
     }
     /**
-      * Called when the {@link WebSocket} is opened
-      */
+     * Called when the {@link WebSocket} is opened
+     */
     override def onOpen {
     }
 
     /**
-      * Called when the {@link WebSocket} is closed
-      */
+     * Called when the {@link WebSocket} is closed
+     */
     override def onClose {
     }
 
     /**
-      * Called when the {@link WebSocket} is closed with its assic
-      */
+     * Called when the {@link WebSocket} is closed with its assic
+     */
     override def onClose(code: Int, reason: String) {
     }
 
     /**
-      * Called when an unexpected error occurd on a {@link WebSocket}
-      */
+     * Called when an unexpected error occurd on a {@link WebSocket}
+     */
     override def onError(t: Throwable) {
       log.error(s"messageListener:onError", t)
     }
@@ -122,26 +122,26 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
     }
 
     /**
-      * Called when the {@link WebSocket} is opened
-      */
+     * Called when the {@link WebSocket} is opened
+     */
     override def onOpen {
     }
 
     /**
-      * Called when the {@link WebSocket} is closed
-      */
+     * Called when the {@link WebSocket} is closed
+     */
     override def onClose {
     }
 
     /**
-      * Called when the {@link WebSocket} is closed with its assic
-      */
+     * Called when the {@link WebSocket} is closed with its assic
+     */
     override def onClose(code: Int, reason: String) {
     }
 
     /**
-      * Called when an unexpected error occurd on a {@link WebSocket}
-      */
+     * Called when an unexpected error occurd on a {@link WebSocket}
+     */
     override def onError(t: Throwable) {
       log.error(s"binaryMessageListener:onError", t)
     }
@@ -169,9 +169,9 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
   }
 
   /**
-    * In case we did get a websocket upgrade
-    * Websocket handling logic
-    */
+   * In case we did get a websocket upgrade
+   * Websocket handling logic
+   */
   def businessLogic: Receive = {
     case Push(msg) =>
       send(TextFrame(msg))
@@ -201,7 +201,7 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
   }
 
   /**
-    * In case we didn't get a websocket upgrade notification
-    */
+   * In case we didn't get a websocket upgrade notification
+   */
   def businessLogicNoUpgrade: Receive = runRoute(proxyRoute) orElse other
 }

@@ -55,9 +55,9 @@ trait StammdatenUpdateRepositoryImpl extends StammdatenReadRepositorySyncImpl wi
   }
 
   /**
-    * Adding and/or removing a ZusatzAbo to a HauptAbo.
-    * If add and remove are provided we assume that the ZusatzAbo has been updated (the zusatzAbotypName).
-    */
+   * Adding and/or removing a ZusatzAbo to a HauptAbo.
+   * If add and remove are provided we assume that the ZusatzAbo has been updated (the zusatzAbotypName).
+   */
   private def updateHauptAboWithZusatzabos(hauptAboId: AboId, add: Option[ZusatzAbo], remove: Option[ZusatzAbo])(implicit session: DBSession, publisher: EventPublisher, personId: PersonId): Option[HauptAbo] = {
     modifyEntity[DepotlieferungAbo, AboId](hauptAboId) { abo =>
       val zusatzAbos = withHauptAbo(abo, add, remove)

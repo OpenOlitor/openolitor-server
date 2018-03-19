@@ -29,8 +29,8 @@ import ch.openolitor.core.MandantConfiguration
 import ch.openolitor.util.ConfigUtil._
 
 /**
-  * Mandant specific dbs for async scalikejdbc framework
-  */
+ * Mandant specific dbs for async scalikejdbc framework
+ */
 case class AsyncMandantDBs(mandantConfiguration: MandantConfiguration) extends DBs
   with TypesafeConfigReader
   with TypesafeConfig

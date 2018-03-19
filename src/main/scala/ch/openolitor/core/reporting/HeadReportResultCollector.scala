@@ -32,8 +32,8 @@ object HeadReportResultCollector {
 }
 
 /**
-  * after sending report request to reportsystem wait for only for first reportresult and send that back to the sender
-  */
+ * after sending report request to reportsystem wait for only for first reportresult and send that back to the sender
+ */
 class HeadReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector {
 
   val receive: Receive = {

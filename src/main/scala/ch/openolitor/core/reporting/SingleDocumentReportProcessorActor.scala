@@ -34,8 +34,8 @@ object SingleDocumentReportProcessorActor {
 }
 
 /**
-  * This generates a single report documet from a given json data object
-  */
+ * This generates a single report documet from a given json data object
+ */
 class SingleDocumentReportProcessorActor(name: String, locale: Locale) extends Actor with ActorLogging with DocumentProcessor {
   import ReportSystem._
 

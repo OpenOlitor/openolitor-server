@@ -44,8 +44,8 @@ class DefaultReportsDeleteService(sysConfig: SystemConfig, override val system: 
 }
 
 /**
-  * Actor zum Verarbeiten der Delete Anweisungen für das Reports Modul
-  */
+ * Actor zum Verarbeiten der Delete Anweisungen für das Reports Modul
+ */
 class ReportsDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
   with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>

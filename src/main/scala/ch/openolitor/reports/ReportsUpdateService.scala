@@ -44,8 +44,8 @@ class DefaultReportsUpdateService(sysConfig: SystemConfig, override val system: 
 }
 
 /**
-  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Reports Moduls
-  */
+ * Actor zum Verarbeiten der Update Anweisungen innerhalb des Reports Moduls
+ */
 class ReportsUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
 

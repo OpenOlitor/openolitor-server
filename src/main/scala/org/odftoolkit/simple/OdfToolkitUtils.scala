@@ -32,14 +32,14 @@ import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text.Paragraph
 
 /**
-  * Extends document to make method accessor public available
-  */
+ * Extends document to make method accessor public available
+ */
 
 object OdfToolkitUtils {
   implicit class MyTextbox(self: Textbox) {
     /**
-      * Remove style declared on draw textbox, otherwise styles applied on template won't get applied
-      */
+     * Remove style declared on draw textbox, otherwise styles applied on template won't get applied
+     */
     def removeCommonStyle() = {
       self.getDrawFrameElement().setDrawTextStyleNameAttribute(null)
     }
@@ -133,8 +133,8 @@ object OdfToolkitUtils {
   }
 
   /**
-    * Add possilbity to append frames
-    */
+   * Add possilbity to append frames
+   */
   implicit class TextDocumentWithFrames(self: Paragraph) {
     def appendFrame(frame: Frame): Frame = {
       try {
@@ -169,11 +169,11 @@ object OdfToolkitUtils {
     }
 
     /**
-      * This method will search the document content,
-      * return an iterator of frame objects.
-      *
-      * @return an iterator of frame objects
-      */
+     * This method will search the document content,
+     * return an iterator of frame objects.
+     *
+     * @return an iterator of frame objects
+     */
     def getFrameIterator(): Iterator[Frame] = {
       new SimpleFrameIterator(self.getFrameContainerElement())
     }

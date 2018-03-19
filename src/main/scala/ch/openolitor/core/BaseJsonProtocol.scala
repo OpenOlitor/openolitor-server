@@ -34,8 +34,8 @@ import java.util.Locale
 trait JSONSerializable extends Product
 
 /**
-  * Basis JSON Formatter for spray-json serialisierung/deserialisierung
-  */
+ * Basis JSON Formatter for spray-json serialisierung/deserialisierung
+ */
 trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONSerializable] {
   val defaultConvert: Any => String = x => x.toString
 

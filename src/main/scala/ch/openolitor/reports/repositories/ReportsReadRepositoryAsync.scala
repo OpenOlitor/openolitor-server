@@ -32,8 +32,8 @@ import ch.openolitor.reports.models._
 import ch.openolitor.util.parsing.FilterExpr
 
 /**
-  * Asynchronous Repository
-  */
+ * Asynchronous Repository
+ */
 trait ReportsReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getReports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Report]]
   def getReport(id: ReportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Report]]

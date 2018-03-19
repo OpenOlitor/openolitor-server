@@ -50,8 +50,8 @@ class DefaultBuchhaltungInsertService(sysConfig: SystemConfig, override val syst
 }
 
 /**
-  * Actor zum Verarbeiten der Insert Anweisungen für das Buchhaltung Modul
-  */
+ * Actor zum Verarbeiten der Insert Anweisungen für das Buchhaltung Modul
+ */
 class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware
   with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
@@ -121,8 +121,8 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
   }
 
   /**
-    * Generieren einer Referenznummer, die die Kundennummer und Rechnungsnummer enthält.
-    */
+   * Generieren einer Referenznummer, die die Kundennummer und Rechnungsnummer enthält.
+   */
   def generateReferenzNummer(kontoDaten: KontoDaten, kundeId: KundeId, id: RechnungId): String = {
     val referenzNummerPrefix = kontoDaten.referenzNummerPrefix getOrElse ("")
 

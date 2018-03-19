@@ -39,8 +39,8 @@ class DefaultReportsAktionenService(sysConfig: SystemConfig, override val system
 }
 
 /**
-  * Actor zum Verarbeiten der Aktionen für das Reports Modul
-  */
+ * Actor zum Verarbeiten der Aktionen für das Reports Modul
+ */
 class ReportsAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
   with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>

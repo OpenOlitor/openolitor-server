@@ -29,8 +29,8 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 /**
-  * Synchronous Repository
-  */
+ * Synchronous Repository
+ */
 trait ReportsWriteRepository extends ReportsReadRepositorySync
   with ReportsInsertRepository
   with ReportsUpdateRepository

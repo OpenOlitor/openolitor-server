@@ -47,8 +47,8 @@ trait Script {
 case class EvolutionException(msg: String) extends Exception
 
 /**
-  * Base evolution class to evolve database from a specific revision to another
-  */
+ * Base evolution class to evolve database from a specific revision to another
+ */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
   with BuchhaltungDBMappings with ReportsDBMappings {
   import IteratorUtil._
@@ -183,8 +183,8 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
   lazy val schema = dbSchemaMapping.syntax("db_schema")
 
   /**
-    * load current revision from database schema
-    */
+   * load current revision from database schema
+   */
   def currentRevision(implicit session: DBSession): Int = {
     withSQL {
       select(max(schema.revision))

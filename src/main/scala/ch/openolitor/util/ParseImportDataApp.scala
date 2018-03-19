@@ -31,8 +31,8 @@ import ch.openolitor.core.models._
 import java.io.FileInputStream
 
 /**
-  * App starting the dataimportparser itself printing results to console
-  */
+ * App starting the dataimportparser itself printing results to console
+ */
 object ParseImportDataApp extends App {
 
   if (args.length < 1) {

@@ -45,8 +45,8 @@ class DefaultBuchhaltungUpdateService(sysConfig: SystemConfig, override val syst
 }
 
 /**
-  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Buchhaltung Moduls
-  */
+ * Actor zum Verarbeiten der Update Anweisungen innerhalb des Buchhaltung Moduls
+ */
 class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 

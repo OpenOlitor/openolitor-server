@@ -34,8 +34,8 @@ case class ProjektId(id: Long) extends BaseId
 case class Geschaeftsjahr(monat: Int, tag: Int) {
 
   /**
-    * Errechnet den Start des Geschäftsjahres aufgrund eines Datums
-    */
+   * Errechnet den Start des Geschäftsjahres aufgrund eines Datums
+   */
   def start(date: LocalDate = LocalDate.now): LocalDate = {
     val geschaftsjahrInJahr = new LocalDate(date.year.get, monat, tag)
     date match {
@@ -49,10 +49,10 @@ case class Geschaeftsjahr(monat: Int, tag: Int) {
   }
 
   /**
-    * Errechnet der Key für ein Geschäftsjahr aufgrund eines Datum. Der Key des Geschäftsjahres leitet sich aus dem Startdatum
-    * des Geschäftsjahres ab. Wird der Start des Geschäftsjahres auf den Start des Kalenderjahres gesetzt, wird das Kalenderjahr als
-    * key benutzt, ansonsten setzt sich der Key aus Monat/Jahr zusammen
-    */
+   * Errechnet der Key für ein Geschäftsjahr aufgrund eines Datum. Der Key des Geschäftsjahres leitet sich aus dem Startdatum
+   * des Geschäftsjahres ab. Wird der Start des Geschäftsjahres auf den Start des Kalenderjahres gesetzt, wird das Kalenderjahr als
+   * key benutzt, ansonsten setzt sich der Key aus Monat/Jahr zusammen
+   */
   def key(date: LocalDate = LocalDate.now): String = {
     val startDate = start(date)
     if (monat == 1 && tag == 1) {
@@ -63,9 +63,9 @@ case class Geschaeftsjahr(monat: Int, tag: Int) {
   }
 
   /**
-    * Retourniert 'true' wenn die übergebenen Daten im selben Geschäftsjahr liegen. 'false' wenn dies nicht so ist.
-    * Wird nur ein Datum übergeben wird zum aktuelle Moment verglichen.
-    */
+   * Retourniert 'true' wenn die übergebenen Daten im selben Geschäftsjahr liegen. 'false' wenn dies nicht so ist.
+   * Wird nur ein Datum übergeben wird zum aktuelle Moment verglichen.
+   */
   def isInSame(date: LocalDate, comparteTo: LocalDate = LocalDate.now): Boolean = {
     key(date) == key(comparteTo)
   }

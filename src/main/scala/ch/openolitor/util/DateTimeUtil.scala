@@ -33,14 +33,14 @@ object DateTimeUtil {
   implicit def localDateOrdering: Ordering[LocalDate] = Ordering.fromLessThan(_ isBefore _)
 
   /**
-    * Convert a `java.time.Duration` to Scala's `Duration`
-    */
+   * Convert a `java.time.Duration` to Scala's `Duration`
+   */
   implicit def javaDurationToDuration(d: java.time.Duration): Duration =
     Duration.fromNanos(d.toNanos)
 
   /**
-    * Convert a `java.time.Duration` to `org.joda.time.Duration`
-    */
+   * Convert a `java.time.Duration` to `org.joda.time.Duration`
+   */
   implicit def javaDurationToJodaDuration(d: java.time.Duration): org.joda.time.Duration =
     org.joda.time.Duration.millis(d.toMillis)
 

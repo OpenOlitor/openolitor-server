@@ -43,8 +43,8 @@ trait StatusRoutes extends HttpService with DefaultRouteService with StatusJsonP
     }
 
   /**
-    * Project Status routes
-    */
+   * Project Status routes
+   */
   def statusRoutes(): Route =
     path("staticInfo") {
       get {

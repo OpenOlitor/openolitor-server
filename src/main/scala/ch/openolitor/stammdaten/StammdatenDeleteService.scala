@@ -44,8 +44,8 @@ class DefaultStammdatenDeleteService(sysConfig: SystemConfig, override val syste
 }
 
 /**
-  * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
-  */
+ * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
+ */
 class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
   with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>

@@ -39,14 +39,14 @@ object BufferedChunkingActor {
   val DefaultChunkSize = 5 * 1024 * 1024
 
   /**
-    * @param chunkSize has to be >= 5MB
-    */
+   * @param chunkSize has to be >= 5MB
+   */
   def props(fileStore: FileStore, fileName: String, chunkSize: Int = DefaultChunkSize): Props = Props(classOf[BufferedChunkingActor], fileStore, fileName, chunkSize)
 }
 
 /**
-  * Buffer and chunk messages according to buffer size.
-  */
+ * Buffer and chunk messages according to buffer size.
+ */
 class BufferedChunkingActor(fileStore: FileStore, fileName: String, chunkSize: Int) extends OutputStream with Actor with ActorLogging with DateFormats {
   import BufferedChunkingActor._
 
@@ -96,8 +96,8 @@ class BufferedChunkingActor(fileStore: FileStore, fileName: String, chunkSize: I
   }
 
   /**
-    * Receiving ReportResults, adding the contents to the zip and
-    */
+   * Receiving ReportResults, adding the contents to the zip and
+   */
   val waitingForChunks: Receive = {
     // adding the entry to the zip, sending of parts will happen in write
     case result: ReportResultWithDocument =>
@@ -131,8 +131,8 @@ class BufferedChunkingActor(fileStore: FileStore, fileName: String, chunkSize: I
   }
 
   /**
-    * Send this part to the file store and clear the buffer
-    */
+   * Send this part to the file store and clear the buffer
+   */
   private def sendPart() = {
     partNumber += 1
     chunkedFileStoreActor ! UploadChunk(metadata.get, new ByteArrayInputStream(bytes.toArray, 0, bytes.length), bytes.length, partNumber)

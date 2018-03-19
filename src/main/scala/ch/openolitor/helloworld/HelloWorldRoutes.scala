@@ -41,8 +41,8 @@ trait HelloWorldRoutes extends HttpService {
     }
 
   /**
-    * Hello World demo routes
-    */
+   * Hello World demo routes
+   */
   def helloRoute(): Route =
     path("xml") {
       get {

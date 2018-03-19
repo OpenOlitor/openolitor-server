@@ -37,9 +37,9 @@ import DefaultMessages._
 import ch.openolitor.core.DBEvolutionReference
 
 /**
-  * _
-  * Dieser EntityStore speichert alle Events, welche zu Modifikationen am Datenmodell führen können je Mandant.
-  */
+ * _
+ * Dieser EntityStore speichert alle Events, welche zu Modifikationen am Datenmodell führen können je Mandant.
+ */
 object EntityStore {
 
   val VERSION = 2
@@ -147,10 +147,10 @@ trait EntityStore extends AggregateRoot
   }
 
   /**
-    * Updates internal processor state according to event that is to be applied.
-    *
-    * @param evt Event to apply
-    */
+   * Updates internal processor state according to event that is to be applied.
+   *
+   * @param evt Event to apply
+   */
   override def updateState(recovery: Boolean)(evt: PersistentEvent): Unit = {
     evt match {
       case EntityStoreInitialized(_) =>
@@ -183,8 +183,8 @@ trait EntityStore extends AggregateRoot
   }
 
   /**
-    * Status uninitialized
-    */
+   * Status uninitialized
+   */
   val uninitialized: Receive = {
     case GetState =>
       log.debug(s"uninitialized => GetState: $state")
@@ -206,8 +206,8 @@ trait EntityStore extends AggregateRoot
   }
 
   /**
-    * Eventlog initialized, handle entity events
-    */
+   * Eventlog initialized, handle entity events
+   */
   val created: Receive = {
     case KillAggregate =>
       log.debug(s"created => KillAggregate")
@@ -260,8 +260,8 @@ trait EntityStore extends AggregateRoot
   }
 
   /**
-    * PersistentActor was destroyed
-    */
+   * PersistentActor was destroyed
+   */
   val removed: Receive = {
     case GetState =>
       log.warning(s"Received GetState in state removed")

@@ -133,8 +133,8 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Register all values as variables to conditional field might react on them
-    */
+   * Register all values as variables to conditional field might react on them
+   */
   def registerVariables(doc: TextDocument, props: Map[String, Value]) = {
     props.map {
       case (property, Value(JsObject(_), _)) =>
@@ -160,9 +160,9 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Update variables in variablecontainer based on a data object. Every variables name represents a property
-    * accessor which should resolve nested properties as well (with support for arrays .index notation i.e. 'adressen.0.strasse').
-    */
+   * Update variables in variablecontainer based on a data object. Every variables name represents a property
+   * accessor which should resolve nested properties as well (with support for arrays .index notation i.e. 'adressen.0.strasse').
+   */
   def processVariables(cont: VariableContainer, props: Map[String, Value]) = {
     props map {
       case (property, Value(_, value)) =>
@@ -180,9 +180,9 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Process table:
-    * duplicate all rows except header rows. Try to replace textbox values with value from property map
-    */
+   * Process table:
+   * duplicate all rows except header rows. Try to replace textbox values with value from property map
+   */
   def processTable(doc: TableContainer, table: Table, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
     val propertyKey = parsePropertyKey(table.getDotTableName, pathPrefixes)
     props.get(propertyKey) map {
@@ -214,9 +214,9 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Process list:
-    * process content of every list item as paragraph container
-    */
+   * Process list:
+   * process content of every list item as paragraph container
+   */
   def processList(doc: ListContainer, list: List, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       item <- list.getItems
@@ -279,8 +279,8 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Process section which are part of the property map and append it to the document
-    */
+   * Process section which are part of the property map and append it to the document
+   */
   private def processSections(doc: TextDocument, props: Map[String, Value], locale: Locale) = {
     for {
       s <- doc.getSectionIterator
@@ -310,8 +310,8 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Process frames which are part of the property map and append it to the document
-    */
+   * Process frames which are part of the property map and append it to the document
+   */
   private def processFrames(doc: TextDocument, props: Map[String, Value], locale: Locale) = {
     for {
       p <- doc.getParagraphIterator
@@ -342,10 +342,10 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Process textboxes and fill in content based on
-    *
-    * If pathPrefixes is Nil, applyFormats will not be executed
-    */
+   * Process textboxes and fill in content based on
+   *
+   * If pathPrefixes is Nil, applyFormats will not be executed
+   */
   private def processTextboxes(cont: ParagraphContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       p <- cont.getParagraphIterator
@@ -391,8 +391,8 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    *
-    */
+   *
+   */
   private def applyFormat(textbox: Textbox, format: String, value: String, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]): String = {
     format match {
       case dateFormatPattern(pattern) =>
@@ -487,8 +487,8 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   /**
-    * Extract all properties performing a deep lookup on the given jsvalue
-    */
+   * Extract all properties performing a deep lookup on the given jsvalue
+   */
   def extractProperties(data: JsValue, prefix: String = ""): Map[String, Value] = {
     val childPrefix = if (prefix == "") prefix else s"$prefix."
     data match {

@@ -46,8 +46,8 @@ object DBEvent2UserMapping extends DefaultJsonProtocol {
 }
 
 /**
-  * Redirect all dbevents to the client itself
-  */
+ * Redirect all dbevents to the client itself
+ */
 class DBEvent2UserMapping extends Actor
   with ActorLogging
   with ClientReceiver

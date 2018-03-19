@@ -32,8 +32,8 @@ import scala.collection.immutable.TreeMap
 import ch.openolitor.core.reporting.ReportJsonProtocol
 
 /**
-  * JSON Format deklarationen für das Modul Stammdaten
-  */
+ * JSON Format deklarationen für das Modul Stammdaten
+ */
 trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] {
 
   //enum formats

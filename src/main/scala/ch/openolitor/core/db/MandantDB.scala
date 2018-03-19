@@ -27,8 +27,8 @@ import scalikejdbc._
 import ch.openolitor.core.MandantConfiguration
 
 /**
-  * Mandant specific dbs
-  */
+ * Mandant specific dbs
+ */
 case class MandantDBs(mandantConfiguration: MandantConfiguration) extends DBs
   with TypesafeConfigReader
   with TypesafeConfig

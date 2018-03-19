@@ -32,8 +32,8 @@ import scala.util.Success
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
 /**
-  * Remaining indexes from OO597_DBScripts
-  */
+ * Remaining indexes from OO597_DBScripts
+ */
 object OO597_Index_DBScripts {
   val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {

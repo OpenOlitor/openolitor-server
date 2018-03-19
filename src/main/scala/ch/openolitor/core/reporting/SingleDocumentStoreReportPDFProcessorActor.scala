@@ -33,8 +33,8 @@ object SingleDocumentStoreReportPDFProcessorActor {
 }
 
 /**
-  * This actor generates a report document, converts it to pdf and stores the pdf in the filestore
-  */
+ * This actor generates a report document, converts it to pdf and stores the pdf in the filestore
+ */
 class SingleDocumentStoreReportPDFProcessorActor(fileStore: FileStore, sysConfig: SystemConfig, fileType: FileType, idOpt: Option[String], name: String, locale: Locale) extends Actor with ActorLogging {
   import ReportSystem._
 

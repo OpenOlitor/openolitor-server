@@ -155,8 +155,8 @@ object Boot extends App with LazyLogging {
   }
 
   /**
-    * Jeder Mandant wird in einem eigenen Akka System gestartet.
-    */
+   * Jeder Mandant wird in einem eigenen Akka System gestartet.
+   */
   def startServices(configs: NonEmptyList[MandantConfiguration]): NonEmptyList[MandantSystem] = {
     configs.map { cfg =>
       implicit val app = ActorSystem(cfg.name, config.getConfig(cfg.configKey).withFallback(config))

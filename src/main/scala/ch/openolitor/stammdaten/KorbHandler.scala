@@ -39,9 +39,9 @@ trait KorbHandler extends KorbStatusHandler
   this: StammdatenWriteRepositoryComponent =>
 
   /**
-    * insert or update Korb
-    * @return (created/updated, existing)
-    */
+   * insert or update Korb
+   * @return (created/updated, existing)
+   */
   def upsertKorb(lieferung: Lieferung, abo: Abo, abotyp: IAbotyp)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): (Option[Korb], Option[Korb]) = {
     logger.debug(s"upsertKorb lieferung: $Lieferung abo: $abo abotyp: $abotyp")
     stammdatenWriteRepository.getKorb(lieferung.id, abo.id) match {

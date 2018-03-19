@@ -399,8 +399,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   }
 
   /**
-    * @persister declare format to ensure that format exists for persising purposes
-    */
+   * @persister declare format to ensure that format exists for persising purposes
+   */
   protected def remove[I <: BaseId](id: I)(implicit persister: Persister[I, _], subject: Subject) = {
     onSuccess(entityStore ? EntityStore.DeleteEntityCommand(subject.personId, id)) { result =>
       complete("")
