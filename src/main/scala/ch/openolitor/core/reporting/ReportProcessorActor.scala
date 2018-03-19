@@ -41,7 +41,6 @@ object ReportProcessorActor {
  * and unsuccessful sources which might then get processed further
  */
 class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extends Actor with ActorLogging with DateFormats {
-  import ReportProcessorActor._
   import ReportSystem._
 
   var stats = GenerateReportsStats(Boot.systemPersonId, JobId("Dummy"), 0, 0, 0)
@@ -90,7 +89,7 @@ class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extend
     origSender = Some(sender)
     stats = stats.copy(originator = originator, jobId = jobId, numberOfReportsInProgress = data.rows.length)
 
-    // send already stats to notify client about progress 
+    // send already stats to notify client about progress
     sender ! stats
 
     for {

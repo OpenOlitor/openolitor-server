@@ -22,15 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core.filestore.batch
 
-import akka.actor.Actor
-import akka.actor.ActorLogging
 import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import akka.actor.Props
-import ch.openolitor.core.batch.BatchJobs._
 import ch.openolitor.core.batch.BaseBatchJobsSupervisor
 import ch.openolitor.core.filestore.batch.housekeeping.TemporaryDataBucketCleanupBatchJob
-import akka.actor.ActorRef
 import ch.openolitor.core.filestore.FileStore
 
 object FileStoreBatchJobs {

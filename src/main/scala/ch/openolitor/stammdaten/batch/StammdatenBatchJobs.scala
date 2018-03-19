@@ -22,13 +22,10 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.batch
 
-import akka.actor.Actor
-import akka.actor.ActorLogging
 import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import akka.actor.Props
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
-import ch.openolitor.core.batch.BatchJobs._
 import ch.openolitor.core.batch.BaseBatchJobsSupervisor
 import akka.actor.ActorRef
 import ch.openolitor.stammdaten.batch.calculations.KorbStatusCalculation

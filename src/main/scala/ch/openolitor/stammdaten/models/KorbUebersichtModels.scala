@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 

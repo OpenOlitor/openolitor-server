@@ -23,7 +23,6 @@
 package ch.openolitor.core.eventsourcing
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe._
 import stamina._
 import stamina.json._
 import ch.openolitor.core.domain._
@@ -34,7 +33,6 @@ import ch.openolitor.core.models.BaseId
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.mailservice._
 import ch.openolitor.core.mailservice.MailService._
-import zangelo.spray.json.AutoProductFormats
 
 package object events extends DefaultJsonProtocol {
   import spray.json.lenses.JsonLenses._
@@ -98,7 +96,7 @@ package events {
         case Seq(JsString(key), JsNumber(version), data) =>
           val persisted = Persisted(key, version.toInt, fromJson(data))
           entityPersisters.canUnpersist(persisted) match {
-            case true => entityPersisters.unpersist(persisted).asInstanceOf[E]
+            case true  => entityPersisters.unpersist(persisted).asInstanceOf[E]
             case false => throw new IllegalArgumentException(s"No unpersister found for key:$key, version:$version, data:$data")
           }
         case x => throw new DeserializationException(s"Entity data expected, received:$x")
@@ -111,8 +109,8 @@ package events {
   }
 
   class EntityInsertEventPersister(entityPersisters: Persisters)
-      extends PersistedEventPersisterVn[EntityInsertedEvent[BaseId, AnyRef], V2]("entity-inserted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
-      with LazyLogging {
+    extends PersistedEventPersisterVn[EntityInsertedEvent[BaseId, AnyRef], V2]("entity-inserted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
+    with LazyLogging {
 
     def toBytes(t: EntityInsertedEvent[BaseId, AnyRef]): ByteString = {
       //build custom json
@@ -144,8 +142,8 @@ package events {
   }
 
   class EntityUpdatedEventPersister(entityPersisters: Persisters)
-      extends PersistedEventPersisterVn[EntityUpdatedEvent[BaseId, AnyRef], V2]("entity-updated", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
-      with LazyLogging {
+    extends PersistedEventPersisterVn[EntityUpdatedEvent[BaseId, AnyRef], V2]("entity-updated", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
+    with LazyLogging {
 
     def toBytes(t: EntityUpdatedEvent[BaseId, AnyRef]): ByteString = {
       //build custom json
@@ -178,7 +176,7 @@ package events {
   }
 
   class EntityDeletedEventPersister(entityPersisters: Persisters)
-      extends PersistedEventPersisterVn[EntityDeletedEvent[BaseId], V2]("entity-deleted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[EntityDeletedEvent[BaseId], V2]("entity-deleted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: EntityDeletedEvent[BaseId]): ByteString = {
       //build custom json
@@ -204,7 +202,7 @@ package events {
   }
 
   class SystemEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[PersistentSystemEvent, V2]("system-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[PersistentSystemEvent, V2]("system-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: PersistentSystemEvent): ByteString = {
       //build custom json
@@ -230,7 +228,7 @@ package events {
   }
 
   class SendMailEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[SendMailEvent, V2]("send-mail-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol with MailJsonProtocol {
+    extends PersistedEventPersisterVn[SendMailEvent, V2]("send-mail-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol with MailJsonProtocol {
 
     def toBytes(t: SendMailEvent): ByteString = {
       //build custom json
@@ -268,7 +266,7 @@ package events {
   }
 
   class MailSentEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[MailSentEvent, V2]("mail-sent-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[MailSentEvent, V2]("mail-sent-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: MailSentEvent): ByteString = {
       //build custom json
@@ -300,7 +298,7 @@ package events {
   }
 
   class SendMailFailedEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[SendMailFailedEvent, V2]("send-mail-failed-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[SendMailFailedEvent, V2]("send-mail-failed-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: SendMailFailedEvent): ByteString = {
       //build custom json

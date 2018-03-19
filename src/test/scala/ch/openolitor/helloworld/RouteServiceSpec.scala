@@ -27,7 +27,6 @@ import spray.testkit.Specs2RouteTest
 import spray.http._
 import StatusCodes._
 import spray.json._
-import ch.openolitor.helloworld._
 
 class RouteServiceSpec extends Specification with Specs2RouteTest with HelloWorldRoutes {
   def actorRefFactory = system

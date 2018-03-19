@@ -23,10 +23,6 @@
 package ch.openolitor.reports
 
 import spray.json._
-import ch.openolitor.core.models._
-import java.util.UUID
-import org.joda.time._
-import org.joda.time.format._
 import ch.openolitor.core.BaseJsonProtocol
 import ch.openolitor.reports.models._
 import com.typesafe.scalalogging.LazyLogging
@@ -50,7 +46,7 @@ trait ReportsJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoPro
             case _ => {
               field._1 match {
                 case "passwort" => JsString("Not available")
-                case _ => JsString(field._2.toString)
+                case _          => JsString(field._2.toString)
               }
             }
           }

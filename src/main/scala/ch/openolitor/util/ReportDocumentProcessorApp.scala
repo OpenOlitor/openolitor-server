@@ -27,7 +27,6 @@ import java.io.File
 import org.odftoolkit.simple._
 import scala.io.Source
 import spray.json._
-import DefaultJsonProtocol._
 import scala.util._
 import java.util.Locale
 

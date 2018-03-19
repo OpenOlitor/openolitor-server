@@ -26,28 +26,22 @@ import ch.openolitor.core._
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.buchhaltung._
 import ch.openolitor.buchhaltung.models._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
-import shapeless.LabelledGeneric
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.UUID
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 
 object BuchhaltungUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungUpdateService = new DefaultBuchhaltungUpdateService(sysConfig, system)
 }
 
 class DefaultBuchhaltungUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends BuchhaltungUpdateService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+  extends BuchhaltungUpdateService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**

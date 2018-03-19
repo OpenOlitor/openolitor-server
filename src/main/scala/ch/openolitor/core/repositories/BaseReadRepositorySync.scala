@@ -23,29 +23,20 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseReadRepositorySync extends BaseRepositoryQueries {
   def getById[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], id: I)(implicit
     session: DBSession,
-    binder: Binders[I]): Option[E] = {
+    binder: Binders[I]
+  ): Option[E] = {
     getByIdQuery(syntax, id).apply()
   }
 
   def getByIds[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit
     session: DBSession,
-    binder: Binders[I]): List[E] = {
+    binder: Binders[I]
+  ): List[E] = {
     val result = getByIdsQuery(syntax, ids)
     result.apply()
   }

@@ -49,12 +49,12 @@ class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val syste
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
  */
 class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with KorbHandler
-    with SammelbestellungenHandler
-    with LieferungHandler {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with KorbHandler
+  with SammelbestellungenHandler
+  with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
@@ -505,19 +505,19 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   def defaultDateStart(date1: LocalDate, date2: Option[LocalDate]): LocalDate = {
     val today = LocalDate.now.toDateTimeAtStartOfDay.toLocalDate
     (date1, date2) match {
-      case (d1, None) if (d1 compareTo today) > 0 => d1
+      case (d1, None) if (d1 compareTo today) > 0  => d1
       case (d1, None) if (d1 compareTo today) <= 0 => today
       case (d1, Some(d2)) if (d1 compareTo d2) > 0 => d1
-      case (_, date2) => date2.get
+      case (_, date2)                              => date2.get
     }
   }
 
   def defaultDateEnd(date1: Option[LocalDate], date2: Option[LocalDate]): Option[LocalDate] = {
     (date1, date2) match {
-      case (Some(d1), None) => date1
-      case (None, Some(d2)) => date2
+      case (Some(d1), None)                              => date1
+      case (None, Some(d2))                              => date2
       case (Some(d1), Some(d2)) if (d1 compareTo d2) < 0 => date1
-      case (_, d2) => d2
+      case (_, d2)                                       => d2
     }
   }
 

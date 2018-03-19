@@ -25,30 +25,11 @@ package ch.openolitor.core.reporting
 import akka.actor._
 import ch.openolitor.core.reporting.ReportSystem._
 import scala.util._
-import ch.openolitor.util.ZipBuilder
-import ch.openolitor.core.jobs.JobQueueService
-import spray.http.MediaTypes
 import ch.openolitor.core.DateFormats
-import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
 import ch.openolitor.core.filestore._
-import java.io.FileInputStream
 import ch.openolitor.core.jobs.JobQueueService.FileStoreResultPayload
-import java.util.zip.ZipOutputStream
-import java.io.BufferedOutputStream
-import java.io.ByteArrayInputStream
-import java.io.PipedOutputStream
-import java.io.PipedInputStream
-import java.io.InputStream
-import scala.concurrent.Future
-import akka.stream.scaladsl.StreamConverters
-import akka.pattern.ask
-import akka.stream.scaladsl.Sink
-import akka.util.Timeout
-import scala.concurrent.duration._
 import akka.stream.ActorMaterializer
 import akka.stream.ActorMaterializerSettings
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
 import ch.openolitor.core.reporting.BufferedChunkingActor.CompleteChunkedTransfer
 import ch.openolitor.core.filestore.ChunkedFileStoreActor.InitiateChunkedUpload
 
@@ -66,7 +47,6 @@ class ChunkedReportResultCollector(fileStore: FileStore, fileName: String, repor
   var errors: Seq[ReportError] = Seq()
   var reportStats: Option[GenerateReportsStats] = None
 
-  import context.dispatcher
   implicit val materializer = ActorMaterializer(ActorMaterializerSettings(context.system))
 
   val receive: Receive = {

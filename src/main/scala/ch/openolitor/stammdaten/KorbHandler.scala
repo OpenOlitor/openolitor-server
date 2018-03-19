@@ -35,7 +35,7 @@ import scalikejdbc._
 import ch.openolitor.core.Macros._
 
 trait KorbHandler extends KorbStatusHandler
-    with StammdatenDBMappings {
+  with StammdatenDBMappings {
   this: StammdatenWriteRepositoryComponent =>
 
   /**
@@ -137,7 +137,7 @@ trait KorbHandler extends KorbStatusHandler
             }
           }
           case Some(_) =>
-          case None =>
+          case None    =>
         }
         (dateFormat.print(lieferung.datum), lieferung.abotypBeschrieb)
       }

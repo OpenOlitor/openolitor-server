@@ -54,21 +54,21 @@ object StammdatenAktionenService {
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-    extends StammdatenAktionenService(sysConfig, mailService)
-    with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenAktionenService(sysConfig, mailService)
+  with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
  */
 class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with MailServiceReference
-    with StammdatenEventStoreSerializer
-    with SammelbestellungenHandler
-    with LieferungHandler {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with MailServiceReference
+  with StammdatenEventStoreSerializer
+  with SammelbestellungenHandler
+  with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
@@ -178,7 +178,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
 
                 val infoAdminproz = bestellung.adminProzente match {
                   case x if x == 0 => ""
-                  case _ => s"""Adminprozente: ${bestellung.adminProzente}%:"""
+                  case _           => s"""Adminprozente: ${bestellung.adminProzente}%:"""
                 }
 
                 s"""${infoAdminproz}

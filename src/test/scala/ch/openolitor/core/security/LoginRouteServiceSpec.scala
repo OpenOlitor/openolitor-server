@@ -25,7 +25,7 @@ package ch.openolitor.core.security
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 import org.specs2.time.NoTimeConversions
-import org.mockito.Matchers.{ eq => isEq, _ }
+import org.mockito.Matchers.{ eq => isEq }
 import scala.concurrent.duration._
 import ch.openolitor.stammdaten.MockStammdatenReadRepositoryComponent
 import akka.actor.ActorRef
@@ -39,15 +39,11 @@ import scala.concurrent.Future
 import org.mindrot.jbcrypt.BCrypt
 import ch.openolitor.stammdaten.models._
 import scala.concurrent.ExecutionContext
-import ch.openolitor.core.domain.SystemEventStore
 import akka.testkit.TestActorRef
 import ch.openolitor.core.domain.DefaultSystemEventStore
-import ch.openolitor.core.mailservice.DefaultMailService
-import akka.actor.Actor
 import akka.actor.ActorSystem
 import spray.caching.Cache
 import spray.caching.LruCache
-import akka.util.Timeout
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.mailservice.MailServiceMock
 import java.util.Locale
@@ -248,10 +244,10 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 }
 
 class MockLoginRouteService(
-  requireSecondFactorAuthenticationP: Boolean
+    requireSecondFactorAuthenticationP: Boolean
 )
-    extends LoginRouteService
-    with MockStammdatenReadRepositoryComponent {
+  extends LoginRouteService
+  with MockStammdatenReadRepositoryComponent {
   override val entityStore: ActorRef = null
   override val reportSystem: ActorRef = null
   override val jobQueueService: ActorRef = null

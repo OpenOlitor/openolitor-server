@@ -26,38 +26,34 @@ import akka.actor._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.reports._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.reports.models._
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 
 object ReportsDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ReportsDeleteService = new DefaultReportsDeleteService(sysConfig, system)
 }
 
 class DefaultReportsDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends ReportsDeleteService(sysConfig: SystemConfig) with DefaultReportsWriteRepositoryComponent {
+  extends ReportsDeleteService(sysConfig: SystemConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Reports Modul
  */
 class ReportsDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
-    with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
+  with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
   import EntityStore._
 
   val handle: Handle = {
     case EntityDeletedEvent(meta, id: ReportId) => deleteReport(meta, id)
-    case e =>
+    case e                                      =>
   }
 
   def deleteReport(meta: EventMetadata, id: ReportId)(implicit personId: PersonId = meta.originator) = {

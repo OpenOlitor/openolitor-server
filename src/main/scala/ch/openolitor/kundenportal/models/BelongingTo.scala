@@ -23,8 +23,6 @@
 package ch.openolitor.kundenportal.models
 
 import ch.openolitor.stammdaten.models.KundeId
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.security.Subject
 
 trait BelongsToKunde {
   def kundeId: KundeId

@@ -23,16 +23,9 @@
 package ch.openolitor.util
 
 import akka.actor._
-import scala.concurrent.duration._
-import scalikejdbc._
-import scalikejdbc.config._
-import ch.openolitor.core.db._
 import spray.http.HttpRequest
 import ch.openolitor.util.ConfigUtil._
 import spray.http._
-import HttpMethods._
-import HttpHeaders._
-import MediaTypes._
 import spray.client.pipelining._
 import scala.concurrent.Future
 import ch.openolitor.core.SystemConfig

@@ -23,18 +23,7 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseInsertRepository extends BaseReadRepositorySync with InsertRepository {
   def insertEntity[E <: BaseEntity[I], I <: BaseId](entity: E)(implicit
@@ -42,7 +31,8 @@ trait BaseInsertRepository extends BaseReadRepositorySync with InsertRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     val params = syntaxSupport.parameterMappings(entity)
     logger.debug(s"create entity with values:$entity")
     getById(syntaxSupport, entity.id) match {

@@ -55,21 +55,21 @@ import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 
 trait StammdatenRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with StammdatenJsonProtocol
-    with StammdatenEventStoreSerializer
-    with BuchhaltungJsonProtocol
-    with Defaults
-    with AuslieferungLieferscheinReportService
-    with AuslieferungEtikettenReportService
-    with AuslieferungKorbUebersichtReportService
-    with KundenBriefReportService
-    with DepotBriefReportService
-    with ProduzentenBriefReportService
-    with ProduzentenabrechnungReportService
-    with LieferplanungReportService
-    with FileTypeFilenameMapping
-    with StammdatenPaths {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with StammdatenJsonProtocol
+  with StammdatenEventStoreSerializer
+  with BuchhaltungJsonProtocol
+  with Defaults
+  with AuslieferungLieferscheinReportService
+  with AuslieferungEtikettenReportService
+  with AuslieferungKorbUebersichtReportService
+  with KundenBriefReportService
+  with DepotBriefReportService
+  with ProduzentenBriefReportService
+  with ProduzentenabrechnungReportService
+  with LieferplanungReportService
+  with FileTypeFilenameMapping
+  with StammdatenPaths {
   self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent =>
 
   import EntityStore._
@@ -844,6 +844,6 @@ class DefaultStammdatenRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends StammdatenRoutes
-    with DefaultStammdatenReadRepositoryAsyncComponent
-    with DefaultBuchhaltungReadRepositoryAsyncComponent
+  extends StammdatenRoutes
+  with DefaultStammdatenReadRepositoryAsyncComponent
+  with DefaultBuchhaltungReadRepositoryAsyncComponent

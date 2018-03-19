@@ -24,42 +24,17 @@ package ch.openolitor.stammdaten
 
 import spray.routing._
 import spray.http._
-import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 import ch.openolitor.core._
-import ch.openolitor.core.domain._
-import ch.openolitor.core.db._
-import spray.httpx.unmarshalling.Unmarshaller
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
-import java.util.UUID
-import akka.pattern.ask
-import scala.concurrent.duration._
-import akka.util.Timeout
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.models._
 import spray.httpx.marshalling._
-import spray.httpx.unmarshalling._
-import scala.concurrent.Future
-import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.filestore.FileType
-import ch.openolitor.core.filestore.FileStoreFileMetadata
 import ch.openolitor.core.filestore.FileStoreComponent
-import java.io.ByteArrayInputStream
 import com.typesafe.scalalogging.LazyLogging
-import java.io.File
-import java.io.BufferedOutputStream
-import java.io.FileOutputStream
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.io.Closeable
 import akka.actor._
-import akka.util.ByteString
 
 trait StreamSupport {
   def streamIt[T](stream: Stream[T])(implicit marshaller: Marshaller[T], refFactory: ActorRefFactory) =
@@ -98,7 +73,7 @@ trait FileStoreRoutes extends HttpService with ActorReferences with SprayDeseria
       pathEnd {
         get {
           onSuccess(fileStore.getFileIds(fileType.bucket)) {
-            case Left(e) => complete(StatusCodes.InternalServerError, s"Could not list objects for the given fileType: ${fileType}")
+            case Left(e)     => complete(StatusCodes.InternalServerError, s"Could not list objects for the given fileType: ${fileType}")
             case Right(list) => complete(s"Result list: $list")
           }
         }

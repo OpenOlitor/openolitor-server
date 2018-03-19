@@ -23,11 +23,9 @@
 package ch.openolitor.core.domain
 
 import org.joda.time.DateTime
-import ch.openolitor.core.models.PersonId
 import akka.persistence._
 import ch.openolitor.core.SystemConfig
 import akka.actor._
-import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.core.domain.DefaultMessages.Startup
 
 object SystemEventStore {
@@ -69,10 +67,10 @@ trait SystemEventStore extends AggregateRoot {
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed => context become removed
-      case Created => context become created
+      case Removed                  => context become removed
+      case Created                  => context become created
       case s: SystemEventStoreState => this.state = s
-      case other => log.error(s"Received unsupported state:$other")
+      case other                    => log.error(s"Received unsupported state:$other")
     }
   }
 

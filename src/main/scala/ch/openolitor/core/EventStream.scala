@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import ch.openolitor.core.repositories.InstantEventPublisher
 

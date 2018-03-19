@@ -24,26 +24,14 @@ package ch.openolitor.reports
 
 import ch.openolitor.core.domain._
 import ch.openolitor.reports.models._
-import ch.openolitor.core.models._
 import scala.util._
-import scalikejdbc.DB
 import ch.openolitor.reports.models._
-import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.filestore.FileStoreComponent
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.filestore.ZahlungsImportBucket
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
-import ch.openolitor.core.filestore.FileStoreBucket
-import scala.io.Source
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import scala.concurrent.Future
 import ch.openolitor.reports.repositories.DefaultReportsReadRepositorySyncComponent
 import ch.openolitor.reports.repositories.ReportsReadRepositorySyncComponent
-import org.joda.time.DateTime
 
 object ReportsCommandHandler {
 
@@ -51,7 +39,6 @@ object ReportsCommandHandler {
 
 trait ReportsCommandHandler extends CommandHandler with ReportsDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware {
   self: ReportsReadRepositorySyncComponent =>
-  import ReportsCommandHandler._
   import EntityStore._
 
   override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {
@@ -64,5 +51,5 @@ trait ReportsCommandHandler extends CommandHandler with ReportsDBMappings with C
 }
 
 class DefaultReportsCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends ReportsCommandHandler
-    with DefaultReportsReadRepositorySyncComponent {
+  with DefaultReportsReadRepositorySyncComponent {
 }

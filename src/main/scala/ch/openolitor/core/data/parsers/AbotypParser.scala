@@ -37,7 +37,6 @@ object AbotypParser extends EntityParser {
     parseEntity[Abotyp, AbotypId]("id", Seq("name", "beschreibung", "lieferrhythmus", "preis", "preiseinheit", "aktiv_von", "aktiv_bis", "laufzeit",
       "laufzeit_einheit", "farb_code", "zielpreis", "anzahl_abwesenheiten", "guthaben_mindestbestand", "admin_prozente", "wird_geplant",
       "kuendigungsfrist", "vertragslaufzeit", "anzahl_abonnenten", "anzahl_abonnenten_aktiv", "letzte_lieferung", "waehrung") ++ modifyColumns) { id => indexes => row =>
-      import DateTimeUtil._
 
       //match column indexes
       val Seq(indexName, indexBeschreibung, indexlieferrhytmus, indexPreis, indexPreiseinheit, indexAktivVon,

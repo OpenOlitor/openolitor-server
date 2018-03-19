@@ -25,11 +25,9 @@ package ch.openolitor.core.batch
 import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration._
 import akka.actor.Actor
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.joda.time.DateTime
 import akka.actor.Cancellable
 import akka.actor.ActorRef
-import scala.util.Try
 
 object BatchJobs {
   case object InitializeBatchJob

@@ -22,12 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsimport
 
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
-import ch.openolitor.buchhaltung.zahlungsimport.esr.EsrRecordTyp3
-import ch.openolitor.buchhaltung.zahlungsimport.esr.EsrTotalRecordTyp3
 import scala.util._
-import scala.io.Source
 import java.io.InputStream
 import ch.openolitor.buchhaltung.zahlungsimport.esr.EsrParser
 import ch.openolitor.buchhaltung.zahlungsimport.iso20022.Camt054Parser

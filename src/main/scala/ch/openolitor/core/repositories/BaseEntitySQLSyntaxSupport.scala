@@ -23,22 +23,12 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E] with LazyLogging with DBMappings {
 
-  //override def columnNames 
+  //override def columnNames
   def apply(p: SyntaxProvider[E])(rs: WrappedResultSet): E = apply(p.resultName)(rs)
 
   def opt(e: SyntaxProvider[E])(rs: WrappedResultSet): Option[E] = try {

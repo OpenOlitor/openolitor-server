@@ -25,11 +25,8 @@ package ch.openolitor.core.security
 import spray.routing._
 import spray.routing.authentication._
 import spray.http._
-import StatusCodes._
-import Directives._
 import scala.concurrent.Future
 import spray.caching.Cache
-import ch.openolitor.core.models.PersonId
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing.Rejection
 import scala.concurrent.duration.Duration
@@ -103,10 +100,10 @@ trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache 
           case token :: timeString :: Nil =>
             Try(DateTime.parse(timeString)) match {
               case TrySuccess(dateTime) => (token, dateTime).right
-              case TryFailure(e) => AuthenticatorRejection(s"Ungültiges Datumsformat im Header:$timeString").left
+              case TryFailure(e)        => AuthenticatorRejection(s"Ungültiges Datumsformat im Header:$timeString").left
             }
           case token :: Nil => (token, noDateTimeValue).right
-          case x => AuthenticatorRejection(s"Ungüliges Token im Header: $x").left
+          case x            => AuthenticatorRejection(s"Ungüliges Token im Header: $x").left
         }
       }
     }

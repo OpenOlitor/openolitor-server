@@ -22,9 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.mailservice
 
-import org.specs2.mutable.Specification
-import ch.openolitor.core.db.TestDB
-import akka.testkit.TestKit
 import akka.actor._
 import MailService.SendMailEvent
 import MailService.SendMailCommand
