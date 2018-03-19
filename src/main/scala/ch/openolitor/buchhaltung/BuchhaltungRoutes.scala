@@ -52,12 +52,11 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAs
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
 import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
+
 import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
 
 import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
-import scalikejdbc.TxBoundary.Future
 
 import scala.concurrent.Await
 
@@ -122,10 +121,17 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
           requestInstance { request =>
             entity(as[RechnungenContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                val xmlString = generatePain008(rechnungen)
-                val stream = new ByteArrayInputStream(xmlString.getBytes(StandardCharsets.UTF_8))
-                storeToFileStore(ZahlungExportDaten, Some(""), stream, "") { (id, metadata) =>
-                  complete("Zahlung export file uploaded")
+                generatePain008(rechnungen) match {
+                  case (true, xmlData) => {
+                    val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                    storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_07") { (fileId, meta) =>
+                      createZahlungExport(fileId, rechnungen)
+                    }
+                  }
+                  case (false, errorMessage) => {
+                    logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
+                    complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
+                  }
                 }
               }
             }
@@ -239,6 +245,16 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     } ~
       path("zahlungsexports" / zahlungsExportIdPath) { id =>
         get(detail(buchhaltungReadRepository.getZahlungsExportDetail(id)))
+      } ~
+      path("zahlungsexports" / zahlungsExportIdPath / "download") { id =>
+        get {
+          onSuccess(buchhaltungReadRepository.getZahlungsExportDetail(id)) {
+            case Some(zahlungExport) =>
+              download(ZahlungsExportDaten, zahlungExport.fileName)
+            case None =>
+              complete(StatusCodes.NotFound, s"zahlung export nicht gefunden: $id")
+          }
+        }
       }
 
   def verschicken(id: RechnungId)(implicit idPersister: Persister[RechnungId, _], subject: Subject) = {
@@ -342,8 +358,8 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
-  def createZahlungExport(rechnungen: List[Rechnung])(implicit subject: Subject) = {
-    onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen)) {
+  def createZahlungExport(file: String, rechnungen: List[Rechnung])(implicit subject: Subject) = {
+    onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen, file)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
       case _ => complete("")
@@ -386,7 +402,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
-  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): String = {
+  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): (Boolean, String) = {
     val NbOfTxs = ids.size.toString
 
     val kontoDatenProjektWithFuture = stammdatenReadRepository.getKontoDatenProjekt map { maybeKontoDatenProjekt =>
@@ -408,7 +424,40 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     //sequence will transform from list[Future] to future[list]
     val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
     val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
-    Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
+
+    (kontoDatenProjekt.iban, kontoDatenProjekt.creditorIdentifier) match {
+      case (Some(""), Some(_)) => { (false, s"The iban is not defined for the project") }
+      case (Some(_), Some("")) => { (false, "The creditorIdentifier is not defined for the project ") }
+      case (Some(iban), Some(creditorIdentifier)) => {
+        val emptyIbanList = checkEmptyIban(rechnungen)
+        if (emptyIbanList.isEmpty) {
+          val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
+          (true, xmlText)
+        } else {
+          val decoratedEmptyList = emptyIbanList.mkString(" ")
+          (false, s"The iban or name account holder is not defined for the user: $decoratedEmptyList")
+        }
+      }
+      case (None, Some(creditorIdentifier)) => {
+        (false, s"The iban is not defined for the project")
+      }
+      case (Some(iban), None) => {
+        (false, "The creditorIdentifier is not defined for the project ")
+      }
+      case (None, None) => {
+        (false, "Neither the creditorIdentifier nor the iban is defined for the project")
+      }
+    }
+  }
+
+  def checkEmptyIban(rechnungen: List[(Rechnung, KontoDaten)])(implicit subect: Subject): List[KundeId] = {
+    rechnungen flatMap { rechnung =>
+      (rechnung._2.iban, rechnung._2.nameAccountHolder) match {
+        case (None, _) => Some(rechnung._1.kundeId)
+        case (_, None) => Some(rechnung._1.kundeId)
+        case (Some(_), Some(_)) => None
+      }
+    }
   }
 }
 

@@ -124,7 +124,7 @@ case class ZahlungsExportId(id: Long) extends BaseId
 
 case class ZahlungsExport(
   id: ZahlungsExportId,
-  file: String,
+  fileName: String,
   rechnungen: Set[RechnungId],
   // modification flags
   erstelldat: DateTime,
@@ -135,7 +135,7 @@ case class ZahlungsExport(
 
 case class ZahlungsExportCreate(
   id: ZahlungsExportId,
-  file: String,
+  fileName: String,
   rechnungen: Set[RechnungId]
 ) extends JSONSerializable
 
