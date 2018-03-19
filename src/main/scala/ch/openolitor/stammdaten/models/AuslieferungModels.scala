@@ -68,7 +68,8 @@ case class AuslieferungReportEntry(
   projekt: ProjektReport,
   korb: KorbReport,
   depot: Option[DepotReport],
-  tour: Option[Tour]) extends JSONSerializable
+  tour: Option[Tour]
+) extends JSONSerializable
 
 /**
  * Auslieferung pro Depot
@@ -84,7 +85,8 @@ case class DepotAuslieferung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends Auslieferung
+  modifikator: PersonId
+) extends Auslieferung
 
 case class DepotAuslieferungDetail(
   id: AuslieferungId,
@@ -97,7 +99,8 @@ case class DepotAuslieferungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AuslieferungDetail with JSONSerializable
+  modifikator: PersonId
+) extends AuslieferungDetail with JSONSerializable
 
 case class DepotAuslieferungReport(
   id: AuslieferungId,
@@ -111,7 +114,8 @@ case class DepotAuslieferungReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AuslieferungReport with JSONSerializable
+  modifikator: PersonId
+) extends AuslieferungReport with JSONSerializable
 
 /**
  * Auslieferung pro Tour
@@ -127,7 +131,8 @@ case class TourAuslieferung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends Auslieferung
+  modifikator: PersonId
+) extends Auslieferung
 
 case class TourAuslieferungDetail(
   id: AuslieferungId,
@@ -140,7 +145,8 @@ case class TourAuslieferungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AuslieferungDetail with JSONSerializable
+  modifikator: PersonId
+) extends AuslieferungDetail with JSONSerializable
 
 case class TourAuslieferungModify(koerbe: Seq[KorbModify]) extends AuslieferungModify with JSONSerializable
 
@@ -156,7 +162,8 @@ case class TourAuslieferungReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AuslieferungReport with JSONSerializable
+  modifikator: PersonId
+) extends AuslieferungReport with JSONSerializable
 
 /**
  * Auslieferung zur Post
@@ -170,7 +177,8 @@ case class PostAuslieferung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends Auslieferung
+  modifikator: PersonId
+) extends Auslieferung
 
 case class PostAuslieferungDetail(
   id: AuslieferungId,
@@ -182,7 +190,8 @@ case class PostAuslieferungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AuslieferungDetail with JSONSerializable
+  modifikator: PersonId
+) extends AuslieferungDetail with JSONSerializable
 
 case class PostAuslieferungReport(
   id: AuslieferungId,
@@ -195,7 +204,9 @@ case class PostAuslieferungReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AuslieferungReport with JSONSerializable
+  modifikator: PersonId
+) extends AuslieferungReport with JSONSerializable
 
 case class AuslieferungenAlsAusgeliefertMarkieren(
-  ids: Seq[AuslieferungId]) extends JSONSerializable
+  ids: Seq[AuslieferungId]
+) extends JSONSerializable

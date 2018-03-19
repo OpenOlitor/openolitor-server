@@ -85,7 +85,8 @@ package events {
           JsObject(
             "key" -> JsString(persisted.key),
             "version" -> JsNumber(persisted.version),
-            "data" -> data)
+            "data" -> data
+          )
         case _ => throw new IllegalArgumentException(s"No persister found for entity:${entity}")
       }
     }
@@ -122,7 +123,8 @@ package events {
       fromJson(JsObject(
         "meta" -> meta,
         "id" -> id,
-        "entity" -> entity))
+        "entity" -> entity
+      ))
     }
 
     def unpersist(json: JsValue): EntityInsertedEvent[BaseId, AnyRef] = {
@@ -155,7 +157,8 @@ package events {
       val json = JsObject(
         "meta" -> meta,
         "id" -> id,
-        "entity" -> entity)
+        "entity" -> entity
+      )
       fromJson(json)
     }
 
@@ -182,7 +185,8 @@ package events {
 
       fromJson(JsObject(
         "meta" -> meta,
-        "id" -> id))
+        "id" -> id
+      ))
     }
 
     def unpersist(json: JsValue): EntityDeletedEvent[BaseId] = {
@@ -207,7 +211,8 @@ package events {
 
       fromJson(JsObject(
         "meta" -> meta,
-        "event" -> event))
+        "event" -> event
+      ))
     }
 
     def unpersist(json: JsValue): PersistentSystemEvent = {
@@ -237,7 +242,8 @@ package events {
         "uid" -> JsString(t.uid),
         "mail" -> mail,
         "expires" -> expires,
-        "commandMeta" -> commandMeta))
+        "commandMeta" -> commandMeta
+      ))
     }
 
     def unpersist(json: JsValue): SendMailEvent = {
@@ -270,7 +276,8 @@ package events {
       fromJson(JsObject(
         "meta" -> meta,
         "uid" -> JsString(t.uid),
-        "commandMeta" -> commandMeta))
+        "commandMeta" -> commandMeta
+      ))
     }
 
     def unpersist(json: JsValue): MailSentEvent = {
@@ -302,7 +309,8 @@ package events {
         "meta" -> meta,
         "uid" -> JsString(t.uid),
         "numberOfRetries" -> JsNumber(t.numberOfRetries),
-        "commandMeta" -> commandMeta))
+        "commandMeta" -> commandMeta
+      ))
     }
 
     def unpersist(json: JsValue): SendMailFailedEvent = {

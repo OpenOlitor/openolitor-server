@@ -129,7 +129,8 @@ case class DepotlieferungAbo(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends HauptAbo
+  modifikator: PersonId
+) extends HauptAbo
 
 object DepotlieferungAbo {
   def unapply(o: DepotlieferungAbo) = {
@@ -158,7 +159,8 @@ object DepotlieferungAbo {
       o.erstelldat,
       o.ersteller,
       o.modifidat,
-      o.modifikator))
+      o.modifikator
+    ))
   }
 }
 
@@ -188,7 +190,8 @@ case class DepotlieferungAboReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends AboReport with JSONSerializable
+  modifikator: PersonId
+) extends AboReport with JSONSerializable
 
 case class DepotlieferungAboDetail(
   id: AboId,
@@ -221,7 +224,8 @@ case class DepotlieferungAboDetail(
   abwesenheiten: Seq[Abwesenheit],
   lieferdaten: Seq[Lieferung],
   abotyp: Option[Abotyp],
-  vertrieb: Option[Vertrieb]) extends AboDetail
+  vertrieb: Option[Vertrieb]
+) extends AboDetail
 
 case class DepotlieferungAboModify(
   kundeId: KundeId,
@@ -229,7 +233,8 @@ case class DepotlieferungAboModify(
   vertriebsartId: VertriebsartId,
   depotId: DepotId,
   start: LocalDate,
-  ende: Option[LocalDate]) extends AboModify
+  ende: Option[LocalDate]
+) extends AboModify
 
 case class HeimlieferungAbo(
   id: AboId,
@@ -258,7 +263,8 @@ case class HeimlieferungAbo(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends HauptAbo
+  modifikator: PersonId
+) extends HauptAbo
 
 object HeimlieferungAbo {
   def unapply(o: HeimlieferungAbo) = {
@@ -287,7 +293,8 @@ object HeimlieferungAbo {
       o.erstelldat,
       o.ersteller,
       o.modifidat,
-      o.modifikator))
+      o.modifikator
+    ))
   }
 }
 
@@ -322,7 +329,8 @@ case class HeimlieferungAboDetail(
   abwesenheiten: Seq[Abwesenheit],
   lieferdaten: Seq[Lieferung],
   abotyp: Option[Abotyp],
-  vertrieb: Option[Vertrieb]) extends AboDetail
+  vertrieb: Option[Vertrieb]
+) extends AboDetail
 
 case class HeimlieferungAboModify(
   kundeId: KundeId,
@@ -330,7 +338,8 @@ case class HeimlieferungAboModify(
   vertriebsartId: VertriebsartId,
   tourId: TourId,
   start: LocalDate,
-  ende: Option[LocalDate]) extends AboModify
+  ende: Option[LocalDate]
+) extends AboModify
 
 case class PostlieferungAbo(
   id: AboId,
@@ -357,7 +366,8 @@ case class PostlieferungAbo(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends HauptAbo
+  modifikator: PersonId
+) extends HauptAbo
 
 object PostlieferungAbo {
   def unapply(o: PostlieferungAbo) = {
@@ -384,7 +394,8 @@ object PostlieferungAbo {
       o.erstelldat,
       o.ersteller,
       o.modifidat,
-      o.modifikator))
+      o.modifikator
+    ))
   }
 }
 
@@ -417,14 +428,16 @@ case class PostlieferungAboDetail(
   abwesenheiten: Seq[Abwesenheit],
   lieferdaten: Seq[Lieferung],
   abotyp: Option[Abotyp],
-  vertrieb: Option[Vertrieb]) extends AboDetail
+  vertrieb: Option[Vertrieb]
+) extends AboDetail
 
 case class PostlieferungAboModify(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
   start: LocalDate,
-  ende: Option[LocalDate]) extends AboModify
+  ende: Option[LocalDate]
+) extends AboModify
 
 case class AbwesenheitId(id: Long) extends BaseId
 
@@ -438,41 +451,48 @@ case class Abwesenheit(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[AbwesenheitId] with JSONSerializable
+  modifikator: PersonId
+) extends BaseEntity[AbwesenheitId] with JSONSerializable
 
 case class AbwesenheitModify(
   lieferungId: LieferungId,
   datum: LocalDate,
-  bemerkung: Option[String]) extends JSONSerializable
+  bemerkung: Option[String]
+) extends JSONSerializable
 
 case class AbwesenheitCreate(
   aboId: AboId,
   lieferungId: LieferungId,
   datum: LocalDate,
-  bemerkung: Option[String]) extends JSONSerializable
+  bemerkung: Option[String]
+) extends JSONSerializable
 
 case class AboGuthabenModify(
   guthabenAlt: Int,
   guthabenNeu: Int,
-  bemerkung: String) extends JSONSerializable
+  bemerkung: String
+) extends JSONSerializable
 
 case class AboVertriebsartModify(
   vertriebIdNeu: VertriebId,
   vertriebsartIdNeu: VertriebsartId,
-  bemerkung: String) extends JSONSerializable
+  bemerkung: String
+) extends JSONSerializable
 
 case class AboRechnungsPositionBisGuthabenCreate(
   ids: Seq[AboId],
   titel: String,
   bisGuthaben: Int,
-  waehrung: Waehrung) extends JSONSerializable
+  waehrung: Waehrung
+) extends JSONSerializable
 
 case class AboRechnungsPositionBisAnzahlLieferungenCreate(
   ids: Seq[AboId],
   titel: String,
   anzahlLieferungen: Int,
   betrag: Option[BigDecimal],
-  waehrung: Waehrung) extends JSONSerializable
+  waehrung: Waehrung
+) extends JSONSerializable
 
 case class Tourlieferung(
   id: AboId,
@@ -493,7 +513,8 @@ case class Tourlieferung(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[AboId]
+  modifikator: PersonId
+) extends BaseEntity[AboId]
 
 object Tourlieferung {
   def apply(heimlieferungAbo: HeimlieferungAbo, kunde: Kunde, personId: PersonId): Tourlieferung = {
@@ -515,7 +536,8 @@ object Tourlieferung {
       DateTime.now,
       personId,
       DateTime.now,
-      personId)
+      personId
+    )
   }
 }
 
@@ -539,7 +561,8 @@ case class TourlieferungDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class ZusatzAbo(
   id: AboId,
@@ -563,7 +586,8 @@ case class ZusatzAbo(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends Abo
+  modifikator: PersonId
+) extends Abo
 
 case class ZusatzAboDetail(
   id: AboId,
@@ -587,7 +611,8 @@ case class ZusatzAboDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class ZusatzAboModify(
   id: AboId,
@@ -595,14 +620,17 @@ case class ZusatzAboModify(
   abotypId: AbotypId,
   kundeId: KundeId,
   start: LocalDate,
-  ende: Option[LocalDate]) extends JSONSerializable
+  ende: Option[LocalDate]
+) extends JSONSerializable
 
 case class ZusatzAboCreate(
   hauptAboId: AboId,
   abotypId: AbotypId,
-  kundeId: KundeId) extends JSONSerializable
+  kundeId: KundeId
+) extends JSONSerializable
 
 /* Used to trigger more complex filtering on overview searches */
 
 case class AbosComplexFlags(
-  zusatzAbosAktiv: Boolean) extends JSONSerializable
+  zusatzAbosAktiv: Boolean
+) extends JSONSerializable

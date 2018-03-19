@@ -34,7 +34,8 @@ case class EventTransactionMetadata(originator: PersonId, version: Int, timestam
       timestamp,
       transactionNr,
       seqNr,
-      source)
+      source
+    )
   }
 }
 

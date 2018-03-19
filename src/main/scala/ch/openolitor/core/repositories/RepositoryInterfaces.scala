@@ -28,11 +28,13 @@ import scalikejdbc._
 trait ReadRepository {
   def getById[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], id: I)(implicit
     session: DBSession,
-    binder: Binders[I]): Option[E]
+    binder: Binders[I]
+  ): Option[E]
 
   def getByIds[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit
     session: DBSession,
-    binder: Binders[I]): List[E]
+    binder: Binders[I]
+  ): List[E]
 }
 
 trait InsertRepository {
@@ -41,7 +43,8 @@ trait InsertRepository {
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E]
+    eventPublisher: EventPublisher
+  ): Option[E]
 }
 
 trait UpdateRepository {
@@ -50,7 +53,8 @@ trait UpdateRepository {
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E]
+    eventPublisher: EventPublisher
+  ): Option[E]
 }
 
 trait DeleteRepository {
@@ -62,14 +66,16 @@ trait DeleteRepository {
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E]
+    eventPublisher: EventPublisher
+  ): Option[E]
 
   def deleteEntity[E <: BaseEntity[I], I <: BaseId](id: I, validator: Option[Validator[E]] = None)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E]
+    eventPublisher: EventPublisher
+  ): Option[E]
 }
 
 trait CrudRepository extends ReadRepository with InsertRepository with UpdateRepository with DeleteRepository

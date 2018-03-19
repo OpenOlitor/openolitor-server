@@ -49,7 +49,8 @@ trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Produzenten-Brief(e)"))
+      JobId("Produzenten-Brief(e)")
+    )
   }
 
   def name(fileType: FileType)(Produzent: ProduzentDetailReport) = s"Produzent_nr_${Produzent.id.id}_${filenameDateFormat.print(System.currentTimeMillis())}"

@@ -49,7 +49,8 @@ trait AuslieferungLieferscheinReportService extends AsyncConnectionPoolContextAw
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Auslieferungs-Lieferschein(e)"))
+      JobId("Auslieferungs-Lieferschein(e)")
+    )
   }
 
   def name(fileType: FileType)(auslieferung: AuslieferungReport) = {

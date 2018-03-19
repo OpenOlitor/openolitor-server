@@ -93,7 +93,8 @@ class DefaultStammdatenOpenRoutes(
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef)
+  override val jobQueueService: ActorRef
+)
   extends StammdatenOpenRoutes
   with DefaultStammdatenReadRepositoryAsyncComponent
   with DefaultBuchhaltungReadRepositoryAsyncComponent

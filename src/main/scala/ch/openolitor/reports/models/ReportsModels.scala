@@ -37,18 +37,22 @@ case class Report(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ReportId]
+  modifikator: PersonId
+) extends BaseEntity[ReportId]
 
 case class ReportCreate(
   name: String,
   beschreibung: Option[String],
-  query: String) extends JSONSerializable
+  query: String
+) extends JSONSerializable
 
 case class ReportModify(
   name: String,
   beschreibung: Option[String],
-  query: String) extends JSONSerializable
+  query: String
+) extends JSONSerializable
 
 case class ReportExecute(
   id: ReportId,
-  query: String) extends JSONSerializable
+  query: String
+) extends JSONSerializable

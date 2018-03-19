@@ -41,7 +41,8 @@ trait BaseWriteRepository extends CrudRepository
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
 
     syntaxSupport.updateParameters(entity) map {
       case (s, v) =>

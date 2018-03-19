@@ -181,7 +181,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Add abonnent to depot:${depot.id}")
         Map(
           depotMapping.column.anzahlAbonnenten -> (depot.anzahlAbonnenten + 1),
-          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo)))
+          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo))
+        )
       }
     }
   }
@@ -192,7 +193,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Remove abonnent from depot:${depot.id}")
         Map(
           depotMapping.column.anzahlAbonnenten -> (depot.anzahlAbonnenten - 1),
-          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo)))
+          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo))
+        )
       }
     }
   }
@@ -203,14 +205,16 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Remove abonnent from depot:${depot.id}")
         Map(
           depotMapping.column.anzahlAbonnenten -> (depot.anzahlAbonnenten - 1),
-          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo)))
+          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo))
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Depot, DepotId](to) { depot =>
         log.debug(s"Add abonnent to depot:${depot.id}")
         Map(
           depotMapping.column.anzahlAbonnenten -> (depot.anzahlAbonnenten + 1),
-          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo)))
+          depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo))
+        )
       }
     }
   }
@@ -221,7 +225,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Add abonnent to tour:${tour.id}")
         Map(
           tourMapping.column.anzahlAbonnenten -> (tour.anzahlAbonnenten + 1),
-          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv + calculateAboAktivCreate(entity)))
+          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv + calculateAboAktivCreate(entity))
+        )
       }
     }
   }
@@ -232,7 +237,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Remove abonnent from tour:${tour.id}")
         Map(
           tourMapping.column.anzahlAbonnenten -> (tour.anzahlAbonnenten - 1),
-          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo)))
+          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo))
+        )
       }
     }
   }
@@ -243,14 +249,16 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Remove abonnent from tour:${tour.id}")
         Map(
           tourMapping.column.anzahlAbonnenten -> (tour.anzahlAbonnenten - 1),
-          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo)))
+          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv - calculateAboAktivCreate(abo))
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Tour, TourId](to) { tour =>
         log.debug(s"Add abonnent to tour:${tour.id}")
         Map(
           tourMapping.column.anzahlAbonnenten -> (tour.anzahlAbonnenten + 1),
-          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo)))
+          tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo))
+        )
       }
     }
   }
@@ -262,42 +270,48 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Add abonnent to abotyp:${abotyp.id}")
         Map(
           abotypMapping.column.anzahlAbonnenten -> (abotyp.anzahlAbonnenten + 1),
-          abotypMapping.column.anzahlAbonnentenAktiv -> (abotyp.anzahlAbonnentenAktiv + modAboCount))
+          abotypMapping.column.anzahlAbonnentenAktiv -> (abotyp.anzahlAbonnentenAktiv + modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Kunde, KundeId](abo.kundeId) { kunde =>
         log.debug(s"Add abonnent to kunde:${kunde.id}")
         Map(
           kundeMapping.column.anzahlAbos -> (kunde.anzahlAbos + 1),
-          kundeMapping.column.anzahlAbosAktiv -> (kunde.anzahlAbosAktiv + modAboCount))
+          kundeMapping.column.anzahlAbosAktiv -> (kunde.anzahlAbosAktiv + modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Vertrieb, VertriebId](abo.vertriebId) { vertrieb =>
         log.debug(s"Add abonnent to vertrieb:${vertrieb.id}")
         Map(
           vertriebMapping.column.anzahlAbos -> (vertrieb.anzahlAbos + 1),
-          vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv + modAboCount))
+          vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv + modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Depotlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
         log.debug(s"Add abonnent to vertriebsart:${vertriebsart.id}")
         Map(
           depotlieferungMapping.column.anzahlAbos -> (vertriebsart.anzahlAbos + 1),
-          depotlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv + modAboCount))
+          depotlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv + modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Heimlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
         log.debug(s"Add abonnent to vertriebsart:${vertriebsart.id}")
         Map(
           heimlieferungMapping.column.anzahlAbos -> (vertriebsart.anzahlAbos + 1),
-          heimlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv + modAboCount))
+          heimlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv + modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Postlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
         log.debug(s"Add abonnent to vertriebsart:${vertriebsart.id}")
         Map(
           postlieferungMapping.column.anzahlAbos -> (vertriebsart.anzahlAbos + 1),
-          postlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv + modAboCount))
+          postlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv + modAboCount)
+        )
       }
     }
   }
@@ -314,7 +328,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             stammdatenUpdateRepository.modifyEntity[ZusatzAbo, AboId](zusatzabo.id) { z =>
               log.debug(s"modify the start date of the zusatzabo :${z.id}")
               Map(
-                zusatzAboMapping.column.start -> to.start)
+                zusatzAboMapping.column.start -> to.start
+              )
             }
           }
         }
@@ -332,14 +347,16 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
           log.debug(s"Remove abonnent from vertrieb:${vertrieb.id}")
           Map(
             vertriebMapping.column.anzahlAbos -> (vertrieb.anzahlAbos - 1),
-            vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv - modAboCount))
+            vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv - modAboCount)
+          )
         }
 
         stammdatenUpdateRepository.modifyEntity[Vertrieb, VertriebId](to.vertriebId) { vertrieb =>
           log.debug(s"Add abonnent to vertrieb:${vertrieb.id}")
           Map(
             vertriebMapping.column.anzahlAbos -> (vertrieb.anzahlAbos + 1),
-            vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv + modAboCount))
+            vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv + modAboCount)
+          )
         }
       }
     }
@@ -353,14 +370,16 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             stammdatenUpdateRepository.modifyEntity[ZusatzAbo, AboId](zusatzabo.id) { z =>
               log.debug(s"modify the end date of the zusatzabo :${z.id}")
               Map(
-                zusatzAboMapping.column.ende -> toEnde)
+                zusatzAboMapping.column.ende -> toEnde
+              )
             }
           }
         }
         case _ => stammdatenUpdateRepository.modifyEntity[ZusatzAbo, AboId](zusatzabo.id) { z =>
           log.debug(s"modify the end date of the zusatzabo :${z.id}")
           Map(
-            zusatzAboMapping.column.ende -> toEnde)
+            zusatzAboMapping.column.ende -> toEnde
+          )
         }
       }
     }
@@ -373,42 +392,48 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Remove abonnent from abotyp:${abotyp.id}")
         Map(
           abotypMapping.column.anzahlAbonnenten -> (abotyp.anzahlAbonnenten - 1),
-          abotypMapping.column.anzahlAbonnentenAktiv -> (abotyp.anzahlAbonnentenAktiv - modAboCount))
+          abotypMapping.column.anzahlAbonnentenAktiv -> (abotyp.anzahlAbonnentenAktiv - modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Kunde, KundeId](abo.kundeId) { kunde =>
         log.debug(s"Remove abonnent from kunde:${kunde.id}")
         Map(
           kundeMapping.column.anzahlAbos -> (kunde.anzahlAbos - 1),
-          kundeMapping.column.anzahlAbosAktiv -> (kunde.anzahlAbosAktiv - modAboCount))
+          kundeMapping.column.anzahlAbosAktiv -> (kunde.anzahlAbosAktiv - modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Vertrieb, VertriebId](abo.vertriebId) { vertrieb =>
         log.debug(s"Remove abonnent from vertrieb:${vertrieb.id}")
         Map(
           vertriebMapping.column.anzahlAbos -> (vertrieb.anzahlAbos - 1),
-          vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv - modAboCount))
+          vertriebMapping.column.anzahlAbosAktiv -> (vertrieb.anzahlAbosAktiv - modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Depotlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
         log.debug(s"Remove abonnent from vertriebsart:${vertriebsart.id}")
         Map(
           depotlieferungMapping.column.anzahlAbos -> (vertriebsart.anzahlAbos - 1),
-          depotlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv - modAboCount))
+          depotlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv - modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Heimlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
         log.debug(s"Remove abonnent from vertriebsart:${vertriebsart.id}")
         Map(
           heimlieferungMapping.column.anzahlAbos -> (vertriebsart.anzahlAbos - 1),
-          heimlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv - modAboCount))
+          heimlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv - modAboCount)
+        )
       }
 
       stammdatenUpdateRepository.modifyEntity[Postlieferung, VertriebsartId](abo.vertriebsartId) { vertriebsart =>
         log.debug(s"Remove abonnent from vertriebsart:${vertriebsart.id}")
         Map(
           postlieferungMapping.column.anzahlAbos -> (vertriebsart.anzahlAbos - 1),
-          postlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv - modAboCount))
+          postlieferungMapping.column.anzahlAbosAktiv -> (vertriebsart.anzahlAbosAktiv - modAboCount)
+        )
       }
     }
   }
@@ -420,7 +445,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Add abonnent to zusatzabotyp:${zusatzAbotyp.id}")
         Map(
           zusatzAbotypMapping.column.anzahlAbonnenten -> (zusatzAbotyp.anzahlAbonnenten + 1),
-          zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv + modZusatzAboCount))
+          zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv + modZusatzAboCount)
+        )
       }
 
       stammdatenUpdateRepository.updateHauptAboAddZusatzabo(zusatzAbo)
@@ -449,7 +475,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         log.debug(s"Remove abonnent from zusatzabotyp:${zusatzAbotyp.id}")
         Map(
           zusatzAbotypMapping.column.anzahlAbonnenten -> (zusatzAbotyp.anzahlAbonnenten - 1),
-          zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv - modZusatzAboCount))
+          zusatzAbotypMapping.column.anzahlAbonnentenAktiv -> (zusatzAbotyp.anzahlAbonnentenAktiv - modZusatzAboCount)
+        )
       }
 
       stammdatenUpdateRepository.updateHauptAboRemoveZusatzabo(zusatzAbo)
@@ -597,7 +624,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         Map(
           lieferungMapping.column.anzahlKoerbeZuLiefern -> result.anzahlKoerbeZuLiefern,
           lieferungMapping.column.anzahlAbwesenheiten -> result.anzahlAbwesenheiten,
-          lieferungMapping.column.anzahlSaldoZuTief -> result.anzahlSaldoZuTief)
+          lieferungMapping.column.anzahlSaldoZuTief -> result.anzahlSaldoZuTief
+        )
         // TODO who is changing KorbStatus?
         // kann the handle KorbStatusChanged be removed and the recaculate be done?
       }
@@ -625,7 +653,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     val copy = lieferung.copy(
       anzahlKoerbeZuLiefern = lieferung.anzahlKoerbeZuLiefern + zuLiefernDiff,
       anzahlAbwesenheiten = lieferung.anzahlAbwesenheiten + abwDiff,
-      anzahlSaldoZuTief = lieferung.anzahlSaldoZuTief + saldoDiff)
+      anzahlSaldoZuTief = lieferung.anzahlSaldoZuTief + saldoDiff
+    )
     log.debug(s"Recalculate Lieferung as Korb-Status: was modified : ${lieferung.id} status form ${korbStatusAlt} to ${korbStatusNeu}. zu lieferung:$zuLiefernDiff, Abw: $abwDiff, Saldo: $saldoDiff\nfrom:$lieferung\nto:$copy")
     copy
 
@@ -729,21 +758,24 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
           Map(
             depotlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen),
             depotlieferungAboMapping.column.guthaben -> (abo.guthaben + anzahlLieferungen),
-            depotlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None)))
+            depotlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None))
+          )
         }
 
         stammdatenUpdateRepository.modifyEntity[PostlieferungAbo, AboId](aboId) { abo =>
           Map(
             postlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen),
             postlieferungAboMapping.column.guthaben -> (abo.guthaben + anzahlLieferungen),
-            postlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None)))
+            postlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None))
+          )
         }
 
         stammdatenUpdateRepository.modifyEntity[HeimlieferungAbo, AboId](aboId) { abo =>
           Map(
             heimlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen),
             heimlieferungAboMapping.column.guthaben -> (abo.guthaben + anzahlLieferungen),
-            heimlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None)))
+            heimlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None))
+          )
         }
       }
     }
@@ -796,7 +828,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             Map(
               depotlieferungAboMapping.column.guthaben -> (korb.guthabenVorLieferung - 1),
               depotlieferungAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
-              depotlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value))
+              depotlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
+            )
           }
 
           stammdatenUpdateRepository.modifyEntity[HeimlieferungAbo, AboId](korb.aboId) { abo =>
@@ -805,7 +838,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             Map(
               heimlieferungAboMapping.column.guthaben -> (korb.guthabenVorLieferung - 1),
               heimlieferungAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
-              heimlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value))
+              heimlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
+            )
           }
 
           stammdatenUpdateRepository.modifyEntity[PostlieferungAbo, AboId](korb.aboId) { abo =>
@@ -814,7 +848,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             Map(
               postlieferungAboMapping.column.guthaben -> (korb.guthabenVorLieferung - 1),
               postlieferungAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
-              postlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value))
+              postlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
+            )
           }
 
           stammdatenUpdateRepository.modifyEntity[ZusatzAbo, AboId](korb.aboId) { abo =>
@@ -822,7 +857,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             updateAbotypOnAusgeliefert(abo.abotypId, entity.datum)
             Map(
               zusatzAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
-              zusatzAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value))
+              zusatzAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
+            )
           }
         }
       }
@@ -868,7 +904,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         tourlieferungMapping.column.hausNummer -> (kunde.hausNummerLieferung orElse kunde.hausNummer),
         tourlieferungMapping.column.adressZusatz -> (kunde.adressZusatzLieferung orElse kunde.adressZusatz),
         tourlieferungMapping.column.plz -> plz,
-        tourlieferungMapping.column.ort -> ort)
+        tourlieferungMapping.column.ort -> ort
+      )
     }
   }
 
@@ -877,7 +914,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
 
       implicit val pid = SystemEvents.SystemPersonId
       stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(
-        personMapping.column.letzteAnmeldung -> Option(timestamp))
+        personMapping.column.letzteAnmeldung -> Option(timestamp)
+      )
     }
   }
 
@@ -892,7 +930,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         }).mkString("; ")
       if (lp.abotypDepotTour != abotypDates) {
         stammdatenUpdateRepository.updateEntity[Lieferplanung, LieferplanungId](lp.id)(
-          lieferplanungMapping.column.abotypDepotTour -> abotypDates)
+          lieferplanungMapping.column.abotypDepotTour -> abotypDates
+        )
       }
     }
   }
@@ -957,7 +996,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     if (entity.durchschnittspreis != scaled || entity.anzahlLieferungen != newAnzahlLieferungen) {
       stammdatenUpdateRepository.updateEntity[Lieferung, LieferungId](entity.id)(
         lieferungMapping.column.durchschnittspreis -> newDurchschnittspreis,
-        lieferungMapping.column.anzahlLieferungen -> newAnzahlLieferungen)
+        lieferungMapping.column.anzahlLieferungen -> newAnzahlLieferungen
+      )
     }
   }
 }

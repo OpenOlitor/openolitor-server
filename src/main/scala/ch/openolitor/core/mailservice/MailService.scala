@@ -114,7 +114,8 @@ trait MailService extends AggregateRoot
               maybeRequeue =>
                 maybeRequeue map { result =>
                   state = state.copy(mailQueue = state.mailQueue - enqueued + result)
-                })
+                }
+            )
         }
       }
     }

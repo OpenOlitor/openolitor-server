@@ -177,7 +177,8 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
   def importEntityList[E <: BaseEntity[I], I <: BaseId](name: String, entities: List[E], result: Map[String, Int])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I]) = {
+    binder: Binders[I]
+  ) = {
     log.debug(s"Import ${entities.length} $name...")
     entities map { entity =>
       insertEntity[E, I](entity)

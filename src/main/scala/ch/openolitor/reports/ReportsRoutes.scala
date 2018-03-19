@@ -77,6 +77,7 @@ class DefaultReportsRoutes(
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef)
+  override val jobQueueService: ActorRef
+)
   extends ReportsRoutes
   with DefaultReportsReadRepositoryAsyncComponent

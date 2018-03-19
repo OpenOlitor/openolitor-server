@@ -94,7 +94,8 @@ case class Projekt(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProjektId] {
+  modifikator: PersonId
+) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
 }
 
@@ -111,7 +112,8 @@ case class ProjektPublik(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   welcomeMessage1: Option[String],
-  maintenanceMode: Boolean) extends JSONSerializable
+  maintenanceMode: Boolean
+) extends JSONSerializable
 
 case class ProjektReport(
   id: ProjektId,
@@ -133,7 +135,8 @@ case class ProjektReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProjektId] {
+  modifikator: PersonId
+) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
   lazy val plzOrt = plz.map(_ + ort.map(" " + _).getOrElse(""))
@@ -142,7 +145,8 @@ case class ProjektReport(
     Some(bezeichnung),
     adressZusatz,
     strasseUndNummer,
-    plzOrt).flatten.padTo(6, "")
+    plzOrt
+  ).flatten.padTo(6, "")
 }
 
 case class ProjektModify(
@@ -162,7 +166,8 @@ case class ProjektModify(
   sprache: Locale,
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],
-  maintenanceMode: Boolean) extends JSONSerializable
+  maintenanceMode: Boolean
+) extends JSONSerializable
 
 case class KundentypId(id: String) extends BaseStringId
 
@@ -177,7 +182,8 @@ case class CustomKundentyp(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[CustomKundentypId]
+  modifikator: PersonId
+) extends BaseEntity[CustomKundentypId]
 
 // Don't use!
 case class CustomKundentypModifyV1(beschreibung: Option[String]) extends JSONSerializable

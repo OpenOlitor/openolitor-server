@@ -98,7 +98,8 @@ case class EsrRecordTyp3(
   mikrofilmNummer: String,
   rejectCode: EsrRecordTyp3RejectCode,
   reserve: String,
-  preiseFuerEinzahlungen: BigDecimal) extends ZahlungsImportRecord {
+  preiseFuerEinzahlungen: BigDecimal
+) extends ZahlungsImportRecord {
   override val transaktionsart: Transaktionsart = transaktionsartCode.transaktionsart
   override val waehrung: Waehrung = CHF
 }
@@ -126,7 +127,8 @@ object EsrRecordTyp3 {
         mikrofilmNummer,
         EsrRecordTyp3RejectCode(rejectCode),
         reserve,
-        BigDecimal(preiseFuerEinzahlungen.toInt, Scale)))
+        BigDecimal(preiseFuerEinzahlungen.toInt, Scale)
+      ))
     case _ =>
       None
   }

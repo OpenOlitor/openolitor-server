@@ -39,16 +39,20 @@ case class ProjektVorlage(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProjektVorlageId] with JSONSerializable
+  modifikator: PersonId
+) extends BaseEntity[ProjektVorlageId] with JSONSerializable
 
 case class ProjektVorlageModify(
   name: String,
-  beschreibung: Option[String]) extends JSONSerializable
+  beschreibung: Option[String]
+) extends JSONSerializable
 
 case class ProjektVorlageUpload(
-  fileStoreId: String) extends JSONSerializable
+  fileStoreId: String
+) extends JSONSerializable
 
 case class ProjektVorlageCreate(
   typ: VorlageTyp,
   name: String,
-  beschreibung: Option[String]) extends JSONSerializable
+  beschreibung: Option[String]
+) extends JSONSerializable

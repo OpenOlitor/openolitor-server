@@ -62,7 +62,8 @@ case class ValidationError[I](id: I, message: String)(implicit format: JsonForma
 
   val asJson = JsObject(
     "message" -> JsString(message),
-    "id" -> jsonId)
+    "id" -> jsonId
+  )
 }
 case class ReportServiceResult[I](jobId: JobId, validationErrors: Seq[ValidationError[I]], result: ReportResult) {
   val hasErrors = !validationErrors.isEmpty
@@ -92,7 +93,8 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
     ablageIdFactory: E => Option[String],
     nameFactory: E => String,
     localeFactory: E => Locale,
-    jobId: JobId)(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
+    jobId: JobId
+  )(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
     logger.debug(s"Validate ids:${config.ids}")
     validationFunction(config.ids) flatMap {
       case (errors, Seq()) =>

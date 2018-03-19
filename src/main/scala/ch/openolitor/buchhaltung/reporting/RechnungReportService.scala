@@ -49,7 +49,8 @@ trait RechnungReportService extends AsyncConnectionPoolContextAware with ReportS
       x => Some(x.id.id.toString),
       name,
       _.projekt.sprache,
-      JobId("Rechnung(en)"))
+      JobId("Rechnung(en)")
+    )
   }
 
   private def name(rechnung: RechnungDetailReport) = {

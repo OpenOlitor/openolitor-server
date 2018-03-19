@@ -54,12 +54,14 @@ case class ZahlungsImport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ZahlungsImportId]
+  modifikator: PersonId
+) extends BaseEntity[ZahlungsImportId]
 
 case class ZahlungsImportCreate(
   id: ZahlungsImportId,
   file: String,
-  zahlungsEingaenge: Seq[ZahlungsEingangCreate]) extends JSONSerializable
+  zahlungsEingaenge: Seq[ZahlungsEingangCreate]
+) extends JSONSerializable
 
 case class ZahlungsImportDetail(
   id: ZahlungsImportId,
@@ -69,7 +71,8 @@ case class ZahlungsImportDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class ZahlungsEingang(
   id: ZahlungsEingangId,
@@ -92,7 +95,8 @@ case class ZahlungsEingang(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ZahlungsEingangId]
+  modifikator: PersonId
+) extends BaseEntity[ZahlungsEingangId]
 
 case class ZahlungsEingangCreate(
   id: ZahlungsEingangId,
@@ -108,8 +112,10 @@ case class ZahlungsEingangCreate(
   aufgabeDatum: DateTime,
   verarbeitungsDatum: DateTime,
   gutschriftsDatum: DateTime,
-  status: ZahlungsEingangStatus) extends JSONSerializable
+  status: ZahlungsEingangStatus
+) extends JSONSerializable
 
 case class ZahlungsEingangModifyErledigt(
   id: ZahlungsEingangId,
-  bemerkung: Option[String]) extends JSONSerializable
+  bemerkung: Option[String]
+) extends JSONSerializable

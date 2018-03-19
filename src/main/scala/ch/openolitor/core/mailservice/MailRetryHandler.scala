@@ -45,7 +45,9 @@ trait DefaultMailRetryHandler extends MailRetryHandler {
         Right(Some(enqueued.copy(
           retries = enqueued.retries + 1,
           nextTry = enqueued.nextTry.plusSeconds(
-            if (enqueued.retries < RetryTime.size) RetryTime(enqueued.retries) else RetryTime.last))))
+            if (enqueued.retries < RetryTime.size) RetryTime(enqueued.retries) else RetryTime.last
+          )
+        )))
       } else {
         Right(None)
       }

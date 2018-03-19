@@ -96,7 +96,8 @@ case class Depot(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends IDepot with Vertriebskanal
+  modifikator: PersonId
+) extends IDepot with Vertriebskanal
 
 trait IDepotReport extends IDepot {
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
@@ -105,7 +106,8 @@ trait IDepotReport extends IDepot {
   lazy val adresszeilen = Seq(
     Some(name),
     strasseUndNummer,
-    Some(plzOrt)).flatten.padTo(6, "")
+    Some(plzOrt)
+  ).flatten.padTo(6, "")
 }
 
 case class DepotReport(
@@ -138,7 +140,8 @@ case class DepotReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
+  modifikator: PersonId
+) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
 
 case class DepotDetailReport(
   id: DepotId,
@@ -172,7 +175,8 @@ case class DepotDetailReport(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
+  modifikator: PersonId
+) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
 
 object Depot {
   def unapply(d: Depot) = {
@@ -206,7 +210,8 @@ object Depot {
       d.erstelldat: DateTime,
       d.ersteller: PersonId,
       d.modifidat: DateTime,
-      d.modifikator: PersonId))
+      d.modifikator: PersonId
+    ))
   }
 }
 
@@ -231,12 +236,14 @@ case class DepotModify(
   iban: Option[String], //maybe use dedicated type
   bank: Option[String],
   beschreibung: Option[String],
-  anzahlAbonnentenMax: Option[Int]) extends JSONSerializable
+  anzahlAbonnentenMax: Option[Int]
+) extends JSONSerializable
 
 case class DepotSummary(
   id: DepotId,
   name: String,
-  kurzzeichen: String) extends JSONSerializable
+  kurzzeichen: String
+) extends JSONSerializable
 
 case class TourId(id: Long) extends BaseId
 
@@ -251,7 +258,8 @@ case class Tour(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[TourId] with Vertriebskanal
+  modifikator: PersonId
+) extends BaseEntity[TourId] with Vertriebskanal
 
 case class TourDetail(
   id: TourId,
@@ -264,13 +272,16 @@ case class TourDetail(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends JSONSerializable
+  modifikator: PersonId
+) extends JSONSerializable
 
 case class TourCreate(
   name: String,
-  beschreibung: Option[String]) extends JSONSerializable
+  beschreibung: Option[String]
+) extends JSONSerializable
 
 case class TourModify(
   name: String,
   beschreibung: Option[String],
-  tourlieferungen: Seq[Tourlieferung]) extends JSONSerializable
+  tourlieferungen: Seq[Tourlieferung]
+) extends JSONSerializable

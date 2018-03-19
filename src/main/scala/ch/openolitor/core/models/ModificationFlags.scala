@@ -28,4 +28,5 @@ case class ModificationFlags(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId)
+  modifikator: PersonId
+)

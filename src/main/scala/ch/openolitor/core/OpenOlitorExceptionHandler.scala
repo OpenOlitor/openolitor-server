@@ -37,6 +37,7 @@ object OpenOlitorExceptionHandler extends LazyLogging with BaseJsonProtocol {
     case th => ctx =>
       routeService.airbrakeNotifier ! AirbrakeNotification(th, Some(ctx.request))
       ctx.complete(HttpResponse(InternalServerError).withHeaders(
-        routeService.allowCredentialsHeader :: routeService.allowOriginHeader :: routeService.exposeHeaders :: routeService.optionsCorsHeaders).withEntity(marshalling.marshalUnsafe(RejectionMessage(th.getMessage, s"${th.getCause}"))))
+        routeService.allowCredentialsHeader :: routeService.allowOriginHeader :: routeService.exposeHeaders :: routeService.optionsCorsHeaders
+      ).withEntity(marshalling.marshalUnsafe(RejectionMessage(th.getMessage, s"${th.getCause}"))))
   }
 }

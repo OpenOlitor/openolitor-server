@@ -80,7 +80,8 @@ object ZusatzAbotypParser extends EntityParser {
         erstelldat = row.value[DateTime](indexErstelldat),
         ersteller = PersonId(row.value[Long](indexErsteller)),
         modifidat = row.value[DateTime](indexModifidat),
-        modifikator = PersonId(row.value[Long](indexModifikator)))
+        modifikator = PersonId(row.value[Long](indexModifikator))
+      )
     }
   }
 }

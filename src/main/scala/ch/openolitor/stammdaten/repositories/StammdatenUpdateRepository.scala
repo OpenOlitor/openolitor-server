@@ -63,17 +63,20 @@ trait StammdatenUpdateRepositoryImpl extends StammdatenReadRepositorySyncImpl wi
       val zusatzAbos = withHauptAbo(abo, add, remove)
       Map(
         depotlieferungAboMapping.column.zusatzAboIds -> zusatzAbos._1,
-        depotlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2)
+        depotlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2
+      )
     } orElse modifyEntity[HeimlieferungAbo, AboId](hauptAboId) { abo =>
       val zusatzAbos = withHauptAbo(abo, add, remove)
       Map(
         heimlieferungAboMapping.column.zusatzAboIds -> zusatzAbos._1,
-        heimlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2)
+        heimlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2
+      )
     } orElse modifyEntity[PostlieferungAbo, AboId](hauptAboId) { abo =>
       val zusatzAbos = withHauptAbo(abo, add, remove)
       Map(
         postlieferungAboMapping.column.zusatzAboIds -> zusatzAbos._1,
-        postlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2)
+        postlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2
+      )
     }
   }
 

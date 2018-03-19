@@ -126,7 +126,8 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
       stammdatenWriteRepository.getSammelbestellungen(id) map { sammelbestellung =>
         stammdatenWriteRepository.updateEntityIf[Sammelbestellung, SammelbestellungId](Abgeschlossen == _.status)(sammelbestellung.id)(
           sammelbestellungMapping.column.status -> Verrechnet,
-          sammelbestellungMapping.column.datumAbrechnung -> Option(DateTime.now))
+          sammelbestellungMapping.column.datumAbrechnung -> Option(DateTime.now)
+        )
       }
     }
   }
@@ -255,7 +256,8 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
             "erstelldat" -> meta.timestamp,
             "ersteller" -> meta.originator,
             "modifidat" -> meta.timestamp,
-            "modifikator" -> meta.originator)
+            "modifikator" -> meta.originator
+          )
 
           stammdatenWriteRepository.insertEntity[Einladung, EinladungId](inserted)
           inserted
@@ -312,7 +314,8 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntityIf[Sammelbestellung, SammelbestellungId](Abgeschlossen == _.status)(id)(
         sammelbestellungMapping.column.status -> Verrechnet,
-        sammelbestellungMapping.column.datumAbrechnung -> Option(datum))
+        sammelbestellungMapping.column.datumAbrechnung -> Option(datum)
+      )
 
     }
   }

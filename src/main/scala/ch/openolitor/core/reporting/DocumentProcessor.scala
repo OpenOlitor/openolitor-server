@@ -99,7 +99,8 @@ trait DocumentProcessor extends LazyLogging {
     "VIOLET" -> Color.PURPLE,
     "ROUGE" -> Color.RED,
     "BLANC" -> Color.WHITE,
-    "JAUNE" -> Color.YELLOW)
+    "JAUNE" -> Color.YELLOW
+  )
 
   def processDocument(doc: TextDocument, data: JsValue, locale: Locale = Locale.getDefault): Try[Boolean] = {
     logger.debug(s"processDocument with data: ${data.prettyPrint}")

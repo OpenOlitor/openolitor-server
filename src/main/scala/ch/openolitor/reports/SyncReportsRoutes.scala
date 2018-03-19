@@ -88,6 +88,7 @@ class DefaultSyncReportsRoutes(
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef)
+  override val jobQueueService: ActorRef
+)
   extends SyncReportsRoutes
   with DefaultReportsReadRepositorySyncComponent

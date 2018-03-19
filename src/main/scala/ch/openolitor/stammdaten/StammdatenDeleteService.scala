@@ -184,7 +184,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
             //remove kundentyp from kunden
             stammdatenWriteRepository.getKunden.filter(_.typen.contains(kundentyp.kundentyp)).map { kunde =>
               stammdatenWriteRepository.updateEntity[Kunde, KundeId](kunde.id)(
-                kundeMapping.column.typen -> (kunde.typen - kundentyp.kundentyp))
+                kundeMapping.column.typen -> (kunde.typen - kundentyp.kundentyp)
+              )
             }
           }
         case None =>
@@ -212,7 +213,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
             //detach lieferung
             logger.debug(s"detach Lieferung:${lieferung.id}:${lieferung}")
             stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
-              lieferungMapping.column.lieferplanungId -> Option.empty[LieferplanungId])
+              lieferungMapping.column.lieferplanungId -> Option.empty[LieferplanungId]
+            )
           }
       }
     }
@@ -235,7 +237,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
               lieferungMapping.column.anzahlAbwesenheiten -> ZERO,
               lieferungMapping.column.anzahlSaldoZuTief -> ZERO,
               lieferungMapping.column.lieferplanungId -> Option.empty[LieferplanungId],
-              lieferungMapping.column.status -> Ungeplant)
+              lieferungMapping.column.status -> Ungeplant
+            )
         }
       }
     }

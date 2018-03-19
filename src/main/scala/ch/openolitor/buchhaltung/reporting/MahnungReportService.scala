@@ -49,7 +49,8 @@ trait MahnungReportService extends AsyncConnectionPoolContextAware with ReportSe
       x => Some(x.id.id.toString),
       name,
       _.projekt.sprache,
-      JobId("Mahnung(en)"))
+      JobId("Mahnung(en)")
+    )
   }
 
   private def name(rechnung: RechnungDetailReport) = {

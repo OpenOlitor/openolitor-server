@@ -161,7 +161,8 @@ case class Abotyp(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends IAbotyp
+  modifikator: PersonId
+) extends IAbotyp
 
 object Abotyp {
   def unapply(a: Abotyp) = {
@@ -191,7 +192,8 @@ object Abotyp {
       a.erstelldat,
       a.ersteller,
       a.modifidat,
-      a.modifikator))
+      a.modifikator
+    ))
   }
 }
 
@@ -214,7 +216,8 @@ case class AbotypModify(
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,
   adminProzente: BigDecimal,
-  wirdGeplant: Boolean) extends AktivRange with JSONSerializable
+  wirdGeplant: Boolean
+) extends AktivRange with JSONSerializable
 
 case class ZusatzAbotyp(
   id: AbotypId,
@@ -242,7 +245,8 @@ case class ZusatzAbotyp(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends IAbotyp
+  modifikator: PersonId
+) extends IAbotyp
 
 object ZusatzAbotyp {
   def unapply(a: ZusatzAbotyp) = {
@@ -270,7 +274,8 @@ object ZusatzAbotyp {
       a.erstelldat,
       a.ersteller,
       a.modifidat,
-      a.modifikator))
+      a.modifikator
+    ))
   }
 }
 
@@ -290,4 +295,5 @@ case class ZusatzAbotypModify(
   zielpreis: Option[BigDecimal],
   adminProzente: BigDecimal,
   wirdGeplant: Boolean,
-  waehrung: Waehrung) extends AktivRange with JSONSerializable
+  waehrung: Waehrung
+) extends AktivRange with JSONSerializable

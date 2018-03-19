@@ -162,7 +162,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlAbonnenten -> abotyp.anzahlAbonnenten,
         column.anzahlAbonnentenAktiv -> abotyp.anzahlAbonnentenAktiv,
         column.letzteLieferung -> abotyp.letzteLieferung,
-        column.waehrung -> abotyp.waehrung)
+        column.waehrung -> abotyp.waehrung
+      )
     }
   }
 
@@ -196,7 +197,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlAbonnenten -> zusatzabotyp.anzahlAbonnenten,
         column.anzahlAbonnentenAktiv -> zusatzabotyp.anzahlAbonnentenAktiv,
         column.letzteLieferung -> zusatzabotyp.letzteLieferung,
-        column.waehrung -> zusatzabotyp.waehrung)
+        column.waehrung -> zusatzabotyp.waehrung
+      )
     }
   }
 
@@ -215,7 +217,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(typ) ++ Seq(
         column.kundentyp -> typ.kundentyp,
         column.beschreibung -> typ.beschreibung,
-        column.anzahlVerknuepfungen -> typ.anzahlVerknuepfungen)
+        column.anzahlVerknuepfungen -> typ.anzahlVerknuepfungen
+      )
     }
   }
 
@@ -251,7 +254,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlAbos -> kunde.anzahlAbos,
         column.anzahlAbosAktiv -> kunde.anzahlAbosAktiv,
         column.anzahlPendenzen -> kunde.anzahlPendenzen,
-        column.anzahlPersonen -> kunde.anzahlPersonen)
+        column.anzahlPersonen -> kunde.anzahlPersonen
+      )
     }
   }
 
@@ -282,7 +286,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.passwort -> person.passwort,
         column.passwortWechselErforderlich -> person.passwortWechselErforderlich,
         column.rolle -> person.rolle,
-        column.letzteAnmeldung -> person.letzteAnmeldung)
+        column.letzteAnmeldung -> person.letzteAnmeldung
+      )
     }
   }
 
@@ -304,7 +309,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.datum -> pendenz.datum,
         column.bemerkung -> pendenz.bemerkung,
         column.status -> pendenz.status,
-        column.generiert -> pendenz.generiert)
+        column.generiert -> pendenz.generiert
+      )
     }
   }
 
@@ -334,7 +340,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlSaldoZuTief -> lieferung.anzahlSaldoZuTief,
         column.zielpreis -> lieferung.zielpreis,
         column.preisTotal -> lieferung.preisTotal,
-        column.lieferplanungId -> lieferung.lieferplanungId)
+        column.lieferplanungId -> lieferung.lieferplanungId
+      )
     }
   }
 
@@ -352,7 +359,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(lieferplanung) ++ Seq(
         column.bemerkungen -> lieferplanung.bemerkungen,
         column.abotypDepotTour -> lieferplanung.abotypDepotTour,
-        column.status -> lieferplanung.status)
+        column.status -> lieferplanung.status
+      )
     }
   }
 
@@ -376,7 +384,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.einheit -> lieferposition.einheit,
         column.menge -> lieferposition.menge,
         column.preis -> lieferposition.preis,
-        column.anzahl -> lieferposition.anzahl)
+        column.anzahl -> lieferposition.anzahl
+      )
     }
   }
 
@@ -402,7 +411,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.steuerSatz -> sammelbestellung.steuerSatz,
         column.steuer -> sammelbestellung.steuer,
         column.totalSteuer -> sammelbestellung.totalSteuer,
-        column.datumVersendet -> sammelbestellung.datumVersendet)
+        column.datumVersendet -> sammelbestellung.datumVersendet
+      )
     }
   }
 
@@ -425,7 +435,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.totalSteuer -> bestellung.totalSteuer,
         column.adminProzente -> bestellung.adminProzente,
         column.adminProzenteAbzug -> bestellung.adminProzenteAbzug,
-        column.totalNachAbzugAdminProzente -> bestellung.totalNachAbzugAdminProzente)
+        column.totalNachAbzugAdminProzente -> bestellung.totalNachAbzugAdminProzente
+      )
     }
   }
 
@@ -447,7 +458,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.einheit -> bestellposition.einheit,
         column.menge -> bestellposition.menge,
         column.preis -> bestellposition.preis,
-        column.anzahl -> bestellposition.anzahl)
+        column.anzahl -> bestellposition.anzahl
+      )
     }
   }
 
@@ -466,7 +478,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.name -> tour.name,
         column.beschreibung -> tour.beschreibung,
         column.anzahlAbonnenten -> tour.anzahlAbonnenten,
-        column.anzahlAbonnentenAktiv -> tour.anzahlAbonnentenAktiv)
+        column.anzahlAbonnentenAktiv -> tour.anzahlAbonnentenAktiv
+      )
     }
   }
 
@@ -504,7 +517,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.beschreibung -> depot.beschreibung,
         column.anzahlAbonnenten -> depot.anzahlAbonnenten,
         column.anzahlAbonnentenAktiv -> depot.anzahlAbonnentenAktiv,
-        column.anzahlAbonnentenMax -> depot.anzahlAbonnentenMax)
+        column.anzahlAbonnentenMax -> depot.anzahlAbonnentenMax
+      )
     }
   }
 
@@ -525,7 +539,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlAbos -> vertrieb.anzahlAbos,
         column.durchschnittspreis -> vertrieb.durchschnittspreis,
         column.anzahlLieferungen -> vertrieb.anzahlLieferungen,
-        column.anzahlAbosAktiv -> vertrieb.anzahlAbosAktiv)
+        column.anzahlAbosAktiv -> vertrieb.anzahlAbosAktiv
+      )
     }
   }
 
@@ -534,7 +549,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(lieferung) ++ Seq(
         column.vertriebId -> lieferung.vertriebId,
         column.anzahlAbos -> lieferung.anzahlAbos,
-        column.anzahlAbosAktiv -> lieferung.anzahlAbosAktiv)
+        column.anzahlAbosAktiv -> lieferung.anzahlAbosAktiv
+      )
     }
   }
 
@@ -550,7 +566,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
 
     override def updateParameters(lieferung: Heimlieferung) = {
       super.updateParameters(lieferung) ++ Seq(
-        column.tourId -> lieferung.tourId)
+        column.tourId -> lieferung.tourId
+      )
     }
   }
 
@@ -567,7 +584,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
 
     override def updateParameters(lieferung: Depotlieferung) = {
       super.updateParameters(lieferung) ++ Seq(
-        column.depotId -> lieferung.depotId)
+        column.depotId -> lieferung.depotId
+      )
     }
   }
 
@@ -600,7 +618,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.letzteLieferung -> abo.letzteLieferung,
         column.anzahlAbwesenheiten -> abo.anzahlAbwesenheiten,
         column.anzahlLieferungen -> abo.anzahlLieferungen,
-        column.aktiv -> abo.aktiv)
+        column.aktiv -> abo.aktiv
+      )
     }
   }
 
@@ -611,7 +630,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.zusatzAbotypNames -> abo.zusatzAbotypNames,
         column.guthabenVertraglich -> abo.guthabenVertraglich,
         column.guthaben -> abo.guthaben,
-        column.guthabenInRechnung -> abo.guthabenInRechnung)
+        column.guthabenInRechnung -> abo.guthabenInRechnung
+      )
     }
   }
 
@@ -627,7 +647,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(depotlieferungAbo: DepotlieferungAbo) = {
       super.updateParameters(depotlieferungAbo) ++ Seq(
         column.depotId -> depotlieferungAbo.depotId,
-        column.depotName -> depotlieferungAbo.depotName)
+        column.depotName -> depotlieferungAbo.depotName
+      )
     }
   }
 
@@ -644,7 +665,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(heimlieferungAbo) ++ Seq(
         column.tourId -> heimlieferungAbo.tourId,
         column.tourName -> heimlieferungAbo.tourName,
-        column.vertriebBeschrieb -> heimlieferungAbo.vertriebBeschrieb)
+        column.vertriebBeschrieb -> heimlieferungAbo.vertriebBeschrieb
+      )
     }
   }
 
@@ -673,7 +695,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(zusatzAbo) ++ Seq(
         column.hauptAboId -> zusatzAbo.hauptAboId,
         column.hauptAbotypId -> zusatzAbo.hauptAbotypId,
-        column.vertriebBeschrieb -> zusatzAbo.vertriebBeschrieb)
+        column.vertriebBeschrieb -> zusatzAbo.vertriebBeschrieb
+      )
     }
   }
 
@@ -696,7 +719,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.standardmenge -> produkt.standardmenge,
         column.einheit -> produkt.einheit,
         column.preis -> produkt.preis,
-        column.produzenten -> produkt.produzenten)
+        column.produzenten -> produkt.produzenten
+      )
     }
   }
 
@@ -729,7 +753,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.mwst -> produzent.mwst,
         column.mwstSatz -> produzent.mwstSatz,
         column.mwstNr -> produzent.mwstNr,
-        column.aktiv -> produzent.aktiv)
+        column.aktiv -> produzent.aktiv
+      )
     }
   }
 
@@ -745,7 +770,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
 
     override def updateParameters(produktekategorie: Produktekategorie) = {
       super.updateParameters(produktekategorie) ++ Seq(
-        column.beschreibung -> produktekategorie.beschreibung)
+        column.beschreibung -> produktekategorie.beschreibung
+      )
     }
   }
 
@@ -777,7 +803,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.sprache -> projekt.sprache,
         column.welcomeMessage1 -> projekt.welcomeMessage1,
         column.welcomeMessage2 -> projekt.welcomeMessage2,
-        column.maintenanceMode -> projekt.maintenanceMode)
+        column.maintenanceMode -> projekt.maintenanceMode
+      )
     }
   }
 
@@ -794,7 +821,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(projekt: ProduktProduzent) = {
       super.updateParameters(projekt) ++ Seq(
         column.produktId -> projekt.produktId,
-        column.produzentId -> projekt.produzentId)
+        column.produzentId -> projekt.produzentId
+      )
     }
   }
 
@@ -811,7 +839,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(produktkat: ProduktProduktekategorie) = {
       super.updateParameters(produktkat) ++ Seq(
         column.produktId -> produktkat.produktId,
-        column.produktekategorieId -> produktkat.produktekategorieId)
+        column.produktekategorieId -> produktkat.produktekategorieId
+      )
     }
   }
 
@@ -829,7 +858,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.aboId -> entity.aboId,
         column.lieferungId -> entity.lieferungId,
         column.datum -> entity.datum,
-        column.bemerkung -> entity.bemerkung)
+        column.bemerkung -> entity.bemerkung
+      )
     }
   }
 
@@ -855,7 +885,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.adressZusatz -> entity.adressZusatz,
         column.plz -> entity.plz,
         column.ort -> entity.ort,
-        column.sort -> entity.sort)
+        column.sort -> entity.sort
+      )
     }
   }
 
@@ -876,7 +907,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.status -> entity.status,
         column.auslieferungId -> entity.auslieferungId,
         column.guthabenVorLieferung -> entity.guthabenVorLieferung,
-        column.sort -> entity.sort)
+        column.sort -> entity.sort
+      )
     }
   }
 
@@ -885,7 +917,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(auslieferung) ++ Seq(
         column.status -> auslieferung.status,
         column.datum -> auslieferung.datum,
-        column.anzahlKoerbe -> auslieferung.anzahlKoerbe)
+        column.anzahlKoerbe -> auslieferung.anzahlKoerbe
+      )
     }
   }
 
@@ -903,7 +936,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(entity: DepotAuslieferung) = {
       super.updateParameters(entity) ++ Seq(
         column.depotId -> entity.depotId,
-        column.depotName -> entity.depotName)
+        column.depotName -> entity.depotName
+      )
     }
   }
 
@@ -921,7 +955,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(entity: TourAuslieferung) = {
       super.updateParameters(entity) ++ Seq(
         column.tourId -> entity.tourId,
-        column.tourName -> entity.tourName)
+        column.tourName -> entity.tourName
+      )
     }
   }
 
@@ -952,7 +987,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(entity) ++ Seq(
         column.name -> entity.name,
         column.beschreibung -> entity.beschreibung,
-        column.fileStoreId -> entity.fileStoreId)
+        column.fileStoreId -> entity.fileStoreId
+      )
     }
   }
 
@@ -970,7 +1006,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(entity: Einladung) = {
       super.updateParameters(entity) ++ Seq(
         column.expires -> entity.expires,
-        column.datumVersendet -> entity.datumVersendet)
+        column.datumVersendet -> entity.datumVersendet
+      )
     }
   }
 
@@ -989,7 +1026,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       super.updateParameters(entity) ++ Seq(
         column.iban -> entity.iban,
         column.teilnehmerNummer -> entity.teilnehmerNummer,
-        column.referenzNummerPrefix -> entity.referenzNummerPrefix)
+        column.referenzNummerPrefix -> entity.referenzNummerPrefix
+      )
     }
   }
 }

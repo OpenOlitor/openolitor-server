@@ -63,7 +63,8 @@ class DefaultSystemRouteService(
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef) extends SystemRouteService with DefaultCoreReadRepositoryComponent
+  override val jobQueueService: ActorRef
+) extends SystemRouteService with DefaultCoreReadRepositoryComponent
 
 trait SystemRouteService extends HttpService with ActorReferences
   with ConnectionPoolContextAware with SprayDeserializers

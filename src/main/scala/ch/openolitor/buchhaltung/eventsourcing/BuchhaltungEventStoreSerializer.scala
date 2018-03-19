@@ -88,5 +88,6 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
     zahlungsEingangIdPersister,
     zahlungsEingangErledigtEventPersister,
     rechnungPDFStoreEventPersister,
-    mahnungPDFStoreEventPersister)
+    mahnungPDFStoreEventPersister
+  )
 }

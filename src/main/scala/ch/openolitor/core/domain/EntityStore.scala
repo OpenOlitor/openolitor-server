@@ -128,7 +128,8 @@ trait EntityStore extends AggregateRoot
     buchhaltungCommandHandler,
     reportsCommandHandler,
     kundenportalCommandHandler,
-    baseCommandHandler)
+    baseCommandHandler
+  )
 
   def newId[I <: BaseId: ClassTag](cons: Long => I): I = {
     val clOf = classTag[I].runtimeClass.asInstanceOf[Class[I]]

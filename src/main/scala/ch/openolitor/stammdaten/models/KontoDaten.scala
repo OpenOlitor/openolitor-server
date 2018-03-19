@@ -15,9 +15,11 @@ case class KontoDaten(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[KontoDatenId]
+  modifikator: PersonId
+) extends BaseEntity[KontoDatenId]
 
 case class KontoDatenModify(
   iban: Option[String],
   teilnehmerNummer: Option[String],
-  referenzNummerPrefix: Option[String]) extends JSONSerializable
+  referenzNummerPrefix: Option[String]
+) extends JSONSerializable

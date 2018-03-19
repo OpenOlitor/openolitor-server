@@ -43,14 +43,16 @@ object OpenOlitorRejectionHandler extends LazyLogging with BaseJsonProtocol {
       logger.debug(s"AuthenticatorRejection: $reason")
 
       complete(HttpResponse(Unauthorized).withHeaders(
-        corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders).withEntity(marshalling.marshalUnsafe(RejectionMessage("Unauthorized", ""))))
+        corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders
+      ).withEntity(marshalling.marshalUnsafe(RejectionMessage("Unauthorized", ""))))
 
     case others if RejectionHandler.Default.isDefinedAt(others) =>
       ctx => RejectionHandler.Default(others) {
         ctx.withHttpResponseMapped {
           case resp @ HttpResponse(_, HttpEntity.NonEmpty(_, msg), _, _) =>
             resp.withHeaders(
-              corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders).withEntity(marshalling.marshalUnsafe(RejectionMessage(msg.asString, "")))
+              corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders
+            ).withEntity(marshalling.marshalUnsafe(RejectionMessage(msg.asString, "")))
         }
       }
   }

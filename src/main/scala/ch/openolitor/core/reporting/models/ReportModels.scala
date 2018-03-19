@@ -31,4 +31,5 @@ case class MultiReportId(id: Long) extends BaseId
 case class MultiReport[T <% JSONSerializable](
   id: MultiReportId,
   entries: Seq[T],
-  projekt: ProjektReport) extends JSONSerializable
+  projekt: ProjektReport
+) extends JSONSerializable

@@ -41,7 +41,8 @@ object DBEvent2UserMapping extends DefaultJsonProtocol {
     def write(obj: DBEvent[E]): JsValue =
       JsObject(
         "entity" -> JsString(obj.entity.productPrefix),
-        "data" -> writer.write(obj.entity))
+        "data" -> writer.write(obj.entity)
+      )
   }
 }
 

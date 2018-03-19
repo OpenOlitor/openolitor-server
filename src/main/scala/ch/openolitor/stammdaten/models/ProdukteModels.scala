@@ -77,7 +77,8 @@ case class Produktekategorie(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProduktekategorieId] {
+  modifikator: PersonId
+) extends BaseEntity[ProduktekategorieId] {
 }
 
 case class ProduktekategorieModify(beschreibung: String) extends JSONSerializable
@@ -98,7 +99,8 @@ case class Produkt(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProduktId]
+  modifikator: PersonId
+) extends BaseEntity[ProduktId]
 
 case class ProduktModify(
   name: String,
@@ -108,7 +110,8 @@ case class ProduktModify(
   standardmenge: Option[BigDecimal],
   einheit: Liefereinheit,
   preis: BigDecimal,
-  produzenten: Seq[String]) extends JSONSerializable
+  produzenten: Seq[String]
+) extends JSONSerializable
 
 case class ProduktProduzentId(id: Long) extends BaseId
 
@@ -120,7 +123,8 @@ case class ProduktProduzent(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProduktProduzentId]
+  modifikator: PersonId
+) extends BaseEntity[ProduktProduzentId]
 
 case class ProduktProduktekategorieId(id: Long) extends BaseId
 
@@ -132,4 +136,5 @@ case class ProduktProduktekategorie(
   erstelldat: DateTime,
   ersteller: PersonId,
   modifidat: DateTime,
-  modifikator: PersonId) extends BaseEntity[ProduktProduktekategorieId]
+  modifikator: PersonId
+) extends BaseEntity[ProduktProduktekategorieId]

@@ -41,7 +41,8 @@ trait LieferungHandler extends LieferungDurchschnittspreisHandler with Stammdate
       positionen.preisTotal match {
         case Some(preis) =>
           stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
-            lieferungMapping.column.preisTotal -> preis)
+            lieferungMapping.column.preisTotal -> preis
+          )
         case _ =>
       }
 
@@ -55,7 +56,8 @@ trait LieferungHandler extends LieferungDurchschnittspreisHandler with Stammdate
           "erstelldat" -> meta.timestamp,
           "ersteller" -> meta.originator,
           "modifidat" -> meta.timestamp,
-          "modifikator" -> meta.originator)
+          "modifikator" -> meta.originator
+        )
         stammdatenWriteRepository.insertEntity[Lieferposition, LieferpositionId](newObj)
       }
     }

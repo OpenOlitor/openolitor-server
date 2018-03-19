@@ -76,7 +76,8 @@ trait LoginRouteService extends HttpService with ActorReferences
   val secondFactorTokenCache = LruCache[SecondFactor](
     maxCapacity = 1000,
     timeToLive = 20 minutes,
-    timeToIdle = 10 minutes)
+    timeToIdle = 10 minutes
+  )
 
   lazy val config = sysConfig.mandantConfiguration.config
   lazy val requireSecondFactorAuthentication = config.getBooleanOption(s"security.second-factor-auth.require").getOrElse(true)
@@ -457,6 +458,7 @@ class DefaultLoginRouteService(
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef,
-  override val loginTokenCache: Cache[Subject])
+  override val loginTokenCache: Cache[Subject]
+)
   extends LoginRouteService
   with DefaultStammdatenReadRepositoryAsyncComponent

@@ -136,7 +136,8 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
                 download(GeneriertRechnung, fileStoreId)
               }
             } getOrElse (complete(StatusCodes.BadRequest))
-          })
+          }
+        )
       } ~
       path("rechnungen" / rechnungIdPath / "aktionen" / "download" / Segment) { (id, fileStoreId) =>
         (get)(
@@ -144,7 +145,8 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
             detail map { rechnung =>
               download(GeneriertMahnung, fileStoreId)
             } getOrElse (complete(StatusCodes.BadRequest))
-          })
+          }
+        )
       } ~
       path("rechnungen" / rechnungIdPath / "aktionen" / "verschicken") { id =>
         (post)(verschicken(id))
@@ -357,7 +359,8 @@ class DefaultBuchhaltungRoutes(
   override val fileStore: FileStore,
   override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef)
+  override val jobQueueService: ActorRef
+)
   extends BuchhaltungRoutes
   with DefaultBuchhaltungReadRepositoryAsyncComponent
   with DefaultStammdatenReadRepositoryAsyncComponent

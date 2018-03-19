@@ -31,6 +31,7 @@ resolvers += Resolver.typesafeRepo("releases")
 
 val buildSettings = Seq(
   scalariformPreferences := scalariformPreferences.value
+  .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
   version := "2.0.6-SNAPSHOT",

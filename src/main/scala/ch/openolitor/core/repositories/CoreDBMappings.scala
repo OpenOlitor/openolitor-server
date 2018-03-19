@@ -48,7 +48,8 @@ trait CoreDBMappings extends DBMappings {
     override def updateParameters(schema: DBSchema) = {
       Seq(
         column.revision -> schema.revision,
-        column.status -> schema.status)
+        column.status -> schema.status
+      )
     }
   }
 
@@ -66,7 +67,8 @@ trait CoreDBMappings extends DBMappings {
     override def updateParameters(state: PersistenceEventState) = {
       Seq(
         column.lastTransactionNr -> state.lastTransactionNr,
-        column.lastSequenceNr -> state.lastSequenceNr)
+        column.lastSequenceNr -> state.lastSequenceNr
+      )
     }
   }
 }

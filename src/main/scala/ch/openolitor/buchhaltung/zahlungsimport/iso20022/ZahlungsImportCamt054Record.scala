@@ -40,5 +40,6 @@ case class Camt054Record(
   verarbeitungsDatum: DateTime,
   gutschriftsDatum: DateTime,
   reserve: String,
-  preiseFuerEinzahlungen: BigDecimal) extends ZahlungsImportRecord {
+  preiseFuerEinzahlungen: BigDecimal
+) extends ZahlungsImportRecord {
 }

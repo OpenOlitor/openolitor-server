@@ -547,7 +547,8 @@ object V1Scripts {
         erstelldat = DateTime.now,
         ersteller = personId,
         modifidat = DateTime.now,
-        modifikator = personId)
+        modifikator = personId
+      )
 
       val person = Person(
         id = personId,
@@ -572,7 +573,8 @@ object V1Scripts {
         erstelldat = DateTime.now,
         ersteller = personId,
         modifidat = DateTime.now,
-        modifikator = personId)
+        modifikator = personId
+      )
 
       val projId = sysConfig.mandantConfiguration.dbSeeds.get(classOf[ProjektId]).getOrElse(1L)
       val projekt = Projekt(
@@ -598,7 +600,8 @@ object V1Scripts {
         erstelldat = DateTime.now,
         ersteller = personId,
         modifidat = DateTime.now,
-        modifikator = personId)
+        modifikator = personId
+      )
 
       insertEntity[Kunde, KundeId](kunde);
       insertEntity[Person, PersonId](person);
@@ -683,7 +686,8 @@ object V1Scripts {
   val dbInitializationScripts = Seq(
     StammdatenDBInitializationScript,
     BuchhaltungDBInitializationScript,
-    InitialDataScript)
+    InitialDataScript
+  )
 
   val scripts = dbInitializationScripts
 }

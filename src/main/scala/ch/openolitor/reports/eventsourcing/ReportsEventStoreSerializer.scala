@@ -40,5 +40,6 @@ trait ReportsEventStoreSerializer extends ReportsJsonProtocol with EntityStoreJs
   val reportsPersisters = List(
     reportCreatePersister,
     reportModifyPersister,
-    reportIdPersister)
+    reportIdPersister
+  )
 }
