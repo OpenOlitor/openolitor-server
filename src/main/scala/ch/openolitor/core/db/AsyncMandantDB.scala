@@ -29,13 +29,13 @@ import ch.openolitor.core.MandantConfiguration
 import ch.openolitor.util.ConfigUtil._
 
 /**
- * Mandant specific dbs for async scalikejdbc framework
- */
+  * Mandant specific dbs for async scalikejdbc framework
+  */
 case class AsyncMandantDBs(mandantConfiguration: MandantConfiguration) extends DBs
-    with TypesafeConfigReader
-    with TypesafeConfig
-    with EnvPrefix
-    with DbNameFixer {
+  with TypesafeConfigReader
+  with TypesafeConfig
+  with EnvPrefix
+  with DbNameFixer {
 
   override lazy val config = mandantConfiguration.config
   lazy val maxQueueSize = config.getIntOption("db.default.maxQueueSize") getOrElse 1000

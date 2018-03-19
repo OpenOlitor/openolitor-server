@@ -54,21 +54,21 @@ object StammdatenAktionenService {
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-    extends StammdatenAktionenService(sysConfig, mailService)
-    with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenAktionenService(sysConfig, mailService)
+  with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
- * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
- */
+  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
+  */
 class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with MailServiceReference
-    with StammdatenEventStoreSerializer
-    with SammelbestellungenHandler
-    with LieferungHandler {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with MailServiceReference
+  with StammdatenEventStoreSerializer
+  with SammelbestellungenHandler
+  with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
@@ -126,8 +126,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
       stammdatenWriteRepository.getSammelbestellungen(id) map { sammelbestellung =>
         stammdatenWriteRepository.updateEntityIf[Sammelbestellung, SammelbestellungId](Abgeschlossen == _.status)(sammelbestellung.id)(
           sammelbestellungMapping.column.status -> Verrechnet,
-          sammelbestellungMapping.column.datumAbrechnung -> Option(DateTime.now)
-        )
+          sammelbestellungMapping.column.datumAbrechnung -> Option(DateTime.now))
       }
     }
   }
@@ -256,8 +255,7 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
             "erstelldat" -> meta.timestamp,
             "ersteller" -> meta.originator,
             "modifidat" -> meta.timestamp,
-            "modifikator" -> meta.originator
-          )
+            "modifikator" -> meta.originator)
 
           stammdatenWriteRepository.insertEntity[Einladung, EinladungId](inserted)
           inserted
@@ -296,8 +294,8 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
   }
 
   /**
-   * @deprecated handling already persisted events. auslieferungAusgeliefert is now done in update service.
-   */
+    * @deprecated handling already persisted events. auslieferungAusgeliefert is now done in update service.
+    */
   def auslieferungAusgeliefert(meta: EventMetadata, id: AuslieferungId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntityIf[DepotAuslieferung, AuslieferungId](Erfasst == _.status)(id) {
@@ -314,8 +312,7 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntityIf[Sammelbestellung, SammelbestellungId](Abgeschlossen == _.status)(id)(
         sammelbestellungMapping.column.status -> Verrechnet,
-        sammelbestellungMapping.column.datumAbrechnung -> Option(datum)
-      )
+        sammelbestellungMapping.column.datumAbrechnung -> Option(datum))
 
     }
   }

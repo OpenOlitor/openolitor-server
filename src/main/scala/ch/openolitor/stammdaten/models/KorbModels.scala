@@ -42,101 +42,93 @@ object KorbStatus {
 case class KorbId(id: Long) extends BaseId
 
 case class Korb(
-  id: KorbId,
-  lieferungId: LieferungId,
-  aboId: AboId,
-  status: KorbStatus,
-  guthabenVorLieferung: Int,
-  auslieferungId: Option[AuslieferungId],
-  sort: Option[Int],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[KorbId]
+    id: KorbId,
+    lieferungId: LieferungId,
+    aboId: AboId,
+    status: KorbStatus,
+    guthabenVorLieferung: Int,
+    auslieferungId: Option[AuslieferungId],
+    sort: Option[Int],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[KorbId]
 
 case class KorbLieferung(
-  id: KorbId,
-  lieferungId: LieferungId,
-  aboId: AboId,
-  status: KorbStatus,
-  guthabenVorLieferung: Int,
-  auslieferungId: Option[AuslieferungId],
-  sort: Option[Int],
-  lieferung: Lieferung,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends JSONSerializable
+    id: KorbId,
+    lieferungId: LieferungId,
+    aboId: AboId,
+    status: KorbStatus,
+    guthabenVorLieferung: Int,
+    auslieferungId: Option[AuslieferungId],
+    sort: Option[Int],
+    lieferung: Lieferung,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends JSONSerializable
 
 case class KorbDetail(
-  id: KorbId,
-  lieferungId: LieferungId,
-  abo: Abo,
-  status: KorbStatus,
-  guthabenVorLieferung: Int,
-  auslieferungId: Option[AuslieferungId],
-  sort: Option[Int],
-  kunde: Kunde,
-  abotyp: IAbotyp,
-  zusatzKoerbe: Seq[ZusatzKorbDetail],
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends JSONSerializable
+    id: KorbId,
+    lieferungId: LieferungId,
+    abo: Abo,
+    status: KorbStatus,
+    guthabenVorLieferung: Int,
+    auslieferungId: Option[AuslieferungId],
+    sort: Option[Int],
+    kunde: Kunde,
+    abotyp: IAbotyp,
+    zusatzKoerbe: Seq[ZusatzKorbDetail],
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends JSONSerializable
 
 case class ZusatzKorbDetail(
-  id: KorbId,
-  lieferungId: LieferungId,
-  abo: Abo,
-  status: KorbStatus,
-  guthabenVorLieferung: Int,
-  auslieferungId: Option[AuslieferungId],
-  sort: Option[Int],
-  kunde: Kunde,
-  abotyp: IAbotyp,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends JSONSerializable
+    id: KorbId,
+    lieferungId: LieferungId,
+    abo: Abo,
+    status: KorbStatus,
+    guthabenVorLieferung: Int,
+    auslieferungId: Option[AuslieferungId],
+    sort: Option[Int],
+    kunde: Kunde,
+    abotyp: IAbotyp,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends JSONSerializable
 
 case class KorbReport(
-  id: KorbId,
-  lieferungId: LieferungId,
-  abo: Abo,
-  status: KorbStatus,
-  guthabenVorLieferung: Int,
-  auslieferungId: Option[AuslieferungId],
-  sort: Option[Int],
-  kunde: KundeReport,
-  abotyp: Abotyp,
-  zusatzAbosString: String,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends JSONSerializable
+    id: KorbId,
+    lieferungId: LieferungId,
+    abo: Abo,
+    status: KorbStatus,
+    guthabenVorLieferung: Int,
+    auslieferungId: Option[AuslieferungId],
+    sort: Option[Int],
+    kunde: KundeReport,
+    abotyp: Abotyp,
+    zusatzAbosString: String,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends JSONSerializable
 
 case class KorbModify(
-  id: KorbId
-) extends JSONSerializable
+    id: KorbId) extends JSONSerializable
 
 case class KorbAuslieferungModify(
-  auslieferungId: AuslieferungId,
-  sort: Option[Int]
-) extends JSONSerializable
+    auslieferungId: AuslieferungId,
+    sort: Option[Int]) extends JSONSerializable
 
 case class KorbCreate(
-  LieferungId: LieferungId,
-  aboId: AboId,
-  status: KorbStatus,
-  guthabenVorLieferung: Int
-) extends JSONSerializable
+    LieferungId: LieferungId,
+    aboId: AboId,
+    status: KorbStatus,
+    guthabenVorLieferung: Int) extends JSONSerializable

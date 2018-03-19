@@ -155,8 +155,8 @@ object Boot extends App with LazyLogging {
   }
 
   /**
-   * Jeder Mandant wird in einem eigenen Akka System gestartet.
-   */
+    * Jeder Mandant wird in einem eigenen Akka System gestartet.
+    */
   def startServices(configs: NonEmptyList[MandantConfiguration]): NonEmptyList[MandantSystem] = {
     configs.map { cfg =>
       implicit val app = ActorSystem(cfg.name, config.getConfig(cfg.configKey).withFallback(config))
@@ -167,8 +167,7 @@ object Boot extends App with LazyLogging {
       val loginTokenCache = LruCache[Subject](
         maxCapacity = 10000,
         timeToLive = 1 day,
-        timeToIdle = 4 hours
-      )
+        timeToIdle = 4 hours)
 
       // initialise root actors
       val duration = Duration.create(1, SECONDS);

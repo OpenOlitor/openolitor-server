@@ -38,13 +38,13 @@ object UserJobQueue {
 }
 
 /**
- * This actor keeps track of pending job and job results per user
- */
+  * This actor keeps track of pending job and job results per user
+  */
 class UserJobQueue(personId: PersonId, mandantConfiguration: MandantConfiguration) extends Actor
-    with ActorLogging
-    with ClientReceiver
-    with JobQueueJsonProtocol
-    with AkkaEventStream {
+  with ActorLogging
+  with ClientReceiver
+  with JobQueueJsonProtocol
+  with AkkaEventStream {
   import JobQueueService._
 
   override val system = context.system

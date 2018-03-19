@@ -62,8 +62,7 @@ case class ValidationError[I](id: I, message: String)(implicit format: JsonForma
 
   val asJson = JsObject(
     "message" -> JsString(message),
-    "id" -> jsonId
-  )
+    "id" -> jsonId)
 }
 case class ReportServiceResult[I](jobId: JobId, validationErrors: Seq[ValidationError[I]], result: ReportResult) {
   val hasErrors = !validationErrors.isEmpty
@@ -81,8 +80,8 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   type ServiceResult[T] = EitherT[Future, ServiceFailed, T]
 
   /**
-   *
-   */
+    *
+    */
   def generateReports[I, E](
     config: ReportConfig[I],
     validationFunction: Seq[I] => Future[(Seq[ValidationError[I]], Seq[E])],
@@ -93,8 +92,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
     ablageIdFactory: E => Option[String],
     nameFactory: E => String,
     localeFactory: E => Locale,
-    jobId: JobId
-  )(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
+    jobId: JobId)(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
     logger.debug(s"Validate ids:${config.ids}")
     validationFunction(config.ids) flatMap {
       case (errors, Seq()) =>
@@ -150,8 +148,8 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   }
 
   /**
-   * Resolve from S3 or as a local resource
-   */
+    * Resolve from S3 or as a local resource
+    */
   def resolveStandardBerichtsVorlage(fileType: FileType, id: Option[String] = None): ServiceResult[Array[Byte]] = {
     resolveBerichtsVorlageFromFileStore(fileType, id) ||| resolveBerichtsVorlageFromResources(fileType, id)
   }

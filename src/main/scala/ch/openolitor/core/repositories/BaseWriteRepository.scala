@@ -26,23 +26,22 @@ import ch.openolitor.core.models._
 import scalikejdbc._
 
 trait BaseWriteRepository extends CrudRepository
-    with BaseReadRepositorySync
-    with BaseInsertRepository
-    with BaseUpdateRepository
-    with BaseDeleteRepository {
+  with BaseReadRepositorySync
+  with BaseInsertRepository
+  with BaseUpdateRepository
+  with BaseDeleteRepository {
 
   /**
-   * Updates the given entity with all its properties.
-   * Usually, updating all fields is not required and should be avoided.
-   * Use with care.
-   */
+    * Updates the given entity with all its properties.
+    * Usually, updating all fields is not required and should be avoided.
+    * Use with care.
+    */
   def updateEntityFully[E <: BaseEntity[I], I <: BaseId](entity: E)(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher
-  ): Option[E] = {
+    eventPublisher: EventPublisher): Option[E] = {
 
     syntaxSupport.updateParameters(entity) map {
       case (s, v) =>

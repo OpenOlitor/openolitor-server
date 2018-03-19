@@ -57,13 +57,13 @@ trait BaseBatchJob extends Actor with LazyLogging {
   var batchJob: Option[Cancellable] = None
 
   /**
-   * Perform the calculations needed
-   */
+    * Perform the calculations needed
+    */
   protected def process(): Unit
 
   /**
-   * Default implementation with calculation starting next midnight
-   */
+    * Default implementation with calculation starting next midnight
+    */
   protected def handleInitialization(): Unit
 
   def receive = {

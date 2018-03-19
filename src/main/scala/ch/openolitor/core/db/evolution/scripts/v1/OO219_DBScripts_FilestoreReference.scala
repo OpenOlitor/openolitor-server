@@ -32,8 +32,8 @@ import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
 /**
- *
- */
+  *
+  */
 object OO219_DBScripts_FilestoreReference extends DefaultDBScripts {
   val BuchhaltungScripts = new Script with LazyLogging with BuchhaltungDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {

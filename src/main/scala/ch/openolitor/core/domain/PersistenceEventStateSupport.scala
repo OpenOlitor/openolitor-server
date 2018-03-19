@@ -38,8 +38,8 @@ import scala.util.{ Success, Failure }
 import akka.pattern.ask
 
 /**
- * This trait provides helper methods to keep track of latest processed sequenceNr of messages to limit reprocessing after a specified sequence nr per persistenceId
- */
+  * This trait provides helper methods to keep track of latest processed sequenceNr of messages to limit reprocessing after a specified sequence nr per persistenceId
+  */
 trait PersistenceEventStateSupport extends Actor with ActorLogging with CoreDBMappings with ConnectionPoolContextAware with DBEvolutionReference {
 
   def persistenceStateStoreId: String
@@ -53,8 +53,8 @@ trait PersistenceEventStateSupport extends Actor with ActorLogging with CoreDBMa
   implicit val excecutionContext = context.dispatcher
 
   /**
-   * start with event recovery after evolution complete
-   */
+    * start with event recovery after evolution complete
+    */
   override def preStart(): Unit = {
     implicit val timeout = Timeout(50.seconds)
     log.debug(s"preStart PersistenceEventStateSupport")

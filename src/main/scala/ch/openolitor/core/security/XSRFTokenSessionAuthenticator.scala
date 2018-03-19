@@ -46,13 +46,13 @@ object AuthCookies {
 case class AuthenticatorRejection(reason: String) extends Rejection
 
 /**
- * Dieser Authenticator authentisiert den Benutzer anhand folgender Kriteren:
- * 1. Im Cookie header sowie im HttpHeader muss das Token mitgeliefert werden
- * 2. Im HttpHeader wird das Token mit der Request Zeit im ISO Format und dem Separator :: mitgeliefert
- * 3. Token im Header und Cookie müssen übereinstimmen
- * 4. Request Zeit darf eine maximale Duration nicht überschreiten (Request kann nicht zu einem späteren Zeitpunkt erneut ausgeführt werden)
- * 5. Im lokalen Cache muss eine PersonId für das entsprechende token gespeichert sein
- */
+  * Dieser Authenticator authentisiert den Benutzer anhand folgender Kriteren:
+  * 1. Im Cookie header sowie im HttpHeader muss das Token mitgeliefert werden
+  * 2. Im HttpHeader wird das Token mit der Request Zeit im ISO Format und dem Separator :: mitgeliefert
+  * 3. Token im Header und Cookie müssen übereinstimmen
+  * 4. Request Zeit darf eine maximale Duration nicht überschreiten (Request kann nicht zu einem späteren Zeitpunkt erneut ausgeführt werden)
+  * 5. Im lokalen Cache muss eine PersonId für das entsprechende token gespeichert sein
+  */
 trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache {
   import AuthCookies._
 

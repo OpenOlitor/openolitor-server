@@ -47,10 +47,10 @@ trait Script {
 case class EvolutionException(msg: String) extends Exception
 
 /**
- * Base evolution class to evolve database from a specific revision to another
- */
+  * Base evolution class to evolve database from a specific revision to another
+  */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
-    with BuchhaltungDBMappings with ReportsDBMappings {
+  with BuchhaltungDBMappings with ReportsDBMappings {
   import IteratorUtil._
 
   logger.debug(s"Evolution manager consists of:$scripts")
@@ -61,21 +61,18 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
         val dbIds = Seq(
           adjustSeeds[AbotypId](
             maxId[Abotyp, AbotypId](abotypMapping),
-            maxId[ZusatzAbotyp, AbotypId](zusatzAbotypMapping)
-          ),
+            maxId[ZusatzAbotyp, AbotypId](zusatzAbotypMapping)),
           adjustSeed[Depot, DepotId](depotMapping),
           adjustSeed[Vertrieb, VertriebId](vertriebMapping),
           adjustSeeds[VertriebsartId](
             maxId[Depotlieferung, VertriebsartId](depotlieferungMapping),
             maxId[Heimlieferung, VertriebsartId](heimlieferungMapping),
-            maxId[Postlieferung, VertriebsartId](postlieferungMapping)
-          ),
+            maxId[Postlieferung, VertriebsartId](postlieferungMapping)),
           adjustSeeds[AboId](
             maxId[DepotlieferungAbo, AboId](depotlieferungAboMapping),
             maxId[HeimlieferungAbo, AboId](heimlieferungAboMapping),
             maxId[PostlieferungAbo, AboId](postlieferungAboMapping),
-            maxId[ZusatzAbo, AboId](zusatzAboMapping)
-          ),
+            maxId[ZusatzAbo, AboId](zusatzAboMapping)),
           adjustSeed[Kunde, KundeId](kundeMapping),
           adjustSeed[CustomKundentyp, CustomKundentypId](customKundentypMapping),
           adjustSeed[Lieferung, LieferungId](lieferungMapping),
@@ -101,9 +98,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeeds[AuslieferungId](
             maxId[DepotAuslieferung, AuslieferungId](depotAuslieferungMapping),
             maxId[TourAuslieferung, AuslieferungId](tourAuslieferungMapping),
-            maxId[PostAuslieferung, AuslieferungId](postAuslieferungMapping)
-          )
-        ).flatten
+            maxId[PostAuslieferung, AuslieferungId](postAuslieferungMapping))).flatten
 
         Success(dbIds.toMap)
       } catch {
@@ -188,8 +183,8 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
   lazy val schema = dbSchemaMapping.syntax("db_schema")
 
   /**
-   * load current revision from database schema
-   */
+    * load current revision from database schema
+    */
   def currentRevision(implicit session: DBSession): Int = {
     withSQL {
       select(max(schema.revision))

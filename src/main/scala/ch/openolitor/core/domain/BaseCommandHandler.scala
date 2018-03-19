@@ -26,8 +26,8 @@ import scala.util._
 import com.typesafe.scalalogging.LazyLogging
 
 /**
- *
- */
+  *
+  */
 class BaseCommandHandler extends CommandHandler with LazyLogging {
   import EntityStore._
   override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {

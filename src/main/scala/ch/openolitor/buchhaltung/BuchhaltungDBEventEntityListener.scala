@@ -40,8 +40,8 @@ object BuchhaltungDBEventEntityListener extends DefaultJsonProtocol {
 class DefaultBuchhaltungDBEventEntityListener(sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungDBEventEntityListener(sysConfig) with DefaultBuchhaltungUpdateRepositoryComponent
 
 /**
- * Listen on DBEvents and adjust calculated fields within this module
- */
+  * Listen on DBEvents and adjust calculated fields within this module
+  */
 class BuchhaltungDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with BuchhaltungDBMappings with AsyncConnectionPoolContextAware {
   this: BuchhaltungUpdateRepositoryComponent =>
 

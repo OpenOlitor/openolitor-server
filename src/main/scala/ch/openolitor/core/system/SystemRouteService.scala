@@ -53,28 +53,27 @@ import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.core.jobs.JobQueueRoutes
 
 class DefaultSystemRouteService(
-  override val dbEvolutionActor: ActorRef,
-  override val entityStore: ActorRef,
-  override val eventStore: ActorRef,
-  override val mailService: ActorRef,
-  override val reportSystem: ActorRef,
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef
-) extends SystemRouteService with DefaultCoreReadRepositoryComponent
+    override val dbEvolutionActor: ActorRef,
+    override val entityStore: ActorRef,
+    override val eventStore: ActorRef,
+    override val mailService: ActorRef,
+    override val reportSystem: ActorRef,
+    override val sysConfig: SystemConfig,
+    override val system: ActorSystem,
+    override val fileStore: FileStore,
+    override val actorRefFactory: ActorRefFactory,
+    override val airbrakeNotifier: ActorRef,
+    override val jobQueueService: ActorRef) extends SystemRouteService with DefaultCoreReadRepositoryComponent
 
 trait SystemRouteService extends HttpService with ActorReferences
-    with ConnectionPoolContextAware with SprayDeserializers
-    with DefaultRouteService
-    with LazyLogging
-    with StatusRoutes
-    with SystemJsonProtocol
-    with AsyncConnectionPoolContextAware
-    with PersistenceJsonProtocol
-    with JobQueueRoutes {
+  with ConnectionPoolContextAware with SprayDeserializers
+  with DefaultRouteService
+  with LazyLogging
+  with StatusRoutes
+  with SystemJsonProtocol
+  with AsyncConnectionPoolContextAware
+  with PersistenceJsonProtocol
+  with JobQueueRoutes {
   self: CoreReadRepositoryComponent =>
 
   private var error: Option[Throwable] = None

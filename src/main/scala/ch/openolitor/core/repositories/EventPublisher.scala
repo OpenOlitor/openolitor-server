@@ -71,8 +71,8 @@ object EventPublishingImplicits {
   implicit class EventPublishingDB(db: DB.type) {
 
     /**
-     * Resulting events will only be published after the whole transaction is complete.
-     */
+      * Resulting events will only be published after the whole transaction is complete.
+      */
     def localTxPostPublish[A](execution: DBSession => EventPublisher => A)(implicit context: ConnectionPoolContext, eventStream: EventStream): A = {
       val publisher = new PostEventPublisher(eventStream)
 
@@ -86,12 +86,12 @@ object EventPublishingImplicits {
     }
 
     /**
-     * Use this only for single inserts/updates/deletes as it will emit an event for each individual statement.
-     *
-     * "If a connection is in auto-commit mode, then all its SQL
-     * statements will be executed and committed as individual
-     * transactions."
-     */
+      * Use this only for single inserts/updates/deletes as it will emit an event for each individual statement.
+      *
+      * "If a connection is in auto-commit mode, then all its SQL
+      * statements will be executed and committed as individual
+      * transactions."
+      */
     def autoCommitSinglePublish[A](execution: DBSession => EventPublisher => A)(implicit context: ConnectionPoolContext, eventStream: EventStream): A = {
       val publisher = new PostEventPublisher(eventStream)
 

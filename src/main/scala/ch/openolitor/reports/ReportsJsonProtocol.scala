@@ -30,8 +30,8 @@ import ch.openolitor.core.JSONSerializable
 import zangelo.spray.json.AutoProductFormats
 
 /**
- * JSON Format deklarationen für das Modul Reports
- */
+  * JSON Format deklarationen für das Modul Reports
+  */
 trait ReportsJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] {
 
   //id formats

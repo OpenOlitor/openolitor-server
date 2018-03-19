@@ -28,21 +28,21 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 trait StammdatenWriteRepository extends StammdatenReadRepositorySync
-    with StammdatenInsertRepository
-    with StammdatenUpdateRepository
-    with StammdatenDeleteRepository
-    with BaseWriteRepository
-    with EventStream {
+  with StammdatenInsertRepository
+  with StammdatenUpdateRepository
+  with StammdatenDeleteRepository
+  with BaseWriteRepository
+  with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
 trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository
-    with StammdatenReadRepositorySyncImpl
-    with StammdatenInsertRepositoryImpl
-    with StammdatenUpdateRepositoryImpl
-    with StammdatenDeleteRepositoryImpl
-    with LazyLogging
-    with StammdatenRepositoryQueries {
+  with StammdatenReadRepositorySyncImpl
+  with StammdatenInsertRepositoryImpl
+  with StammdatenUpdateRepositoryImpl
+  with StammdatenDeleteRepositoryImpl
+  with LazyLogging
+  with StammdatenRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
       sql"truncate table ${postlieferungMapping.table}".execute.apply()

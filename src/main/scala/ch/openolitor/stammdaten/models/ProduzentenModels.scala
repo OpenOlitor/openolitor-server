@@ -54,31 +54,30 @@ trait IProduzent extends BaseEntity[ProduzentId] {
 }
 
 case class Produzent(
-  id: ProduzentId,
-  name: String,
-  vorname: Option[String],
-  kurzzeichen: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  email: String,
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  mwst: Boolean,
-  mwstSatz: Option[BigDecimal],
-  mwstNr: Option[String],
-  aktiv: Boolean,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends IProduzent
+    id: ProduzentId,
+    name: String,
+    vorname: Option[String],
+    kurzzeichen: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    email: String,
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    mwst: Boolean,
+    mwstSatz: Option[BigDecimal],
+    mwstNr: Option[String],
+    aktiv: Boolean,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends IProduzent
 
 object Produzent {
   def unapply(p: Produzent) = {
@@ -106,60 +105,57 @@ object Produzent {
       p.erstelldat: DateTime,
       p.ersteller: PersonId,
       p.modifidat: DateTime,
-      p.modifikator: PersonId
-    ))
+      p.modifikator: PersonId))
   }
 }
 
 case class ProduzentModify(
-  name: String,
-  vorname: Option[String],
-  kurzzeichen: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  email: String,
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  mwst: Boolean,
-  mwstSatz: Option[BigDecimal],
-  mwstNr: Option[String],
-  aktiv: Boolean
-) extends JSONSerializable
+    name: String,
+    vorname: Option[String],
+    kurzzeichen: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    email: String,
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    mwst: Boolean,
+    mwstSatz: Option[BigDecimal],
+    mwstNr: Option[String],
+    aktiv: Boolean) extends JSONSerializable
 
 case class ProduzentDetailReport(
-  id: ProduzentId,
-  name: String,
-  vorname: Option[String],
-  kurzzeichen: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: String,
-  ort: String,
-  bemerkungen: Option[String],
-  email: String,
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  mwst: Boolean,
-  mwstSatz: Option[BigDecimal],
-  mwstNr: Option[String],
-  aktiv: Boolean,
-  //Report infos
-  projekt: ProjektReport,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[ProduzentId] with IProduzentReport with JSONSerializable
+    id: ProduzentId,
+    name: String,
+    vorname: Option[String],
+    kurzzeichen: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String],
+    email: String,
+    telefonMobil: Option[String],
+    telefonFestnetz: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    mwst: Boolean,
+    mwstSatz: Option[BigDecimal],
+    mwstNr: Option[String],
+    aktiv: Boolean,
+    //Report infos
+    projekt: ProjektReport,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[ProduzentId] with IProduzentReport with JSONSerializable
 
 trait IProduzentReport extends IProduzent {
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
@@ -168,6 +164,5 @@ trait IProduzentReport extends IProduzent {
   lazy val adresszeilen = Seq(
     Some(name),
     strasseUndNummer,
-    Some(plzOrt)
-  ).flatten.padTo(6, "")
+    Some(plzOrt)).flatten.padTo(6, "")
 }

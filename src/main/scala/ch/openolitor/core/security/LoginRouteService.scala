@@ -62,10 +62,10 @@ import org.joda.time.DateTime
 import ch.openolitor.stammdaten.models.EinladungId
 
 trait LoginRouteService extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware
-    with SprayDeserializers
-    with DefaultRouteService with LazyLogging with LoginJsonProtocol
-    with XSRFTokenSessionAuthenticatorProvider {
+  with AsyncConnectionPoolContextAware
+  with SprayDeserializers
+  with DefaultRouteService with LazyLogging with LoginJsonProtocol
+  with XSRFTokenSessionAuthenticatorProvider {
   self: StammdatenReadRepositoryAsyncComponent =>
   import SystemEvents._
 
@@ -76,8 +76,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   val secondFactorTokenCache = LruCache[SecondFactor](
     maxCapacity = 1000,
     timeToLive = 20 minutes,
-    timeToIdle = 10 minutes
-  )
+    timeToIdle = 10 minutes)
 
   lazy val config = sysConfig.mandantConfiguration.config
   lazy val requireSecondFactorAuthentication = config.getBooleanOption(s"security.second-factor-auth.require").getOrElse(true)
@@ -425,9 +424,9 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def generateCode = (Random.alphanumeric take 6).mkString.toLowerCase
 
   /**
-   * Validate user password used by basic authentication. Using basic auth we never to a two factor
-   * authentication
-   */
+    * Validate user password used by basic authentication. Using basic auth we never to a two factor
+    * authentication
+    */
   def basicAuthValidation(userPass: Option[UserPass]): Future[Option[Subject]] = {
     logger.debug(s"Perform basic authentication")
     (for {
@@ -447,18 +446,17 @@ trait LoginRouteService extends HttpService with ActorReferences
 }
 
 class DefaultLoginRouteService(
-  override val dbEvolutionActor: ActorRef,
-  override val entityStore: ActorRef,
-  override val eventStore: ActorRef,
-  override val mailService: ActorRef,
-  override val reportSystem: ActorRef,
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef,
-  override val loginTokenCache: Cache[Subject]
-)
-    extends LoginRouteService
-    with DefaultStammdatenReadRepositoryAsyncComponent
+    override val dbEvolutionActor: ActorRef,
+    override val entityStore: ActorRef,
+    override val eventStore: ActorRef,
+    override val mailService: ActorRef,
+    override val reportSystem: ActorRef,
+    override val sysConfig: SystemConfig,
+    override val system: ActorSystem,
+    override val fileStore: FileStore,
+    override val actorRefFactory: ActorRefFactory,
+    override val airbrakeNotifier: ActorRef,
+    override val jobQueueService: ActorRef,
+    override val loginTokenCache: Cache[Subject])
+  extends LoginRouteService
+  with DefaultStammdatenReadRepositoryAsyncComponent

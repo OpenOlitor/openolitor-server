@@ -125,8 +125,7 @@ object EntityParser {
       DateTimeFormat.forPattern("dd.MM.yy"),
       DateTimeFormat.forPattern("dd.MM.yyyy"),
       DateTimeFormat.forPattern("MM/dd/yy"),
-      DateTimeFormat.forPattern("MM/dd/yyyy")
-    )
+      DateTimeFormat.forPattern("MM/dd/yyyy"))
 
     def tryParseDate(value: String, nextFormats: List[DateTimeFormatter] = allSupportedDateFormats): DateTime = {
       nextFormats match {

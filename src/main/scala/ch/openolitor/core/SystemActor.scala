@@ -35,8 +35,8 @@ object SystemActor {
 }
 
 /**
- * SystemActor wird benutzt, damit die Supervisor Strategy über alle child actors definiert werden kann
- */
+  * SystemActor wird benutzt, damit die Supervisor Strategy über alle child actors definiert werden kann
+  */
 class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends Actor with ActorLogging {
   import SystemActor._
 
@@ -50,8 +50,8 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
   }
 
   /**
-   * Use onFailureBackoff to restart after Exceptions delayed by an exponential backoff function
-   */
+    * Use onFailureBackoff to restart after Exceptions delayed by an exponential backoff function
+    */
   private def onFailureBackoff(childProps: Props, childName: String) = BackoffSupervisor.props(
     Backoff.onFailure(
       childProps,
@@ -60,12 +60,11 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
       maxBackoff = 1.day,
       randomFactor = 0.2 // adds 20% "noise" to vary the intervals slightly
     ).withAutoReset(60.seconds) // reset if the child does not throw any errors within 10 seconds
-      .withSupervisorStrategy(supervisorStrategy)
-  )
+      .withSupervisorStrategy(supervisorStrategy))
 
   /**
-   * Use onStopBackoff Strategy for Actors which indicate stopping as an error (i.e. PersistentActor)
-   */
+    * Use onStopBackoff Strategy for Actors which indicate stopping as an error (i.e. PersistentActor)
+    */
   private def onStopBackoff(childProps: Props, childName: String) = BackoffSupervisor.props(
     Backoff.onStop(
       childProps,
@@ -74,8 +73,7 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
       maxBackoff = 1.day,
       randomFactor = 0.2 // adds 20% "noise" to vary the intervals slightly
     ).withAutoReset(60.seconds) // reset if the child does not throw any errors within 10 seconds
-      .withSupervisorStrategy(supervisorStrategy)
-  )
+      .withSupervisorStrategy(supervisorStrategy))
 
   private def supervise(childProps: Props, childName: String) = {
     val svProps = onStopBackoff(onFailureBackoff(childProps, childName), s"sv2-$childName")

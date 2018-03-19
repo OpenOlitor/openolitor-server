@@ -31,8 +31,8 @@ import ch.openolitor.core.JSONSerializable
 import zangelo.spray.json.AutoProductFormats
 
 /**
- * JSON Format deklarationen für das Modul Buchhaltung
- */
+  * JSON Format deklarationen für das Modul Buchhaltung
+  */
 trait BuchhaltungJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] with StammdatenJsonProtocol {
 
   implicit val rechnungStatusFormat = enumFormat(RechnungStatus.apply)

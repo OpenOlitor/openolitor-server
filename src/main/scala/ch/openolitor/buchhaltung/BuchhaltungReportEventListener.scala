@@ -37,8 +37,8 @@ object BuchhaltungReportEventListener extends DefaultJsonProtocol {
 class DefaultBuchhaltungReportEventListener(override val entityStore: ActorRef) extends BuchhaltungReportEventListener
 
 /**
- * Listen on Report results to persist ids
- */
+  * Listen on Report results to persist ids
+  */
 abstract class BuchhaltungReportEventListener extends Actor with ActorLogging with BuchhaltungDBMappings with EntityStoreReference {
   override def preStart() {
     super.preStart()

@@ -34,8 +34,8 @@ case class ProjektId(id: Long) extends BaseId
 case class Geschaeftsjahr(monat: Int, tag: Int) {
 
   /**
-   * Errechnet den Start des Geschäftsjahres aufgrund eines Datums
-   */
+    * Errechnet den Start des Geschäftsjahres aufgrund eines Datums
+    */
   def start(date: LocalDate = LocalDate.now): LocalDate = {
     val geschaftsjahrInJahr = new LocalDate(date.year.get, monat, tag)
     date match {
@@ -49,10 +49,10 @@ case class Geschaeftsjahr(monat: Int, tag: Int) {
   }
 
   /**
-   * Errechnet der Key für ein Geschäftsjahr aufgrund eines Datum. Der Key des Geschäftsjahres leitet sich aus dem Startdatum
-   * des Geschäftsjahres ab. Wird der Start des Geschäftsjahres auf den Start des Kalenderjahres gesetzt, wird das Kalenderjahr als
-   * key benutzt, ansonsten setzt sich der Key aus Monat/Jahr zusammen
-   */
+    * Errechnet der Key für ein Geschäftsjahr aufgrund eines Datum. Der Key des Geschäftsjahres leitet sich aus dem Startdatum
+    * des Geschäftsjahres ab. Wird der Start des Geschäftsjahres auf den Start des Kalenderjahres gesetzt, wird das Kalenderjahr als
+    * key benutzt, ansonsten setzt sich der Key aus Monat/Jahr zusammen
+    */
   def key(date: LocalDate = LocalDate.now): String = {
     val startDate = start(date)
     if (monat == 1 && tag == 1) {
@@ -63,80 +63,77 @@ case class Geschaeftsjahr(monat: Int, tag: Int) {
   }
 
   /**
-   * Retourniert 'true' wenn die übergebenen Daten im selben Geschäftsjahr liegen. 'false' wenn dies nicht so ist.
-   * Wird nur ein Datum übergeben wird zum aktuelle Moment verglichen.
-   */
+    * Retourniert 'true' wenn die übergebenen Daten im selben Geschäftsjahr liegen. 'false' wenn dies nicht so ist.
+    * Wird nur ein Datum übergeben wird zum aktuelle Moment verglichen.
+    */
   def isInSame(date: LocalDate, comparteTo: LocalDate = LocalDate.now): Boolean = {
     key(date) == key(comparteTo)
   }
 }
 
 case class Projekt(
-  id: ProjektId,
-  bezeichnung: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: Option[String],
-  ort: Option[String],
-  preiseSichtbar: Boolean,
-  preiseEditierbar: Boolean,
-  emailErforderlich: Boolean,
-  waehrung: Waehrung,
-  geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int,
-  twoFactorAuthentication: Map[Rolle, Boolean],
-  sprache: Locale,
-  welcomeMessage1: Option[String],
-  welcomeMessage2: Option[String],
-  maintenanceMode: Boolean,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[ProjektId] {
+    id: ProjektId,
+    bezeichnung: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: Option[String],
+    ort: Option[String],
+    preiseSichtbar: Boolean,
+    preiseEditierbar: Boolean,
+    emailErforderlich: Boolean,
+    waehrung: Waehrung,
+    geschaeftsjahrMonat: Int,
+    geschaeftsjahrTag: Int,
+    twoFactorAuthentication: Map[Rolle, Boolean],
+    sprache: Locale,
+    welcomeMessage1: Option[String],
+    welcomeMessage2: Option[String],
+    maintenanceMode: Boolean,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
 }
 
 case class ProjektPublik(
-  id: ProjektId,
-  bezeichnung: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: Option[String],
-  ort: Option[String],
-  preiseSichtbar: Boolean,
-  waehrung: Waehrung,
-  geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int,
-  welcomeMessage1: Option[String],
-  maintenanceMode: Boolean
-) extends JSONSerializable
+    id: ProjektId,
+    bezeichnung: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: Option[String],
+    ort: Option[String],
+    preiseSichtbar: Boolean,
+    waehrung: Waehrung,
+    geschaeftsjahrMonat: Int,
+    geschaeftsjahrTag: Int,
+    welcomeMessage1: Option[String],
+    maintenanceMode: Boolean) extends JSONSerializable
 
 case class ProjektReport(
-  id: ProjektId,
-  bezeichnung: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: Option[String],
-  ort: Option[String],
-  preiseSichtbar: Boolean,
-  preiseEditierbar: Boolean,
-  emailErforderlich: Boolean,
-  waehrung: Waehrung,
-  geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int,
-  twoFactorAuthentication: Map[Rolle, Boolean],
-  sprache: Locale,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[ProjektId] {
+    id: ProjektId,
+    bezeichnung: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: Option[String],
+    ort: Option[String],
+    preiseSichtbar: Boolean,
+    preiseEditierbar: Boolean,
+    emailErforderlich: Boolean,
+    waehrung: Waehrung,
+    geschaeftsjahrMonat: Int,
+    geschaeftsjahrTag: Int,
+    twoFactorAuthentication: Map[Rolle, Boolean],
+    sprache: Locale,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
   lazy val plzOrt = plz.map(_ + ort.map(" " + _).getOrElse(""))
@@ -145,45 +142,42 @@ case class ProjektReport(
     Some(bezeichnung),
     adressZusatz,
     strasseUndNummer,
-    plzOrt
-  ).flatten.padTo(6, "")
+    plzOrt).flatten.padTo(6, "")
 }
 
 case class ProjektModify(
-  bezeichnung: String,
-  strasse: Option[String],
-  hausNummer: Option[String],
-  adressZusatz: Option[String],
-  plz: Option[String],
-  ort: Option[String],
-  preiseSichtbar: Boolean,
-  preiseEditierbar: Boolean,
-  emailErforderlich: Boolean,
-  waehrung: Waehrung,
-  geschaeftsjahrMonat: Int,
-  geschaeftsjahrTag: Int,
-  twoFactorAuthentication: Map[Rolle, Boolean],
-  sprache: Locale,
-  welcomeMessage1: Option[String],
-  welcomeMessage2: Option[String],
-  maintenanceMode: Boolean
-) extends JSONSerializable
+    bezeichnung: String,
+    strasse: Option[String],
+    hausNummer: Option[String],
+    adressZusatz: Option[String],
+    plz: Option[String],
+    ort: Option[String],
+    preiseSichtbar: Boolean,
+    preiseEditierbar: Boolean,
+    emailErforderlich: Boolean,
+    waehrung: Waehrung,
+    geschaeftsjahrMonat: Int,
+    geschaeftsjahrTag: Int,
+    twoFactorAuthentication: Map[Rolle, Boolean],
+    sprache: Locale,
+    welcomeMessage1: Option[String],
+    welcomeMessage2: Option[String],
+    maintenanceMode: Boolean) extends JSONSerializable
 
 case class KundentypId(id: String) extends BaseStringId
 
 case class CustomKundentypId(id: Long) extends BaseId
 
 case class CustomKundentyp(
-  id: CustomKundentypId,
-  val kundentyp: KundentypId,
-  val beschreibung: Option[String],
-  anzahlVerknuepfungen: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[CustomKundentypId]
+    id: CustomKundentypId,
+    val kundentyp: KundentypId,
+    val beschreibung: Option[String],
+    anzahlVerknuepfungen: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[CustomKundentypId]
 
 // Don't use!
 case class CustomKundentypModifyV1(beschreibung: Option[String]) extends JSONSerializable

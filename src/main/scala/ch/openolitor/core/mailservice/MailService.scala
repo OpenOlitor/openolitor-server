@@ -66,9 +66,9 @@ object MailService {
 }
 
 trait MailService extends AggregateRoot
-    with ConnectionPoolContextAware
-    with CommandHandlerComponent
-    with MailRetryHandler {
+  with ConnectionPoolContextAware
+  with CommandHandlerComponent
+  with MailRetryHandler {
 
   import MailService._
   import AggregateRoot._
@@ -114,8 +114,7 @@ trait MailService extends AggregateRoot
               maybeRequeue =>
                 maybeRequeue map { result =>
                   state = state.copy(mailQueue = state.mailQueue - enqueued + result)
-                }
-            )
+                })
         }
       }
     }
@@ -260,7 +259,7 @@ trait MailService extends AggregateRoot
 }
 
 class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef) extends MailService
-    with DefaultCommandHandlerComponent
-    with DefaultMailRetryHandler {
+  with DefaultCommandHandlerComponent
+  with DefaultMailRetryHandler {
   val system = context.system
 }

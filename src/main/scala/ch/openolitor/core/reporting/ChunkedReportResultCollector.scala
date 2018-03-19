@@ -38,8 +38,8 @@ object ChunkedReportResultCollector {
 }
 
 /**
- * Collect all results into a remote zip file on the file store.
- */
+  * Collect all results into a remote zip file on the file store.
+  */
 class ChunkedReportResultCollector(fileStore: FileStore, fileName: String, reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector with DateFormats {
   val bufferedChunkingActor = context.actorOf(BufferedChunkingActor.props(fileStore, fileName, 10 * 1024 * 1024), "buffered-chunking-actor-" + System.currentTimeMillis)
 

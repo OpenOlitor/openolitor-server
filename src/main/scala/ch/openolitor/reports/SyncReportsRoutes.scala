@@ -42,15 +42,15 @@ import ch.openolitor.reports.repositories.ReportsReadRepositorySyncComponent
 import scalikejdbc.DB
 
 /**
- * This is using a Sync-Repository as there is no way to fetch the MetaData on the
- * scalikejdbc-async - RowDataResultSet
- * TODO Revert as soon as possible
- */
+  * This is using a Sync-Repository as there is no way to fetch the MetaData on the
+  * scalikejdbc-async - RowDataResultSet
+  * TODO Revert as soon as possible
+  */
 trait SyncReportsRoutes extends HttpService with ActorReferences
-    with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with ReportsJsonProtocol
-    with ReportsEventStoreSerializer
-    with ReportsDBMappings {
+  with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with ReportsJsonProtocol
+  with ReportsEventStoreSerializer
+  with ReportsDBMappings {
   self: ReportsReadRepositorySyncComponent with FileStoreComponent =>
 
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
@@ -78,17 +78,16 @@ trait SyncReportsRoutes extends HttpService with ActorReferences
 }
 
 class DefaultSyncReportsRoutes(
-  override val dbEvolutionActor: ActorRef,
-  override val entityStore: ActorRef,
-  override val eventStore: ActorRef,
-  override val mailService: ActorRef,
-  override val reportSystem: ActorRef,
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef
-)
-    extends SyncReportsRoutes
-    with DefaultReportsReadRepositorySyncComponent
+    override val dbEvolutionActor: ActorRef,
+    override val entityStore: ActorRef,
+    override val eventStore: ActorRef,
+    override val mailService: ActorRef,
+    override val reportSystem: ActorRef,
+    override val sysConfig: SystemConfig,
+    override val system: ActorSystem,
+    override val fileStore: FileStore,
+    override val actorRefFactory: ActorRefFactory,
+    override val airbrakeNotifier: ActorRef,
+    override val jobQueueService: ActorRef)
+  extends SyncReportsRoutes
+  with DefaultReportsReadRepositorySyncComponent

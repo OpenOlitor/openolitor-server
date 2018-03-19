@@ -69,8 +69,7 @@ object FileType {
     GeneriertProduzentenabrechnung,
     ProjektStammdaten,
     ZahlungsImportDaten,
-    TemporaryData
-  )
+    TemporaryData)
 
   def apply(value: String): FileType = {
     AllFileTypes.find(_.toString.toLowerCase == value.toLowerCase).getOrElse(UnknownFileType)

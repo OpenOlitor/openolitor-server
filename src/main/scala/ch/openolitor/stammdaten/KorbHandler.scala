@@ -35,13 +35,13 @@ import scalikejdbc._
 import ch.openolitor.core.Macros._
 
 trait KorbHandler extends KorbStatusHandler
-    with StammdatenDBMappings {
+  with StammdatenDBMappings {
   this: StammdatenWriteRepositoryComponent =>
 
   /**
-   * insert or update Korb
-   * @return (created/updated, existing)
-   */
+    * insert or update Korb
+    * @return (created/updated, existing)
+    */
   def upsertKorb(lieferung: Lieferung, abo: Abo, abotyp: IAbotyp)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): (Option[Korb], Option[Korb]) = {
     logger.debug(s"upsertKorb lieferung: $Lieferung abo: $abo abotyp: $abotyp")
     stammdatenWriteRepository.getKorb(lieferung.id, abo.id) match {
@@ -59,8 +59,7 @@ trait KorbHandler extends KorbStatusHandler
           DateTime.now,
           personId,
           DateTime.now,
-          personId
-        )
+          personId)
         (stammdatenWriteRepository.insertEntity[Korb, KorbId](korb), None)
       case None =>
         // do nothing (lieferung hast not been planned yet)
@@ -71,15 +70,13 @@ trait KorbHandler extends KorbStatusHandler
 
         val copy = korb.copy(
           status = status,
-          guthabenVorLieferung = guthaben
-        )
+          guthabenVorLieferung = guthaben)
 
         // only update if changed
         if (korb != copy) {
           (stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(
             korbMapping.column.status -> status,
-            korbMapping.column.guthabenVorLieferung -> guthaben
-          ), Some(korb))
+            korbMapping.column.guthabenVorLieferung -> guthaben), Some(korb))
         } else {
           (Some(korb), Some(korb))
         }
@@ -148,8 +145,7 @@ trait KorbHandler extends KorbStatusHandler
 
       //update lieferplanung
       stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.id)(
-        lieferplanungMapping.column.abotypDepotTour -> abotypDates
-      )
+        lieferplanungMapping.column.abotypDepotTour -> abotypDates)
     }
   }
 
@@ -166,8 +162,7 @@ trait KorbHandler extends KorbStatusHandler
 
     //update lieferplanung
     stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.id)(
-      lieferplanungMapping.column.abotypDepotTour -> abotypDates
-    )
+      lieferplanungMapping.column.abotypDepotTour -> abotypDates)
   }
 
   def createKoerbe(lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
@@ -226,8 +221,7 @@ trait KorbHandler extends KorbStatusHandler
       durchschnittspreis = newDurchschnittspreis,
       anzahlLieferungen = newAnzahlLieferungen,
       modifidat = now,
-      modifikator = personId
-    )
+      modifikator = personId)
 
     //create koerbe
     val adjustedLieferung = createKoerbe(updatedLieferung)
@@ -239,8 +233,7 @@ trait KorbHandler extends KorbStatusHandler
       lieferungMapping.column.anzahlKoerbeZuLiefern -> adjustedLieferung.anzahlKoerbeZuLiefern,
       lieferungMapping.column.anzahlAbwesenheiten -> adjustedLieferung.anzahlAbwesenheiten,
       lieferungMapping.column.anzahlSaldoZuTief -> adjustedLieferung.anzahlSaldoZuTief,
-      lieferungMapping.column.lieferplanungId -> lieferplanungId
-    )
+      lieferungMapping.column.lieferplanungId -> lieferplanungId)
     adjustedLieferung
   }
 
@@ -357,14 +350,12 @@ trait KorbHandler extends KorbStatusHandler
     stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
       lieferungMapping.column.anzahlKoerbeZuLiefern -> zuLiefern,
       lieferungMapping.column.anzahlAbwesenheiten -> abwesenheiten,
-      lieferungMapping.column.anzahlSaldoZuTief -> saldoZuTief
-    )
+      lieferungMapping.column.anzahlSaldoZuTief -> saldoZuTief)
 
     lieferung.copy(
       anzahlKoerbeZuLiefern = zuLiefern,
       anzahlAbwesenheiten = abwesenheiten,
-      anzahlSaldoZuTief = saldoZuTief
-    )
+      anzahlSaldoZuTief = saldoZuTief)
   }
 
   def modifyKoerbeForAbo(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {

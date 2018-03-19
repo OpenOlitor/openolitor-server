@@ -30,8 +30,8 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 trait StammdatenUpdateRepository extends BaseUpdateRepository
-    with StammdatenReadRepositorySync
-    with EventStream {
+  with StammdatenReadRepositorySync
+  with EventStream {
 
   def updateHauptAboAddZusatzabo(add: ZusatzAbo)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId): Option[HauptAbo]
 
@@ -55,28 +55,25 @@ trait StammdatenUpdateRepositoryImpl extends StammdatenReadRepositorySyncImpl wi
   }
 
   /**
-   * Adding and/or removing a ZusatzAbo to a HauptAbo.
-   * If add and remove are provided we assume that the ZusatzAbo has been updated (the zusatzAbotypName).
-   */
+    * Adding and/or removing a ZusatzAbo to a HauptAbo.
+    * If add and remove are provided we assume that the ZusatzAbo has been updated (the zusatzAbotypName).
+    */
   private def updateHauptAboWithZusatzabos(hauptAboId: AboId, add: Option[ZusatzAbo], remove: Option[ZusatzAbo])(implicit session: DBSession, publisher: EventPublisher, personId: PersonId): Option[HauptAbo] = {
     modifyEntity[DepotlieferungAbo, AboId](hauptAboId) { abo =>
       val zusatzAbos = withHauptAbo(abo, add, remove)
       Map(
         depotlieferungAboMapping.column.zusatzAboIds -> zusatzAbos._1,
-        depotlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2
-      )
+        depotlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2)
     } orElse modifyEntity[HeimlieferungAbo, AboId](hauptAboId) { abo =>
       val zusatzAbos = withHauptAbo(abo, add, remove)
       Map(
         heimlieferungAboMapping.column.zusatzAboIds -> zusatzAbos._1,
-        heimlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2
-      )
+        heimlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2)
     } orElse modifyEntity[PostlieferungAbo, AboId](hauptAboId) { abo =>
       val zusatzAbos = withHauptAbo(abo, add, remove)
       Map(
         postlieferungAboMapping.column.zusatzAboIds -> zusatzAbos._1,
-        postlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2
-      )
+        postlieferungAboMapping.column.zusatzAbotypNames -> zusatzAbos._2)
     }
   }
 

@@ -28,8 +28,8 @@ import com.typesafe.scalalogging.LazyLogging
 trait DefaultDBScripts extends LazyLogging {
 
   /**
-   * Helper method to allow easier syntax to add safely column on mariadb server version < 10.0
-   */
+    * Helper method to allow easier syntax to add safely column on mariadb server version < 10.0
+    */
   def alterTableAddColumnIfNotExists(syntax: SQLSyntaxSupport[_], columnName: String, columnDef: String, after: String)(implicit session: DBSession) = {
     session.execute(s"""SELECT count(*) INTO @exist FROM INFORMATION_SCHEMA.COLUMNS  WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='$columnName' AND TABLE_NAME = '${syntax.tableName}';""")
     session.execute(s"""set @query = IF(@exist <= 0, 'ALTER TABLE ${syntax.tableName} ADD $columnName $columnDef after $after;', 'select 1 status');""")

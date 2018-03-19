@@ -33,8 +33,8 @@ import org.odftoolkit.simple.draw.FrameContainer
 import org.odftoolkit.simple.draw.Frame
 
 /**
- * This class is an enhanced implementation for finding all frames in a framecontainer
- */
+  * This class is an enhanced implementation for finding all frames in a framecontainer
+  */
 class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
 
   val containerElement: OdfElement = container.getFrameContainerElement
@@ -88,8 +88,7 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
 
   private def findDeepChildNode[T <: OdfElement](
     clazz: Class[T],
-    refNode: Node
-  ): Option[(Node, Node)] = {
+    refNode: Node): Option[(Node, Node)] = {
     refNode match {
       case n: Node if clazz.isAssignableFrom(n.getClass) => Some((n, n))
       case n: ParentNode =>

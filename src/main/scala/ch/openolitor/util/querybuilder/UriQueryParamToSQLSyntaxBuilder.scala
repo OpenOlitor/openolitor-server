@@ -97,8 +97,8 @@ object UriQueryParamToSQLSyntaxBuilder extends LazyLogging with DBMappings {
   }
 
   /**
-   * Simplified implementation replacing * with % for sql like. Should use native mySql REGEXP
-   */
+    * Simplified implementation replacing * with % for sql like. Should use native mySql REGEXP
+    */
   private def toSqlLike(regex: String) = {
     s"%${regex replaceAll ("\\*", "%")}%"
   }

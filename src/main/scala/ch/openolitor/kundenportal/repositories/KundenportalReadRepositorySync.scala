@@ -28,8 +28,8 @@ import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 
 /**
- * Synchronous Repository
- */
+  * Synchronous Repository
+  */
 trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
 }

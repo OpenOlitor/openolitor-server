@@ -60,13 +60,13 @@ object JobQueueService {
 }
 
 /**
- * This job queue service provides access to the user based job queue
- */
+  * This job queue service provides access to the user based job queue
+  */
 class JobQueueService(mandantConfiguration: MandantConfiguration) extends Actor with ActorLogging {
 
   /**
-   * Implicit convertion from personid object model to string based representation used in akka system
-   */
+    * Implicit convertion from personid object model to string based representation used in akka system
+    */
   implicit def userId2String(id: PersonId): String = id.id.toString
 
   def receive: Receive = {

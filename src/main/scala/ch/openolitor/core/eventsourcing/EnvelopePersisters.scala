@@ -85,8 +85,7 @@ package events {
           JsObject(
             "key" -> JsString(persisted.key),
             "version" -> JsNumber(persisted.version),
-            "data" -> data
-          )
+            "data" -> data)
         case _ => throw new IllegalArgumentException(s"No persister found for entity:${entity}")
       }
     }
@@ -109,8 +108,8 @@ package events {
   }
 
   class EntityInsertEventPersister(entityPersisters: Persisters)
-      extends PersistedEventPersisterVn[EntityInsertedEvent[BaseId, AnyRef], V2]("entity-inserted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
-      with LazyLogging {
+    extends PersistedEventPersisterVn[EntityInsertedEvent[BaseId, AnyRef], V2]("entity-inserted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
+    with LazyLogging {
 
     def toBytes(t: EntityInsertedEvent[BaseId, AnyRef]): ByteString = {
       //build custom json
@@ -123,8 +122,7 @@ package events {
       fromJson(JsObject(
         "meta" -> meta,
         "id" -> id,
-        "entity" -> entity
-      ))
+        "entity" -> entity))
     }
 
     def unpersist(json: JsValue): EntityInsertedEvent[BaseId, AnyRef] = {
@@ -142,8 +140,8 @@ package events {
   }
 
   class EntityUpdatedEventPersister(entityPersisters: Persisters)
-      extends PersistedEventPersisterVn[EntityUpdatedEvent[BaseId, AnyRef], V2]("entity-updated", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
-      with LazyLogging {
+    extends PersistedEventPersisterVn[EntityUpdatedEvent[BaseId, AnyRef], V2]("entity-updated", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol
+    with LazyLogging {
 
     def toBytes(t: EntityUpdatedEvent[BaseId, AnyRef]): ByteString = {
       //build custom json
@@ -157,8 +155,7 @@ package events {
       val json = JsObject(
         "meta" -> meta,
         "id" -> id,
-        "entity" -> entity
-      )
+        "entity" -> entity)
       fromJson(json)
     }
 
@@ -176,7 +173,7 @@ package events {
   }
 
   class EntityDeletedEventPersister(entityPersisters: Persisters)
-      extends PersistedEventPersisterVn[EntityDeletedEvent[BaseId], V2]("entity-deleted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[EntityDeletedEvent[BaseId], V2]("entity-deleted", entityPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: EntityDeletedEvent[BaseId]): ByteString = {
       //build custom json
@@ -185,8 +182,7 @@ package events {
 
       fromJson(JsObject(
         "meta" -> meta,
-        "id" -> id
-      ))
+        "id" -> id))
     }
 
     def unpersist(json: JsValue): EntityDeletedEvent[BaseId] = {
@@ -202,7 +198,7 @@ package events {
   }
 
   class SystemEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[PersistentSystemEvent, V2]("system-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[PersistentSystemEvent, V2]("system-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: PersistentSystemEvent): ByteString = {
       //build custom json
@@ -211,8 +207,7 @@ package events {
 
       fromJson(JsObject(
         "meta" -> meta,
-        "event" -> event
-      ))
+        "event" -> event))
     }
 
     def unpersist(json: JsValue): PersistentSystemEvent = {
@@ -228,7 +223,7 @@ package events {
   }
 
   class SendMailEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[SendMailEvent, V2]("send-mail-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol with MailJsonProtocol {
+    extends PersistedEventPersisterVn[SendMailEvent, V2]("send-mail-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol with MailJsonProtocol {
 
     def toBytes(t: SendMailEvent): ByteString = {
       //build custom json
@@ -242,8 +237,7 @@ package events {
         "uid" -> JsString(t.uid),
         "mail" -> mail,
         "expires" -> expires,
-        "commandMeta" -> commandMeta
-      ))
+        "commandMeta" -> commandMeta))
     }
 
     def unpersist(json: JsValue): SendMailEvent = {
@@ -266,7 +260,7 @@ package events {
   }
 
   class MailSentEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[MailSentEvent, V2]("mail-sent-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[MailSentEvent, V2]("mail-sent-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: MailSentEvent): ByteString = {
       //build custom json
@@ -276,8 +270,7 @@ package events {
       fromJson(JsObject(
         "meta" -> meta,
         "uid" -> JsString(t.uid),
-        "commandMeta" -> commandMeta
-      ))
+        "commandMeta" -> commandMeta))
     }
 
     def unpersist(json: JsValue): MailSentEvent = {
@@ -298,7 +291,7 @@ package events {
   }
 
   class SendMailFailedEventPersister(eventPersisters: Persisters)
-      extends PersistedEventPersisterVn[SendMailFailedEvent, V2]("send-mail-failed-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
+    extends PersistedEventPersisterVn[SendMailFailedEvent, V2]("send-mail-failed-event", eventPersisters, V1toV2metaDataMigration) with EntityStoreJsonProtocol with BaseJsonProtocol {
 
     def toBytes(t: SendMailFailedEvent): ByteString = {
       //build custom json
@@ -309,8 +302,7 @@ package events {
         "meta" -> meta,
         "uid" -> JsString(t.uid),
         "numberOfRetries" -> JsNumber(t.numberOfRetries),
-        "commandMeta" -> commandMeta
-      ))
+        "commandMeta" -> commandMeta))
     }
 
     def unpersist(json: JsValue): SendMailFailedEvent = {

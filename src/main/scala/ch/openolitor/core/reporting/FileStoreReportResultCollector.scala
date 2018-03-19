@@ -33,8 +33,8 @@ object FileStoreReportResultCollector {
 }
 
 /**
- * Collect all results filestore id results
- */
+  * Collect all results filestore id results
+  */
 class FileStoreReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef, downloadFile: Boolean) extends ResultCollector {
 
   var storeResults: Seq[FileStoreFileReference] = Seq()

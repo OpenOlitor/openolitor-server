@@ -32,8 +32,8 @@ import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
 /**
- * Add anzahlMahnungen and mahnungFileStoreIds to Rechnung
- */
+  * Add anzahlMahnungen and mahnungFileStoreIds to Rechnung
+  */
 object OO106_DBScripts_Mahnungen extends DefaultDBScripts {
   val BuchhaltungScripts = new Script with LazyLogging with BuchhaltungDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {

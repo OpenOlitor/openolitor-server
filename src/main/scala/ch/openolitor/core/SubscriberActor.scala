@@ -25,8 +25,8 @@ package ch.openolitor.core
 import akka.actor._
 
 /**
- * Ein actor welcher automatisch für eine Anzahl Events auf dem Eventstream Bus registriert
- */
+  * Ein actor welcher automatisch für eine Anzahl Events auf dem Eventstream Bus registriert
+  */
 trait SubscriberActor extends Actor {
 
   def subscribedClasses: Seq[Class[_]]

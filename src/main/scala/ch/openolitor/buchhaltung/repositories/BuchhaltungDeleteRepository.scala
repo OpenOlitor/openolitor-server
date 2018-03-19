@@ -27,8 +27,8 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 trait BuchhaltungDeleteRepository extends BaseDeleteRepository
-    with BuchhaltungReadRepositorySync
-    with EventStream {
+  with BuchhaltungReadRepositorySync
+  with EventStream {
 }
 
 trait BuchhaltungDeleteRepositoryImpl extends BuchhaltungDeleteRepository with LazyLogging {

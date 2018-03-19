@@ -27,8 +27,8 @@ import scala.collection.JavaConversions._
 
 object ConfigUtil {
   /**
-   * Enhanced typesafe config adding support to read config keys as option
-   */
+    * Enhanced typesafe config adding support to read config keys as option
+    */
   implicit class MyConfig(self: Config) {
 
     private def getOption[T](path: String)(get: String => T): Option[T] = {

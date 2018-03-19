@@ -41,21 +41,20 @@ object DBEvent2UserMapping extends DefaultJsonProtocol {
     def write(obj: DBEvent[E]): JsValue =
       JsObject(
         "entity" -> JsString(obj.entity.productPrefix),
-        "data" -> writer.write(obj.entity)
-      )
+        "data" -> writer.write(obj.entity))
   }
 }
 
 /**
- * Redirect all dbevents to the client itself
- */
+  * Redirect all dbevents to the client itself
+  */
 class DBEvent2UserMapping extends Actor
-    with ActorLogging
-    with ClientReceiver
-    with StammdatenJsonProtocol
-    with BuchhaltungJsonProtocol
-    with ReportsJsonProtocol
-    with AkkaEventStream {
+  with ActorLogging
+  with ClientReceiver
+  with StammdatenJsonProtocol
+  with BuchhaltungJsonProtocol
+  with ReportsJsonProtocol
+  with AkkaEventStream {
   import DBEvent2UserMapping._
 
   override val system = context.system

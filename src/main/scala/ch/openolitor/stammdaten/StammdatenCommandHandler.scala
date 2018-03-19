@@ -86,7 +86,7 @@ object StammdatenCommandHandler {
 }
 
 trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
-    with LieferungDurchschnittspreisHandler {
+  with LieferungDurchschnittspreisHandler {
 
   self: StammdatenReadRepositorySyncComponent =>
   import StammdatenCommandHandler._
@@ -525,8 +525,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       betrag,
       waehrung,
       RechnungsPositionStatus.Offen,
-      RechnungsPositionTyp(rechnungsPositionTyp.toString)
-    )
+      RechnungsPositionTyp(rechnungsPositionTyp.toString))
   }
 
   def createAboRechnungsPositionenBisGuthaben(idFactory: IdFactory, meta: EventTransactionMetadata, aboRechnungCreate: AboRechnungsPositionBisGuthabenCreate) = {
@@ -591,8 +590,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             personId,
             UUID.randomUUID.toString,
             DateTime.now.plusDays(90),
-            None
-          )))))
+            None)))))
         } getOrElse {
           Failure(new InvalidStateException(s"Dieser Person kann keine Einladung gesendet werden da sie keine Emailadresse besitzt."))
         }
@@ -611,8 +609,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             personId,
             UUID.randomUUID.toString,
             DateTime.now.plusMinutes(120),
-            None
-          )))))
+            None)))))
         } getOrElse {
           Failure(new InvalidStateException(s"Dieser Person kann keine Einladung gesendet werden da sie keine Emailadresse besitzt."))
         }
@@ -804,8 +801,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           val neuerDurchschnittspreis = calcDurchschnittspreis(durchschnittspreis, lieferungen, total)
           val vertriebCopy = vertrieb.copy(
             anzahlLieferungen = vertrieb.anzahlLieferungen.updated(gjKey, lieferungen + 1),
-            durchschnittspreis = vertrieb.durchschnittspreis.updated(gjKey, neuerDurchschnittspreis)
-          )
+            durchschnittspreis = vertrieb.durchschnittspreis.updated(gjKey, neuerDurchschnittspreis))
           val vertriebModifyCopy = VertriebRecalculationsModify(vertrieb.anzahlLieferungen, vertrieb.durchschnittspreis)
           EntityUpdateEvent(vertrieb.id, vertriebModifyCopy) :: Nil
         }
@@ -843,8 +839,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           meta.timestamp,
           personId,
           meta.timestamp,
-          personId
-        )
+          personId)
         Some(result)
 
       case p: PostlieferungDetail =>
@@ -856,8 +851,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           meta.timestamp,
           personId,
           meta.timestamp,
-          personId
-        )
+          personId)
         Some(result)
 
       case _ =>
@@ -892,8 +886,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       meta.timestamp,
       personId,
       meta.timestamp,
-      personId
-    )
+      personId)
   }
 
   private def getDistinctSammelbestellungModifyByLieferplan(lieferplanungId: LieferplanungId)(implicit session: DBSession): Set[SammelbestellungModify] = {
@@ -906,5 +899,5 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 }
 
 class DefaultStammdatenCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenCommandHandler
-    with DefaultStammdatenReadRepositorySyncComponent {
+  with DefaultStammdatenReadRepositorySyncComponent {
 }

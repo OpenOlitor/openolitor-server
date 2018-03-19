@@ -40,8 +40,8 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
   def apply(rn: ResultName[E])(rs: WrappedResultSet): E
 
   /**
-   * Declare parameter mappings for all parameters used on insert
-   */
+    * Declare parameter mappings for all parameters used on insert
+    */
   def parameterMappings(entity: E): Seq[ParameterBinder]
 
   def defaultColumns(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] =
@@ -49,17 +49,15 @@ trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E]
 
   def defaultInsertColumns(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] = Seq(
     column.erstelldat -> entity.erstelldat,
-    column.ersteller -> entity.ersteller
-  )
+    column.ersteller -> entity.ersteller)
 
   def defaultUpdateColumns(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] = Seq(
     column.modifidat -> entity.modifidat,
-    column.modifikator -> entity.modifikator
-  )
+    column.modifikator -> entity.modifikator)
 
   /**
-   * Declare update parameters for this entity used on update. Is by default an empty set
-   */
+    * Declare update parameters for this entity used on update. Is by default an empty set
+    */
   def updateParameters(entity: E): Seq[Tuple2[SQLSyntax, ParameterBinder]] = defaultUpdateColumns(entity)
 }
 

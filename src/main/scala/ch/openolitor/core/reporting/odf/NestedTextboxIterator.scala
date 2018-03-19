@@ -31,10 +31,10 @@ import org.odftoolkit.odfdom.dom.element.draw.DrawFrameElement
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement
 
 /**
- * This class is an enhanced implementation for finding all textboxes in a textbox container. The SimpleTextboxIterator only looks up
- * children directly attached to provided parent. In fact when you apply some styling to a paragaph the textbox
- * might get encapsulated into a <p><span><draw-frame></span></p>. In this case, the SimpleTextboxIterator won't find the textboxes accordingly
- */
+  * This class is an enhanced implementation for finding all textboxes in a textbox container. The SimpleTextboxIterator only looks up
+  * children directly attached to provided parent. In fact when you apply some styling to a paragaph the textbox
+  * might get encapsulated into a <p><span><draw-frame></span></p>. In this case, the SimpleTextboxIterator won't find the textboxes accordingly
+  */
 class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textbox] {
 
   var nextElement: Option[(Node, Textbox)] = None;
@@ -88,8 +88,7 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
 
   private def findDeepChildNode[T <: OdfElement](
     name: OdfName,
-    refNode: Node
-  ): Option[(Node, Node)] = {
+    refNode: Node): Option[(Node, Node)] = {
     refNode match {
       case node: Node if node.getNodeName == name.getQName => Some((node, node))
       case parent: ParentNode =>

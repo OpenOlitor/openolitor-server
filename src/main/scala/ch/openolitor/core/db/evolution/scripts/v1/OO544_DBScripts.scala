@@ -30,6 +30,5 @@ object OO544_DBScripts {
   val scripts = Seq(
     RecalculateAnzahlAbwesenheiten.scripts,
     RecalculateAnzahlAbwesenheitenLieferung.scripts,
-    RecalculateAnzahlGeliefertLieferung.scripts
-  )
+    RecalculateAnzahlGeliefertLieferung.scripts)
 }

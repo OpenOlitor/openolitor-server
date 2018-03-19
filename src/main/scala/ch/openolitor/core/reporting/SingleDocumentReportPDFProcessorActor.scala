@@ -33,8 +33,8 @@ object SingleDocumentReportPDFProcessorActor {
 }
 
 /**
- * This actor generates a report document and converts the result to a pdf afterwards
- */
+  * This actor generates a report document and converts the result to a pdf afterwards
+  */
 class SingleDocumentReportPDFProcessorActor(sysConfig: SystemConfig, name: String, locale: Locale) extends Actor with ActorLogging {
   import ReportSystem._
   import PDFGeneratorActor._

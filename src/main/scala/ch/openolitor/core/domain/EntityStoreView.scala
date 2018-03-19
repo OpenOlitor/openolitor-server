@@ -39,8 +39,8 @@ trait EventService[E <: PersistentEvent] {
 }
 
 /**
- * Component mit Referenzen auf weitere Dienste
- */
+  * Component mit Referenzen auf weitere Dienste
+  */
 trait EntityStoreViewComponent extends Actor {
   import EntityStore._
   val insertService: EventService[EntityInsertedEvent[_, _]]
@@ -58,8 +58,8 @@ object EntityStoreView {
 }
 
 /**
- * Diese generische EntityStoreView delelegiert die Events an die jeweilige modulspezifische ActorRef
- */
+  * Diese generische EntityStoreView delelegiert die Events an die jeweilige modulspezifische ActorRef
+  */
 trait EntityStoreView extends PersistentView with DBEvolutionReference with LazyLogging with PersistenceEventStateSupport {
   self: EntityStoreViewComponent =>
 
@@ -75,8 +75,8 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
   override def autoUpdateInterval = 100 millis
 
   /**
-   * Delegate to
-   */
+    * Delegate to
+    */
   val receive: Receive = {
     case Startup =>
       log.debug("Received Startup command")

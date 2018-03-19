@@ -31,11 +31,11 @@ import scala.util._
 import java.util.Locale
 
 /**
- * This helper app reads a template filename and a json data filename from the args and tries
- * to generate a report with those informations. This app may be used to verify the report engine
- * as well as verify custom report templates within a console
- *
- */
+  * This helper app reads a template filename and a json data filename from the args and tries
+  * to generate a report with those informations. This app may be used to verify the report engine
+  * as well as verify custom report templates within a console
+  *
+  */
 object ReportDocumentProcessorApp extends App with DocumentProcessor {
 
   if (args.length < 2) {

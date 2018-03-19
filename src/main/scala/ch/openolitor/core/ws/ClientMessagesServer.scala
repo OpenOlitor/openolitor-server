@@ -48,8 +48,8 @@ trait ClientReceiver extends EventStream {
     publish(SendToClient(senderPersonId, msgToString(ClientMessageWrapper(msg))))
 
   /**
-   * Send OutEvent to a list of receiving clients exclusing sender itself
-   */
+    * Send OutEvent to a list of receiving clients exclusing sender itself
+    */
   def send[M <: ClientMessage](senderPersonId: PersonId, msg: M, receivers: List[PersonId])(implicit writer: RootJsonWriter[M]) =
     publish(SendToClient(senderPersonId, msgToString(ClientMessageWrapper(msg)), receivers))
 

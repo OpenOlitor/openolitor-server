@@ -66,110 +66,110 @@ trait FileStore {
   val mandant: String
 
   /**
-   * Get a list of file summaries of a given bucket.
-   *
-   * @param bucket the bucket to get the list of summaries from
-   * @return either a list of `FileStoreFileSummary`s of the given bucket or `FileStoreError`
-   */
+    * Get a list of file summaries of a given bucket.
+    *
+    * @param bucket the bucket to get the list of summaries from
+    * @return either a list of `FileStoreFileSummary`s of the given bucket or `FileStoreError`
+    */
   def getFileSummaries(bucket: FileStoreBucket): Future[Either[FileStoreError, List[FileStoreFileSummary]]]
 
   /**
-   * List the files of a given bucket.
-   *
-   * @param bucket the bucket to list the files.
-   * @return either a list of `FileStoreFileId`s of the given bucket or a `FileStoreError`.
-   */
+    * List the files of a given bucket.
+    *
+    * @param bucket the bucket to list the files.
+    * @return either a list of `FileStoreFileId`s of the given bucket or a `FileStoreError`.
+    */
   def getFileIds(bucket: FileStoreBucket): Future[Either[FileStoreError, List[FileStoreFileId]]]
 
   /**
-   * Get the file by id.
-   *
-   * @param bucket the bucket where the file with the id is stored.
-   * @param id the id of the file.
-   * @return either a `FileStoreFile` or a `FileStoreError`.
-   */
+    * Get the file by id.
+    *
+    * @param bucket the bucket where the file with the id is stored.
+    * @param id the id of the file.
+    * @return either a `FileStoreFile` or a `FileStoreError`.
+    */
   def getFile(bucket: FileStoreBucket, id: String): Future[Either[FileStoreError, FileStoreFile]]
 
   /**
-   * Upload the file to the bucket with the id.
-   *
-   * @param bucket the bucket where the file should be stored.
-   * @param id the id of the file. If left None an id will be generated.
-   * @param metadata the required `FileStoreFileMetadata` to store with this file.
-   * @param file the file as `InputStream`.
-   * @return either the resulting `FileStoreFileMetadata` or a `FileStoreError`.
-   */
+    * Upload the file to the bucket with the id.
+    *
+    * @param bucket the bucket where the file should be stored.
+    * @param id the id of the file. If left None an id will be generated.
+    * @param metadata the required `FileStoreFileMetadata` to store with this file.
+    * @param file the file as `InputStream`.
+    * @return either the resulting `FileStoreFileMetadata` or a `FileStoreError`.
+    */
   def putFile(bucket: FileStoreBucket, id: Option[String], metadata: FileStoreFileMetadata, file: InputStream): Future[Either[FileStoreError, FileStoreFileMetadata]]
 
   /**
-   * Delete the file in the given bucket by id.
-   *
-   * @param bucket the bucket where the file should be deleted.
-   * @param id the id of the file to delete.
-   * @return either `FileStoreSuccess` or `FileStoreError`.
-   */
+    * Delete the file in the given bucket by id.
+    *
+    * @param bucket the bucket where the file should be deleted.
+    * @param id the id of the file to delete.
+    * @return either `FileStoreSuccess` or `FileStoreError`.
+    */
   def deleteFile(bucket: FileStoreBucket, id: String): Future[Either[FileStoreError, FileStoreSuccess]]
 
   /**
-   * Delete the files in the given bucket having the given ids.
-   *
-   * @param bucket the bucket where the file should be deleted.
-   * @param ids the ids of the files to delete.
-   * @return either `FileStoreSuccess` or `FileStoreError`.
-   */
+    * Delete the files in the given bucket having the given ids.
+    *
+    * @param bucket the bucket where the file should be deleted.
+    * @param ids the ids of the files to delete.
+    * @return either `FileStoreSuccess` or `FileStoreError`.
+    */
   def deleteFiles(bucket: FileStoreBucket, ids: List[String]): Future[Either[FileStoreError, FileStoreSuccess]]
 
   /**
-   * Create the buckets listed in `FileStoreBucket.AllFileStoreBuckets` if they do not exist already.
-   *
-   * @return either `FileStoreSuccess` or `FileStoreError`.
-   */
+    * Create the buckets listed in `FileStoreBucket.AllFileStoreBuckets` if they do not exist already.
+    *
+    * @return either `FileStoreSuccess` or `FileStoreError`.
+    */
   def createBuckets: Future[Either[FileStoreError, FileStoreSuccess]]
 
   /**
-   * Initiate the chunked upload of data which will be concatenated in the end after calling `completeChunkedUpload`.
-   *
-   * @param bucket the bucket where the file should be stored.
-   * @param id the id of the file. If left None an id will be generated.
-   * @param metadata the required metadata for this upload.
-   * @return the resulting `FileStoreChunkedUploadMetaData` or `FileStoreError`.
-   */
+    * Initiate the chunked upload of data which will be concatenated in the end after calling `completeChunkedUpload`.
+    *
+    * @param bucket the bucket where the file should be stored.
+    * @param id the id of the file. If left None an id will be generated.
+    * @param metadata the required metadata for this upload.
+    * @return the resulting `FileStoreChunkedUploadMetaData` or `FileStoreError`.
+    */
   def initiateChunkedUpload(bucket: FileStoreBucket, id: Option[String], metadata: FileStoreFileMetadata): Future[Either[FileStoreError, FileStoreChunkedUploadMetaData]]
 
   /**
-   * Upload a part to the already initiated chunked upload process. Initiate the chunked upload first using `initiateChunkedUpload`.
-   *
-   * @param metadata the metadata returned by `initiateChunkedUpload`.
-   * @param part the part as `InputStream`.
-   * @param partSize the size of this part.
-   * @param partNumber the number of this part.
-   * @return the resulting `FileStoreChunkedUploadPartEtag` for this part or `FileStoreError`.
-   */
+    * Upload a part to the already initiated chunked upload process. Initiate the chunked upload first using `initiateChunkedUpload`.
+    *
+    * @param metadata the metadata returned by `initiateChunkedUpload`.
+    * @param part the part as `InputStream`.
+    * @param partSize the size of this part.
+    * @param partNumber the number of this part.
+    * @return the resulting `FileStoreChunkedUploadPartEtag` for this part or `FileStoreError`.
+    */
   def uploadChunk(metadata: FileStoreChunkedUploadMetaData, part: InputStream, partSize: Int, partNumber: Int): Future[Either[FileStoreError, FileStoreChunkedUploadPartEtag]]
 
   /**
-   * Complete the chunked upload process identified by the given metadata.
-   *
-   * @param metadata the metadata returned by `initiateChunkedUpload`.
-   * @param partEtags the etags sorted by partNumber.
-   * @return either `FileStoreChunkedUploadMetaData` or `FileStoreError`.
-   */
+    * Complete the chunked upload process identified by the given metadata.
+    *
+    * @param metadata the metadata returned by `initiateChunkedUpload`.
+    * @param partEtags the etags sorted by partNumber.
+    * @return either `FileStoreChunkedUploadMetaData` or `FileStoreError`.
+    */
   def completeChunkedUpload(metadata: FileStoreChunkedUploadMetaData, partEtags: List[FileStoreChunkedUploadPartEtag]): Future[Either[FileStoreError, FileStoreChunkedUploadMetaData]]
 
   /**
-   * Abort the chunked upload process identified by the given metadata.
-   *
-   * @param metadata
-   * @return either `FileStoreChunkedUploadMetaData` or `FileStoreError`.
-   */
+    * Abort the chunked upload process identified by the given metadata.
+    *
+    * @param metadata
+    * @return either `FileStoreChunkedUploadMetaData` or `FileStoreError`.
+    */
   def abortChunkedUpload(metadata: FileStoreChunkedUploadMetaData): Future[Either[FileStoreError, FileStoreChunkedUploadMetaData]]
 
   /**
-   * Retrieve the string representation of the given bucket.
-   *
-   * @param bucket the bucket.
-   * @return the bucket name as `String` of the given `FileStoreBucket`
-   */
+    * Retrieve the string representation of the given bucket.
+    *
+    * @param bucket the bucket.
+    * @return the bucket name as `String` of the given `FileStoreBucket`
+    */
   def bucketName(bucket: FileStoreBucket): String = {
     s"${mandant.toLowerCase}-${bucket.toString.toLowerCase}"
   }
@@ -301,8 +301,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
           bucketName(metadata.bucket),
           metadata.key,
           metadata.uploadId,
-          partEtags
-        ))
+          partEtags))
 
         Right(metadata)
       } catch {
@@ -316,8 +315,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
     Future.successful {
       try {
         client.abortMultipartUpload(new AbortMultipartUploadRequest(
-          bucketName(metadata.bucket), metadata.key, metadata.uploadId
-        ))
+          bucketName(metadata.bucket), metadata.key, metadata.uploadId))
 
         Right(metadata)
       } catch {
@@ -363,8 +361,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
       s3ObjectSummary.getKey,
       s3ObjectSummary.getETag,
       s3ObjectSummary.getSize,
-      new DateTime(s3ObjectSummary.getLastModified)
-    )
+      new DateTime(s3ObjectSummary.getLastModified))
   }
 
   protected def listObjects(bucket: FileStoreBucket): List[FileStoreFileSummary] = {

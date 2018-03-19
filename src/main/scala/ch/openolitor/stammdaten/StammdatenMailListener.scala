@@ -40,11 +40,11 @@ object StammdatenMailListener {
 class DefaultStammdatenMailListener(sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenMailListener(sysConfig) with DefaultStammdatenWriteRepositoryComponent
 
 /**
- * Listens to succesful sent mails
- */
+  * Listens to succesful sent mails
+  */
 class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging
-    with StammdatenDBMappings
-    with ConnectionPoolContextAware {
+  with StammdatenDBMappings
+  with ConnectionPoolContextAware {
   this: StammdatenWriteRepositoryComponent =>
 
   override def preStart() {
@@ -67,8 +67,7 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
     log.debug(s"handleBestellungMailSent:$id")
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Sammelbestellung, SammelbestellungId](id)(
-        sammelbestellungMapping.column.datumVersendet -> Option(meta.timestamp)
-      )
+        sammelbestellungMapping.column.datumVersendet -> Option(meta.timestamp))
     }
   }
 
@@ -76,8 +75,7 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
     log.debug(s"handleEinladungMailSent:$id")
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Einladung, EinladungId](id)(
-        einladungMapping.column.datumVersendet -> Option(meta.timestamp)
-      )
+        einladungMapping.column.datumVersendet -> Option(meta.timestamp))
     }
   }
 }

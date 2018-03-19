@@ -40,8 +40,7 @@ class StammdatenBatchJobs(val sysConfig: SystemConfig, val system: ActorSystem, 
   override lazy val batchJobs = Set(
     context.actorOf(AktiveAbosCalculation.props(sysConfig, system, entityStore)),
     context.actorOf(KorbStatusCalculation.props(sysConfig, system)),
-    context.actorOf(LieferungCounterCalculation.props(sysConfig, system))
-  )
+    context.actorOf(LieferungCounterCalculation.props(sysConfig, system)))
 }
 
 class DefaultStammdatenBatchJobs(override val sysConfig: SystemConfig, override val system: ActorSystem, override val entityStore: ActorRef) extends StammdatenBatchJobs(sysConfig, system, entityStore) with DefaultStammdatenWriteRepositoryComponent

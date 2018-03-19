@@ -51,8 +51,7 @@ trait ReportsDBMappings extends DBMappings {
       super.updateParameters(entity) ++ Seq(
         column.name -> entity.name,
         column.beschreibung -> entity.beschreibung,
-        column.query -> entity.query
-      )
+        column.query -> entity.query)
     }
   }
 }

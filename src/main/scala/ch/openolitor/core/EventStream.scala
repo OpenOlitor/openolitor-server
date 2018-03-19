@@ -26,8 +26,8 @@ import akka.actor.ActorSystem
 import ch.openolitor.core.repositories.InstantEventPublisher
 
 /**
- * Trait providing a simple access to publish events to the eventstream per mandant
- */
+  * Trait providing a simple access to publish events to the eventstream per mandant
+  */
 trait EventStream {
   def publish(msg: Object)
 }

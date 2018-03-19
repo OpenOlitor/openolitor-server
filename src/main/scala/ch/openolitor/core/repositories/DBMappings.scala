@@ -33,14 +33,14 @@ import java.util.Locale
 import ch.openolitor.core.models.BaseStringId
 
 trait DBMappings extends BaseParameter
-    with Parameters
-    with Parameters23
-    with Parameters24
-    with Parameters25
-    with Parameters26
-    with Parameters27
-    with Parameters28
-    with LowPriorityImplicitsParameterBinderFactory1 {
+  with Parameters
+  with Parameters23
+  with Parameters24
+  with Parameters25
+  with Parameters26
+  with Parameters27
+  with Parameters28
+  with LowPriorityImplicitsParameterBinderFactory1 {
   import Binders._
 
   def baseIdBinders[T <: BaseId](f: Long => T): Binders[T] = Binders.long.xmap(l => f(l), _.id)

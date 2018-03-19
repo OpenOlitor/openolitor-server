@@ -27,8 +27,8 @@ import org.odftoolkit.odfdom.dom.element.draw.DrawFrameElement
 import org.odftoolkit.simple.OdfToolkitUtils
 
 /**
- *
- */
+  *
+  */
 class SimpleFrameIterator(containerElement: OdfElement) extends Iterator[Frame] {
 
   import OdfToolkitUtils._

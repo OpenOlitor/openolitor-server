@@ -67,37 +67,36 @@ trait IDepot extends BaseEntity[DepotId] {
 }
 
 case class Depot(
-  id: DepotId,
-  name: String,
-  kurzzeichen: String,
-  apName: Option[String],
-  apVorname: Option[String],
-  apTelefon: Option[String],
-  apEmail: Option[String],
-  vName: Option[String],
-  vVorname: Option[String],
-  vTelefon: Option[String],
-  vEmail: Option[String],
-  strasse: Option[String],
-  hausNummer: Option[String],
-  plz: String,
-  ort: String,
-  aktiv: Boolean,
-  oeffnungszeiten: Option[String],
-  farbCode: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  beschreibung: Option[String],
-  anzahlAbonnentenMax: Option[Int],
-  //Zusatzinformationen
-  anzahlAbonnenten: Int,
-  anzahlAbonnentenAktiv: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends IDepot with Vertriebskanal
+    id: DepotId,
+    name: String,
+    kurzzeichen: String,
+    apName: Option[String],
+    apVorname: Option[String],
+    apTelefon: Option[String],
+    apEmail: Option[String],
+    vName: Option[String],
+    vVorname: Option[String],
+    vTelefon: Option[String],
+    vEmail: Option[String],
+    strasse: Option[String],
+    hausNummer: Option[String],
+    plz: String,
+    ort: String,
+    aktiv: Boolean,
+    oeffnungszeiten: Option[String],
+    farbCode: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    beschreibung: Option[String],
+    anzahlAbonnentenMax: Option[Int],
+    //Zusatzinformationen
+    anzahlAbonnenten: Int,
+    anzahlAbonnentenAktiv: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends IDepot with Vertriebskanal
 
 trait IDepotReport extends IDepot {
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
@@ -106,77 +105,74 @@ trait IDepotReport extends IDepot {
   lazy val adresszeilen = Seq(
     Some(name),
     strasseUndNummer,
-    Some(plzOrt)
-  ).flatten.padTo(6, "")
+    Some(plzOrt)).flatten.padTo(6, "")
 }
 
 case class DepotReport(
-  id: DepotId,
-  name: String,
-  kurzzeichen: String,
-  apName: Option[String],
-  apVorname: Option[String],
-  apTelefon: Option[String],
-  apEmail: Option[String],
-  vName: Option[String],
-  vVorname: Option[String],
-  vTelefon: Option[String],
-  vEmail: Option[String],
-  strasse: Option[String],
-  hausNummer: Option[String],
-  plz: String,
-  ort: String,
-  aktiv: Boolean,
-  oeffnungszeiten: Option[String],
-  farbCode: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  beschreibung: Option[String],
-  anzahlAbonnentenMax: Option[Int],
-  //Zusatzinformationen
-  anzahlAbonnenten: Int,
-  anzahlAbonnentenAktiv: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
+    id: DepotId,
+    name: String,
+    kurzzeichen: String,
+    apName: Option[String],
+    apVorname: Option[String],
+    apTelefon: Option[String],
+    apEmail: Option[String],
+    vName: Option[String],
+    vVorname: Option[String],
+    vTelefon: Option[String],
+    vEmail: Option[String],
+    strasse: Option[String],
+    hausNummer: Option[String],
+    plz: String,
+    ort: String,
+    aktiv: Boolean,
+    oeffnungszeiten: Option[String],
+    farbCode: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    beschreibung: Option[String],
+    anzahlAbonnentenMax: Option[Int],
+    //Zusatzinformationen
+    anzahlAbonnenten: Int,
+    anzahlAbonnentenAktiv: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
 
 case class DepotDetailReport(
-  id: DepotId,
-  name: String,
-  kurzzeichen: String,
-  apName: Option[String],
-  apVorname: Option[String],
-  apTelefon: Option[String],
-  apEmail: Option[String],
-  vName: Option[String],
-  vVorname: Option[String],
-  vTelefon: Option[String],
-  vEmail: Option[String],
-  strasse: Option[String],
-  hausNummer: Option[String],
-  plz: String,
-  ort: String,
-  aktiv: Boolean,
-  oeffnungszeiten: Option[String],
-  farbCode: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  beschreibung: Option[String],
-  anzahlAbonnentenMax: Option[Int],
-  //Zusatzinformationen
-  anzahlAbonnenten: Int,
-  anzahlAbonnentenAktiv: Int,
-  abos: Seq[DepotlieferungAboReport],
-  projekt: ProjektReport,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
+    id: DepotId,
+    name: String,
+    kurzzeichen: String,
+    apName: Option[String],
+    apVorname: Option[String],
+    apTelefon: Option[String],
+    apEmail: Option[String],
+    vName: Option[String],
+    vVorname: Option[String],
+    vTelefon: Option[String],
+    vEmail: Option[String],
+    strasse: Option[String],
+    hausNummer: Option[String],
+    plz: String,
+    ort: String,
+    aktiv: Boolean,
+    oeffnungszeiten: Option[String],
+    farbCode: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    beschreibung: Option[String],
+    anzahlAbonnentenMax: Option[Int],
+    //Zusatzinformationen
+    anzahlAbonnenten: Int,
+    anzahlAbonnentenAktiv: Int,
+    abos: Seq[DepotlieferungAboReport],
+    projekt: ProjektReport,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[DepotId] with IDepotReport with JSONSerializable
 
 object Depot {
   def unapply(d: Depot) = {
@@ -210,78 +206,71 @@ object Depot {
       d.erstelldat: DateTime,
       d.ersteller: PersonId,
       d.modifidat: DateTime,
-      d.modifikator: PersonId
-    ))
+      d.modifikator: PersonId))
   }
 }
 
 case class DepotModify(
-  name: String,
-  kurzzeichen: String,
-  apName: Option[String],
-  apVorname: Option[String],
-  apTelefon: Option[String],
-  apEmail: Option[String],
-  vName: Option[String],
-  vVorname: Option[String],
-  vTelefon: Option[String],
-  vEmail: Option[String],
-  strasse: Option[String],
-  hausNummer: Option[String],
-  plz: String,
-  ort: String,
-  aktiv: Boolean,
-  oeffnungszeiten: Option[String],
-  farbCode: Option[String],
-  iban: Option[String], //maybe use dedicated type
-  bank: Option[String],
-  beschreibung: Option[String],
-  anzahlAbonnentenMax: Option[Int]
-) extends JSONSerializable
+    name: String,
+    kurzzeichen: String,
+    apName: Option[String],
+    apVorname: Option[String],
+    apTelefon: Option[String],
+    apEmail: Option[String],
+    vName: Option[String],
+    vVorname: Option[String],
+    vTelefon: Option[String],
+    vEmail: Option[String],
+    strasse: Option[String],
+    hausNummer: Option[String],
+    plz: String,
+    ort: String,
+    aktiv: Boolean,
+    oeffnungszeiten: Option[String],
+    farbCode: Option[String],
+    iban: Option[String], //maybe use dedicated type
+    bank: Option[String],
+    beschreibung: Option[String],
+    anzahlAbonnentenMax: Option[Int]) extends JSONSerializable
 
 case class DepotSummary(
-  id: DepotId,
-  name: String,
-  kurzzeichen: String
-) extends JSONSerializable
+    id: DepotId,
+    name: String,
+    kurzzeichen: String) extends JSONSerializable
 
 case class TourId(id: Long) extends BaseId
 
 case class Tour(
-  id: TourId,
-  name: String,
-  beschreibung: Option[String],
-  //Zusatzinformationen
-  anzahlAbonnenten: Int,
-  anzahlAbonnentenAktiv: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[TourId] with Vertriebskanal
+    id: TourId,
+    name: String,
+    beschreibung: Option[String],
+    //Zusatzinformationen
+    anzahlAbonnenten: Int,
+    anzahlAbonnentenAktiv: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends BaseEntity[TourId] with Vertriebskanal
 
 case class TourDetail(
-  id: TourId,
-  name: String,
-  beschreibung: Option[String],
-  tourlieferungen: Seq[TourlieferungDetail],
-  anzahlAbonnenten: Int,
-  anzahlAbonnentenAktiv: Int,
-  //modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends JSONSerializable
+    id: TourId,
+    name: String,
+    beschreibung: Option[String],
+    tourlieferungen: Seq[TourlieferungDetail],
+    anzahlAbonnenten: Int,
+    anzahlAbonnentenAktiv: Int,
+    //modification flags
+    erstelldat: DateTime,
+    ersteller: PersonId,
+    modifidat: DateTime,
+    modifikator: PersonId) extends JSONSerializable
 
 case class TourCreate(
-  name: String,
-  beschreibung: Option[String]
-) extends JSONSerializable
+    name: String,
+    beschreibung: Option[String]) extends JSONSerializable
 
 case class TourModify(
-  name: String,
-  beschreibung: Option[String],
-  tourlieferungen: Seq[Tourlieferung]
-) extends JSONSerializable
+    name: String,
+    beschreibung: Option[String],
+    tourlieferungen: Seq[Tourlieferung]) extends JSONSerializable

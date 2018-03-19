@@ -35,8 +35,7 @@ object FileStoreBatchJobs {
 
 class FileStoreBatchJobs(val sysConfig: SystemConfig, val system: ActorSystem, val fileStore: FileStore) extends BaseBatchJobsSupervisor {
   override lazy val batchJobs = Set(
-    context.actorOf(TemporaryDataBucketCleanupBatchJob.props(sysConfig, system, fileStore))
-  )
+    context.actorOf(TemporaryDataBucketCleanupBatchJob.props(sysConfig, system, fileStore)))
 }
 
 class DefaultFileStoreBatchJobs(override val sysConfig: SystemConfig, override val system: ActorSystem, override val fileStore: FileStore) extends FileStoreBatchJobs(sysConfig, system, fileStore)

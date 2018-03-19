@@ -41,11 +41,11 @@ object ZahlungsImportParser {
     Camt054Parser :: EsrParser :: Nil
 
   /**
-   * Try parsing the given bytes using all available import parsers until the first succeeds.
-   *
-   * @param bytes the data of the given file.
-   * @return either a ZahlungsImportResult or Failure
-   */
+    * Try parsing the given bytes using all available import parsers until the first succeeds.
+    *
+    * @param bytes the data of the given file.
+    * @return either a ZahlungsImportResult or Failure
+    */
   def parse(bytes: Array[Byte]): Try[ZahlungsImportResult] = {
     importParsers map (_.parse(new ByteArrayInputStream(bytes))) find (_.isSuccess) getOrElse
       Failure(new IllegalArgumentException(s"Could not parse the input stream using the following parsers: $importParsers"))

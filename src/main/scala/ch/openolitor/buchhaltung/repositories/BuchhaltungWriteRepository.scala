@@ -29,24 +29,24 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 /**
- * Synchronous Repository
- */
+  * Synchronous Repository
+  */
 trait BuchhaltungWriteRepository extends BuchhaltungReadRepositorySync
-    with BuchhaltungInsertRepository
-    with BuchhaltungUpdateRepository
-    with BuchhaltungDeleteRepository
-    with BaseWriteRepository
-    with EventStream {
+  with BuchhaltungInsertRepository
+  with BuchhaltungUpdateRepository
+  with BuchhaltungDeleteRepository
+  with BaseWriteRepository
+  with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
 trait BuchhaltungWriteRepositoryImpl extends BuchhaltungReadRepositorySyncImpl
-    with BuchhaltungInsertRepositoryImpl
-    with BuchhaltungUpdateRepositoryImpl
-    with BuchhaltungDeleteRepositoryImpl
-    with BuchhaltungWriteRepository
-    with LazyLogging
-    with BuchhaltungRepositoryQueries {
+  with BuchhaltungInsertRepositoryImpl
+  with BuchhaltungUpdateRepositoryImpl
+  with BuchhaltungDeleteRepositoryImpl
+  with BuchhaltungWriteRepository
+  with LazyLogging
+  with BuchhaltungRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
       sql"truncate table ${rechnungMapping.table}".execute.apply()

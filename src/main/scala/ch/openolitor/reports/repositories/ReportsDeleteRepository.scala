@@ -27,8 +27,8 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 trait ReportsDeleteRepository extends BaseDeleteRepository
-    with ReportsReadRepositorySync
-    with EventStream {
+  with ReportsReadRepositorySync
+  with EventStream {
 }
 
 trait ReportsDeleteRepositoryImpl extends ReportsDeleteRepository with LazyLogging {

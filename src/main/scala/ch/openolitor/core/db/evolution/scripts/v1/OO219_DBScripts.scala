@@ -32,8 +32,8 @@ import scala.util.Success
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
 /**
- * This scripts contains changes after first release of 01.06.2016
- */
+  * This scripts contains changes after first release of 01.06.2016
+  */
 object OO219_DBScripts extends DefaultDBScripts {
   val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {

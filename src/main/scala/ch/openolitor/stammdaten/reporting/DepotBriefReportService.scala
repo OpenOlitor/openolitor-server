@@ -49,8 +49,7 @@ trait DepotBriefReportService extends AsyncConnectionPoolContextAware with Repor
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Depot-Brief(e)")
-    )
+      JobId("Depot-Brief(e)"))
   }
 
   def name(fileType: FileType)(depot: DepotDetailReport) = s"depot_nr_${depot.id.id}_${filenameDateFormat.print(System.currentTimeMillis())}"

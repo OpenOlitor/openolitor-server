@@ -44,18 +44,18 @@ object StammdatenUpdateService {
 }
 
 class DefaultStammdatenUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
- * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
- */
+  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
+  */
 class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with LieferungHandler
-    with KorbHandler {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with LieferungHandler
+  with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
 
   val handle: Handle = {
@@ -106,8 +106,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
 
       stammdatenWriteRepository.getLieferungen(id) map { lieferung =>
         stammdatenWriteRepository.updateEntityIf[Lieferung, LieferungId](l => Ungeplant == l.status || Offen == l.status)(lieferung.id)(
-          lieferungMapping.column.vertriebBeschrieb -> update.beschrieb
-        )
+          lieferungMapping.column.vertriebBeschrieb -> update.beschrieb)
       }
 
       stammdatenWriteRepository.getAbosByVertrieb(id) map { abo =>
@@ -354,8 +353,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
 
           stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(
             korbMapping.column.guthabenVorLieferung -> guthabenNeu,
-            korbMapping.column.status -> status
-          )
+            korbMapping.column.status -> status)
       }
     }
   }
@@ -377,8 +375,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
               "depotId" -> va.depotId,
               "depotName" -> depot.name,
               "vertriebId" -> va.vertriebId,
-              "vertriebsartId" -> update.vertriebsartIdNeu
-            )
+              "vertriebsartId" -> update.vertriebsartIdNeu)
             abo match {
               case abo: HeimlieferungAbo =>
                 stammdatenWriteRepository.deleteEntity[HeimlieferungAbo, AboId](abo.id)
@@ -404,8 +401,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
               tourlieferungMapping.column.tourId -> va.tourId,
               tourlieferungMapping.column.vertriebsartId -> update.vertriebsartIdNeu,
               tourlieferungMapping.column.vertriebId -> va.vertriebId,
-              tourlieferungMapping.column.sort -> None
-            )
+              tourlieferungMapping.column.sort -> None)
           case abo: Abo =>
             // wechsel
             val aboNeu = copyTo[HauptAbo, HeimlieferungAbo](abo, "vertriebId" -> va.vertriebId, "tourId" -> va.tourId, "tourName" -> tour.name, "vertriebsartId" -> update.vertriebsartIdNeu)
@@ -540,8 +536,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
           val newKunde = kunde.copy(
             typen = newKundentypen,
             modifidat = meta.timestamp,
-            modifikator = personId
-          )
+            modifikator = personId)
 
           stammdatenWriteRepository.updateEntityFully[Kunde, KundeId](newKunde)
         }
@@ -635,8 +630,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       // update the sort accodring to the settings
       stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(tourLieferung.id) map { korb =>
         stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(
-          korbMapping.column.sort -> tourLieferung.sort
-        )
+          korbMapping.column.sort -> tourLieferung.sort)
       }
     }
   }
@@ -740,8 +734,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Korb, KorbId](id)(
         korbMapping.column.auslieferungId -> Option(entity.auslieferungId),
-        korbMapping.column.sort -> entity.sort
-      )
+        korbMapping.column.sort -> entity.sort)
     }
   }
 

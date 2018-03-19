@@ -40,10 +40,10 @@ import ch.openolitor.reports.repositories.DefaultReportsReadRepositoryAsyncCompo
 import ch.openolitor.reports.repositories.ReportsReadRepositoryAsyncComponent
 
 trait ReportsRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with ReportsJsonProtocol
-    with ReportsEventStoreSerializer
-    with ReportsDBMappings {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with ReportsJsonProtocol
+  with ReportsEventStoreSerializer
+  with ReportsDBMappings {
   self: ReportsReadRepositoryAsyncComponent with FileStoreComponent =>
 
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
@@ -67,17 +67,16 @@ trait ReportsRoutes extends HttpService with ActorReferences
 }
 
 class DefaultReportsRoutes(
-  override val dbEvolutionActor: ActorRef,
-  override val entityStore: ActorRef,
-  override val eventStore: ActorRef,
-  override val mailService: ActorRef,
-  override val reportSystem: ActorRef,
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef
-)
-    extends ReportsRoutes
-    with DefaultReportsReadRepositoryAsyncComponent
+    override val dbEvolutionActor: ActorRef,
+    override val entityStore: ActorRef,
+    override val eventStore: ActorRef,
+    override val mailService: ActorRef,
+    override val reportSystem: ActorRef,
+    override val sysConfig: SystemConfig,
+    override val system: ActorSystem,
+    override val fileStore: FileStore,
+    override val actorRefFactory: ActorRefFactory,
+    override val airbrakeNotifier: ActorRef,
+    override val jobQueueService: ActorRef)
+  extends ReportsRoutes
+  with DefaultReportsReadRepositoryAsyncComponent

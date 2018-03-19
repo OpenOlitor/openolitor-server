@@ -49,8 +49,7 @@ trait LieferplanungReportService extends AsyncConnectionPoolContextAware with Re
       x => Some(x.id.id.toString),
       name(fileType),
       _.projekt.sprache,
-      JobId("Lieferplanung-Report")
-    )
+      JobId("Lieferplanung-Report"))
   }
 
   private def name(fileType: FileType)(r: LieferplanungReport) = s"lp_${r.id}_${filenameDateFormat.print(System.currentTimeMillis())}"

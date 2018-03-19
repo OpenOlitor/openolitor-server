@@ -31,8 +31,7 @@ trait BaseDeleteRepository extends BaseReadRepositorySync with DeleteRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher
-  ): Option[E] = {
+    eventPublisher: EventPublisher): Option[E] = {
     deleteEntity[E, I](id, Some(validator))
   }
 
@@ -41,8 +40,7 @@ trait BaseDeleteRepository extends BaseReadRepositorySync with DeleteRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher
-  ): Option[E] = {
+    eventPublisher: EventPublisher): Option[E] = {
     logger.debug(s"delete from ${syntaxSupport.tableName}: $id")
     getById(syntaxSupport, id).map { entity =>
       val validation = validator.getOrElse(TrueValidator)

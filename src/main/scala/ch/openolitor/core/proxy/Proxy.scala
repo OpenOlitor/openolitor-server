@@ -34,9 +34,9 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration._
 
 /**
- * Borrowed from:
- * http://www.cakesolutions.net/teamblogs/http-proxy-with-spray
- */
+  * Borrowed from:
+  * http://www.cakesolutions.net/teamblogs/http-proxy-with-spray
+  */
 trait Proxy extends LazyLogging {
 
   private def proxyRequest(updateRequest: RequestContext => HttpRequest)(implicit system: ActorSystem): Route =
@@ -55,8 +55,7 @@ trait Proxy extends LazyLogging {
   def updateRequest(uri: Uri, updateUri: (RequestContext, Uri) => Uri): RequestContext => HttpRequest =
     ctx => ctx.request.copy(
       uri = updateUri(ctx, uri),
-      headers = stripHeader(ctx.request.headers)
-    )
+      headers = stripHeader(ctx.request.headers))
 
   def proxyToUnmatchedPath(uri: Uri)(implicit system: ActorSystem): Route = proxyRequest(updateRequest(uri, updateUriUnmatchedPath))
 }
@@ -66,13 +65,13 @@ object ProxyServiceActor {
 }
 
 /**
- * Proxy Service which redirects routes matching a mandant key in first row to either
- * the websocket or service redirect url using their actor system
- */
+  * Proxy Service which redirects routes matching a mandant key in first row to either
+  * the websocket or service redirect url using their actor system
+  */
 class ProxyServiceActor(mandanten: NonEmptyList[MandantSystem])
-    extends Actor
-    with ActorLogging
-    with HttpService {
+  extends Actor
+  with ActorLogging
+  with HttpService {
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test

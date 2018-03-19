@@ -46,14 +46,14 @@ object BuchhaltungInsertService {
 }
 
 class DefaultBuchhaltungInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends BuchhaltungInsertService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+  extends BuchhaltungInsertService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
- * Actor zum Verarbeiten der Insert Anweisungen für das Buchhaltung Modul
- */
+  * Actor zum Verarbeiten der Insert Anweisungen für das Buchhaltung Modul
+  */
 class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware
-    with BuchhaltungDBMappings {
+  with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val Divisor = 10
@@ -89,8 +89,7 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
         "erstelldat" -> meta.timestamp,
         "ersteller" -> meta.originator,
         "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator
-      )
+        "modifikator" -> meta.originator)
 
       buchhaltungWriteRepository.insertEntity[RechnungsPosition, RechnungsPositionId](rp)
     }
@@ -115,16 +114,15 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
           "erstelldat" -> meta.timestamp,
           "ersteller" -> meta.originator,
           "modifidat" -> meta.timestamp,
-          "modifikator" -> meta.originator
-        )
+          "modifikator" -> meta.originator)
         buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
       }
     }
   }
 
   /**
-   * Generieren einer Referenznummer, die die Kundennummer und Rechnungsnummer enthält.
-   */
+    * Generieren einer Referenznummer, die die Kundennummer und Rechnungsnummer enthält.
+    */
   def generateReferenzNummer(kontoDaten: KontoDaten, kundeId: KundeId, id: RechnungId): String = {
     val referenzNummerPrefix = kontoDaten.referenzNummerPrefix getOrElse ("")
 

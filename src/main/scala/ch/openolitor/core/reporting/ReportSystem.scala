@@ -64,7 +64,7 @@ object ReportSystem {
   case class ZipReportResult(stats: GenerateReportsStats, errors: Seq[ReportError], results: Option[Array[Byte]]) extends ReportResult
   case class BatchStoredPdfReportResult(stats: GenerateReportsStats, errors: Seq[ReportError], results: Seq[FileStoreFileReference]) extends ReportResult with JSONSerializable
   case class GenerateReportsStats(originator: PersonId, jobId: JobId, numberOfReportsInProgress: Int, numberOfSuccess: Int, numberOfFailures: Int) extends ReportResult
-      with JSONSerializable {
+    with JSONSerializable {
     def incSuccess: GenerateReportsStats =
       copy(numberOfSuccess = this.numberOfSuccess + 1, numberOfReportsInProgress = this.numberOfReportsInProgress - 1)
     def incError: GenerateReportsStats =
@@ -74,8 +74,8 @@ object ReportSystem {
 }
 
 /**
- * The reportsystem is responsible to dispatch report generating request to processor actors
- */
+  * The reportsystem is responsible to dispatch report generating request to processor actors
+  */
 class ReportSystem(fileStore: FileStore, sysConfig: SystemConfig) extends Actor with ActorLogging {
   import ReportSystem._
 
