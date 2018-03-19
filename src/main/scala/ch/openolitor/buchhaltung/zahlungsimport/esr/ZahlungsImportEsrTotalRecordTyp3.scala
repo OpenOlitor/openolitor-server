@@ -34,15 +34,15 @@ object EsrTotalRecordTyp3Transaktionsartcode {
 }
 
 case class EsrTotalRecordTyp3(
-    transaktionsart: Transaktionsart,
-    teilnehmerNummer: String,
-    sortierSchluessel: String,
-    betrag: BigDecimal,
-    anzahlTransaktionen: Int,
-    erstellungsDatumMedium: DateTime,
-    preiseFuerEinzahlungen: BigDecimal,
-    nachbearbeitungEsrPlus: BigDecimal,
-    reserve: String) extends ZahlungsImportTotalRecord
+  transaktionsart: Transaktionsart,
+  teilnehmerNummer: String,
+  sortierSchluessel: String,
+  betrag: BigDecimal,
+  anzahlTransaktionen: Int,
+  erstellungsDatumMedium: DateTime,
+  preiseFuerEinzahlungen: BigDecimal,
+  nachbearbeitungEsrPlus: BigDecimal,
+  reserve: String) extends ZahlungsImportTotalRecord
 
 object EsrTotalRecordTyp3 {
   private val R = """(\w{3})(\d{9})(\d{27})(\d{12})(\d{12})(\d{6})(\d{9})(\d{9})([\w\s]{0,13})""".r

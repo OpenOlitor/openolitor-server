@@ -34,8 +34,8 @@ object AboParser extends EntityParser {
   import EntityParser._
 
   def parse(kundeIdMapping: Map[Long, KundeId], kunden: List[Kunde], vertriebsartIdMapping: Map[Long, VertriebsartId], vertriebsarten: List[Vertriebsart], vertriebe: List[Vertrieb],
-      abotypen: List[Abotyp], depotIdMapping: Map[Long, DepotId], depots: List[Depot],
-      tourIdMapping: Map[Long, TourId], tours: List[Tour], abwesenheiten: List[Abwesenheit])(implicit loggingAdapter: LoggingAdapter) = {
+    abotypen: List[Abotyp], depotIdMapping: Map[Long, DepotId], depots: List[Depot],
+    tourIdMapping: Map[Long, TourId], tours: List[Tour], abwesenheiten: List[Abwesenheit])(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[Abo, AboId]("id", Seq("kunde_id", "vertriebsart_id", "start", "ende",
       "guthaben_vertraglich", "guthaben", "guthaben_in_rechnung", "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen",
       "depot_id", "tour_id", "zusatz_abo_ids", "zusatz_abotyp_names") ++ modifyColumns) { id => indexes =>

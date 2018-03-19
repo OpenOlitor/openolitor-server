@@ -44,20 +44,20 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: Preiseinheit): JsValue =
       obj match {
         case ProLieferung => JsString("Lieferung")
-        case ProMonat => JsString("Monat")
-        case ProQuartal => JsString("Quartal")
-        case ProJahr => JsString("Jahr")
-        case ProAbo => JsString("Abo")
+        case ProMonat     => JsString("Monat")
+        case ProQuartal   => JsString("Quartal")
+        case ProJahr      => JsString("Jahr")
+        case ProAbo       => JsString("Abo")
       }
 
     def read(json: JsValue): Preiseinheit =
       json match {
         case JsString("Lieferung") => ProLieferung
-        case JsString("Quartal") => ProQuartal
-        case JsString("Monat") => ProMonat
-        case JsString("Jahr") => ProJahr
-        case JsString("Abo") => ProAbo
-        case pe => sys.error(s"Unknown Preiseinheit:$pe")
+        case JsString("Quartal")   => ProQuartal
+        case JsString("Monat")     => ProMonat
+        case JsString("Jahr")      => ProJahr
+        case JsString("Abo")       => ProAbo
+        case pe                    => sys.error(s"Unknown Preiseinheit:$pe")
       }
   }
 
@@ -72,7 +72,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       json match {
         case JsString("Wochen") => Wochenfrist
         case JsString("Monate") => Monatsfrist
-        case pe => sys.error(s"Unknown Fristeinheit:$pe")
+        case pe                 => sys.error(s"Unknown Fristeinheit:$pe")
       }
   }
 
@@ -80,14 +80,14 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: Rolle): JsValue =
       obj match {
         case AdministratorZugang => JsString("Administrator")
-        case KundenZugang => JsString("Kunde")
+        case KundenZugang        => JsString("Kunde")
       }
 
     def read(json: JsValue): Rolle =
       json match {
         case JsString("Administrator") => AdministratorZugang
-        case JsString("Kunde") => KundenZugang
-        case pe => sys.error(s"Unknown Rolle:$pe")
+        case JsString("Kunde")         => KundenZugang
+        case pe                        => sys.error(s"Unknown Rolle:$pe")
       }
   }
 
@@ -102,7 +102,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       json match {
         case JsString("Herr") => Herr
         case JsString("Frau") => Frau
-        case pe => sys.error(s"Unknown Anrede:$pe")
+        case pe               => sys.error(s"Unknown Anrede:$pe")
       }
   }
 
@@ -142,7 +142,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def read(json: JsValue): KundentypId =
       json match {
         case JsString(id) => KundentypId(id)
-        case kt => sys.error(s"Unknown KundentypId:$kt")
+        case kt           => sys.error(s"Unknown KundentypId:$kt")
       }
   }
   implicit val produktIdFormat = baseIdFormat(ProduktId.apply)
@@ -155,7 +155,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def read(json: JsValue): BaseProduktekategorieId =
       json match {
         case JsString(id) => BaseProduktekategorieId(id)
-        case kt => sys.error(s"Unknown BaseProduktekategorieId:$kt")
+        case kt           => sys.error(s"Unknown BaseProduktekategorieId:$kt")
       }
   }
   implicit val produzentIdFormat = baseIdFormat(ProduzentId.apply)
@@ -166,7 +166,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def read(json: JsValue): BaseProduzentId =
       json match {
         case JsString(id) => BaseProduzentId(id)
-        case kt => sys.error(s"Unknown BaseProduzentId:$kt")
+        case kt           => sys.error(s"Unknown BaseProduzentId:$kt")
       }
   }
   implicit val projektIdFormat = baseIdFormat(ProjektId.apply)
@@ -178,7 +178,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: Lieferzeitpunkt): JsValue =
       obj match {
         case w: Wochentag => w.toJson
-        case _ => JsObject()
+        case _            => JsObject()
       }
 
     def read(json: JsValue): Lieferzeitpunkt =
@@ -189,7 +189,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: Liefersaison): JsValue =
       obj match {
         case m: Monat => m.toJson
-        case _ => JsObject()
+        case _        => JsObject()
       }
 
     def read(json: JsValue): Liefersaison =
@@ -199,15 +199,15 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val vertriebsartDetailFormat = new RootJsonFormat[VertriebsartDetail] {
     def write(obj: VertriebsartDetail): JsValue =
       JsObject((obj match {
-        case p: PostlieferungDetail => p.toJson
-        case hl: HeimlieferungDetail => hl.toJson
+        case p: PostlieferungDetail   => p.toJson
+        case hl: HeimlieferungDetail  => hl.toJson
         case dl: DepotlieferungDetail => dl.toJson
       }).asJsObject.fields + ("typ" -> JsString(obj.productPrefix.replaceAll("Detail", ""))))
 
     def read(json: JsValue): VertriebsartDetail =
       json.asJsObject.getFields("typ") match {
-        case Seq(JsString("Postlieferung")) => json.convertTo[PostlieferungDetail]
-        case Seq(JsString("Heimlieferung")) => json.convertTo[HeimlieferungDetail]
+        case Seq(JsString("Postlieferung"))  => json.convertTo[PostlieferungDetail]
+        case Seq(JsString("Heimlieferung"))  => json.convertTo[HeimlieferungDetail]
         case Seq(JsString("Depotlieferung")) => json.convertTo[DepotlieferungDetail]
       }
   }
@@ -222,15 +222,15 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val vertriebsartModifyFormat = new RootJsonFormat[VertriebsartModify] {
     def write(obj: VertriebsartModify): JsValue =
       JsObject((obj match {
-        case p: PostlieferungModify => p.toJson
-        case hl: HeimlieferungModify => hl.toJson
+        case p: PostlieferungModify   => p.toJson
+        case hl: HeimlieferungModify  => hl.toJson
         case dl: DepotlieferungModify => dl.toJson
       }).asJsObject.fields + ("typ" -> JsString(obj.productPrefix.replaceAll("Detail", ""))))
 
     def read(json: JsValue): VertriebsartModify = {
       json.asJsObject.getFields("typ") match {
-        case Seq(JsString("Postlieferung")) => json.convertTo[PostlieferungModify]
-        case Seq(JsString("Heimlieferung")) => json.convertTo[HeimlieferungModify]
+        case Seq(JsString("Postlieferung"))  => json.convertTo[PostlieferungModify]
+        case Seq(JsString("Heimlieferung"))  => json.convertTo[HeimlieferungModify]
         case Seq(JsString("Depotlieferung")) => json.convertTo[DepotlieferungModify]
       }
     }
@@ -258,15 +258,15 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val auslieferungFormat = new RootJsonFormat[Auslieferung] {
     def write(obj: Auslieferung): JsValue =
       JsObject((obj match {
-        case p: PostAuslieferung => p.toJson
-        case t: TourAuslieferung => t.toJson
+        case p: PostAuslieferung  => p.toJson
+        case t: TourAuslieferung  => t.toJson
         case d: DepotAuslieferung => d.toJson
       }).asJsObject.fields + ("typ" -> JsString(obj.productPrefix)))
 
     def read(json: JsValue): Auslieferung = {
       json.asJsObject.getFields("typ") match {
-        case Seq(JsString("PostAuslieferung")) => json.convertTo[PostAuslieferung]
-        case Seq(JsString("TourAuslieferung")) => json.convertTo[TourAuslieferung]
+        case Seq(JsString("PostAuslieferung"))  => json.convertTo[PostAuslieferung]
+        case Seq(JsString("TourAuslieferung"))  => json.convertTo[TourAuslieferung]
         case Seq(JsString("DepotAuslieferung")) => json.convertTo[DepotAuslieferung]
       }
     }
@@ -351,13 +351,13 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val iAbotypFormat = new RootJsonFormat[IAbotyp] {
     def write(obj: IAbotyp): JsValue =
       JsObject((obj match {
-        case a: Abotyp => a.toJson
+        case a: Abotyp       => a.toJson
         case z: ZusatzAbotyp => z.toJson
       }).asJsObject.fields + ("typ" -> JsString(obj.productPrefix)))
 
     def read(json: JsValue): IAbotyp = {
       json.asJsObject.getFields("typ") match {
-        case Seq(JsString("Abotyp")) => json.convertTo[Abotyp]
+        case Seq(JsString("Abotyp"))       => json.convertTo[Abotyp]
         case Seq(JsString("ZusatzAbotyp")) => json.convertTo[ZusatzAbotyp]
       }
     }
@@ -367,9 +367,9 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: AboDetail): JsValue =
       obj match {
         case d: DepotlieferungAboDetail => d.toJson
-        case h: HeimlieferungAboDetail => h.toJson
-        case p: PostlieferungAboDetail => p.toJson
-        case _ => JsObject()
+        case h: HeimlieferungAboDetail  => h.toJson
+        case p: PostlieferungAboDetail  => p.toJson
+        case _                          => JsObject()
       }
 
     def read(json: JsValue): AboDetail = {
@@ -387,9 +387,9 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: Abo): JsValue =
       obj match {
         case d: DepotlieferungAbo => d.toJson
-        case h: HeimlieferungAbo => h.toJson
-        case p: PostlieferungAbo => p.toJson
-        case _ => JsObject()
+        case h: HeimlieferungAbo  => h.toJson
+        case p: PostlieferungAbo  => p.toJson
+        case _                    => JsObject()
       }
 
     def read(json: JsValue): Abo = {
@@ -525,9 +525,9 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     def write(obj: AuslieferungReport): JsValue =
       obj match {
         case d: DepotAuslieferungReport => d.toJson
-        case h: TourAuslieferungReport => h.toJson
-        case p: PostAuslieferungReport => p.toJson
-        case _ => JsObject()
+        case h: TourAuslieferungReport  => h.toJson
+        case p: PostAuslieferungReport  => p.toJson
+        case _                          => JsObject()
       }
 
     def read(json: JsValue): AuslieferungReport = {

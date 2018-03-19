@@ -26,16 +26,16 @@ import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 
 case class KorbUebersichtReportProDepotTour(
-    name: String,
-    anzahlKoerbe: Int) extends JSONSerializable
+  name: String,
+  anzahlKoerbe: Int) extends JSONSerializable
 
 case class KorbUebersichtReportProAbotyp(
-    name: String,
-    anzahlKoerbe: Int,
-    koerbe: Seq[KorbUebersichtReportProDepotTour]) extends JSONSerializable
+  name: String,
+  anzahlKoerbe: Int,
+  koerbe: Seq[KorbUebersichtReportProDepotTour]) extends JSONSerializable
 
 case class AuslieferungKorbUebersichtReport(
-    projekt: ProjektReport,
-    datum: DateTime,
-    anzahlKoerbe: Int,
-    koerbe: Seq[KorbUebersichtReportProAbotyp]) extends JSONSerializable
+  projekt: ProjektReport,
+  datum: DateTime,
+  anzahlKoerbe: Int,
+  koerbe: Seq[KorbUebersichtReportProAbotyp]) extends JSONSerializable

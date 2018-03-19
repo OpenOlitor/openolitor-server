@@ -144,26 +144,26 @@ object EntityParser {
         (typ match {
           case t if t =:= typeOf[Boolean] => self.getStringValue.toLowerCase match {
             case "true" | "richtig" | "wahr" | "1" | "x" => true
-            case "false" | "falsch" | "0" => false
-            case x => throw ParseException(s"Unsupported boolean format:'$x' on col:${self.getColumnIndex}, row:${self.getRowIndex}")
+            case "false" | "falsch" | "0"                => false
+            case x                                       => throw ParseException(s"Unsupported boolean format:'$x' on col:${self.getColumnIndex}, row:${self.getRowIndex}")
           }
 
-          case t if t =:= typeOf[String] => self.getStringValue
-          case t if t =:= typeOf[Option[String]] => self.getStringOptionValue
-          case t if t =:= typeOf[Double] => self.getStringValue.toDouble
-          case t if t =:= typeOf[BigDecimal] => BigDecimal(self.getStringValue.toDouble)
+          case t if t =:= typeOf[String]             => self.getStringValue
+          case t if t =:= typeOf[Option[String]]     => self.getStringOptionValue
+          case t if t =:= typeOf[Double]             => self.getStringValue.toDouble
+          case t if t =:= typeOf[BigDecimal]         => BigDecimal(self.getStringValue.toDouble)
           case t if t =:= typeOf[Option[BigDecimal]] => self.getStringOptionValue map (s => BigDecimal(s.toDouble))
-          case t if t =:= typeOf[Date] => self.getDateValue
-          case t if t =:= typeOf[DateTime] => tryParseDate(self.getStringValue)
-          case t if t =:= typeOf[Option[DateTime]] => self.getStringOptionValue map (s => tryParseDate(s))
-          case t if t =:= typeOf[LocalDate] => tryParseDate(self.getStringValue).toLocalDate
-          case t if t =:= typeOf[Option[LocalDate]] => self.getStringOptionValue map (s => tryParseDate(s).toLocalDate)
-          case t if t =:= typeOf[Int] => self.getStringValue.toInt
-          case t if t =:= typeOf[Option[Int]] => getStringOptionValue map (_.toInt)
-          case t if t =:= typeOf[Long] => self.getStringValue.toLong
-          case t if t =:= typeOf[Option[Long]] => getStringOptionValue map (_.toLong)
-          case t if t =:= typeOf[Float] => self.getStringValue.toFloat
-          case t if t =:= typeOf[Option[Float]] => self.getStringOptionValue map (_.toFloat)
+          case t if t =:= typeOf[Date]               => self.getDateValue
+          case t if t =:= typeOf[DateTime]           => tryParseDate(self.getStringValue)
+          case t if t =:= typeOf[Option[DateTime]]   => self.getStringOptionValue map (s => tryParseDate(s))
+          case t if t =:= typeOf[LocalDate]          => tryParseDate(self.getStringValue).toLocalDate
+          case t if t =:= typeOf[Option[LocalDate]]  => self.getStringOptionValue map (s => tryParseDate(s).toLocalDate)
+          case t if t =:= typeOf[Int]                => self.getStringValue.toInt
+          case t if t =:= typeOf[Option[Int]]        => getStringOptionValue map (_.toInt)
+          case t if t =:= typeOf[Long]               => self.getStringValue.toLong
+          case t if t =:= typeOf[Option[Long]]       => getStringOptionValue map (_.toLong)
+          case t if t =:= typeOf[Float]              => self.getStringValue.toFloat
+          case t if t =:= typeOf[Option[Float]]      => self.getStringOptionValue map (_.toFloat)
           case _ =>
             throw ParseException(s"Unsupported format:$typ on col:${self.getColumnIndex}, row:${self.getRowIndex}")
         }).asInstanceOf[T]
@@ -194,7 +194,7 @@ object EntityParser {
       val value = self.getCellByIndex(index).value[T]
       value match {
         case x: String => x.trim().asInstanceOf[T]
-        case _ => value
+        case _         => value
       }
     }
   }

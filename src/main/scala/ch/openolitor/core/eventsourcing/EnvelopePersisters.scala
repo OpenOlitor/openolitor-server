@@ -95,7 +95,7 @@ package events {
         case Seq(JsString(key), JsNumber(version), data) =>
           val persisted = Persisted(key, version.toInt, fromJson(data))
           entityPersisters.canUnpersist(persisted) match {
-            case true => entityPersisters.unpersist(persisted).asInstanceOf[E]
+            case true  => entityPersisters.unpersist(persisted).asInstanceOf[E]
             case false => throw new IllegalArgumentException(s"No unpersister found for key:$key, version:$version, data:$data")
           }
         case x => throw new DeserializationException(s"Entity data expected, received:$x")

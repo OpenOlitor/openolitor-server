@@ -67,10 +67,10 @@ trait SystemEventStore extends AggregateRoot {
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed => context become removed
-      case Created => context become created
+      case Removed                  => context become removed
+      case Created                  => context become created
       case s: SystemEventStoreState => this.state = s
-      case other => log.error(s"Received unsupported state:$other")
+      case other                    => log.error(s"Received unsupported state:$other")
     }
   }
 

@@ -134,7 +134,7 @@ trait KorbHandler extends KorbStatusHandler
             }
           }
           case Some(_) =>
-          case None =>
+          case None    =>
         }
         (dateFormat.print(lieferung.datum), lieferung.abotypBeschrieb)
       }

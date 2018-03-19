@@ -49,7 +49,7 @@ trait PDFGeneratorService {
   import system.dispatcher
 
   def uSendReceive(implicit refFactory: ActorRefFactory, executionContext: ExecutionContext,
-      futureTimeout: Timeout = 600.seconds): SendReceive =
+    futureTimeout: Timeout = 600.seconds): SendReceive =
     sendReceive(IO(UHttp)(actorSystem))
 
   val pipeline: HttpRequest => Future[HttpResponse] = uSendReceive

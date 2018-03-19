@@ -83,16 +83,16 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
    *
    */
   def generateReports[I, E](
-      config: ReportConfig[I],
-      validationFunction: Seq[I] => Future[(Seq[ValidationError[I]], Seq[E])],
-      vorlageType: FileType,
-      vorlageId: Option[String],
-      idFactory: E => Any,
-      ablageType: FileType,
-      ablageIdFactory: E => Option[String],
-      nameFactory: E => String,
-      localeFactory: E => Locale,
-      jobId: JobId)(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
+    config: ReportConfig[I],
+    validationFunction: Seq[I] => Future[(Seq[ValidationError[I]], Seq[E])],
+    vorlageType: FileType,
+    vorlageId: Option[String],
+    idFactory: E => Any,
+    ablageType: FileType,
+    ablageIdFactory: E => Option[String],
+    nameFactory: E => String,
+    localeFactory: E => Locale,
+    jobId: JobId)(implicit personId: PersonId, jsonFormat: JsonFormat[E]): Future[Either[ServiceFailed, ReportServiceResult[I]]] = {
     logger.debug(s"Validate ids:${config.ids}")
     validationFunction(config.ids) flatMap {
       case (errors, Seq()) =>
@@ -115,7 +115,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   }
 
   def generateDocument[I, E](vorlage: BerichtsVorlage, fileType: FileType, id: Option[String], data: ReportData[E],
-      pdfGenerieren: Boolean, pdfAblage: Option[FileStoreParameters[E]], downloadFile: Boolean, jobId: JobId)(implicit personId: PersonId): ServiceResult[JobId] = {
+    pdfGenerieren: Boolean, pdfAblage: Option[FileStoreParameters[E]], downloadFile: Boolean, jobId: JobId)(implicit personId: PersonId): ServiceResult[JobId] = {
     for {
       temp <- loadBerichtsvorlage(vorlage, fileType, id)
       source <- generateReport(temp, data, pdfGenerieren, pdfAblage, downloadFile, jobId)
@@ -123,7 +123,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   }
 
   def generateReport[I, E](vorlage: Array[Byte], data: ReportData[E], pdfGenerieren: Boolean,
-      pdfAblage: Option[FileStoreParameters[E]], downloadFile: Boolean, jobId: JobId)(implicit personId: PersonId): ServiceResult[JobId] = EitherT {
+    pdfAblage: Option[FileStoreParameters[E]], downloadFile: Boolean, jobId: JobId)(implicit personId: PersonId): ServiceResult[JobId] = EitherT {
     logger.debug(s"generateReport: vorlage: $vorlage, pdfGenerieren: $pdfGenerieren, pdfAblage: $pdfAblage, downloadFile: $downloadFile, jobId: $jobId")
     val collector =
       if (pdfAblage.isDefined) FileStoreReportResultCollector.props(reportSystem, jobQueueService, downloadFile)
@@ -140,10 +140,10 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
 
   def loadBerichtsvorlage(vorlage: BerichtsVorlage, fileType: FileType, id: Option[String]): ServiceResult[Array[Byte]] = {
     vorlage match {
-      case EinzelBerichtsVorlage(file) => EitherT { Future { file.right } }
-      case StandardBerichtsVorlage => resolveStandardBerichtsVorlage(fileType, id)
+      case EinzelBerichtsVorlage(file)       => EitherT { Future { file.right } }
+      case StandardBerichtsVorlage           => resolveStandardBerichtsVorlage(fileType, id)
       case ProjektBerichtsVorlage(vorlageId) => resolveProjektBerichtsVorlage(fileType, vorlageId)
-      case _ => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
+      case _                                 => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
     }
   }
 
@@ -179,7 +179,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
       case Left(e) => ServiceFailed(s"Vorlage konnte im FileStore nicht gefunden werden: $fileType, $id").left
       case Right(file) => file.file.toByteArray match {
         case TrySuccess(result) => result.right
-        case TryFailure(error) => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
+        case TryFailure(error)  => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
       }
     }
   }

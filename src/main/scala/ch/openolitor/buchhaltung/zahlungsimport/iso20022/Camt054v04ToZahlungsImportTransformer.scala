@@ -35,7 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar
 object Camt054v04Transaktionsart {
   def apply(c: String): Transaktionsart = c match {
     case "CRDT" => Gutschrift
-    case _ => throw new ZahlungsImportParseException(s"unable to match $c")
+    case _      => throw new ZahlungsImportParseException(s"unable to match $c")
   }
 }
 
@@ -56,7 +56,7 @@ class Camt054v04ToZahlungsImportTransformer {
               Some(notification.Acct.Id.accountidentification4choicetypeoption.as[String]),
               (transactionDetail.RltdPties flatMap (_.Dbtr flatMap (_.Nm))),
               transactionDetail.RmtInf map (_.Strd match {
-                case Nil => ""
+                case Nil        => ""
                 case structures => (structures map (_.CdtrRefInf flatMap (_.Ref))).flatten.mkString(",")
               }) getOrElse "", // Referenznummer
               (transactionDetail.AmtDtls flatMap (_.TxAmt map (_.Amt.value))) getOrElse (throw new ZahlungsImportParseException("Missing Betrag")),

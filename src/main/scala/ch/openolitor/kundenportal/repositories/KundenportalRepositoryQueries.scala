@@ -203,7 +203,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       .map((lieferung, abotyp, lieferposition, lieferplanung) => {
         val bemerkung = lieferplanung match {
           case Nil => None
-          case x => x.head.bemerkungen
+          case x   => x.head.bemerkungen
         }
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
       })
@@ -225,7 +225,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       .map { (lieferung, abotyp, positionen, lieferplanung) =>
         val bemerkung = lieferplanung match {
           case Nil => None
-          case x => x.head.bemerkungen
+          case x   => x.head.bemerkungen
         }
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> positionen, "lieferplanungBemerkungen" -> bemerkung)
       }.single

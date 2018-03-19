@@ -673,8 +673,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val hauptAboKoerbe = koerbe map { korb =>
       stammdatenReadRepository.getAbo(korb.aboId) match {
         case Some(abo: ZusatzAbo) => None
-        case None => None
-        case _ => Some(korb)
+        case None                 => None
+        case _                    => Some(korb)
       }
     }
     hauptAboKoerbe.flatten.size

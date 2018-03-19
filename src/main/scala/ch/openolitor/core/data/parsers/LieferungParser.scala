@@ -33,7 +33,7 @@ object LieferungParser extends EntityParser {
   import EntityParser._
 
   def parse(abotypen: List[Abotyp], vertriebe: List[Vertrieb], abwesenheiten: List[Abwesenheit], lieferplanungen: List[Lieferplanung],
-      depots: List[Depot], touren: List[Tour])(implicit loggingAdapter: LoggingAdapter) = {
+    depots: List[Depot], touren: List[Tour])(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[Lieferung, LieferungId]("id", Seq("abotyp_id", "vertrieb_id", "lieferplanung_id", "status", "datum", "anzahl_abwesenheiten", "durchschnittspreis",
       "anzahl_lieferungen", "anzahl_koerbe_zu_liefern", "anzahl_saldo_zu_tief", "zielpreis", "preis_total") ++ modifyColumns) { id => indexes => row =>
       //match column indexes

@@ -30,27 +30,27 @@ import scala.collection.immutable.TreeMap
 case class VertriebId(id: Long) extends BaseId
 
 case class Vertrieb(id: VertriebId, abotypId: AbotypId, liefertag: Lieferzeitpunkt, beschrieb: Option[String],
-    anzahlAbos: Int,
-    durchschnittspreis: TreeMap[String, BigDecimal],
-    anzahlLieferungen: TreeMap[String, Int],
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends BaseEntity[VertriebId]
+  anzahlAbos: Int,
+  durchschnittspreis: TreeMap[String, BigDecimal],
+  anzahlLieferungen: TreeMap[String, Int],
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends BaseEntity[VertriebId]
 
 case class VertriebVertriebsarten(id: VertriebId, abotypId: AbotypId, liefertag: Lieferzeitpunkt, beschrieb: Option[String],
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    depotlieferungen: Seq[DepotlieferungDetail],
-    heimlieferungen: Seq[HeimlieferungDetail],
-    postlieferungen: Seq[Postlieferung],
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends BaseEntity[VertriebId]
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  depotlieferungen: Seq[DepotlieferungDetail],
+  heimlieferungen: Seq[HeimlieferungDetail],
+  postlieferungen: Seq[Postlieferung],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends BaseEntity[VertriebId]
 
 case class VertriebModify(abotypId: AbotypId, liefertag: Lieferzeitpunkt, beschrieb: Option[String]) extends JSONSerializable
 case class VertriebRecalculationsModify(anzahlLieferungen: TreeMap[String, Int], durchschnittspreis: TreeMap[String, BigDecimal]) extends JSONSerializable
@@ -64,31 +64,31 @@ sealed trait Vertriebsart extends BaseEntity[VertriebsartId] {
 }
 
 case class Depotlieferung(id: VertriebsartId, vertriebId: VertriebId, depotId: DepotId,
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends Vertriebsart
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends Vertriebsart
 
 case class Heimlieferung(id: VertriebsartId, vertriebId: VertriebId, tourId: TourId,
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends Vertriebsart
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends Vertriebsart
 
 case class Postlieferung(id: VertriebsartId, vertriebId: VertriebId,
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends Vertriebsart
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends Vertriebsart
 
 sealed trait VertriebsartDetail extends JSONSerializable {
   val id: VertriebsartId
@@ -97,31 +97,31 @@ sealed trait VertriebsartDetail extends JSONSerializable {
   val anzahlAbosAktiv: Int
 }
 case class DepotlieferungDetail(id: VertriebsartId, vertriebId: VertriebId, depotId: DepotId, depot: DepotSummary,
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends VertriebsartDetail
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends VertriebsartDetail
 
 case class HeimlieferungDetail(id: VertriebsartId, vertriebId: VertriebId, tourId: TourId, tour: Tour,
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends VertriebsartDetail
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends VertriebsartDetail
 
 case class PostlieferungDetail(id: VertriebsartId, vertriebId: VertriebId,
-    anzahlAbos: Int,
-    anzahlAbosAktiv: Int,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId) extends VertriebsartDetail
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId) extends VertriebsartDetail
 
 sealed trait VertriebsartModify extends JSONSerializable
 case class DepotlieferungModify(depotId: DepotId) extends VertriebsartModify

@@ -177,7 +177,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
 
                 val infoAdminproz = bestellung.adminProzente match {
                   case x if x == 0 => ""
-                  case _ => s"""Adminprozente: ${bestellung.adminProzente}%:"""
+                  case _           => s"""Adminprozente: ${bestellung.adminProzente}%:"""
                 }
 
                 s"""${infoAdminproz}

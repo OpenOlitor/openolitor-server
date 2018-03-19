@@ -176,8 +176,8 @@ trait EntityStore extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed => context become removed
-      case Created => context become created
+      case Removed             => context become removed
+      case Created             => context become created
       case s: EntityStoreState => this.state = s
     }
   }
