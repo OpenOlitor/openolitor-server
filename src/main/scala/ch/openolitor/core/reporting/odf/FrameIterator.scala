@@ -87,8 +87,8 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
   }
 
   private def findDeepChildNode[T <: OdfElement](
-    clazz: Class[T],
-    refNode: Node): Option[(Node, Node)] = {
+      clazz: Class[T],
+      refNode: Node): Option[(Node, Node)] = {
     refNode match {
       case n: Node if clazz.isAssignableFrom(n.getClass) => Some((n, n))
       case n: ParentNode =>

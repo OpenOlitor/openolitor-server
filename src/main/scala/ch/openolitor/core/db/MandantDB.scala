@@ -38,7 +38,7 @@ case class MandantDBs(mandantConfiguration: MandantConfiguration) extends DBs
   override lazy val config = mandantConfiguration.config
 
   def connectionPool(name: Any, url: String, user: String, password: String,
-    settings: ConnectionPoolSettings = ConnectionPoolSettings())(implicit factory: ConnectionPoolFactory = ConnectionPool.DEFAULT_CONNECTION_POOL_FACTORY): ConnectionPool = {
+      settings: ConnectionPoolSettings = ConnectionPoolSettings())(implicit factory: ConnectionPoolFactory = ConnectionPool.DEFAULT_CONNECTION_POOL_FACTORY): ConnectionPool = {
 
     import scalikejdbc.JDBCUrl._
 

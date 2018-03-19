@@ -87,8 +87,8 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
   }
 
   private def findDeepChildNode[T <: OdfElement](
-    name: OdfName,
-    refNode: Node): Option[(Node, Node)] = {
+      name: OdfName,
+      refNode: Node): Option[(Node, Node)] = {
     refNode match {
       case node: Node if node.getNodeName == name.getQName => Some((node, node))
       case parent: ParentNode =>

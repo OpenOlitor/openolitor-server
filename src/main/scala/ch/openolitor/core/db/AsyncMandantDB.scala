@@ -41,7 +41,7 @@ case class AsyncMandantDBs(mandantConfiguration: MandantConfiguration) extends D
   lazy val maxQueueSize = config.getIntOption("db.default.maxQueueSize") getOrElse 1000
 
   def connectionPool(name: Any, url: String, user: String, password: String,
-    settings: AsyncConnectionPoolSettings = AsyncConnectionPoolSettings()): AsyncConnectionPool =
+      settings: AsyncConnectionPoolSettings = AsyncConnectionPoolSettings()): AsyncConnectionPool =
     AsyncConnectionPoolFactory.apply(url, user, password, settings)
 
   implicit def toAsyncConnectionPoolSettings(cpSettings: ConnectionPoolSettings): AsyncConnectionPoolSettings = AsyncConnectionPoolSettings(maxPoolSize = cpSettings.maxSize, maxQueueSize)

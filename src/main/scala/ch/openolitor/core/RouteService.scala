@@ -244,8 +244,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     })
 
   protected def create[E <: AnyRef: ClassTag, I <: BaseId](idFactory: Long => I)(implicit
-    um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject) = {
+      um: FromRequestUnmarshaller[E],
+      tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject) = {
     requestInstance { request =>
       entity(as[E]) { entity =>
         created(request)(entity)
@@ -268,14 +268,14 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   }
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I)(implicit
-    um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+      um: FromRequestUnmarshaller[E],
+      tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
     entity(as[E]) { entity => updated(id, entity) }
   }
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I, entity: E)(implicit
-    um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+      um: FromRequestUnmarshaller[E],
+      tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
     updated(id, entity)
   }
 
@@ -560,8 +560,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   }
 
   protected def generateReport[I](
-    id: Option[I],
-    reportFunction: ReportConfig[I] => Future[Either[ServiceFailed, ReportServiceResult[I]]])(idFactory: Long => I)(implicit subject: Subject) = {
+      id: Option[I],
+      reportFunction: ReportConfig[I] => Future[Either[ServiceFailed, ReportServiceResult[I]]])(idFactory: Long => I)(implicit subject: Subject) = {
     uploadOpt("vorlage") { formData => file =>
       //use custom or default template whether content was delivered or not
       (for {

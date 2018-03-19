@@ -37,11 +37,11 @@ trait BaseWriteRepository extends CrudRepository
    * Use with care.
    */
   def updateEntityFully[E <: BaseEntity[I], I <: BaseId](entity: E)(implicit
-    session: DBSession,
-    syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I],
-    user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+      session: DBSession,
+      syntaxSupport: BaseEntitySQLSyntaxSupport[E],
+      binder: Binders[I],
+      user: PersonId,
+      eventPublisher: EventPublisher): Option[E] = {
 
     syntaxSupport.updateParameters(entity) map {
       case (s, v) =>
