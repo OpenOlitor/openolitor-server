@@ -86,7 +86,7 @@ object StammdatenCommandHandler {
 }
 
 trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
-    with LieferungDurchschnittspreisHandler {
+  with LieferungDurchschnittspreisHandler {
 
   self: StammdatenReadRepositorySyncComponent =>
   import StammdatenCommandHandler._
@@ -676,8 +676,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val hauptAboKoerbe = koerbe map { korb =>
       stammdatenReadRepository.getAbo(korb.aboId) match {
         case Some(abo: ZusatzAbo) => None
-        case None => None
-        case _ => Some(korb)
+        case None                 => None
+        case _                    => Some(korb)
       }
     }
     hauptAboKoerbe.flatten.size
@@ -906,5 +906,5 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 }
 
 class DefaultStammdatenCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenCommandHandler
-    with DefaultStammdatenReadRepositorySyncComponent {
+  with DefaultStammdatenReadRepositorySyncComponent {
 }

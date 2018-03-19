@@ -51,17 +51,17 @@ trait DataImportServiceComponent {
 
 class DefaultDataImportService(override val sysConfig: SystemConfig, override val entityStore: ActorRef,
   override val system: ActorSystem, override implicit val personId: PersonId) extends DataImportService()(personId)
-    with DefaultStammdatenWriteRepositoryComponent
-    with DefaultBuchhaltungWriteRepositoryComponent
+  with DefaultStammdatenWriteRepositoryComponent
+  with DefaultBuchhaltungWriteRepositoryComponent
 
 abstract class DataImportService(implicit val personId: PersonId) extends Actor with ActorLogging
-    with BaseWriteRepository
-    with NoPublishEventStream
-    with StammdatenDBMappings
-    with BuchhaltungDBMappings
-    with ConnectionPoolContextAware
-    with StammdatenWriteRepositoryComponent
-    with BuchhaltungWriteRepositoryComponent {
+  with BaseWriteRepository
+  with NoPublishEventStream
+  with StammdatenDBMappings
+  with BuchhaltungDBMappings
+  with ConnectionPoolContextAware
+  with StammdatenWriteRepositoryComponent
+  with BuchhaltungWriteRepositoryComponent {
 
   import DataImportService._
   import DataImportParser._
@@ -177,7 +177,8 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
   def importEntityList[E <: BaseEntity[I], I <: BaseId](name: String, entities: List[E], result: Map[String, Int])(implicit
     session: DBSession,
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
-    binder: Binders[I]) = {
+    binder: Binders[I]
+  ) = {
     log.debug(s"Import ${entities.length} $name...")
     entities map { entity =>
       insertEntity[E, I](entity)

@@ -61,10 +61,10 @@ import ch.openolitor.reports.repositories.ReportsReadRepositoryAsyncComponent
 import java.io.ByteArrayInputStream
 
 trait ReportsRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with ReportsJsonProtocol
-    with ReportsEventStoreSerializer
-    with ReportsDBMappings {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with ReportsJsonProtocol
+  with ReportsEventStoreSerializer
+  with ReportsDBMappings {
   self: ReportsReadRepositoryAsyncComponent with FileStoreComponent =>
 
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
@@ -102,5 +102,5 @@ class DefaultReportsRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends ReportsRoutes
-    with DefaultReportsReadRepositoryAsyncComponent
+  extends ReportsRoutes
+  with DefaultReportsReadRepositoryAsyncComponent

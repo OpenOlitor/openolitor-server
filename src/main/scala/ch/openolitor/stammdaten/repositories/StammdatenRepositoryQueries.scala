@@ -1174,7 +1174,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .map { (lieferung, abotyp, zusatzAbotyp, positionen, lieferplanung) =>
         val bemerkung = lieferplanung match {
           case Nil => None
-          case x => x.head.bemerkungen
+          case x   => x.head.bemerkungen
         }
         val iabotyp = abotyp.headOption orElse zusatzAbotyp.headOption
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> iabotyp, "lieferpositionen" -> positionen, "lieferplanungBemerkungen" -> bemerkung)
@@ -1456,7 +1456,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 
     val statusL = korbStatus match {
       case WirdGeliefert => WirdGeliefert :: Geliefert :: Nil
-      case _ => korbStatus :: Nil
+      case _             => korbStatus :: Nil
     }
 
     withSQL {
@@ -1471,7 +1471,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 
     val statusL = korbStatus match {
       case WirdGeliefert => WirdGeliefert :: Geliefert :: Nil
-      case _ => korbStatus :: Nil
+      case _             => korbStatus :: Nil
     }
 
     withSQL {

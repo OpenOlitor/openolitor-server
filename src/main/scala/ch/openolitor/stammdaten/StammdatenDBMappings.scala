@@ -95,7 +95,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val fristBinders: Binders[Option[Frist]] = Binders.string.xmap(_ match {
     case fristeinheitPattern(wert, "W") => Some(Frist(wert.toInt, Wochenfrist))
     case fristeinheitPattern(wert, "M") => Some(Frist(wert.toInt, Monatsfrist))
-    case _ => None
+    case _                              => None
   }, {
     _ match {
       case None => ""

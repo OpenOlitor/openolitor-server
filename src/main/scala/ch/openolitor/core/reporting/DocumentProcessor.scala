@@ -133,7 +133,7 @@ trait DocumentProcessor extends LazyLogging {
       _ <- Try(processFrames(doc, props, locale))
       _ <- Try(processSections(doc, props, locale))
       _ <- Try(processTextboxes(doc, props, locale, Nil))
-      //TODO Reactivate a smarter way (i.e. only boolean and number fields?) 
+      //TODO Reactivate a smarter way (i.e. only boolean and number fields?)
       //_ <- Try(registerVariables(doc, props))
     } yield true
   }
@@ -468,9 +468,9 @@ trait DocumentProcessor extends LazyLogging {
       return (name, Nil)
     }
     name.split('|').toList match {
-      case name :: Nil => (name.trim, Nil)
+      case name :: Nil  => (name.trim, Nil)
       case name :: tail => (name.trim, tail.map(_.trim))
-      case _ => (name, Nil)
+      case _            => (name, Nil)
     }
   }
 
@@ -512,7 +512,7 @@ trait DocumentProcessor extends LazyLogging {
         val convertedDate = dateFormatter.parseDateTime(value).toString(libreOfficeDateFormat)
         Map(prefix -> Value(j, convertedDate))
       case j @ JsString(value) => Map(prefix -> Value(j, value))
-      case value => Map(prefix -> Value(value, value.toString))
+      case value               => Map(prefix -> Value(value, value.toString))
     }
   }
 }

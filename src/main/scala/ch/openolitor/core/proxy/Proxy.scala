@@ -78,9 +78,9 @@ object ProxyServiceActor {
  * the websocket or service redirect url using their actor system
  */
 class ProxyServiceActor(mandanten: NonEmptyList[MandantSystem])
-    extends Actor
-    with ActorLogging
-    with HttpService {
+  extends Actor
+  with ActorLogging
+  with HttpService {
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test

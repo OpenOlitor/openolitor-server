@@ -150,10 +150,10 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
 
   def loadBerichtsvorlage(vorlage: BerichtsVorlage, fileType: FileType, id: Option[String]): ServiceResult[Array[Byte]] = {
     vorlage match {
-      case EinzelBerichtsVorlage(file) => EitherT { Future { file.right } }
-      case StandardBerichtsVorlage => resolveStandardBerichtsVorlage(fileType, id)
+      case EinzelBerichtsVorlage(file)       => EitherT { Future { file.right } }
+      case StandardBerichtsVorlage           => resolveStandardBerichtsVorlage(fileType, id)
       case ProjektBerichtsVorlage(vorlageId) => resolveProjektBerichtsVorlage(fileType, vorlageId)
-      case _ => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
+      case _                                 => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
     }
   }
 
@@ -189,7 +189,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
       case Left(e) => ServiceFailed(s"Vorlage konnte im FileStore nicht gefunden werden: $fileType, $id").left
       case Right(file) => file.file.toByteArray match {
         case TrySuccess(result) => result.right
-        case TryFailure(error) => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
+        case TryFailure(error)  => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
       }
     }
   }

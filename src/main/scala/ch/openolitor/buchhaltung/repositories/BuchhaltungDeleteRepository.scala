@@ -42,8 +42,8 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
 trait BuchhaltungDeleteRepository extends BaseDeleteRepository
-    with BuchhaltungReadRepositorySync
-    with EventStream {
+  with BuchhaltungReadRepositorySync
+  with EventStream {
 }
 
 trait BuchhaltungDeleteRepositoryImpl extends BuchhaltungDeleteRepository with LazyLogging {

@@ -44,20 +44,20 @@ object ReportsDeleteService {
 }
 
 class DefaultReportsDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends ReportsDeleteService(sysConfig: SystemConfig) with DefaultReportsWriteRepositoryComponent {
+  extends ReportsDeleteService(sysConfig: SystemConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Reports Modul
  */
 class ReportsDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
-    with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
+  with LazyLogging with AsyncConnectionPoolContextAware with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
   import EntityStore._
 
   val handle: Handle = {
     case EntityDeletedEvent(meta, id: ReportId) => deleteReport(meta, id)
-    case e =>
+    case e                                      =>
   }
 
   def deleteReport(meta: EventMetadata, id: ReportId)(implicit personId: PersonId = meta.originator) = {

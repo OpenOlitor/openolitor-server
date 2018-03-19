@@ -110,10 +110,10 @@ trait EntityStoreJsonProtocol extends BaseJsonProtocol {
 }
 
 trait EntityStore extends AggregateRoot
-    with ConnectionPoolContextAware
-    with CommandHandlerComponent
-    with DBEvolutionReference
-    with IdFactory {
+  with ConnectionPoolContextAware
+  with CommandHandlerComponent
+  with DBEvolutionReference
+  with IdFactory {
 
   import EntityStore._
   import AggregateRoot._
@@ -186,8 +186,8 @@ trait EntityStore extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed => context become removed
-      case Created => context become created
+      case Removed             => context become removed
+      case Created             => context become created
       case s: EntityStoreState => this.state = s
     }
   }
@@ -285,6 +285,6 @@ trait EntityStore extends AggregateRoot
 }
 
 class DefaultEntityStore(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val evolution: Evolution) extends EntityStore
-    with DefaultCommandHandlerComponent {
+  with DefaultCommandHandlerComponent {
   val system = context.system
 }

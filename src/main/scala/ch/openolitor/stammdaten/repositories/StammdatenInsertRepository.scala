@@ -34,8 +34,8 @@ import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.core.EventStream
 
 trait StammdatenInsertRepository extends BaseInsertRepository
-    with StammdatenReadRepositorySync
-    with EventStream {
+  with StammdatenReadRepositorySync
+  with EventStream {
 }
 
 trait StammdatenInsertRepositoryImpl extends StammdatenInsertRepository with LazyLogging {

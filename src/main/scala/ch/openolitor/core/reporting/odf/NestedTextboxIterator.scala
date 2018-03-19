@@ -84,7 +84,7 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
     startingNode.map { node =>
       findDeepChildNode(name, node) match {
         case r @ Some(result) => r
-        case None => findDeepFirstChildNode(name, parent, Some(node))
+        case None             => findDeepFirstChildNode(name, parent, Some(node))
       }
     }.getOrElse(None)
   }
@@ -98,7 +98,7 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
       case parent: ParentNode =>
         findDeepFirstChildNode(name, parent, None) match {
           case Some((_, c)) => Some((parent, c))
-          case None => None
+          case None         => None
         }
       case _ => None
     }

@@ -29,6 +29,6 @@ import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait JobQueueJsonProtocol extends BaseJsonProtocol
-    with AutoProductFormats[JSONSerializable] {
+  with AutoProductFormats[JSONSerializable] {
   implicit val jobIdFormat = jsonFormat3(JobId)
 }

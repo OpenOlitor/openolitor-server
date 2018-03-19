@@ -103,10 +103,10 @@ trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache 
           case token :: timeString :: Nil =>
             Try(DateTime.parse(timeString)) match {
               case TrySuccess(dateTime) => (token, dateTime).right
-              case TryFailure(e) => AuthenticatorRejection(s"Ungültiges Datumsformat im Header:$timeString").left
+              case TryFailure(e)        => AuthenticatorRejection(s"Ungültiges Datumsformat im Header:$timeString").left
             }
           case token :: Nil => (token, noDateTimeValue).right
-          case x => AuthenticatorRejection(s"Ungüliges Token im Header: $x").left
+          case x            => AuthenticatorRejection(s"Ungüliges Token im Header: $x").left
         }
       }
     }

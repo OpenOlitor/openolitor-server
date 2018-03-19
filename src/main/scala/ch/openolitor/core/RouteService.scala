@@ -139,17 +139,17 @@ trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache
 // we don't implement our route structure directly in the service actor because(entityStore, sysConfig, system, fileStore, actorRefFactory)
 // we want to be able to test it independently, without having to spin up an actor
 trait RouteServiceActor
-    extends Actor with ActorReferences
-    with DefaultRouteService
-    with HelloWorldRoutes
-    with StatusRoutes
-    with FileStoreRoutes
-    with FileStoreComponent
-    with CORSSupport
-    with BaseJsonProtocol
-    with RoleBasedAuthorization
-    with AirbrakeNotifierReference
-    with LazyLogging {
+  extends Actor with ActorReferences
+  with DefaultRouteService
+  with HelloWorldRoutes
+  with StatusRoutes
+  with FileStoreRoutes
+  with FileStoreComponent
+  with CORSSupport
+  with BaseJsonProtocol
+  with RoleBasedAuthorization
+  with AirbrakeNotifierReference
+  with LazyLogging {
   self: RouteServiceComponent =>
 
   //initially run db evolution
@@ -238,11 +238,11 @@ trait RouteServiceActor
 
 // this trait defines our service behavior independently from the service actor
 trait DefaultRouteService extends HttpService with ActorReferences with BaseJsonProtocol with StreamSupport
-    with FileStoreComponent
-    with LazyLogging
-    with SprayDeserializers
-    with ReportJsonProtocol
-    with DateFormats {
+  with FileStoreComponent
+  with LazyLogging
+  with SprayDeserializers
+  with ReportJsonProtocol
+  with DateFormats {
 
   implicit val timeout = Timeout(5.seconds)
   implicit lazy val executionContext: ExecutionContext = system.dispatcher
@@ -258,7 +258,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def create[E <: AnyRef: ClassTag, I <: BaseId](idFactory: Long => I)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject
+  ) = {
     requestInstance { request =>
       entity(as[E]) { entity =>
         created(request)(entity)
@@ -282,13 +283,15 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject
+  ) = {
     entity(as[E]) { entity => updated(id, entity) }
   }
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I, entity: E)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject
+  ) = {
     updated(id, entity)
   }
 
@@ -317,16 +320,16 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
           def writeToRow(row: Row, element: Any, cellIndex: Int): Unit = {
             element match {
-              case null =>
-              case some: Some[Any] => writeToRow(row, some.x, cellIndex)
-              case None =>
-              case ite: Iterable[Any] => ite map { item => writeToRow(row, item, cellIndex) }
-              case id: BaseId => row.getCellByIndex(cellIndex).setDoubleValue(id.id)
-              case stringId: BaseStringId => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + stringId.id).trim)
-              case str: String => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + str).trim)
+              case null                        =>
+              case some: Some[Any]             => writeToRow(row, some.x, cellIndex)
+              case None                        =>
+              case ite: Iterable[Any]          => ite map { item => writeToRow(row, item, cellIndex) }
+              case id: BaseId                  => row.getCellByIndex(cellIndex).setDoubleValue(id.id)
+              case stringId: BaseStringId      => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + stringId.id).trim)
+              case str: String                 => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + str).trim)
               case dat: org.joda.time.DateTime => row.getCellByIndex(cellIndex).setDateTimeValue(dat.toCalendar(Locale.GERMAN))
-              case nbr: Number => row.getCellByIndex(cellIndex).setDoubleValue(nbr.doubleValue())
-              case x => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + x.toString).trim)
+              case nbr: Number                 => row.getCellByIndex(cellIndex).setDoubleValue(nbr.doubleValue())
+              case x                           => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + x.toString).trim)
             }
           }
 
@@ -355,7 +358,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
                           case ((fieldName, value), colIndex) =>
                             fieldName match {
                               case "passwort" => writeToRow(row, "Not available", colIndex)
-                              case _ => writeToRow(row, value, colIndex)
+                              case _          => writeToRow(row, value, colIndex)
                             }
                         }
                     }
@@ -397,7 +400,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           streamOds("Daten_" + System.currentTimeMillis + ".ods", outputStream.toByteArray())
         }
         //matches "None" and "Some(Json)"
-        case None => complete(result)
+        case None    => complete(result)
         case Some(x) => complete(result)
       }
     }
@@ -422,7 +425,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def downloadAll(zipFileName: String, fileType: FileType, ids: Seq[FileStoreFileId]) = {
     ids match {
-      case Seq() => complete(StatusCodes.BadRequest)
+      case Seq()            => complete(StatusCodes.BadRequest)
       case Seq(fileStoreId) => download(fileType, fileStoreId.id)
       case list =>
         val refs = ids.map(id => FileStoreFileReference(fileType, id))
@@ -561,7 +564,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   protected def storeToFileStore(fileType: FileType, name: Option[String] = None, content: InputStream, fileName: String)(onUpload: (String, FileStoreFileMetadata) => RequestContext => Unit, onError: Option[FileStoreError => RequestContext => Unit] = None): RequestContext => Unit = {
     val id = name.getOrElse(UUID.randomUUID.toString)
     onSuccess(fileStore.putFile(fileType.bucket, Some(id), FileStoreFileMetadata(fileName, fileType), content)) {
-      case Left(e) => onError.map(_(e)).getOrElse(complete(StatusCodes.BadRequest, s"File of file type ${fileType} with id ${id} could not be stored. Error: ${e}"))
+      case Left(e)         => onError.map(_(e)).getOrElse(complete(StatusCodes.BadRequest, s"File of file type ${fileType} with id ${id} could not be stored. Error: ${e}"))
       case Right(metadata) => onUpload(id, metadata)
     }
   }
@@ -631,17 +634,17 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
         }
       }) match {
         case Success(result) => result
-        case Failure(error) => complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:${error}")
+        case Failure(error)  => complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:${error}")
       }
     }
   }
 
   private def loadVorlage(datenExtrakt: Boolean, file: Option[(InputStream, String)], vorlageId: Option[ProjektVorlageId]): Try[BerichtsVorlage] = {
     (datenExtrakt, file, vorlageId) match {
-      case (true, _, _) => Success(DatenExtrakt)
-      case (false, Some((is, name)), _) => is.toByteArray.map(result => EinzelBerichtsVorlage(result))
+      case (true, _, _)                   => Success(DatenExtrakt)
+      case (false, Some((is, name)), _)   => is.toByteArray.map(result => EinzelBerichtsVorlage(result))
       case (false, None, Some(vorlageId)) => Success(ProjektBerichtsVorlage(vorlageId))
-      case _ => Success(StandardBerichtsVorlage)
+      case _                              => Success(StandardBerichtsVorlage)
     }
   }
 }
@@ -659,4 +662,4 @@ class DefaultRouteServiceActor(
   override val system: ActorSystem,
   override val loginTokenCache: Cache[Subject]
 ) extends RouteServiceActor
-    with DefaultRouteServiceComponent
+  with DefaultRouteServiceComponent

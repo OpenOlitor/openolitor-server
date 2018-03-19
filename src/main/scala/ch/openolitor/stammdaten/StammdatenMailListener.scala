@@ -44,8 +44,8 @@ class DefaultStammdatenMailListener(sysConfig: SystemConfig, override val system
  * Listens to succesful sent mails
  */
 class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging
-    with StammdatenDBMappings
-    with ConnectionPoolContextAware {
+  with StammdatenDBMappings
+  with ConnectionPoolContextAware {
   this: StammdatenWriteRepositoryComponent =>
   import StammdatenMailListener._
 

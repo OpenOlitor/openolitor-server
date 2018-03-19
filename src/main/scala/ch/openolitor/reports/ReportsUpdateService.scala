@@ -47,7 +47,7 @@ object ReportsUpdateService {
 }
 
 class DefaultReportsUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends ReportsUpdateService(sysConfig) with DefaultReportsWriteRepositoryComponent {
+  extends ReportsUpdateService(sysConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**

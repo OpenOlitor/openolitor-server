@@ -42,8 +42,8 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
 trait BuchhaltungInsertRepository extends BaseInsertRepository
-    with BuchhaltungReadRepositorySync
-    with EventStream {
+  with BuchhaltungReadRepositorySync
+  with EventStream {
 }
 
 trait BuchhaltungInsertRepositoryImpl extends BuchhaltungInsertRepository with LazyLogging {

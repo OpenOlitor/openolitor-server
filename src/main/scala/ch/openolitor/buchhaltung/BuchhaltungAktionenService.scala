@@ -51,14 +51,14 @@ object BuchhaltungAktionenService {
 }
 
 class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+  extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Buchhaltung Modul
  */
 class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-    with BuchhaltungDBMappings {
+  with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val False = false

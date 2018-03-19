@@ -67,10 +67,10 @@ import scalikejdbc.DB
  * TODO Revert as soon as possible
  */
 trait SyncReportsRoutes extends HttpService with ActorReferences
-    with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with ReportsJsonProtocol
-    with ReportsEventStoreSerializer
-    with ReportsDBMappings {
+  with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with ReportsJsonProtocol
+  with ReportsEventStoreSerializer
+  with ReportsDBMappings {
   self: ReportsReadRepositorySyncComponent with FileStoreComponent =>
 
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
@@ -112,5 +112,5 @@ class DefaultSyncReportsRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends SyncReportsRoutes
-    with DefaultReportsReadRepositorySyncComponent
+  extends SyncReportsRoutes
+  with DefaultReportsReadRepositorySyncComponent

@@ -69,9 +69,9 @@ object MailService {
 }
 
 trait MailService extends AggregateRoot
-    with ConnectionPoolContextAware
-    with CommandHandlerComponent
-    with MailRetryHandler {
+  with ConnectionPoolContextAware
+  with CommandHandlerComponent
+  with MailRetryHandler {
 
   import MailService._
   import AggregateRoot._
@@ -103,7 +103,7 @@ trait MailService extends AggregateRoot
   def checkMailQueue(): Unit = {
     if (!state.mailQueue.isEmpty) {
       state.mailQueue map { enqueued =>
-        // sending a mail has to be blocking, otherwise there will be concurrent mail queue access 
+        // sending a mail has to be blocking, otherwise there will be concurrent mail queue access
         sendMail(enqueued.meta, enqueued.uid, enqueued.mail, enqueued.commandMeta) match {
           case Success(event) =>
             persist(event)(afterEventPersisted)
@@ -190,10 +190,10 @@ trait MailService extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed => context become removed
-      case Created => context become uninitialized
+      case Removed             => context become removed
+      case Created             => context become uninitialized
       case s: MailServiceState => this.state = s
-      case other => log.error(s"Received unsupported state:$other")
+      case other               => log.error(s"Received unsupported state:$other")
     }
   }
 
@@ -263,7 +263,7 @@ trait MailService extends AggregateRoot
 }
 
 class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef) extends MailService
-    with DefaultCommandHandlerComponent
-    with DefaultMailRetryHandler {
+  with DefaultCommandHandlerComponent
+  with DefaultMailRetryHandler {
   val system = context.system
 }

@@ -38,7 +38,7 @@ import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseEntitySQLSyntaxSupport[E <: BaseEntity[_]] extends SQLSyntaxSupport[E] with LazyLogging with DBMappings {
 
-  //override def columnNames 
+  //override def columnNames
   def apply(p: SyntaxProvider[E])(rs: WrappedResultSet): E = apply(p.resultName)(rs)
 
   def opt(e: SyntaxProvider[E])(rs: WrappedResultSet): Option[E] = try {

@@ -42,7 +42,8 @@ trait BaseInsertRepository extends BaseReadRepositorySync with InsertRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     val params = syntaxSupport.parameterMappings(entity)
     logger.debug(s"create entity with values:$entity")
     getById(syntaxSupport, entity.id) match {

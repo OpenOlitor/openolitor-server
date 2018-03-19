@@ -52,9 +52,9 @@ object ProxyWorker {
  * normal httprequest to a httpserver
  */
 class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, MandantSystem], val wsHandler: WebsocketHandler)
-    extends HttpServiceActor
-    with websocket.WebSocketServerWorker
-    with Proxy {
+  extends HttpServiceActor
+  with websocket.WebSocketServerWorker
+  with Proxy {
   //Use system's dispatcher as ExecutionContext
   import context.dispatcher
 
@@ -193,7 +193,7 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
       wsClient.send(msg)
     case x: FrameCommandFailed =>
       log.error("frame command failed", x)
-    case x: HttpRequest => // do something
+    case x: HttpRequest      => // do something
     case UpgradedToWebSocket =>
     case akka.io.Tcp.Closed =>
       log.debug(s"Closed")

@@ -73,13 +73,13 @@ case class BaseProduktekategorieId(id: String) extends BaseStringId
 case class ProduktekategorieId(id: Long) extends BaseId
 
 case class Produktekategorie(
-    id: ProduktekategorieId,
-    beschreibung: String,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
+  id: ProduktekategorieId,
+  beschreibung: String,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends BaseEntity[ProduktekategorieId] {
 }
 

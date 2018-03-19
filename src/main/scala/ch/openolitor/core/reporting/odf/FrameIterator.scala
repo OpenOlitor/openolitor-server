@@ -84,7 +84,7 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
     startingNode.map { node =>
       findDeepChildNode(clazz, node) match {
         case r @ Some(result) => r
-        case None => findDeepFirstChildNode(clazz, parent, Some(node))
+        case None             => findDeepFirstChildNode(clazz, parent, Some(node))
       }
     }.getOrElse(None)
   }
@@ -98,7 +98,7 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
       case n: ParentNode =>
         findDeepFirstChildNode(clazz, n, None) match {
           case Some((p, c)) => Some((n, c))
-          case None => None
+          case None         => None
         }
       case _ => None
     }

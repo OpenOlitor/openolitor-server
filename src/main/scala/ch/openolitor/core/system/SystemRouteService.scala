@@ -74,14 +74,14 @@ class DefaultSystemRouteService(
 ) extends SystemRouteService with DefaultCoreReadRepositoryComponent
 
 trait SystemRouteService extends HttpService with ActorReferences
-    with ConnectionPoolContextAware with SprayDeserializers
-    with DefaultRouteService
-    with LazyLogging
-    with StatusRoutes
-    with SystemJsonProtocol
-    with AsyncConnectionPoolContextAware
-    with PersistenceJsonProtocol
-    with JobQueueRoutes {
+  with ConnectionPoolContextAware with SprayDeserializers
+  with DefaultRouteService
+  with LazyLogging
+  with StatusRoutes
+  with SystemJsonProtocol
+  with AsyncConnectionPoolContextAware
+  with PersistenceJsonProtocol
+  with JobQueueRoutes {
   self: CoreReadRepositoryComponent =>
 
   private var error: Option[Throwable] = None
@@ -91,7 +91,7 @@ trait SystemRouteService extends HttpService with ActorReferences
     val identifyId = 1
     (system.actorSelection(system.child(serviceName)) ? Identify(identifyId)) map {
       case ActorIdentity(`identifyId`, Some(ref)) => ref
-      case ActorIdentity(`identifyId`, None) => system.actorOf(DataImportService.props(sysConfig, entityStore, system, subject.personId), serviceName)
+      case ActorIdentity(`identifyId`, None)      => system.actorOf(DataImportService.props(sysConfig, entityStore, system, subject.personId), serviceName)
     }
   }
 

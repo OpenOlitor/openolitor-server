@@ -50,11 +50,11 @@ class DefaultStammdatenDBEventEntityListener(sysConfig: SystemConfig, override v
  * Listen on DBEvents and adjust calculated fields within this module
  */
 class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging
-    with StammdatenDBMappings
-    with ConnectionPoolContextAware
-    with KorbStatusHandler
-    with AboAktivChangeHandler
-    with LieferungDurchschnittspreisHandler {
+  with StammdatenDBMappings
+  with ConnectionPoolContextAware
+  with KorbStatusHandler
+  with AboAktivChangeHandler
+  with LieferungDurchschnittspreisHandler {
   this: StammdatenUpdateRepositoryComponent =>
   import SystemEvents._
 
@@ -98,35 +98,35 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     case e @ EntityModified(personId, entity: PostlieferungAbo, orig: PostlieferungAbo) if entity.vertriebId != orig.vertriebId =>
       handleAboModified(orig, entity)(personId)
 
-    case e @ EntityCreated(personId, entity: ZusatzAbo) => handleZusatzAboCreated(entity)(personId)
+    case e @ EntityCreated(personId, entity: ZusatzAbo)                   => handleZusatzAboCreated(entity)(personId)
     case e @ EntityModified(personId, entity: ZusatzAbo, orig: ZusatzAbo) => handleZusatzAboModified(orig, entity)(personId)
-    case e @ EntityDeleted(personId, entity: ZusatzAbo) => handleZusatzAboDeleted(entity)(personId)
+    case e @ EntityDeleted(personId, entity: ZusatzAbo)                   => handleZusatzAboDeleted(entity)(personId)
 
-    case e @ EntityCreated(personId, entity: Abo) => handleAboCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Abo) => handleAboDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: Abo, orig: Abo) => handleAboModified(orig, entity)(personId)
-    case e @ EntityCreated(personId, entity: Abwesenheit) => handleAbwesenheitCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Abwesenheit) => handleAbwesenheitDeleted(entity)(personId)
+    case e @ EntityCreated(personId, entity: Abo)                         => handleAboCreated(entity)(personId)
+    case e @ EntityDeleted(personId, entity: Abo)                         => handleAboDeleted(entity)(personId)
+    case e @ EntityModified(personId, entity: Abo, orig: Abo)             => handleAboModified(orig, entity)(personId)
+    case e @ EntityCreated(personId, entity: Abwesenheit)                 => handleAbwesenheitCreated(entity)(personId)
+    case e @ EntityDeleted(personId, entity: Abwesenheit)                 => handleAbwesenheitDeleted(entity)(personId)
 
-    case e @ EntityCreated(personId, entity: Kunde) => handleKundeCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Kunde) => handleKundeDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: Kunde, orig: Kunde) => handleKundeModified(entity, orig)(personId)
+    case e @ EntityCreated(personId, entity: Kunde)                       => handleKundeCreated(entity)(personId)
+    case e @ EntityDeleted(personId, entity: Kunde)                       => handleKundeDeleted(entity)(personId)
+    case e @ EntityModified(personId, entity: Kunde, orig: Kunde)         => handleKundeModified(entity, orig)(personId)
 
-    case e @ EntityDeleted(personId, entity: Person) => handlePersonDeleted(entity)(personId)
+    case e @ EntityDeleted(personId, entity: Person)                      => handlePersonDeleted(entity)(personId)
 
-    case e @ EntityCreated(personId, entity: Pendenz) => handlePendenzCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Pendenz) => handlePendenzDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: Pendenz, orig: Pendenz) => handlePendenzModified(entity, orig)(personId)
+    case e @ EntityCreated(personId, entity: Pendenz)                     => handlePendenzCreated(entity)(personId)
+    case e @ EntityDeleted(personId, entity: Pendenz)                     => handlePendenzDeleted(entity)(personId)
+    case e @ EntityModified(personId, entity: Pendenz, orig: Pendenz)     => handlePendenzModified(entity, orig)(personId)
 
-    case e @ EntityCreated(personId, entity: RechnungsPosition) => handleRechnungsPositionCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: RechnungsPosition) => handleRechnungsPositionDeleted(entity)(personId)
+    case e @ EntityCreated(personId, entity: RechnungsPosition)           => handleRechnungsPositionCreated(entity)(personId)
+    case e @ EntityDeleted(personId, entity: RechnungsPosition)           => handleRechnungsPositionDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Bezahlt && entity.status == RechnungsPositionStatus.Bezahlt) =>
       handleRechnungsPositionBezahlt(entity, orig)(personId)
 
     case e @ EntityCreated(personId, entity: Lieferplanung) => handleLieferplanungCreated(entity)(personId)
 
     case e @ EntityDeleted(personId, entity: Lieferplanung) => handleLieferplanungDeleted(entity)(personId)
-    case e @ PersonLoggedIn(personId, timestamp) => handlePersonLoggedIn(personId, timestamp)
+    case e @ PersonLoggedIn(personId, timestamp)            => handlePersonLoggedIn(personId, timestamp)
 
     case e @ EntityModified(personId, entity: Lieferplanung, orig: Lieferplanung) =>
       handleLieferplanungModified(entity, orig)(personId)
@@ -138,7 +138,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
 
     case e @ EntityModified(personId, entity: Lieferung, orig: Lieferung) if (entity.lieferplanungId.isDefined) => handleLieferungChanged(entity, orig)(personId)
 
-    case e @ EntityModified(personId, entity: Vertriebsart, orig: Vertriebsart) => handleVertriebsartModified(entity, orig)(personId)
+    case e @ EntityModified(personId, entity: Vertriebsart, orig: Vertriebsart)                                 => handleVertriebsartModified(entity, orig)(personId)
 
     case e @ EntityModified(personId, entity: Auslieferung, orig: Auslieferung) if (orig.status == Erfasst && entity.status == Ausgeliefert) =>
       handleAuslieferungAusgeliefert(entity)(personId)
@@ -336,9 +336,9 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       }
 
       (from.ende, to.ende) match {
-        case (None, Some(toEnde)) => handleZusatzAboEndDateModification(toEnde, from)
+        case (None, Some(toEnde))           => handleZusatzAboEndDateModification(toEnde, from)
         case (Some(fromEnde), Some(toEnde)) => if (fromEnde != toEnde) handleZusatzAboEndDateModification(toEnde, from)
-        case (_, _) =>
+        case (_, _)                         =>
       }
 
       if (from.vertriebId != to.vertriebId) {
@@ -640,9 +640,9 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       case _ => 0
     }
     val abwDiff = korbStatusNeu match {
-      case FaelltAusAbwesend => 1
+      case FaelltAusAbwesend                       => 1
       case _ if korbStatusAlt == FaelltAusAbwesend => -1
-      case _ => 0
+      case _                                       => 0
     }
     val saldoDiff = korbStatusNeu match {
       case FaelltAusSaldoZuTief => 1
@@ -969,7 +969,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       val lieferungVorher = stammdatenUpdateRepository.getGeplanteLieferungVorher(orig.vertriebId, entity.datum)
       stammdatenUpdateRepository.getGeplanteLieferungNachher(orig.vertriebId, entity.datum) match {
         case Some(lieferungNach) => recalculateLieferungOffen(lieferungNach, Some(entity))
-        case _ =>
+        case _                   =>
       }
     }
   }

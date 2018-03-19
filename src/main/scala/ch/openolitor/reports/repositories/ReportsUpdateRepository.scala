@@ -42,8 +42,8 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.reports.ReportsDBMappings
 
 trait ReportsUpdateRepository extends BaseUpdateRepository
-    with ReportsReadRepositorySync
-    with EventStream {
+  with ReportsReadRepositorySync
+  with EventStream {
 }
 
 trait ReportsUpdateRepositoryImpl extends ReportsReadRepositorySyncImpl with ReportsUpdateRepository with LazyLogging {

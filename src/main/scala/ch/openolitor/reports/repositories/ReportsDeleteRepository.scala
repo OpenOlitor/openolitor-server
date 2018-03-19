@@ -42,8 +42,8 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.reports.ReportsDBMappings
 
 trait ReportsDeleteRepository extends BaseDeleteRepository
-    with ReportsReadRepositorySync
-    with EventStream {
+  with ReportsReadRepositorySync
+  with EventStream {
 }
 
 trait ReportsDeleteRepositoryImpl extends ReportsDeleteRepository with LazyLogging {

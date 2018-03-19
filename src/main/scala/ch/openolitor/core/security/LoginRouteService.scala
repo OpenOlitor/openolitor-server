@@ -67,10 +67,10 @@ import org.joda.time.DateTime
 import ch.openolitor.stammdaten.models.EinladungId
 
 trait LoginRouteService extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware
-    with SprayDeserializers
-    with DefaultRouteService with LazyLogging with LoginJsonProtocol
-    with XSRFTokenSessionAuthenticatorProvider {
+  with AsyncConnectionPoolContextAware
+  with SprayDeserializers
+  with DefaultRouteService with LazyLogging with LoginJsonProtocol
+  with XSRFTokenSessionAuthenticatorProvider {
   self: StammdatenReadRepositoryAsyncComponent =>
   import SystemEvents._
 
@@ -138,9 +138,9 @@ trait LoginRouteService extends HttpService with ActorReferences
 
   private def containsOneOf(src: String, chars: List[String]): Boolean = {
     chars match {
-      case Nil => false
+      case Nil                                   => false
       case head :: tail if src.indexOf(head) > 0 => true
-      case head :: tail => containsOneOf(src, tail)
+      case head :: tail                          => containsOneOf(src, tail)
     }
   }
 
@@ -168,14 +168,14 @@ trait LoginRouteService extends HttpService with ActorReferences
 
     (entityStore ? PasswortWechselCommand(subjectPersonId, targetPersonId, hash.toCharArray, einladung)) map {
       case p: PasswortGewechseltEvent => true.right
-      case _ => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
+      case _                          => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
     }
   }
 
   private def resetPassword(person: Person): EitherFuture[Boolean] = EitherT {
     (entityStore ? PasswortResetCommand(person.id, person.id)) map {
       case p: PasswortResetGesendetEvent => true.right
-      case _ => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
+      case _                             => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
     }
   }
 
@@ -309,7 +309,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def handleLoggedIn(person: Person): EitherFuture[LoginResult] = {
     requireSecondFactorAuthentifcation(person) flatMap {
       case false => doLogin(person)
-      case true => sendSecondFactorAuthentication(person)
+      case true  => sendSecondFactorAuthentication(person)
     }
   }
 
@@ -360,10 +360,10 @@ trait LoginRouteService extends HttpService with ActorReferences
 
   private def requireSecondFactorAuthentifcation(person: Person): EitherFuture[Boolean] = EitherT {
     requireSecondFactorAuthentication match {
-      case false => Future.successful(false.right)
+      case false                          => Future.successful(false.right)
       case true if (person.rolle.isEmpty) => Future.successful(true.right)
       case true => stammdatenReadRepository.getProjekt map {
-        case None => true.right
+        case None          => true.right
         case Some(projekt) => projekt.twoFactorAuthentication.get(person.rolle.get).map(_.right).getOrElse(true.right)
       }
     }
@@ -388,7 +388,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def validatePerson(person: Person): EitherFuture[Boolean] = EitherT {
     Future {
       person.loginAktiv match {
-        case true => true.right
+        case true  => true.right
         case false => errorPersonLoginNotActive.left
       }
     }
@@ -465,5 +465,5 @@ class DefaultLoginRouteService(
   override val jobQueueService: ActorRef,
   override val loginTokenCache: Cache[Subject]
 )
-    extends LoginRouteService
-    with DefaultStammdatenReadRepositoryAsyncComponent
+  extends LoginRouteService
+  with DefaultStammdatenReadRepositoryAsyncComponent

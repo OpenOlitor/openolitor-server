@@ -60,7 +60,7 @@ class FileStoreReportResultCollector(reportSystem: ActorRef, override val jobQue
       notifyProgress(stats)
     case result: GenerateReportsStats if result.numberOfReportsInProgress == 0 =>
       log.debug(s"Job finished: $result, downloadFile:$downloadFile")
-      //finished, send collected result to jobQueue      
+      //finished, send collected result to jobQueue
       if (downloadFile) {
         val payload = FileStoreResultPayload(storeResults)
         jobFinished(result, Some(payload))

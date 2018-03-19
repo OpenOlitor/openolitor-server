@@ -326,5 +326,5 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 }
 
 class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungCommandHandler
-    with DefaultBuchhaltungReadRepositorySyncComponent {
+  with DefaultBuchhaltungReadRepositorySyncComponent {
 }

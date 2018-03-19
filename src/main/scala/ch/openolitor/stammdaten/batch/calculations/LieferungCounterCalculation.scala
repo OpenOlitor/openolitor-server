@@ -37,9 +37,9 @@ object LieferungCounterCalculation {
 }
 
 class LieferungCounterCalculation(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BaseBatchJob
-    with AsyncConnectionPoolContextAware
-    with DefaultStammdatenWriteRepositoryComponent
-    with StammdatenDBMappings {
+  with AsyncConnectionPoolContextAware
+  with DefaultStammdatenWriteRepositoryComponent
+  with StammdatenDBMappings {
 
   override def process(): Unit = {
     DB autoCommit { implicit session =>

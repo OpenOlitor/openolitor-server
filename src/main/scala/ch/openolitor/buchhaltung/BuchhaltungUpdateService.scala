@@ -47,7 +47,7 @@ object BuchhaltungUpdateService {
 }
 
 class DefaultBuchhaltungUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends BuchhaltungUpdateService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+  extends BuchhaltungUpdateService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
