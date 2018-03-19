@@ -154,7 +154,7 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
 
     override def updateParameters(entity: ZahlungsExport) = {
       super.updateParameters(entity) ++ Seq(
-        column.file -> entity.file,
+        column.fileName -> entity.fileName,
         column.rechnungen -> entity.rechnungen
       )
     }

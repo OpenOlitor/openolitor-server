@@ -38,8 +38,8 @@ object OO_sunu_14_new_zahlung_export_table {
       sql"""
 CREATE TABLE `ZahlungsExport` (
   `id` bigint(20) NOT NULL,
-  `file` text,
-  `rechnungen` varchar(2000),
+  `file_name` varchar(100),
+  `rechnungen` varchar(10000),
   `erstelldat` datetime NOT NULL,
   `ersteller` bigint(20) NOT NULL,
   `modifidat` datetime NOT NULL,
