@@ -28,7 +28,7 @@ case object GeneriertBucket extends FileStoreBucket
 case object StammdatenBucket extends FileStoreBucket
 case object ZahlungsImportBucket extends FileStoreBucket
 case object RechnungExportBucket extends FileStoreBucket
-case object ZahlungExportBucket extends FileStoreBucket
+case object ZahlungsExportBucket extends FileStoreBucket
 case object TemporaryDataBucket extends FileStoreBucket
 case object MailTemplateBucket extends FileStoreBucket
 
