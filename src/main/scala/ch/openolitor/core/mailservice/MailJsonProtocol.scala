@@ -23,9 +23,6 @@
 package ch.openolitor.core.mailservice
 
 import ch.openolitor.core.BaseJsonProtocol
-import spray.json._
-import spray.json.DefaultJsonProtocol
-import ch.openolitor.core.JSONSerializable
 
 trait MailJsonProtocol extends BaseJsonProtocol {
   implicit val mailFormat = jsonFormat6(Mail)

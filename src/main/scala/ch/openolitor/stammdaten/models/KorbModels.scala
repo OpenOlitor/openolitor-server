@@ -24,7 +24,6 @@ package ch.openolitor.stammdaten.models
 
 import org.joda.time.DateTime
 import ch.openolitor.core.models._
-import java.util.UUID
 import ch.openolitor.core.JSONSerializable
 
 sealed trait KorbStatus
@@ -131,7 +130,8 @@ case class KorbModify(
 ) extends JSONSerializable
 
 case class KorbAuslieferungModify(
-  auslieferungId: AuslieferungId
+  auslieferungId: AuslieferungId,
+  sort: Option[Int]
 ) extends JSONSerializable
 
 case class KorbCreate(

@@ -29,22 +29,14 @@ import ch.openolitor.core.filestore._
 import ch.openolitor.core.reporting.ReportSystem._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import java.util.UUID
-import ch.openolitor.util.ByteBufferBackedInputStream
-import akka.pattern.ask
 import spray.json.JsonFormat
 import ch.openolitor.core.JSONSerializable
 import com.typesafe.scalalogging.LazyLogging
-import scala.util.{ Try, Success => TrySuccess, Failure => TryFailure }
-import ch.openolitor.util.ByteStringUtil
-import akka.actor.ActorRef
-import akka.util.Timeout
-import scala.concurrent.duration._
+import scala.util.{ Success => TrySuccess, Failure => TryFailure }
 import ch.openolitor.util.InputStreamUtil._
 import java.util.Locale
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models.ProjektVorlageId
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsync
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import spray.json._
@@ -150,10 +142,10 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
 
   def loadBerichtsvorlage(vorlage: BerichtsVorlage, fileType: FileType, id: Option[String]): ServiceResult[Array[Byte]] = {
     vorlage match {
-      case EinzelBerichtsVorlage(file) => EitherT { Future { file.right } }
-      case StandardBerichtsVorlage => resolveStandardBerichtsVorlage(fileType, id)
+      case EinzelBerichtsVorlage(file)       => EitherT { Future { file.right } }
+      case StandardBerichtsVorlage           => resolveStandardBerichtsVorlage(fileType, id)
       case ProjektBerichtsVorlage(vorlageId) => resolveProjektBerichtsVorlage(fileType, vorlageId)
-      case _ => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
+      case _                                 => EitherT { Future { ServiceFailed(s"Berichtsvorlage nicht unterstützt").left } }
     }
   }
 
@@ -189,7 +181,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
       case Left(e) => ServiceFailed(s"Vorlage konnte im FileStore nicht gefunden werden: $fileType, $id").left
       case Right(file) => file.file.toByteArray match {
         case TrySuccess(result) => result.right
-        case TryFailure(error) => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
+        case TryFailure(error)  => ServiceFailed(s"Vorlage konnte im FileStore nicht geladen: $error").left
       }
     }
   }

@@ -37,7 +37,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getAbosByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Abo]
   def getAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Abo]
   def getZusatzAbos(hauptAboId: AboId)(implicit session: DBSession): List[ZusatzAbo]
-  def getHauptAbo(id: AboId)(implicit session: DBSession): Option[Abo]
+  def getHauptAbo(id: AboId)(implicit session: DBSession): Option[HauptAbo]
   def getExistingZusatzAbotypen(lieferungId: LieferungId)(implicit session: DBSession): List[ZusatzAbotyp]
   def getAbotypById(id: AbotypId)(implicit session: DBSession): Option[IAbotyp]
 
@@ -51,6 +51,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz]
 
   def getLatestLieferplanung(implicit session: DBSession): Option[Lieferplanung]
+  def getOpenLieferplanung(implicit session: DBSession): List[Lieferplanung]
   def getLieferungenNext()(implicit session: DBSession): List[Lieferung]
   def getLastGeplanteLieferung(abotypId: AbotypId)(implicit session: DBSession): Option[Lieferung]
   def getLieferplanung(id: LieferplanungId)(implicit session: DBSession): Option[Lieferplanung]
@@ -86,12 +87,15 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int]
   def getSammelbestellungen(id: LieferplanungId)(implicit session: DBSession): List[Sammelbestellung]
   def getSammelbestellungen(id: LieferungId)(implicit session: DBSession): List[Sammelbestellung]
+  def getSammelbestellungenByProduzent(produzent: ProduzentId, lieferplanungId: LieferplanungId)(implicit session: DBSession): List[Sammelbestellung]
   def getBestellung(id: SammelbestellungId, adminProzente: BigDecimal)(implicit session: DBSession): Option[Bestellung]
   def getBestellungen(id: SammelbestellungId)(implicit session: DBSession): List[Bestellung]
   def getBestellpositionen(id: BestellungId)(implicit session: DBSession): List[Bestellposition]
   def getBestellpositionenBySammelbestellung(id: SammelbestellungId)(implicit session: DBSession): List[Bestellposition]
   def getVertriebsarten(vertriebId: VertriebId)(implicit session: DBSession): List[VertriebsartDetail]
   def getVertrieb(vertriebId: VertriebId)(implicit session: DBSession): Option[Vertrieb]
+  def getVertriebe(abotypId: AbotypId)(implicit session: DBSession): List[VertriebVertriebsarten]
+  def getVertriebByDate(datum: DateTime)(implicit session: DBSession): List[Vertrieb]
   def getKundeDetail(kundeId: KundeId)(implicit session: DBSession): Option[KundeDetail]
   def getLieferungenOffenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung]
 
@@ -170,7 +174,7 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getZusatzAbosQuery(hauptAboId).apply()
   }
 
-  def getHauptAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
+  def getHauptAbo(id: AboId)(implicit session: DBSession): Option[HauptAbo] = {
     val hauptAboId = getZusatzAboDetail(id).get.hauptAboId
     getById(depotlieferungAboMapping, hauptAboId) orElse getById(heimlieferungAboMapping, hauptAboId) orElse getById(postlieferungAboMapping, hauptAboId)
   }
@@ -250,6 +254,10 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getLatestLieferplanungQuery.apply()
   }
 
+  def getOpenLieferplanung(implicit session: DBSession): List[Lieferplanung] = {
+    getOpenLieferplanungQuery.apply()
+  }
+
   def getLieferung(id: AbwesenheitId)(implicit session: DBSession): Option[Lieferung] = {
     getLieferungQuery(id).apply()
   }
@@ -323,7 +331,7 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
   }
 
   def getKoerbe(datum: DateTime, vertriebsartId: VertriebsartId, status: KorbStatus)(implicit session: DBSession): List[Korb] = {
-    getKoerbeQuery(datum, vertriebsartId, status).apply()
+    getKoerbeQuery(datum, vertriebsartId :: Nil, status).apply()
   }
 
   def getKoerbe(datum: DateTime, vertriebsartIds: List[VertriebsartId], status: KorbStatus)(implicit session: DBSession): List[Korb] = {
@@ -409,6 +417,9 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getSammelbestellungenQuery(id)()
   }
 
+  def getSammelbestellungenByProduzent(produzent: ProduzentId, lieferplanungId: LieferplanungId)(implicit session: DBSession): List[Sammelbestellung] = {
+    getSammelbestellungenByProduzentQuery(produzent, lieferplanungId)()
+  }
   def getBestellung(id: SammelbestellungId, adminProzente: BigDecimal)(implicit session: DBSession): Option[Bestellung] = {
     getBestellungQuery(id, adminProzente)()
   }
@@ -435,6 +446,14 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getVertrieb(vertriebId: VertriebId)(implicit session: DBSession): Option[Vertrieb] = {
     getVertriebQuery(vertriebId).apply()
+  }
+
+  def getVertriebByDate(datum: DateTime)(implicit session: DBSession): List[Vertrieb] = {
+    getVertriebByDateQuery(datum).apply()
+  }
+
+  def getVertriebe(abotypId: AbotypId)(implicit session: DBSession): List[VertriebVertriebsarten] = {
+    getVertriebeQuery(abotypId).apply()
   }
 
   def getDepotlieferung(vertriebId: VertriebId)(implicit session: DBSession): List[DepotlieferungDetail] = {

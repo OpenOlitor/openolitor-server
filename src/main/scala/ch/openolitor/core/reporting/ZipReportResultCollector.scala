@@ -24,15 +24,11 @@ package ch.openolitor.core.reporting
 
 import akka.actor._
 import ch.openolitor.core.reporting.ReportSystem._
-import java.io.ByteArrayOutputStream
 import scala.util._
 import ch.openolitor.util.ZipBuilder
-import ch.openolitor.core.jobs.JobQueueService
 import spray.http.MediaTypes
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
-import java.io.File
-import java.io.FileOutputStream
 import ch.openolitor.util.ZipBuilderWithFile
 
 object ZipReportResultCollector {

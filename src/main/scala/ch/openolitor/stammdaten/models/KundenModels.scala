@@ -22,13 +22,9 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import java.util.UUID
 import ch.openolitor.core.models._
-import java.util.Date
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple24
-import scala.collection.immutable.TreeMap
 import ch.openolitor.core.scalax.Tuple25
 import ch.openolitor.arbeitseinsatz.models._
 
@@ -118,9 +114,9 @@ trait IKundeReport extends IKunde {
   lazy val telefonNummern: String = (personen map { p =>
     (p.telefonMobil :: p.telefonFestnetz :: Nil).map {
       _ match {
-        case Some("") => None
+        case Some("")                        => None
         case Some(text) if text.trim.isEmpty => None
-        case entry => entry
+        case entry                           => entry
       }
     }.flatten.mkString(" / ")
   }).mkString(" / ")
@@ -367,30 +363,30 @@ object Rolle {
 }
 
 case class Person(
-    id: PersonId,
-    kundeId: KundeId,
-    anrede: Option[Anrede],
-    name: String,
-    vorname: String,
-    email: Option[String],
-    emailAlternative: Option[String],
-    telefonMobil: Option[String],
-    telefonFestnetz: Option[String],
-    bemerkungen: Option[String],
-    sort: Int,
-    // security data
-    loginAktiv: Boolean,
-    passwort: Option[Array[Char]],
-    letzteAnmeldung: Option[DateTime],
-    passwortWechselErforderlich: Boolean,
-    rolle: Option[Rolle],
-    // modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String],
+  sort: Int,
+  // security data
+  loginAktiv: Boolean,
+  passwort: Option[Array[Char]],
+  letzteAnmeldung: Option[DateTime],
+  passwortWechselErforderlich: Boolean,
+  rolle: Option[Rolle],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends BaseEntity[PersonId] {
-  def fullName = vorname + ' ' + name
+  def fullName = name + ' ' + vorname
 }
 
 case class PersonDetail(
@@ -458,32 +454,32 @@ case class PersonUebersicht(
 case class KundeSummary(id: KundeId, kunde: String) extends Product
 
 case class PersonModify(
-    id: Option[PersonId],
-    anrede: Option[Anrede],
-    name: String,
-    vorname: String,
-    email: Option[String],
-    emailAlternative: Option[String],
-    telefonMobil: Option[String],
-    telefonFestnetz: Option[String],
-    bemerkungen: Option[String]
+  id: Option[PersonId],
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String]
 ) extends JSONSerializable {
-  def fullName = vorname + ' ' + name
+  def fullName = name + ' ' + vorname
 }
 
 case class PersonCreate(
-    kundeId: KundeId,
-    anrede: Option[Anrede],
-    name: String,
-    vorname: String,
-    email: Option[String],
-    emailAlternative: Option[String],
-    telefonMobil: Option[String],
-    telefonFestnetz: Option[String],
-    bemerkungen: Option[String],
-    sort: Int
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String],
+  sort: Int
 ) extends JSONSerializable {
-  def fullName = vorname + ' ' + name
+  def fullName = name + ' ' + vorname
 }
 
 sealed trait PendenzStatus
@@ -543,7 +539,7 @@ case class Einladung(
   modifidat: DateTime,
   modifikator: PersonId
 )
-    extends BaseEntity[EinladungId]
+  extends BaseEntity[EinladungId]
 
 case class EinladungCreate(
   id: EinladungId,

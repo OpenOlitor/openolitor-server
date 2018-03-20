@@ -22,15 +22,11 @@
 \*                                                                           */
 package ch.openolitor.helloworld
 
-import akka.actor.Actor
 import spray.routing._
-import spray.http._
 import spray.http.MediaTypes._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive.pimpApply
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 
 case class HelloWorld(message: String)
 

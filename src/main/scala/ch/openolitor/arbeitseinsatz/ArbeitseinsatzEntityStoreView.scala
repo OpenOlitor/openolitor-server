@@ -39,7 +39,7 @@ class DefaultArbeitseinsatzEntityStoreView(override val mailService: ActorRef, v
  * Zusammenfügen des Componenten (cake pattern) zu der persistentView
  */
 trait ArbeitseinsatzEntityStoreView extends EntityStoreView
-    with ArbeitseinsatzEntityStoreViewComponent with ConnectionPoolContextAware {
+  with ArbeitseinsatzEntityStoreViewComponent with ConnectionPoolContextAware {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
   override val module = "arbeitseinsatz"

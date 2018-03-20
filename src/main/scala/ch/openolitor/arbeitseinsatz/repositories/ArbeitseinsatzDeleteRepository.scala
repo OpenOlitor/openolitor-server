@@ -27,8 +27,8 @@ import ch.openolitor.core.repositories._
 import com.typesafe.scalalogging.LazyLogging
 
 trait ArbeitseinsatzDeleteRepository extends BaseDeleteRepository
-    with ArbeitseinsatzReadRepositorySync
-    with EventStream {
+  with ArbeitseinsatzReadRepositorySync
+  with EventStream {
 }
 
 trait ArbeitseinsatzDeleteRepositoryImpl extends ArbeitseinsatzDeleteRepository with LazyLogging {

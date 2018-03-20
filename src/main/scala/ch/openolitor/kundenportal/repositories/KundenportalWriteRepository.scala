@@ -44,19 +44,19 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
  * Synchronous Repository
  */
 trait KundenportalWriteRepository extends KundenportalReadRepositorySync
-    with KundenportalInsertRepository
-    with KundenportalUpdateRepository
-    with BaseWriteRepository
-    with EventStream {
+  with KundenportalInsertRepository
+  with KundenportalUpdateRepository
+  with BaseWriteRepository
+  with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
 trait KundenportalWriteRepositoryImpl extends KundenportalReadRepositorySyncImpl
-    with KundenportalInsertRepositoryImpl
-    with KundenportalUpdateRepositoryImpl
-    with KundenportalWriteRepository
-    with LazyLogging
-    with KundenportalRepositoryQueries {
+  with KundenportalInsertRepositoryImpl
+  with KundenportalUpdateRepositoryImpl
+  with KundenportalWriteRepository
+  with LazyLogging
+  with KundenportalRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
 
   }

@@ -24,7 +24,6 @@ package ch.openolitor.core.repositories
 
 import scalikejdbc._
 import ch.openolitor.core.models.BaseId
-import java.util.UUID
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.models.PersonId
@@ -34,16 +33,15 @@ import java.util.Locale
 import ch.openolitor.core.models.BaseStringId
 
 trait DBMappings extends BaseParameter
-    with Parameters
-    with Parameters23
-    with Parameters24
-    with Parameters25
-    with Parameters26
-    with Parameters27
-    with Parameters28
-    with LowPriorityImplicitsParameterBinderFactory1 {
+  with Parameters
+  with Parameters23
+  with Parameters24
+  with Parameters25
+  with Parameters26
+  with Parameters27
+  with Parameters28
+  with LowPriorityImplicitsParameterBinderFactory1 {
   import Binders._
-  import ParameterBinderFactory._
 
   def baseIdBinders[T <: BaseId](f: Long => T): Binders[T] = Binders.long.xmap(l => f(l), _.id)
   def baseStringIdBinders[T <: BaseStringId](f: String => T): Binders[T] = Binders.string.xmap(l => f(l), _.id)
@@ -51,14 +49,24 @@ trait DBMappings extends BaseParameter
   def toStringBinder[V](f: String => V): Binders[V] = Binders.string.xmap(f(_), _.toString)
   def seqSqlBinder[V](f: String => V, g: V => String): Binders[Seq[V]] = Binders.string.xmap({
     Option(_) match {
-      case None => Seq()
-      case Some(x) => x.split(",") map (f)
+      case None => Seq() // TODO change all the seq fields to not null default ""
+      case Some(x) =>
+        if (x.isEmpty) {
+          Seq()
+        } else {
+          x.split(",") map (f) toSeq
+        }
     }
   }, { values => values map (g) mkString (",") })
   def setSqlBinder[V](f: String => V, g: V => String): Binders[Set[V]] = Binders.string.xmap({
     Option(_) match {
-      case None => Set()
-      case Some(x) => x.split(",") map (f) toSet
+      case None => Set() // TODO change all the seq fields to not null default ""
+      case Some(x) =>
+        if (x.isEmpty) {
+          Set()
+        } else {
+          x.split(",") map (f) toSet
+        }
     }
   }, { values => values map (g) mkString (",") })
   def seqBaseIdBinders[T <: BaseId](f: Long => T): Binders[Seq[T]] = seqSqlBinder[T](l => f(l.toLong), _.id.toString)
@@ -111,7 +119,6 @@ trait DBMappings extends BaseParameter
 
   // low level binders
   import TypeBinder._
-  import ParameterBinderFactory._
   implicit val stringBinder = Binders.string
   implicit val optionStringBinder = Binders.option[String]
   implicit val intBinder = Binders.int

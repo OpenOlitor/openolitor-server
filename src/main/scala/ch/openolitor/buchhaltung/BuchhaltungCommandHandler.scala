@@ -25,7 +25,8 @@ package ch.openolitor.buchhaltung
 import ch.openolitor.core.domain._
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.models._
-import ch.openolitor.stammdaten.models.{ KundeId, Kunde }
+import ch.openolitor.stammdaten.models.KundeId
+
 import scala.util._
 import scalikejdbc.DB
 import ch.openolitor.buchhaltung.models._
@@ -33,24 +34,13 @@ import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.filestore.FileStoreComponent
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.filestore.ZahlungsImportBucket
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
-import ch.openolitor.core.filestore.FileStoreComponent
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.filestore.FileStoreBucket
-import scala.io.Source
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
+
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportTotalRecord
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import scala.concurrent.Future
+
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
-import org.joda.time.DateTime
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
@@ -246,7 +236,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
                 rechnungsPositionen.map(_.betrag).sum,
                 rechnungsPositionenCreateRechnungen.rechnungsDatum,
                 rechnungsPositionenCreateRechnungen.faelligkeitsDatum,
-                Some(new DateTime),
+                Some(meta.timestamp),
                 kunde.strasse,
                 kunde.hausNummer,
                 kunde.adressZusatz,
@@ -255,12 +245,22 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
               )
             )
 
-            val assignRechnungsPositionen = rechnungsPositionen.zipWithIndex.map {
-              case (rp, idx) =>
-                EntityUpdateEvent(
-                  rp.id,
-                  RechnungsPositionAssignToRechnung(rechnungCreate.id, idx + 1)
-                )
+            // create an ordering of the form: parent sort 100, sub sort 101, 102, parent sort 200, subsort 201
+            val (zusatzabos, abos) = rechnungsPositionen sortBy (_.id.id) partition (_.parentRechnungsPositionId.isDefined)
+
+            val aboIds = abos map (_.id)
+            val zusatzabosByAbo: Map[RechnungsPositionId, Seq[RechnungsPositionId]] =
+              zusatzabos map (z => (z.id, z.parentRechnungsPositionId.get)) groupBy (_._2) mapValues (_ map (_._1))
+
+            val abosWithSort = Range(100, Int.MaxValue, 100) zip (aboIds)
+            val allAbosWithSort = abosWithSort.flatMap {
+              case (sort, aboId) =>
+                (sort, aboId) +: (Range(sort + 1, Int.MaxValue) zip (zusatzabosByAbo getOrElse (aboId, List())))
+            }
+
+            val assignRechnungsPositionen = allAbosWithSort.map {
+              case (sort, aboId) =>
+                rechnungsPositionAssignmentUpdateEvent(rechnungCreate.id, aboId, sort)
             }
 
             Seq(rechnungCreate) ++ assignRechnungsPositionen
@@ -299,8 +299,15 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
     case e @ InsertEntityCommand(personId, entity: RechnungCreateFromRechnungsPositionen) => idFactory => meta =>
       handleEntityInsert[RechnungCreateFromRechnungsPositionen, RechnungId](idFactory, meta, entity, RechnungId.apply)
   }
+
+  private def rechnungsPositionAssignmentUpdateEvent(rechnungId: RechnungId, rechnungsPositionId: RechnungsPositionId, index: Int) = {
+    EntityUpdateEvent(
+      rechnungsPositionId,
+      RechnungsPositionAssignToRechnung(rechnungId, index)
+    )
+  }
 }
 
 class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungCommandHandler
-    with DefaultBuchhaltungReadRepositorySyncComponent {
+  with DefaultBuchhaltungReadRepositorySyncComponent {
 }

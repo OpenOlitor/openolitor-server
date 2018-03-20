@@ -28,7 +28,6 @@ import ch.openolitor.core.repositories.CoreDBMappings
 import scala.util._
 import ch.openolitor.core.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.db.evolution.scripts.V1Scripts
 import ch.openolitor.util.IteratorUtil
 import org.joda.time.DateTime
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
@@ -38,13 +37,9 @@ import ch.openolitor.buchhaltung.models._
 import scala.reflect._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.reports.models._
 import ch.openolitor.reports.ReportsDBMappings
-import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.arbeitseinsatz.models._
-import akka.actor.ActorSystem
-import ch.openolitor.core.ActorSystemReference
 
 trait Script {
 
@@ -57,8 +52,7 @@ case class EvolutionException(msg: String) extends Exception
  * Base evolution class to evolve database from a specific revision to another
  */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
-    with BuchhaltungDBMappings with ReportsDBMappings with ArbeitseinsatzDBMappings {
-
+  with BuchhaltungDBMappings with ReportsDBMappings with ArbeitseinsatzDBMappings {
   import IteratorUtil._
 
   logger.debug(s"Evolution manager consists of:$scripts")
@@ -153,7 +147,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     val revision = if (currentDBRevision > 0) currentDBRevision else fromRevision
     logger.debug(s"evolveDatabase from ($currentDBRevision, $revision) to ${scripts.length}")
     scripts.takeRight(scripts.length - revision) match {
-      case Nil => Success(revision)
+      case Nil            => Success(revision)
       case scriptsToApply => evolve(scriptsToApply, revision)
     }
   }

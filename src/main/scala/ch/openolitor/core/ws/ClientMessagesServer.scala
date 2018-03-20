@@ -65,8 +65,6 @@ object ClientMessagesServer {
 }
 class ClientMessagesServer(loginTokenCache: Cache[Subject]) extends Actor with ActorLogging {
 
-  import ClientMessagesJsonProtocol._
-
   override def preStart() {
     super.preStart()
     //register ourself as listener to sendtoclient commands
@@ -86,7 +84,7 @@ class ClientMessagesServer(loginTokenCache: Cache[Subject]) extends Actor with A
       val conn = context.actorOf(ClientMessagesWorker.props(serverConnection, loginTokenCache))
       serverConnection ! Http.Register(conn)
     case SendToClient(senderPersonId, msg, Nil) =>
-      //broadcast to all      
+      //broadcast to all
       log.debug(s"Broadcast client message:$msg")
       context.children.map(c => c ! Push(Nil, msg))
     case SendToClient(senderPersonId, msg, receivers) =>

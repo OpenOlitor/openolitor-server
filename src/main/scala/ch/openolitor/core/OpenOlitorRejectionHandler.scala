@@ -25,8 +25,6 @@ package ch.openolitor.core
 import spray.routing._
 import spray.http._
 import spray.http.StatusCodes._
-import spray.http.ContentTypes._
-import spray.json.DefaultJsonProtocol._
 import Directives._
 import spray.httpx.SprayJsonSupport._
 import com.typesafe.scalalogging.LazyLogging

@@ -25,37 +25,24 @@ package ch.openolitor.reports
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import ch.openolitor.core.models._
-import ch.openolitor.reports._
-import ch.openolitor.reports.models._
-import java.util.UUID
-import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
-import ch.openolitor.core.Macros._
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.DateTime
-import ch.openolitor.core.Macros._
-import scala.concurrent.Future
 import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
-import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 
 object ReportsAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ReportsAktionenService = new DefaultReportsAktionenService(sysConfig, system)
 }
 
 class DefaultReportsAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends ReportsAktionenService(sysConfig) with DefaultReportsWriteRepositoryComponent {
+  extends ReportsAktionenService(sysConfig) with DefaultReportsWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Reports Modul
  */
 class ReportsAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-    with ReportsDBMappings {
+  with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
 
   val False = false
@@ -64,6 +51,6 @@ class ReportsAktionenService(override val sysConfig: SystemConfig) extends Event
   val handle: Handle = {
 
     case e =>
-      logger.warn(s"Unknown event:$e")
+    // unknown event
   }
 }

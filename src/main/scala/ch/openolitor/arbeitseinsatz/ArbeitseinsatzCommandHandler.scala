@@ -58,5 +58,5 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
 }
 
 class DefaultArbeitseinsatzCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends ArbeitseinsatzCommandHandler
-    with DefaultArbeitseinsatzWriteRepositoryComponent {
+  with DefaultArbeitseinsatzWriteRepositoryComponent {
 }

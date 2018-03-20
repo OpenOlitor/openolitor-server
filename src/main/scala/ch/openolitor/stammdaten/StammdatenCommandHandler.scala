@@ -39,7 +39,6 @@ import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import org.joda.time.DateTime
 import java.util.UUID
 import scalikejdbc.DBSession
-import ch.openolitor.util.IdUtil
 
 object StammdatenCommandHandler {
   case class LieferplanungAbschliessenCommand(originator: PersonId, id: LieferplanungId) extends UserCommand
@@ -86,7 +85,9 @@ object StammdatenCommandHandler {
   case class AboDeaktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
 }
 
-trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware with LieferungDurchschnittspreisHandler {
+trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
+  with LieferungDurchschnittspreisHandler {
+
   self: StammdatenReadRepositorySyncComponent =>
   import StammdatenCommandHandler._
   import EntityStore._
@@ -124,8 +125,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
                   val lpAbschliessenEvent = DefaultResultingEvent(factory => LieferplanungAbschliessenEvent(factory.newMetadata(), id))
 
-                  val createAuslieferungHeimEvent = getCreateAuslieferungHeimEvent(idFactory, lieferplanung)(personId, session)
-                  val createAuslieferungDepotPostEvent = getCreateDepotAuslieferungAndPostAusliferungEvent(idFactory, lieferplanung)(personId, session)
+                  val createAuslieferungHeimEvent = getCreateAuslieferungHeimEvent(idFactory, meta, lieferplanung)(personId, session)
+                  val createAuslieferungDepotPostEvent = getCreateDepotAuslieferungAndPostAusliferungEvent(idFactory, meta, lieferplanung)(personId, session)
                   Success(lpAbschliessenEvent +: bestellEvents ++: createAuslieferungHeimEvent ++: createAuslieferungDepotPostEvent)
                 case _ =>
                   Failure(new InvalidStateException("Es dürfen keine früheren Lieferungen in offnen Lieferplanungen hängig sein."))
@@ -141,6 +142,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         stammdatenReadRepository.getById(lieferplanungMapping, lieferplanungPositionenModify.id) map { lieferplanung =>
           lieferplanung.status match {
             case state @ (Offen | Abgeschlossen) =>
+
               val missingSammelbestellungen = if (state == Abgeschlossen) {
                 // get existing sammelbestellungen
                 val existingSammelbestellungen = (stammdatenReadRepository.getSammelbestellungen(lieferplanungPositionenModify.id) map { sammelbestellung =>
@@ -150,11 +152,25 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
                 // get distinct sammelbestellungen by lieferplanung
                 val distinctSammelbestellungen = getDistinctSammelbestellungModifyByLieferplan(lieferplanung.id)
 
+                // in case a sammelbestellung needs to be created from one of the new lieferpositions, this needs to be extracted
+                // and added to the set of new sammelbestellungen
+                val newSammelbestellungen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPosition =>
+                  lieferungPosition.lieferpositionen.lieferpositionen flatMap { lieferposition =>
+                    stammdatenReadRepository.getById(lieferungMapping, lieferposition.lieferungId) flatMap { lieferung =>
+                      stammdatenReadRepository.getSammelbestellungenByProduzent(lieferposition.produzentId, lieferplanung.id) match {
+                        case Nil =>
+                          Option(SammelbestellungCreate(idFactory.newId(SammelbestellungId.apply), lieferposition.produzentId, lieferplanung.id, lieferung.datum))
+                        case _ => None
+                      }
+                    }
+                  }
+                }
+
                 // evaluate which sammelbestellungen are missing and have to be inserted
                 // they will be used in handleLieferungChanged afterwards
-                (distinctSammelbestellungen -- existingSammelbestellungen).map { s =>
+                ((distinctSammelbestellungen -- existingSammelbestellungen).map { s =>
                   SammelbestellungCreate(idFactory.newId(SammelbestellungId.apply), s.produzentId, s.lieferplanungId, s.datum)
-                }.toSeq
+                } ++ newSammelbestellungen).toSeq
               } else {
                 Nil
               }
@@ -462,20 +478,17 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             // has to be refactored as soon as more modes are available
             val anzahlLieferungen = aboRechnungCreate.anzahlLieferungen
             if (anzahlLieferungen > 0) {
-              val betrag = aboRechnungCreate.betrag.getOrElse(abotyp.preis * anzahlLieferungen)
+              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abotyp.preis * anzahlLieferungen)
 
-              val rechnungsPosition = RechnungsPositionCreate(
-                abo.kundeId,
-                Some(abo.id),
-                aboRechnungCreate.titel,
-                Some(anzahlLieferungen),
-                betrag,
-                aboRechnungCreate.waehrung,
-                RechnungsPositionStatus.Offen,
-                RechnungsPositionTyp.Abo
-              )
+              val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
+              val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
 
-              Success(insertEntityEvent(idFactory, meta, rechnungsPosition, RechnungsPositionId.apply))
+              val zusatzRechnungPositionEventList = createRechnungPositionForZusatzabos(idFactory, abo, aboRechnungCreate.titel, anzahlLieferungen, Some(parentRechnungPositionId), aboRechnungCreate.waehrung)
+
+              val result = (zusatzRechnungPositionEventList :+ EntityInsertEvent(parentRechnungPositionId, hauptRechnungPosition))
+
+              Success(result)
+
             } else {
               Failure(new InvalidStateException(s"Für das Abo mit der Id ${abo.id} wurde keine RechnungsPositionen erstellt. Anzahl Lieferungen 0"))
             }
@@ -485,9 +498,35 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       if (events.isEmpty) {
         Failure(new InvalidStateException(s"Keine der RechnungsPositionen konnte erstellt werden"))
       } else {
-        Success(events map (_.get))
+        Success(events flatMap (_.get))
       }
     }
+  }
+
+  private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung): Seq[ResultingEvent] = {
+    DB readOnly { implicit session =>
+      val zusatzabos = stammdatenReadRepository.getZusatzAbos(hauptAbo.id)
+      for (zusatzabo <- zusatzabos) yield {
+        val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
+        val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
+        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabosTyp.get.preis, waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
+        EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
+      }
+    }
+  }
+
+  private def createRechnungPositionEvent(abo: Abo, titel: String, anzahlLieferungen: Int, betrag: BigDecimal, waehrung: Waehrung, parentRechnungsPositionId: Option[RechnungsPositionId] = None, rechnungsPositionTyp: RechnungsPositionTyp.RechnungsPositionTyp = RechnungsPositionTyp.Abo): RechnungsPositionCreate = {
+    RechnungsPositionCreate(
+      abo.kundeId,
+      Some(abo.id),
+      parentRechnungsPositionId,
+      titel,
+      Some(anzahlLieferungen),
+      betrag,
+      waehrung,
+      RechnungsPositionStatus.Offen,
+      RechnungsPositionTyp(rechnungsPositionTyp.toString)
+    )
   }
 
   def createAboRechnungsPositionenBisGuthaben(idFactory: IdFactory, meta: EventTransactionMetadata, aboRechnungCreate: AboRechnungsPositionBisGuthabenCreate) = {
@@ -510,23 +549,25 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             Failure(new InvalidStateException(s"Für den Abotyp dieses Abos (${abo.id}) kann keine Guthabenrechngsposition erstellt werden"))
           } else {
             // has to be refactored as soon as more modes are available
-            val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - abo.guthaben), 0)
+            val guthaben = abo match {
+              case zusatzAbo: ZusatzAbo =>
+                val hauptabo = stammdatenReadRepository.getHauptAbo(zusatzAbo.id)
+                hauptabo.get.guthaben
+              case abo: HauptAbo => abo.guthaben
+            }
+            val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - guthaben), 0)
 
             if (anzahlLieferungen > 0) {
-              val betrag = abotyp.preis * anzahlLieferungen
+              val hauptAboBetrag = abotyp.preis * anzahlLieferungen
 
-              val rechnungsPosition = RechnungsPositionCreate(
-                abo.kundeId,
-                Some(abo.id),
-                aboRechnungCreate.titel,
-                Some(anzahlLieferungen),
-                betrag,
-                aboRechnungCreate.waehrung,
-                RechnungsPositionStatus.Offen,
-                RechnungsPositionTyp.Abo
-              )
+              val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
+              val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
 
-              Success(insertEntityEvent(idFactory, meta, rechnungsPosition, RechnungsPositionId.apply))
+              val zusatzRechnungPositionEventList = createRechnungPositionForZusatzabos(idFactory, abo, aboRechnungCreate.titel, anzahlLieferungen, Some(parentRechnungPositionId), aboRechnungCreate.waehrung)
+
+              val result = (zusatzRechnungPositionEventList :+ EntityInsertEvent(parentRechnungPositionId, hauptRechnungPosition))
+
+              Success(result)
             } else {
               Failure(new InvalidStateException(s"Für das Abo mit der Id ${abo.id} wurde keine Rechnungsposition erstellt. Anzahl Lieferungen 0"))
             }
@@ -534,9 +575,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       } partition (_.isSuccess)
 
       if (events.isEmpty) {
-        Failure(new InvalidStateException(s"Keine der Rechnungspositionen konnte erstellt werden"))
+        Failure(new InvalidStateException(s"Keine der RechnungsPositionen konnte erstellt werden"))
       } else {
-        Success(events map (_.get))
+        Success(events flatMap (_.get))
       }
     }
   }
@@ -599,7 +640,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     }
   }
 
-  private def getCreateAuslieferungHeimEvent(idFactory: IdFactory, lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): Seq[ResultingEvent] = {
+  private def getCreateAuslieferungHeimEvent(idFactory: IdFactory, meta: EventTransactionMetadata, lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): Seq[ResultingEvent] = {
     val lieferungen = stammdatenReadRepository.getLieferungen(lieferplanung.id)
 
     //handle Tourenlieferungen: Group all entries with the same TourId on the same Date
@@ -618,9 +659,11 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (!isAuslieferungExistingHeim(lieferdatum, tourId)) {
           val koerbe = stammdatenReadRepository.getKoerbe(lieferdatum, vertriebsartIds, WirdGeliefert)
           if (!koerbe.isEmpty) {
-            val tourAuslieferung = createTourAuslieferungHeim(idFactory, lieferdatum, tourId, tourName, koerbe.size)
+            val tourlieferungen = stammdatenReadRepository.getTourlieferungen(tourId)
+            val tourAuslieferung = createTourAuslieferungHeim(idFactory, meta, lieferdatum, tourId, tourName, countHauptAbos(koerbe))
             val updates = koerbe map { korb =>
-              EntityUpdateEvent(korb.id, KorbAuslieferungModify(tourAuslieferung.id))
+              // also update the sort of the korb according to the settings made in tour detail
+              EntityUpdateEvent(korb.id, KorbAuslieferungModify(tourAuslieferung.id, tourlieferungen find (_.id == korb.aboId) flatMap (_.sort)))
             }
             EntityInsertEvent(tourAuslieferung.id, tourAuslieferung) :: updates
           } else { Nil }
@@ -629,53 +672,117 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     }).toSeq
   }
 
-  private def getCreateDepotAuslieferungAndPostAusliferungEvent(idFactory: IdFactory, lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): Seq[ResultingEvent] = {
+  private def countHauptAbos(koerbe: List[Korb])(implicit personId: PersonId, session: DBSession): Int = {
+    val hauptAboKoerbe = koerbe map { korb =>
+      stammdatenReadRepository.getAbo(korb.aboId) match {
+        case Some(abo: ZusatzAbo) => None
+        case None                 => None
+        case _                    => Some(korb)
+      }
+    }
+    hauptAboKoerbe.flatten.size
+  }
 
+  private def getCreateDepotAuslieferungAndPostAusliferungEvent(idFactory: IdFactory, meta: EventTransactionMetadata, lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): Seq[ResultingEvent] = {
     val lieferungen = stammdatenReadRepository.getLieferungen(lieferplanung.id)
 
-    val updates1 = handleLieferplanungAbgeschlossen(idFactory, lieferungen)
+    val updates1 = handleLieferplanungAbgeschlossen(idFactory, meta, lieferungen)
     val updates2 = recalculateValuesForLieferplanungAbgeschlossen(lieferungen)
     val updates3 = updateSammelbestellungStatus(lieferungen, lieferplanung)
+
     updates1 ::: updates2 ::: updates3
   }
 
-  private def handleLieferplanungAbgeschlossen(idFactory: IdFactory, lieferungen: List[Lieferung])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
-
+  private def handleLieferplanungAbgeschlossen(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungen: List[Lieferung])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     //handle Depot- and Postlieferungen: Group all entries with the same VertriebId on the same Date
     val vertriebeDaten = lieferungen.map(l => (l.vertriebId, l.datum)).distinct
-    (vertriebeDaten map {
+    getDepotAuslieferungEvents(idFactory, meta, getDepotAuslieferungAsAMapGrouped(vertriebeDaten)) :::
+      getPostAuslieferungEvents(idFactory, meta, getPostAuslieferungAsAMapGrouped(vertriebeDaten))
+  }
+
+  private def getDepotAuslieferungAsAMapGrouped(vertriebeDaten: List[(VertriebId, DateTime)])(implicit personId: PersonId, session: DBSession): Map[(DepotId, DateTime), List[DepotlieferungDetail]] = {
+    val depotAuslieferungMap = (vertriebeDaten map {
       case (vertriebId, lieferungDatum) => {
-        logger.debug(s"handleLieferplanungAbgeschlossen (Depot & Post): ${vertriebId}:${lieferungDatum}.")
-        //create auslieferungen
-        val auslieferungL = stammdatenReadRepository.getVertriebsarten(vertriebId) map { vertriebsart =>
-          getAuslieferungDepotPost(lieferungDatum, vertriebsart) match {
-            case None => {
-              logger.debug(s"createNewAuslieferung for: ${lieferungDatum}:${vertriebsart}.")
-              val koerbe = stammdatenReadRepository.getKoerbe(lieferungDatum, vertriebsart.id, WirdGeliefert)
-              if (!koerbe.isEmpty) {
-                createAuslieferungDepotPost(idFactory, lieferungDatum, vertriebsart, koerbe.size) map { newAuslieferung =>
-                  val updates = koerbe map {
-                    korb =>
-                      EntityUpdateEvent(korb.id, KorbAuslieferungModify(newAuslieferung.id))
-                  }
-                  EntityInsertEvent(newAuslieferung.id, newAuslieferung) :: updates
-                } getOrElse (Nil)
-              } else {
-                Nil
-              }
-            }
-            case Some(auslieferung) => {
-              val koerbe = stammdatenReadRepository.getKoerbe(lieferungDatum, vertriebsart.id, WirdGeliefert)
-              koerbe map {
-                korb =>
-                  EntityUpdateEvent(korb.id, KorbAuslieferungModify(auslieferung.id))
-              }
-            }
-          }
+        logger.debug(s"handleLieferplanungAbgeschlossen Depot: ${vertriebId}:${lieferungDatum}.")
+        val auslieferungL = stammdatenReadRepository.getVertriebsarten(vertriebId)
+        val auslieferungLOnlyActiveAbos = auslieferungL.filter(_.anzahlAbosAktiv > 0)
+        auslieferungLOnlyActiveAbos.collect {
+          case d: DepotlieferungDetail => (lieferungDatum, d)
         }
-        auslieferungL.flatten
       }
     }).flatten
+
+    depotAuslieferungMap.groupBy(l => (l._2.depotId, l._1)) map { depotAuslieferung =>
+      depotAuslieferung._1 -> depotAuslieferung._2.map(_._2)
+    }
+  }
+
+  private def getDepotAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, depotAuslieferungGroupedMap: Map[(DepotId, DateTime), List[DepotlieferungDetail]])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
+    val events = for {
+      ((depotId, date), listDepotLieferungDetail) <- depotAuslieferungGroupedMap
+    } yield {
+      getPostAndDepotAuslieferungEvents(idFactory, meta, date, listDepotLieferungDetail)
+    }
+    events.flatten.toList
+  }
+
+  private def getPostAuslieferungAsAMapGrouped(vertriebeDaten: List[(VertriebId, DateTime)])(implicit personId: PersonId, session: DBSession): Map[DateTime, List[PostlieferungDetail]] = {
+    val postAuslieferungMap = (vertriebeDaten map {
+      case (vertriebId, lieferungDatum) => {
+        logger.debug(s"handleLieferplanungAbgeschlossen (Post): ${vertriebId}:${lieferungDatum}.")
+        //create auslieferungen
+        val auslieferungL = stammdatenReadRepository.getVertriebsarten(vertriebId)
+        val auslieferungLOnlyActiveAbos = auslieferungL.filter(_.anzahlAbosAktiv > 0)
+        auslieferungLOnlyActiveAbos.collect {
+          case d: PostlieferungDetail => (lieferungDatum, d)
+        }
+      }
+    }).flatten
+
+    postAuslieferungMap.groupBy(l => (l._1)) map { postAuslieferung =>
+      postAuslieferung._1 -> postAuslieferung._2.map(_._2)
+    }
+  }
+
+  private def getPostAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, postAuslieferungGroupedMap: Map[DateTime, List[PostlieferungDetail]])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
+    val events = for {
+      (date, listPostLieferungDetail) <- postAuslieferungGroupedMap
+    } yield {
+      getPostAndDepotAuslieferungEvents(idFactory: IdFactory, meta, date, listPostLieferungDetail)
+    }
+    events.flatten.toList
+  }
+
+  private def getPostAndDepotAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, date: DateTime, listVertriebsartDetail: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
+    val koerbe = getAllKoerbeForDepotOrPost(date, listVertriebsartDetail)
+    val newAuslieferung = createAuslieferungDepotPost(idFactory, meta, date, listVertriebsartDetail.head, countHauptAbos(koerbe)).get
+    (for { vertriebsartDetail <- listVertriebsartDetail } yield {
+      val koerbe = stammdatenReadRepository.getKoerbe(date, vertriebsartDetail.id, WirdGeliefert)
+      if (vertriebsartDetail == listVertriebsartDetail.head) {
+        if (!koerbe.isEmpty) {
+          val updates = koerbe map {
+            logger.debug(s"update Auslieferung for : ${date}:${vertriebsartDetail.id}.")
+            korb => EntityUpdateEvent(korb.id, KorbAuslieferungModify(newAuslieferung.id, None))
+          }
+          logger.debug(s"createNewAuslieferung for: ${date}:${vertriebsartDetail.id}.")
+          EntityInsertEvent(newAuslieferung.id, newAuslieferung) :: updates
+        } else {
+          Nil
+        }
+      } else {
+        koerbe map {
+          logger.debug(s"Auslieferugn already created; update Auslieferung for : ${date}:${vertriebsartDetail.id}.")
+          korb => EntityUpdateEvent(korb.id, KorbAuslieferungModify(newAuslieferung.id, None))
+        }
+      }
+    }).flatten
+  }
+
+  private def getAllKoerbeForDepotOrPost(date: DateTime, vertriebsartDetailList: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession): List[Korb] = {
+    val koerbe = vertriebsartDetailList map { vertriebsartDetail =>
+      stammdatenReadRepository.getKoerbe(date, vertriebsartDetail.id, WirdGeliefert)
+    }
+    koerbe.flatten
   }
 
   private def recalculateValuesForLieferplanungAbgeschlossen(lieferungen: List[Lieferung])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
@@ -721,7 +828,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     }).filter(_.nonEmpty).flatten
   }
 
-  private def createAuslieferungDepotPost(idFactory: IdFactory, lieferungDatum: DateTime, vertriebsart: VertriebsartDetail, anzahlKoerbe: Int)(implicit personId: PersonId): Option[Auslieferung] = {
+  private def createAuslieferungDepotPost(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungDatum: DateTime, vertriebsart: VertriebsartDetail, anzahlKoerbe: Int)(implicit personId: PersonId): Option[Auslieferung] = {
     val auslieferungId = idFactory.newId(AuslieferungId.apply)
 
     vertriebsart match {
@@ -733,9 +840,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           d.depot.name,
           lieferungDatum,
           anzahlKoerbe,
-          DateTime.now,
+          meta.timestamp,
           personId,
-          DateTime.now,
+          meta.timestamp,
           personId
         )
         Some(result)
@@ -746,9 +853,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           Erfasst,
           lieferungDatum,
           anzahlKoerbe,
-          DateTime.now,
+          meta.timestamp,
           personId,
-          DateTime.now,
+          meta.timestamp,
           personId
         )
         Some(result)
@@ -773,7 +880,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     stammdatenReadRepository.getTourAuslieferung(tourId, datum).isDefined
   }
 
-  private def createTourAuslieferungHeim(idFactory: IdFactory, lieferungDatum: DateTime, tourId: TourId, tourName: String, anzahlKoerbe: Int)(implicit personId: PersonId): TourAuslieferung = {
+  private def createTourAuslieferungHeim(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungDatum: DateTime, tourId: TourId, tourName: String, anzahlKoerbe: Int)(implicit personId: PersonId): TourAuslieferung = {
     val auslieferungId = idFactory.newId(AuslieferungId.apply)
     TourAuslieferung(
       auslieferungId,
@@ -782,9 +889,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       tourName,
       lieferungDatum,
       anzahlKoerbe,
-      DateTime.now,
+      meta.timestamp,
       personId,
-      DateTime.now,
+      meta.timestamp,
       personId
     )
   }
@@ -799,5 +906,5 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 }
 
 class DefaultStammdatenCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenCommandHandler
-    with DefaultStammdatenReadRepositorySyncComponent {
+  with DefaultStammdatenReadRepositorySyncComponent {
 }

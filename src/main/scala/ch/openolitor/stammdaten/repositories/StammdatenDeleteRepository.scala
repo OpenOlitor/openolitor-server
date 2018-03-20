@@ -22,20 +22,16 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
-import ch.openolitor.core.models._
 import scalikejdbc._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models._
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import akka.actor.ActorSystem
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.AkkaEventStream
 import ch.openolitor.core.EventStream
 
 trait StammdatenDeleteRepository extends BaseDeleteRepository with EventStream {
   def deleteLieferpositionen(id: LieferungId)(implicit session: DBSession): Int
   def deleteKoerbe(id: LieferungId)(implicit session: DBSession): Int
+  def deleteZusatzAbos(hauptAboId: AboId)(implicit session: DBSession): Int
 }
 
 trait StammdatenDeleteRepositoryImpl extends StammdatenDeleteRepository with LazyLogging with StammdatenRepositoryQueries {
@@ -45,5 +41,9 @@ trait StammdatenDeleteRepositoryImpl extends StammdatenDeleteRepository with Laz
 
   def deleteKoerbe(id: LieferungId)(implicit session: DBSession): Int = {
     deleteKoerbeQuery(id).update.apply
+  }
+
+  def deleteZusatzAbos(hauptAboId: AboId)(implicit session: DBSession): Int = {
+    deleteZusatzAbosQuery(hauptAboId).update.apply
   }
 }

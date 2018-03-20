@@ -31,9 +31,6 @@ import scala.util.Try
 import scala.util.Success
 import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
 import ch.openolitor.core.NoPublishEventStream
-import ch.openolitor.stammdaten.models.Abwesenheit
-import scala.collection.immutable.TreeMap
-import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
@@ -43,6 +40,7 @@ object RecalculateAnzahlAbwesenheitenLieferung {
 
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       // recalculate abwesenheiten
+      sql"""update Lieferung set anzahl_abwesenheiten = 0""".execute.apply()
 
       val abw = abwesenheitMapping.syntax("abw")
       implicit val personId = Boot.systemPersonId

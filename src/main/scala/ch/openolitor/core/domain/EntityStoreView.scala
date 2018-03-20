@@ -26,18 +26,10 @@ import akka.persistence.PersistentView
 import akka.actor._
 import scala.concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
-import ch.openolitor._
-import ch.openolitor.core.models.BaseEntity
-import ch.openolitor.core.domain._
-import ch.openolitor.core.AkkaEventStream
 import DefaultMessages._
-import ch.openolitor.core.EntityStoreReference
-import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.actor._
-import akka.pattern.ask
 import scala.util._
-import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.DBEvolutionReference
 
@@ -72,7 +64,6 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
   self: EntityStoreViewComponent =>
 
   import EntityStore._
-  import EntityStoreView._
 
   val module: String
 
@@ -92,13 +83,12 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
       startup()
       sender ! Started
     case e: PersistentEvent if e.meta.transactionNr < lastProcessedTransactionNr =>
-      // ignore already processed event
-      logger.debug(s"Ignore eventin:$viewId, already processed transaction: ${e.meta.transactionNr}.${e.meta.seqNr} <= ${lastProcessedTransactionNr}.${lastProcessedSequenceNr}")
+    // ignore already processed event
+
     case e: PersistentEvent if e.meta.transactionNr == lastProcessedTransactionNr && e.meta.seqNr <= lastProcessedSequenceNr =>
-      // ignore already processed event
-      logger.debug(s"Ignore eventin:$viewId, already processed event: ${e.meta.transactionNr}.${e.meta.seqNr} <= ${lastProcessedTransactionNr}.${lastProcessedSequenceNr}")
+    // ignore already processed event
+
     case e: PersistentEvent =>
-      logger.debug(s"Process new event ${e} in:$viewId: ${e.meta.transactionNr}.${e.meta.seqNr}")
       processNewEvents(e)
   }
 

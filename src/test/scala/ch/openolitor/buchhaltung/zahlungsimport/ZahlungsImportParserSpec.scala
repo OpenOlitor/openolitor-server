@@ -24,11 +24,6 @@ package ch.openolitor.buchhaltung.zahlungsimport
 
 import org.specs2.mutable._
 import java.nio.file.{ Files, Paths }
-import java.io.FileInputStream
-import java.io.File
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.util.stream.Collectors
 
 class ZahlungsImportParserSpec extends Specification {
   "ZahlungsImportParser" should {
@@ -41,6 +36,16 @@ class ZahlungsImportParserSpec extends Specification {
       beSuccessfulTry(result)
 
       result.get.records.size === 225
+    }
+
+    "parse example esr file with blank lines" in {
+      val bytes = Files.readAllBytes(Paths.get(getClass.getResource("/esrimport_with_blank_lines.esr").toURI()))
+
+      val result = ZahlungsImportParser.parse(bytes)
+
+      beSuccessfulTry(result)
+
+      result.get.records.size === 5
     }
 
     "parse example camt.054 file" in {

@@ -22,10 +22,5 @@
 \*                                                                           */
 package ch.openolitor.core.repositories
 
-import ch.openolitor.core.models.BaseEntity
-import ch.openolitor.core.models.BaseId
-import scalikejdbc.DBSession
-import ch.openolitor.core.models.PersonId
-
 trait BaseWriteRepositoryComponent extends BaseUpdateRepositoryComponent {
 }

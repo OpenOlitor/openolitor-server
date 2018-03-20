@@ -35,7 +35,7 @@ trait LoginJsonProtocol extends StammdatenJsonProtocol with AutoProductFormats[J
     def read(json: JsValue): LoginStatus =
       json match {
         case JsString(value) => LoginStatus(value).getOrElse(sys.error(s"Unknown LoginStatus:$value"))
-        case pt => sys.error(s"Unknown LoginStatus:$pt")
+        case pt              => sys.error(s"Unknown LoginStatus:$pt")
       }
   }
 }

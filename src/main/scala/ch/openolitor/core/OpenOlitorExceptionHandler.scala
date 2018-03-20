@@ -25,13 +25,9 @@ package ch.openolitor.core
 import spray.routing._
 import spray.http._
 import spray.http.StatusCodes._
-import spray.http.ContentTypes._
-import spray.json.DefaultJsonProtocol._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.ExceptionHandler
-import Directives._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.security.AuthenticatorRejection
 import ch.openolitor.util.AirbrakeNotifier.AirbrakeNotification
 
 object OpenOlitorExceptionHandler extends LazyLogging with BaseJsonProtocol {

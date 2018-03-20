@@ -32,7 +32,6 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 
 object StammdatenMailListener {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenMailListener], sysConfig, system)
@@ -44,10 +43,9 @@ class DefaultStammdatenMailListener(sysConfig: SystemConfig, override val system
  * Listens to succesful sent mails
  */
 class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging
-    with StammdatenDBMappings
-    with ConnectionPoolContextAware {
+  with StammdatenDBMappings
+  with ConnectionPoolContextAware {
   this: StammdatenWriteRepositoryComponent =>
-  import StammdatenMailListener._
 
   override def preStart() {
     super.preStart()

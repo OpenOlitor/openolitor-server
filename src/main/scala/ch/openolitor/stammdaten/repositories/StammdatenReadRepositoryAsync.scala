@@ -38,9 +38,6 @@ import ch.openolitor.core.Macros._
 import org.joda.time.DateTime
 import ch.openolitor.util.IdUtil
 import ch.openolitor.util.parsing.FilterExpr
-import scalaz._
-import Scalaz._
-import scalaz.OptionT.optionT
 
 trait StammdatenReadRepositoryAsync extends ReportReadRepository {
 
@@ -83,7 +80,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getDepotDetail(id: DepotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Depot]]
   def getDepotDetailReport(id: DepotId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotDetailReport]]
 
-  def getAbos(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Abo]]
+  def getAbos(xFlags: Option[AbosComplexFlags])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Abo]]
   def getAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AboDetail]]
   def getZusatzAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZusatzAbo]]
   def getZusatzaboPerAbo(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZusatzAbo]]
@@ -110,7 +107,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getProduzentenabrechnungReport(sammelbestellungIds: Seq[SammelbestellungId], projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduzentenabrechnungReport]]
 
   def getTouren(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Tour]]
-  def getTourDetail(id: TourId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]]
+  def getTourDetail(id: TourId, aktiveOnly: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]]
 
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]]
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
@@ -134,7 +131,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getLieferplanungReport(lieferplanungId: LieferplanungId, projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[LieferplanungReport]]
 
   def getKorb(lieferungId: LieferungId, aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Korb]]
-  def getKoerbeLieferung(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KorbLieferung]]
+  def getKoerbe(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KorbLieferung]]
 
   def getBestellpositionen(id: BestellungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Bestellposition]]
   def getSammelbestellungDetail(id: SammelbestellungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SammelbestellungDetail]]
@@ -331,23 +328,38 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     getProduzentDetailReportQuery(id, projekt).future
   }
 
-  def getDepotlieferungAbos(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[DepotlieferungAbo]] = {
-    getDepotlieferungAbosQuery(filter).future
+  def getDepotlieferungAbos(xFlags: Option[AbosComplexFlags])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[DepotlieferungAbo]] = {
+    xFlags match {
+      case Some(acf) if acf.zusatzAbosAktiv =>
+        getDepotlieferungAbosOnlyAktiveZusatzabosQuery(filter).future
+      case _ =>
+        getDepotlieferungAbosQuery(filter).future
+    }
   }
 
-  def getHeimlieferungAbos(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[HeimlieferungAbo]] = {
-    getHeimlieferungAbosQuery(filter).future
+  def getHeimlieferungAbos(xFlags: Option[AbosComplexFlags])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[HeimlieferungAbo]] = {
+    xFlags match {
+      case Some(acf) if acf.zusatzAbosAktiv =>
+        getHeimlieferungAbosOnlyAktiveZusatzabosQuery(filter).future
+      case _ =>
+        getHeimlieferungAbosQuery(filter).future
+    }
   }
 
-  def getPostlieferungAbos(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PostlieferungAbo]] = {
-    getPostlieferungAbosQuery(filter).future
+  def getPostlieferungAbos(xFlags: Option[AbosComplexFlags])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PostlieferungAbo]] = {
+    xFlags match {
+      case Some(acf) if acf.zusatzAbosAktiv =>
+        getPostlieferungAbosOnlyAktiveZusatzabosQuery(filter).future
+      case _ =>
+        getPostlieferungAbosQuery(filter).future
+    }
   }
 
-  def getAbos(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Abo]] = {
+  def getAbos(xFlags: Option[AbosComplexFlags])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Abo]] = {
     for {
-      d <- getDepotlieferungAbos
-      h <- getHeimlieferungAbos
-      p <- getPostlieferungAbos
+      d <- getDepotlieferungAbos(xFlags)
+      h <- getHeimlieferungAbos(xFlags)
+      p <- getPostlieferungAbos(xFlags)
     } yield {
       d ::: h ::: p
     }
@@ -417,8 +429,8 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     getTourenQuery.future
   }
 
-  def getTourDetail(id: TourId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]] = {
-    getTourDetailQuery(id).future
+  def getTourDetail(id: TourId, aktiveOnly: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]] = {
+    getTourDetailQuery(id, aktiveOnly).future
   }
 
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]] = {
@@ -567,8 +579,8 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     getKorbQuery(lieferungId, aboId).future
   }
 
-  def getKoerbeLieferung(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KorbLieferung]] = {
-    getKoerbeLieferungQuery(aboId).future
+  def getKoerbe(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KorbLieferung]] = {
+    getKoerbeQuery(aboId).future
   }
 
   def getDepotAuslieferungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[DepotAuslieferung]] = {

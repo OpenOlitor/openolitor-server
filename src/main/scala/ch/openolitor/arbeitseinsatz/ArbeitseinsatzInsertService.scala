@@ -46,9 +46,9 @@ class DefaultArbeitseinsatzInsertService(sysConfig: SystemConfig, override val s
  * Actor zum Verarbeiten der Insert Anweisungen für das Arbeitseinsatz Modul
  */
 class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with ArbeitseinsatzDBMappings {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with ArbeitseinsatzDBMappings {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
   val ZERO = 0

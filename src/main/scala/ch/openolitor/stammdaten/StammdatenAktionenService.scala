@@ -27,19 +27,14 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import scala.concurrent.duration._
-import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.stammdaten.repositories._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
-import shapeless.LabelledGeneric
 import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.UUID
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import ch.openolitor.stammdaten.repositories._
@@ -59,20 +54,21 @@ object StammdatenAktionenService {
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-    extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenAktionenService(sysConfig, mailService)
+  with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
  */
 class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with MailServiceReference
-    with StammdatenEventStoreSerializer
-    with SammelbestellungenHandler
-    with LieferungHandler {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with MailServiceReference
+  with StammdatenEventStoreSerializer
+  with SammelbestellungenHandler
+  with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
@@ -132,7 +128,6 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
           sammelbestellungMapping.column.status -> Verrechnet,
           sammelbestellungMapping.column.datumAbrechnung -> Option(DateTime.now)
         )
-
       }
     }
   }
@@ -183,7 +178,7 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
 
                 val infoAdminproz = bestellung.adminProzente match {
                   case x if x == 0 => ""
-                  case _ => s"""Adminprozente: ${bestellung.adminProzente}%:"""
+                  case _           => s"""Adminprozente: ${bestellung.adminProzente}%:"""
                 }
 
                 s"""${infoAdminproz}

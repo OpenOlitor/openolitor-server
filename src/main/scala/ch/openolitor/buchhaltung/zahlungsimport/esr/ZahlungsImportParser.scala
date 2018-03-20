@@ -22,8 +22,6 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsimport.esr
 
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import scala.util._
 import scala.io.Source
 import java.io.InputStream
@@ -48,12 +46,12 @@ object EsrParser extends ZahlungsImportParser {
   def parse(lines: Iterator[String]): Try[ZahlungsImportResult] = {
     val parser = new EsrParser
 
-    val result = lines map (parser.parse)
+    val result = lines filterNot (_.isEmpty) map (parser.parse)
 
     Try(ZahlungsImportResult((result map (_.get)).toList))
   }
 
   def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    parse(Source.fromInputStream(is).getLines)
+    parse(Source.fromInputStream(is).getLines filterNot (_.isEmpty))
   }
 }

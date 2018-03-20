@@ -23,15 +23,12 @@
 package ch.openolitor.core.reporting.odf
 
 import java.util.Iterator
-import org.odftoolkit.simple.form._
-import org.odftoolkit.odfdom.dom.element.form._
 import org.odftoolkit.odfdom.pkg._
 import org.apache.xerces.dom.ParentNode
 import org.w3c.dom.Node
 import org.odftoolkit.simple.draw.Textbox
 import org.odftoolkit.odfdom.dom.element.draw.DrawFrameElement
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement
-import org.odftoolkit.simple.draw.TextboxContainer
 
 /**
  * This class is an enhanced implementation for finding all textboxes in a textbox container. The SimpleTextboxIterator only looks up
@@ -84,7 +81,7 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
     startingNode.map { node =>
       findDeepChildNode(name, node) match {
         case r @ Some(result) => r
-        case None => findDeepFirstChildNode(name, parent, Some(node))
+        case None             => findDeepFirstChildNode(name, parent, Some(node))
       }
     }.getOrElse(None)
   }
@@ -98,7 +95,7 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
       case parent: ParentNode =>
         findDeepFirstChildNode(name, parent, None) match {
           case Some((_, c)) => Some((parent, c))
-          case None => None
+          case None         => None
         }
       case _ => None
     }

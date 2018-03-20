@@ -92,7 +92,7 @@ class BuchhaltungInsertServiceSpec extends Specification {
 }
 
 class MockBuchhaltungInsertService(sysConfig: SystemConfig, override val system: ActorSystem, RechnungIdLengthP: Int,
-    KundeIdLengthP: Int) extends DefaultBuchhaltungInsertService(sysConfig, system) {
+  KundeIdLengthP: Int) extends DefaultBuchhaltungInsertService(sysConfig, system) {
   override lazy val RechnungIdLength = RechnungIdLengthP
   override lazy val KundeIdLength = KundeIdLengthP
 }

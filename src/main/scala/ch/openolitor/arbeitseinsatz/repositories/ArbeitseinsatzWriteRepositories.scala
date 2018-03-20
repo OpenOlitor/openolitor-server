@@ -28,21 +28,21 @@ import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
 
 trait ArbeitseinsatzWriteRepository extends ArbeitseinsatzReadRepositorySync
-    with ArbeitseinsatzInsertRepository
-    with ArbeitseinsatzUpdateRepository
-    with ArbeitseinsatzDeleteRepository
-    with BaseWriteRepository
-    with EventStream {
+  with ArbeitseinsatzInsertRepository
+  with ArbeitseinsatzUpdateRepository
+  with ArbeitseinsatzDeleteRepository
+  with BaseWriteRepository
+  with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
 trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzReadRepositorySyncImpl
-    with ArbeitseinsatzInsertRepositoryImpl
-    with ArbeitseinsatzUpdateRepositoryImpl
-    with ArbeitseinsatzDeleteRepositoryImpl
-    with ArbeitseinsatzWriteRepository
-    with LazyLogging
-    with ArbeitseinsatzRepositoryQueries {
+  with ArbeitseinsatzInsertRepositoryImpl
+  with ArbeitseinsatzUpdateRepositoryImpl
+  with ArbeitseinsatzDeleteRepositoryImpl
+  with ArbeitseinsatzWriteRepository
+  with LazyLogging
+  with ArbeitseinsatzRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
       sql"truncate table ${arbeitskategorieMapping.table}".execute.apply()

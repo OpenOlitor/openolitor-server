@@ -28,6 +28,7 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
+import ch.openolitor.core.exceptions._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
@@ -35,8 +36,6 @@ import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.models.AbotypModify
 import ch.openolitor.core.models.PersonId
 import scalikejdbc.DBSession
-import ch.openolitor.util.ConfigUtil._
-import org.joda.time.DateTime
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 
@@ -45,50 +44,47 @@ object StammdatenUpdateService {
 }
 
 class DefaultStammdatenUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
  */
 class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with LieferungHandler
-    with KorbHandler {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with LieferungHandler
+  with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
 
-  // Hotfix
-  lazy val startTime = DateTime.now.minusSeconds(sysConfig.mandantConfiguration.config.getIntOption("startTimeDelationSeconds") getOrElse 10)
-
   val handle: Handle = {
-    case EntityUpdatedEvent(meta, id: VertriebId, entity: VertriebModify) => updateVertrieb(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AbotypId, entity: AbotypModify) => updateAbotyp(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AbotypId, entity: ZusatzAbotypModify) => updateZusatzAbotyp(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: VertriebsartId, entity: DepotlieferungAbotypModify) => updateDepotlieferungVertriebsart(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: VertriebsartId, entity: HeimlieferungAbotypModify) => updateHeimlieferungVertriebsart(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: VertriebsartId, entity: PostlieferungAbotypModify) => updatePostlieferungVertriebsart(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: KundeId, entity: KundeModify) => updateKunde(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: PendenzId, entity: PendenzModify) => updatePendenz(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: HeimlieferungAboModify) => updateHeimlieferungAbo(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: PostlieferungAboModify) => updatePostlieferungAbo(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: DepotlieferungAboModify) => updateDepotlieferungAbo(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: ZusatzAboModify) => updateZusatzAboModify(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: AboGuthabenModify) => updateAboGuthaben(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: AboVertriebsartModify) => updateAboVertriebsart(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: DepotId, entity: DepotModify) => updateDepot(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: CustomKundentypId, entity: CustomKundentypModify) => updateKundentyp(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: ProduzentId, entity: ProduzentModify) => updateProduzent(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: ProduktId, entity: ProduktModify) => updateProdukt(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: VertriebId, entity: VertriebModify)                   => updateVertrieb(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AbotypId, entity: AbotypModify)                       => updateAbotyp(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AbotypId, entity: ZusatzAbotypModify)                 => updateZusatzAbotyp(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: VertriebsartId, entity: DepotlieferungAbotypModify)   => updateDepotlieferungVertriebsart(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: VertriebsartId, entity: HeimlieferungAbotypModify)    => updateHeimlieferungVertriebsart(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: VertriebsartId, entity: PostlieferungAbotypModify)    => updatePostlieferungVertriebsart(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: KundeId, entity: KundeModify)                         => updateKunde(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: PendenzId, entity: PendenzModify)                     => updatePendenz(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: HeimlieferungAboModify)                => updateHeimlieferungAbo(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: PostlieferungAboModify)                => updatePostlieferungAbo(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: DepotlieferungAboModify)               => updateDepotlieferungAbo(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: ZusatzAboModify)                       => updateZusatzAboModify(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: AboGuthabenModify)                     => updateAboGuthaben(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: AboVertriebsartModify)                 => updateAboVertriebsart(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: DepotId, entity: DepotModify)                         => updateDepot(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: CustomKundentypId, entity: CustomKundentypModify)     => updateKundentyp(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: ProduzentId, entity: ProduzentModify)                 => updateProduzent(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: ProduktId, entity: ProduktModify)                     => updateProdukt(meta, id, entity)
     case EntityUpdatedEvent(meta, id: ProduktekategorieId, entity: ProduktekategorieModify) => updateProduktekategorie(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: TourId, entity: TourModify) => updateTour(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AuslieferungId, entity: TourAuslieferungModify) => updateAuslieferung(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: ProjektId, entity: ProjektModify) => updateProjekt(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: KontoDatenId, entity: KontoDatenModify) => updateKontoDaten(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: LieferungId, entity: Lieferung) => updateLieferung(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: LieferungId, entity: LieferungAbgeschlossenModify) => updateLieferungAbgeschlossen(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: LieferplanungId, entity: LieferplanungModify) => updateLieferplanung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: TourId, entity: TourModify)                           => updateTour(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AuslieferungId, entity: TourAuslieferungModify)       => updateAuslieferung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: ProjektId, entity: ProjektModify)                     => updateProjekt(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: KontoDatenId, entity: KontoDatenModify)               => updateKontoDaten(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: LieferungId, entity: Lieferung)                       => updateLieferung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: LieferungId, entity: LieferungAbgeschlossenModify)    => updateLieferungAbgeschlossen(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: LieferplanungId, entity: LieferplanungModify)         => updateLieferplanung(meta, id, entity)
     case EntityUpdatedEvent(meta, id: LieferungId, lieferpositionen: LieferpositionenModify) =>
       updateLieferpositionen(meta, id, lieferpositionen)
     case EntityUpdatedEvent(meta, id: ProjektVorlageId, entity: ProjektVorlageModify) => updateProjektVorlage(meta, id, entity)
@@ -302,41 +298,69 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   }
 
   private def updateAboGuthaben(meta: EventMetadata, id: AboId, update: AboGuthabenModify)(implicit personId: PersonId = meta.originator): Unit = {
-    // Hotfix: only execute in live using the meta info to determine
-    if (meta.timestamp.isAfter(this.startTime)) {
-      DB localTxPostPublish { implicit session => implicit publisher =>
-        stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
-          if (abo.guthaben == update.guthabenAlt) {
-            val copy = abo.copy(guthaben = update.guthabenNeu)
-            stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
-            adjustGuthabenVorLieferung(id, update.guthabenNeu)
-          }
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
+        if (abo.guthaben == update.guthabenAlt) {
+          val copy = abo.copy(guthaben = update.guthabenNeu)
+          stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+          adjustGuthabenVorLieferung(copy, update.guthabenNeu)
         }
-        stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
-          if (abo.guthaben == update.guthabenAlt) {
-            val copy = abo.copy(guthaben = update.guthabenNeu)
-            stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
-            adjustGuthabenVorLieferung(id, update.guthabenNeu)
-          }
+      }
+      stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
+        if (abo.guthaben == update.guthabenAlt) {
+          val copy = abo.copy(guthaben = update.guthabenNeu)
+          stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+          adjustGuthabenVorLieferung(copy, update.guthabenNeu)
         }
-        stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
-          if (abo.guthaben == update.guthabenAlt) {
-            val copy = abo.copy(guthaben = update.guthabenNeu)
-            stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
-            adjustGuthabenVorLieferung(id, update.guthabenNeu)
-          }
+      }
+      stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
+        if (abo.guthaben == update.guthabenAlt) {
+          val copy = abo.copy(guthaben = update.guthabenNeu)
+          stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
+          adjustGuthabenVorLieferung(copy, update.guthabenNeu)
         }
+      }
+      stammdatenWriteRepository.getZusatzAbos(id) map { zusatzAbo =>
+        adjustGuthabenVorLieferung(zusatzAbo, update.guthabenNeu)
       }
     }
   }
 
-  private def adjustGuthabenVorLieferung(id: AboId, guthaben: Int)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
-    stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(id) map { korb =>
-      stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(korbMapping.column.guthabenVorLieferung -> guthaben)
+  private def adjustGuthabenVorLieferung(abo: Abo, guthaben: Int)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+    stammdatenWriteRepository.getAbotypById(abo.abotypId) map { abotyp =>
+      stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(abo.id).zipWithIndex.map {
+        case (korb, index) =>
+          val guthabenNeu = guthaben - index
+          val countAbwesend = stammdatenWriteRepository.countAbwesend(korb.lieferungId, abo.id)
+          val status = korb.auslieferungId match {
+            //we don't modify the status as this korb is going to be deliverd (or not) as the order to the producer has been made
+            case Some(_) => korb.status
+            //recalculate the status for future körbe
+            case None =>
+              abo match {
+                case zusatzAbo: ZusatzAbo =>
+                  val hauptAbotyp = stammdatenWriteRepository.getAbotypDetail(zusatzAbo.hauptAbotypId)
+                  calculateKorbStatus(countAbwesend, guthabenNeu, hauptAbotyp.get.guthabenMindestbestand)
+                case _ =>
+                  abotyp match {
+                    case hauptAbotyp: Abotyp => calculateKorbStatus(countAbwesend, guthabenNeu, hauptAbotyp.guthabenMindestbestand)
+                    case _ =>
+                      logger.error(s"adjustGuthabenVorLieferung: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
+                      throw new InvalidStateException(s"adjustGuthabenVorLieferung: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
+                  }
+
+              }
+          }
+
+          stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(
+            korbMapping.column.guthabenVorLieferung -> guthabenNeu,
+            korbMapping.column.status -> status
+          )
+      }
     }
   }
 
-  private def swapOrUpdateAboVertriebsart(meta: EventMetadata, abo: Abo, update: AboVertriebsartModify)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
+  private def swapOrUpdateAboVertriebsart(meta: EventMetadata, abo: HauptAbo, update: AboVertriebsartModify)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
     (stammdatenWriteRepository.getById(depotlieferungMapping, update.vertriebsartIdNeu) map { va =>
       stammdatenWriteRepository.getById(depotMapping, va.depotId) map { depot =>
         abo match {
@@ -348,7 +372,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
             }
           case abo: Abo =>
             // wechsel
-            val aboNeu = copyTo[Abo, DepotlieferungAbo](
+            val aboNeu = copyTo[HauptAbo, DepotlieferungAbo](
               abo,
               "depotId" -> va.depotId,
               "depotName" -> depot.name,
@@ -360,7 +384,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
                 stammdatenWriteRepository.deleteEntity[HeimlieferungAbo, AboId](abo.id)
                 stammdatenWriteRepository.deleteEntity[Tourlieferung, AboId](abo.id)
               case abo: PostlieferungAbo => stammdatenWriteRepository.deleteEntity[PostlieferungAbo, AboId](abo.id)
-              case _ =>
+              case _                     =>
             }
 
             stammdatenWriteRepository.insertEntity[DepotlieferungAbo, AboId](aboNeu)
@@ -384,11 +408,11 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
             )
           case abo: Abo =>
             // wechsel
-            val aboNeu = copyTo[Abo, HeimlieferungAbo](abo, "vertriebId" -> va.vertriebId, "tourId" -> va.tourId, "tourName" -> tour.name, "vertriebsartId" -> update.vertriebsartIdNeu)
+            val aboNeu = copyTo[HauptAbo, HeimlieferungAbo](abo, "vertriebId" -> va.vertriebId, "tourId" -> va.tourId, "tourName" -> tour.name, "vertriebsartId" -> update.vertriebsartIdNeu)
             abo match {
               case abo: DepotlieferungAbo => stammdatenWriteRepository.deleteEntity[DepotlieferungAbo, AboId](abo.id)
-              case abo: PostlieferungAbo => stammdatenWriteRepository.deleteEntity[PostlieferungAbo, AboId](abo.id)
-              case _ =>
+              case abo: PostlieferungAbo  => stammdatenWriteRepository.deleteEntity[PostlieferungAbo, AboId](abo.id)
+              case _                      =>
             }
             stammdatenWriteRepository.insertEntity[HeimlieferungAbo, AboId](aboNeu)
 
@@ -405,13 +429,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         // nothing to do
         case abo: Abo =>
           // wechsel
-          val aboNeu = copyTo[Abo, PostlieferungAbo](abo, "vertriebId" -> va.vertriebId, "vertriebsartId" -> update.vertriebsartIdNeu)
+          val aboNeu = copyTo[HauptAbo, PostlieferungAbo](abo, "vertriebId" -> va.vertriebId, "vertriebsartId" -> update.vertriebsartIdNeu)
           abo match {
             case abo: HeimlieferungAbo =>
               stammdatenWriteRepository.deleteEntity[HeimlieferungAbo, AboId](abo.id)
               stammdatenWriteRepository.deleteEntity[Tourlieferung, AboId](abo.id)
             case abo: DepotlieferungAbo => stammdatenWriteRepository.deleteEntity[DepotlieferungAbo, AboId](abo.id)
-            case _ =>
+            case _                      =>
           }
           stammdatenWriteRepository.insertEntity[PostlieferungAbo, AboId](aboNeu)
       }
@@ -452,6 +476,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   }
 
   def updateZusatzAboModify(meta: EventMetadata, id: AboId, update: ZusatzAboModify)(implicit personId: PersonId = meta.originator) = {
+    logger.debug(s"updateZusatzAboModify=> aboId : $id, modify: $update")
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(zusatzAboMapping, id) map { abo =>
         //map all updatable fields
@@ -460,6 +485,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)
 
         modifyKoerbeForAboDatumChange(copy, Some(abo))
+        adjustOpenLieferplanung(abo.id)
       }
     }
   }
@@ -584,7 +610,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
             //update Produktekategorie-String on Produkt
             val newKategorien = produkt.kategorien map {
               case produktekategorie.beschreibung => update.beschreibung
-              case x => x
+              case x                              => x
             }
             val copyProdukt = copyTo[Produkt, Produkt](produkt, "kategorien" -> newKategorien,
               "erstelldat" -> meta.timestamp,
@@ -605,6 +631,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     update.tourlieferungen.map { tourLieferung =>
       val copy = tourLieferung.copy(modifidat = meta.timestamp, modifikator = meta.originator)
       stammdatenWriteRepository.updateEntityFully[Tourlieferung, AboId](copy)
+
+      // update the sort accodring to the settings
+      stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(tourLieferung.id) map { korb =>
+        stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(
+          korbMapping.column.sort -> tourLieferung.sort
+        )
+      }
     }
   }
 
@@ -706,7 +739,8 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   private def updateKorbAuslieferungId(meta: EventMetadata, id: KorbId, entity: KorbAuslieferungModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Korb, KorbId](id)(
-        korbMapping.column.auslieferungId -> Option(entity.auslieferungId)
+        korbMapping.column.auslieferungId -> Option(entity.auslieferungId),
+        korbMapping.column.sort -> entity.sort
       )
     }
   }

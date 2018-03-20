@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import java.util.UUID
 import ch.openolitor.core.models._
 import ch.openolitor.core.models.VorlageTyp
 import ch.openolitor.stammdaten.models._
@@ -31,10 +30,7 @@ import ch.openolitor.core.repositories.DBMappings
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.models.PendenzStatus
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
-import ch.openolitor.core.scalax._
 import scala.collection.immutable.TreeMap
-import ch.openolitor.core.filestore.VorlageRechnung
-import scala.math.Ordering.StringOrdering
 import ch.openolitor.core.repositories.BaseParameter
 
 //DB Model bindig
@@ -54,6 +50,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val pendenzIdBinder: Binders[PendenzId] = baseIdBinders(PendenzId.apply _)
   implicit val aboIdBinder: Binders[AboId] = baseIdBinders(AboId.apply _)
   implicit val optionAboIdBinder: Binders[Option[AboId]] = optionBaseIdBinders(AboId.apply _)
+  implicit val aboIdSetBinder: Binders[Set[AboId]] = setBaseIdBinders(AboId.apply _)
   implicit val lierferungIdBinder: Binders[LieferungId] = baseIdBinders(LieferungId.apply _)
   implicit val lieferplanungIdBinder: Binders[LieferplanungId] = baseIdBinders(LieferplanungId.apply _)
   implicit val optionLieferplanungIdBinder: Binders[Option[LieferplanungId]] = optionBaseIdBinders(LieferplanungId.apply _)
@@ -100,7 +97,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val fristBinders: Binders[Option[Frist]] = Binders.string.xmap(_ match {
     case fristeinheitPattern(wert, "W") => Some(Frist(wert.toInt, Wochenfrist))
     case fristeinheitPattern(wert, "M") => Some(Frist(wert.toInt, Monatsfrist))
-    case _ => None
+    case _                              => None
   }, {
     _ match {
       case None => ""
@@ -200,7 +197,6 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlEinsaetze -> zusatzabotyp.anzahlEinsaetze,
         column.farbCode -> zusatzabotyp.farbCode,
         column.zielpreis -> zusatzabotyp.zielpreis,
-        column.guthabenMindestbestand -> zusatzabotyp.guthabenMindestbestand,
         column.adminProzente -> zusatzabotyp.adminProzente,
         column.wirdGeplant -> zusatzabotyp.wirdGeplant,
         column.anzahlAbonnenten -> zusatzabotyp.anzahlAbonnenten,
@@ -624,9 +620,6 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.abotypName -> abo.abotypName,
         column.start -> abo.start,
         column.ende -> abo.ende,
-        column.guthabenVertraglich -> abo.guthabenVertraglich,
-        column.guthaben -> abo.guthaben,
-        column.guthabenInRechnung -> abo.guthabenInRechnung,
         column.letzteLieferung -> abo.letzteLieferung,
         column.anzahlAbwesenheiten -> abo.anzahlAbwesenheiten,
         column.anzahlLieferungen -> abo.anzahlLieferungen,
@@ -636,7 +629,19 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
-  implicit val depotlieferungAboMapping = new BaseAboMapping[DepotlieferungAbo] {
+  trait BaseHauptAboMapping[A <: HauptAbo] extends BaseAboMapping[A] {
+    override def updateParameters(abo: A) = {
+      super.updateParameters(abo) ++ Seq(
+        column.zusatzAboIds -> abo.zusatzAboIds,
+        column.zusatzAbotypNames -> abo.zusatzAbotypNames,
+        column.guthabenVertraglich -> abo.guthabenVertraglich,
+        column.guthaben -> abo.guthaben,
+        column.guthabenInRechnung -> abo.guthabenInRechnung
+      )
+    }
+  }
+
+  implicit val depotlieferungAboMapping = new BaseHauptAboMapping[DepotlieferungAbo] {
     override val tableName = "DepotlieferungAbo"
 
     override lazy val columns = autoColumns[DepotlieferungAbo]()
@@ -653,7 +658,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
-  implicit val heimlieferungAboMapping = new BaseAboMapping[HeimlieferungAbo] {
+  implicit val heimlieferungAboMapping = new BaseHauptAboMapping[HeimlieferungAbo] {
     override val tableName = "HeimlieferungAbo"
 
     override lazy val columns = autoColumns[HeimlieferungAbo]()
@@ -671,7 +676,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
-  implicit val postlieferungAboMapping = new BaseAboMapping[PostlieferungAbo] {
+  implicit val postlieferungAboMapping = new BaseHauptAboMapping[PostlieferungAbo] {
     override val tableName = "PostlieferungAbo"
 
     override lazy val columns = autoColumns[PostlieferungAbo]()

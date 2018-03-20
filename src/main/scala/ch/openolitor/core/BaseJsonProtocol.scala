@@ -28,7 +28,6 @@ import org.joda.time._
 import org.joda.time.format._
 import ch.openolitor.core.models._
 import java.util.UUID
-import java.text.SimpleDateFormat
 import zangelo.spray.json.AutoProductFormats
 import java.util.Locale
 
@@ -46,7 +45,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
     def read(json: JsValue): UUID =
       json match {
         case (JsString(value)) => UUID.fromString(value)
-        case value => deserializationError(s"Unrecognized UUID format:$value")
+        case value             => deserializationError(s"Unrecognized UUID format:$value")
       }
   }
 
@@ -56,7 +55,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
     def read(json: JsValue): Locale =
       json match {
         case (JsString(value)) => Locale.forLanguageTag(value)
-        case value => deserializationError(s"Unrecognized locale:$value")
+        case value             => deserializationError(s"Unrecognized locale:$value")
       }
   }
 
@@ -66,7 +65,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
     def read(json: JsValue): E =
       json match {
         case (JsString(value)) => fromJson(value)
-        case value => deserializationError(s"Unrecognized enum format:$value")
+        case value             => deserializationError(s"Unrecognized enum format:$value")
       }
   }
 
@@ -76,7 +75,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
     def read(json: JsValue): I =
       json match {
         case (JsNumber(value)) => fromJson(value.toLong)
-        case value => deserializationError(s"Unrecognized baseId format:$value")
+        case value             => deserializationError(s"Unrecognized baseId format:$value")
       }
   }
 

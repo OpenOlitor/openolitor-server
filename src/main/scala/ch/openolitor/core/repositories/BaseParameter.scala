@@ -22,7 +22,5 @@
 \*                                                                           */
 package ch.openolitor.core.repositories
 
-import scalikejdbc._
-
 trait BaseParameter {
 }

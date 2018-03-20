@@ -24,15 +24,8 @@ package ch.openolitor.core.filestore
 
 import akka.actor._
 import java.util.UUID
-import ch.openolitor.util.ByteBufferBackedInputStream
 import scala.concurrent.ExecutionContext
-import java.io.ByteArrayInputStream
-import scala.concurrent.Future
-import java.io.File
 import java.io.InputStream
-import java.io.FileInputStream
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 object ChunkedFileStoreActor {
   def props(fileStore: FileStore): Props = Props(classOf[ChunkedFileStoreActor], fileStore)

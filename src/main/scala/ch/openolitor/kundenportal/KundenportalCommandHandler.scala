@@ -27,11 +27,12 @@ import scala.util.{ Failure, Success, Try }
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolContextAware }
-import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, PersistentEvent, UserCommand, IdFactory }
 import ch.openolitor.core.exceptions.InvalidStateException
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.security.Subject
 import ch.openolitor.kundenportal.repositories._
+import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, UserCommand, IdFactory }
+import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
 import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId }
 import ch.openolitor.arbeitseinsatz.models._
 
@@ -101,6 +102,5 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
 }
 
 class DefaultKundenportalCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends KundenportalCommandHandler
-    with DefaultKundenportalReadRepositorySyncComponent {
-
+  with DefaultKundenportalReadRepositorySyncComponent {
 }

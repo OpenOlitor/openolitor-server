@@ -27,8 +27,8 @@ import ch.openolitor.core.repositories._
 import com.typesafe.scalalogging.LazyLogging
 
 trait ArbeitseinsatzInsertRepository extends BaseInsertRepository
-    with ArbeitseinsatzReadRepositorySync
-    with EventStream {
+  with ArbeitseinsatzReadRepositorySync
+  with EventStream {
 }
 
 trait ArbeitseinsatzInsertRepositoryImpl extends ArbeitseinsatzInsertRepository with LazyLogging {

@@ -23,18 +23,8 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
 
 trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository {
   /**
@@ -46,7 +36,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     modifyEntityIf[E, I](p)(id)(_ => (updateFieldsHead +: updateFieldsTail).toMap)
   }
 
@@ -58,7 +49,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     modifyEntity[E, I](id)(_ => (updateFieldsHead +: updateFieldsTail).toMap)
   }
 
@@ -72,7 +64,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     modifyEntityIf[E, I](_ => true)(id)(updateFunction)
   }
 
@@ -87,7 +80,8 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
     getById(syntaxSupport, id) map { orig =>
       if (p(orig)) {
         val alias = syntaxSupport.syntax("x")

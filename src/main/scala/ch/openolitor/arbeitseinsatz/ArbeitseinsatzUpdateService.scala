@@ -40,7 +40,7 @@ object ArbeitseinsatzUpdateService {
 }
 
 class DefaultArbeitseinsatzUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends ArbeitseinsatzUpdateService(sysConfig) with DefaultArbeitseinsatzWriteRepositoryComponent {
+  extends ArbeitseinsatzUpdateService(sysConfig) with DefaultArbeitseinsatzWriteRepositoryComponent {
 }
 
 /**

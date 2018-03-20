@@ -35,14 +35,14 @@ object ArbeitseinsatzAktionenService {
 }
 
 class DefaultArbeitseinsatzAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-    extends ArbeitseinsatzAktionenService(sysConfig, mailService) with DefaultArbeitseinsatzWriteRepositoryComponent {
+  extends ArbeitseinsatzAktionenService(sysConfig, mailService) with DefaultArbeitseinsatzWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Arbeitseinsatz Modul
  */
 class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-    with ArbeitseinsatzDBMappings with MailServiceReference with ArbeitseinsatzEventStoreSerializer {
+  with ArbeitseinsatzDBMappings with MailServiceReference with ArbeitseinsatzEventStoreSerializer {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
   lazy val config = sysConfig.mandantConfiguration.config

@@ -121,7 +121,6 @@ sealed trait IAbotyp extends BaseEntity[AbotypId] with AktivRange with Product w
   val anzahlAbwesenheiten: Option[Int]
   val farbCode: String
   val zielpreis: Option[BigDecimal]
-  val guthabenMindestbestand: Int
   val adminProzente: BigDecimal
   val anzahlAbonnenten: Int
   val anzahlAbonnentenAktiv: Int
@@ -240,7 +239,6 @@ case class ZusatzAbotyp(
   anzahlEinsaetze: Option[Int],
   farbCode: String,
   zielpreis: Option[BigDecimal],
-  guthabenMindestbestand: Int,
   adminProzente: BigDecimal,
   wirdGeplant: Boolean,
   //Zusatzinformationen
@@ -257,7 +255,7 @@ case class ZusatzAbotyp(
 
 object ZusatzAbotyp {
   def unapply(a: ZusatzAbotyp) = {
-    Some(Tuple26(
+    Some(Tuple25(
       a.id,
       a.name,
       a.beschreibung,
@@ -273,7 +271,6 @@ object ZusatzAbotyp {
       a.anzahlEinsaetze,
       a.farbCode,
       a.zielpreis,
-      a.guthabenMindestbestand,
       a.adminProzente,
       a.wirdGeplant,
       a.anzahlAbonnenten,
@@ -303,7 +300,6 @@ case class ZusatzAbotypModify(
   anzahlEinsaetze: Option[Int],
   farbCode: String,
   zielpreis: Option[BigDecimal],
-  guthabenMindestbestand: Int,
   adminProzente: BigDecimal,
   wirdGeplant: Boolean,
   waehrung: Waehrung

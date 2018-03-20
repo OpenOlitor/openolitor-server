@@ -26,21 +26,14 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
-import ch.openolitor.buchhaltung._
 import ch.openolitor.buchhaltung.models._
-import java.util.UUID
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import ch.openolitor.core.Macros._
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.DateTime
 import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import ch.openolitor.buchhaltung.models.RechnungModifyBezahlt
-import scala.concurrent.Future
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
@@ -51,14 +44,14 @@ object BuchhaltungAktionenService {
 }
 
 class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+  extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Buchhaltung Modul
  */
 class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-    with BuchhaltungDBMappings {
+  with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val False = false

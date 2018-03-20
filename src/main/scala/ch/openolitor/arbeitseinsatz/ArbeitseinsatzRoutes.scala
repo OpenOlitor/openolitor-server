@@ -38,10 +38,10 @@ import spray.routing.Directive._
 import spray.routing._
 
 trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with ArbeitseinsatzJsonProtocol
-    with ArbeitseinsatzEventStoreSerializer
-    with Defaults {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with ArbeitseinsatzJsonProtocol
+  with ArbeitseinsatzEventStoreSerializer
+  with Defaults {
   self: ArbeitseinsatzReadRepositoryAsyncComponent =>
 
   implicit val kundeIdPath = long2BaseIdPathMatcher(KundeId.apply)
@@ -116,5 +116,5 @@ class DefaultArbeitseinsatzRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends ArbeitseinsatzRoutes
-    with DefaultArbeitseinsatzReadRepositoryAsyncComponent
+  extends ArbeitseinsatzRoutes
+  with DefaultArbeitseinsatzReadRepositoryAsyncComponent

@@ -23,25 +23,13 @@
 package ch.openolitor.core.repositories
 
 import ch.openolitor.core.models._
-import java.util.UUID
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
-import ch.openolitor.core.EventStream
-import scala.util._
-import ch.openolitor.core.scalax._
-import scala.concurrent.Future
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.db.OOAsyncDB._
-import scala.reflect.runtime.{ universe => ru }
 
 trait BaseWriteRepository extends CrudRepository
-    with BaseReadRepositorySync
-    with BaseInsertRepository
-    with BaseUpdateRepository
-    with BaseDeleteRepository {
+  with BaseReadRepositorySync
+  with BaseInsertRepository
+  with BaseUpdateRepository
+  with BaseDeleteRepository {
 
   /**
    * Updates the given entity with all its properties.
@@ -53,7 +41,8 @@ trait BaseWriteRepository extends CrudRepository
     syntaxSupport: BaseEntitySQLSyntaxSupport[E],
     binder: Binders[I],
     user: PersonId,
-    eventPublisher: EventPublisher): Option[E] = {
+    eventPublisher: EventPublisher
+  ): Option[E] = {
 
     syntaxSupport.updateParameters(entity) map {
       case (s, v) =>

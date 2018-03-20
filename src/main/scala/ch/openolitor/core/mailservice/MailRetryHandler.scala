@@ -23,7 +23,6 @@
 package ch.openolitor.core.mailservice
 
 import org.joda.time.DateTime
-import scala.math._
 import scala.concurrent.duration.Duration
 
 case class RetryFailed(expired: Boolean)

@@ -44,13 +44,13 @@ case class ArbeitskategorieId(id: Long) extends BaseId
 case class ArbeitskategorieBez(id: String) extends BaseStringId
 
 case class Arbeitskategorie(
-    id: ArbeitskategorieId,
-    beschreibung: String,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
+  id: ArbeitskategorieId,
+  beschreibung: String,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends BaseEntity[ArbeitskategorieId] {
 }
 

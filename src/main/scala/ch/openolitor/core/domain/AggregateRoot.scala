@@ -24,9 +24,7 @@ package ch.openolitor.core.domain
 
 import akka.persistence._
 import akka.actor._
-import java.util.UUID
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.JSONSerializable
 
 trait State
 
@@ -47,7 +45,6 @@ object AggregateRoot {
 }
 
 trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEventStateSupport {
-  import AggregateRoot._
 
   type S <: State
   var state: S
@@ -75,7 +72,6 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
 
     setLastProcessedSequenceNr(evt.meta)
 
-    log.debug(s"afterEventPersisted:send back state:$state")
     sender ! state
   }
 

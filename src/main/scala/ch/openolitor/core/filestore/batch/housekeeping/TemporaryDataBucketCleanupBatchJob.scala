@@ -27,13 +27,10 @@ import akka.actor.Props
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.batch.BaseBatchJob
 import ch.openolitor.core.batch.BatchJobs._
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.filestore.TemporaryDataBucket
 import ch.openolitor.util.DateTimeUtil._
 import com.github.nscala_time.time.Imports._
-import com.github.nscala_time.time.DurationBuilder
-import scala.concurrent.duration.{ Duration => ScalaDuration, FiniteDuration }
 
 object TemporaryDataBucketCleanupBatchJob {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem, fileStore: FileStore): Props = Props(classOf[TemporaryDataBucketCleanupBatchJob], sysConfig, system, fileStore)

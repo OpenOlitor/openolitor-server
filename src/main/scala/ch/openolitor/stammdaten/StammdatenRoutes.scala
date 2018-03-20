@@ -55,21 +55,21 @@ import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 
 trait StammdatenRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with StammdatenJsonProtocol
-    with StammdatenEventStoreSerializer
-    with BuchhaltungJsonProtocol
-    with Defaults
-    with AuslieferungLieferscheinReportService
-    with AuslieferungEtikettenReportService
-    with AuslieferungKorbUebersichtReportService
-    with KundenBriefReportService
-    with DepotBriefReportService
-    with ProduzentenBriefReportService
-    with ProduzentenabrechnungReportService
-    with LieferplanungReportService
-    with FileTypeFilenameMapping
-    with StammdatenPaths {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with StammdatenJsonProtocol
+  with StammdatenEventStoreSerializer
+  with BuchhaltungJsonProtocol
+  with Defaults
+  with AuslieferungLieferscheinReportService
+  with AuslieferungEtikettenReportService
+  with AuslieferungKorbUebersichtReportService
+  with KundenBriefReportService
+  with DepotBriefReportService
+  with ProduzentenBriefReportService
+  with ProduzentenabrechnungReportService
+  with LieferplanungReportService
+  with FileTypeFilenameMapping
+  with StammdatenPaths {
   self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent =>
 
   import EntityStore._
@@ -144,7 +144,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         (put | post)(update[AboVertriebsartModify, AboId](aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "koerbe") { (_, aboId) =>
-        get(list(stammdatenReadRepository.getKoerbeLieferung(aboId)))
+        get(list(stammdatenReadRepository.getKoerbe(aboId)))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "abwesenheiten") { (_, aboId) =>
         post {
@@ -338,7 +338,9 @@ trait StammdatenRoutes extends HttpService with ActorReferences
 
   private def aboRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
     path("abos" ~ exportFormatPath.?) { exportFormat =>
-      get(list(stammdatenReadRepository.getAbos, exportFormat))
+      parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
+        get(list(stammdatenReadRepository.getAbos(Option(xFlags)), exportFormat))
+      }
     } ~
       path("abos" / "aktionen" / "anzahllieferungenrechnungspositionen") {
         post {
@@ -411,7 +413,9 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(stammdatenReadRepository.getPersonenAboAktivByTouren))
       } ~
       path("touren" / tourIdPath) { id =>
-        get(detail(stammdatenReadRepository.getTourDetail(id))) ~
+        parameter('aktiveOnly.?.as[Boolean]) { aktiveOnly: Boolean =>
+          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOnly)))
+        } ~
           (put | post)(update[TourModify, TourId](id)) ~
           delete(remove(id))
       }
@@ -840,6 +844,6 @@ class DefaultStammdatenRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends StammdatenRoutes
-    with DefaultStammdatenReadRepositoryAsyncComponent
-    with DefaultBuchhaltungReadRepositoryAsyncComponent
+  extends StammdatenRoutes
+  with DefaultStammdatenReadRepositoryAsyncComponent
+  with DefaultBuchhaltungReadRepositoryAsyncComponent

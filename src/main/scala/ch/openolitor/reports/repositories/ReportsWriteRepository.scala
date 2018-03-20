@@ -22,44 +22,31 @@
 \*                                                                           */
 package ch.openolitor.reports.repositories
 
-import ch.openolitor.core.models._
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
 import ch.openolitor.core.repositories.BaseWriteRepository
-import scala.concurrent._
-import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
-import ch.openolitor.reports.models._
-import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.util.parsing.FilterExpr
-import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.reports.ReportsDBMappings
 
 /**
  * Synchronous Repository
  */
 trait ReportsWriteRepository extends ReportsReadRepositorySync
-    with ReportsInsertRepository
-    with ReportsUpdateRepository
-    with ReportsDeleteRepository
-    with BaseWriteRepository
-    with EventStream {
+  with ReportsInsertRepository
+  with ReportsUpdateRepository
+  with ReportsDeleteRepository
+  with BaseWriteRepository
+  with EventStream {
   def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
 }
 
 trait ReportsWriteRepositoryImpl extends ReportsReadRepositorySyncImpl
-    with ReportsInsertRepositoryImpl
-    with ReportsUpdateRepositoryImpl
-    with ReportsDeleteRepositoryImpl
-    with ReportsWriteRepository
-    with LazyLogging
-    with ReportsRepositoryQueries {
+  with ReportsInsertRepositoryImpl
+  with ReportsUpdateRepositoryImpl
+  with ReportsDeleteRepositoryImpl
+  with ReportsWriteRepository
+  with LazyLogging
+  with ReportsRepositoryQueries {
   override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
     DB autoCommit { implicit session =>
       sql"truncate table ${reportMapping.table}".execute.apply()

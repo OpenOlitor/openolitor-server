@@ -22,16 +22,11 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.models
 
-import ch.openolitor.buchhaltung._
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.scalax.Tuple23
 import ch.openolitor.core.scalax.Tuple24
-import java.text.DecimalFormat
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple25
-import ch.openolitor.core.scalax.Tuple26
 
 /**
  *        +
@@ -84,9 +79,10 @@ object RechnungsPositionStatus {
 object RechnungsPositionTyp {
   sealed trait RechnungsPositionTyp
   case object Abo extends RechnungsPositionTyp
+  case object ZusatzAbo extends RechnungsPositionTyp
 
   def apply(value: String): RechnungsPositionTyp = {
-    Vector(Abo).find(_.toString == value).getOrElse(Abo)
+    Vector(Abo).find(_.toString == value).getOrElse(ZusatzAbo)
   }
 }
 
@@ -177,6 +173,7 @@ object Rechnung {
 case class RechnungsPositionDetail(
   id: RechnungsPositionId,
   abo: Abo,
+  parentRechnungsPositionId: Option[RechnungsPositionId],
   betrag: BigDecimal,
   waehrung: Waehrung,
   anzahlLieferungen: Option[Int],
@@ -222,33 +219,33 @@ case class RechnungDetail(
 ) extends JSONSerializable
 
 case class RechnungDetailReport(
-    id: RechnungId,
-    kunde: Kunde,
-    kontoDaten: KontoDaten,
-    titel: String,
-    waehrung: Waehrung,
-    betrag: BigDecimal,
-    rechnungsPositionen: Seq[RechnungsPositionDetail],
-    einbezahlterBetrag: Option[BigDecimal],
-    rechnungsDatum: DateTime,
-    faelligkeitsDatum: DateTime,
-    eingangsDatum: Option[DateTime],
-    status: RechnungStatus,
-    referenzNummer: String,
-    esrNummer: String,
-    anzahlMahnungen: Int,
-    // rechnungsadresse
-    strasse: String,
-    hausNummer: Option[String],
-    adressZusatz: Option[String],
-    plz: String,
-    ort: String,
-    // modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId,
-    projekt: ProjektReport
+  id: RechnungId,
+  kunde: Kunde,
+  kontoDaten: KontoDaten,
+  titel: String,
+  waehrung: Waehrung,
+  betrag: BigDecimal,
+  rechnungsPositionen: Seq[RechnungsPositionDetail],
+  einbezahlterBetrag: Option[BigDecimal],
+  rechnungsDatum: DateTime,
+  faelligkeitsDatum: DateTime,
+  eingangsDatum: Option[DateTime],
+  status: RechnungStatus,
+  referenzNummer: String,
+  esrNummer: String,
+  anzahlMahnungen: Int,
+  // rechnungsadresse
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId,
+  projekt: ProjektReport
 ) extends JSONSerializable {
   lazy val referenzNummerFormatiert: String = referenzNummer.reverse.grouped(5).map(_.reverse).toList.reverse.mkString(" ")
   lazy val betragRappen = (betrag - betrag.toLong) * 100
@@ -287,6 +284,7 @@ case class RechnungModify(
 case class RechnungsPositionCreate(
   kundeId: KundeId,
   aboId: Option[AboId],
+  parentRechnungsPositionId: Option[RechnungsPositionId],
   beschrieb: String,
   anzahlLieferungen: Option[Int],
   betrag: BigDecimal,

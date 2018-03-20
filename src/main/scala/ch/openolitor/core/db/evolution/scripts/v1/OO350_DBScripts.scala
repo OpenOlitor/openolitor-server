@@ -29,7 +29,6 @@ import scalikejdbc._
 import scala.util.Try
 import scala.util.Success
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
 object OO350_DBScripts extends DefaultDBScripts {

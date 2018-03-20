@@ -41,8 +41,8 @@ import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 
 trait KundenportalUpdateRepository extends BaseUpdateRepository
-    with KundenportalReadRepositorySync
-    with EventStream {
+  with KundenportalReadRepositorySync
+  with EventStream {
 }
 
 trait KundenportalUpdateRepositoryImpl extends KundenportalReadRepositorySyncImpl with KundenportalUpdateRepository with LazyLogging {

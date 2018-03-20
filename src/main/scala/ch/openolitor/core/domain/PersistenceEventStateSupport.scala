@@ -26,7 +26,6 @@ import akka.actor._
 import ch.openolitor.core.repositories.CoreDBMappings
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import scalikejdbc._
-import scalikejdbc.SQLSyntax._
 import ch.openolitor.core.models.PersistenceEventState
 import ch.openolitor.core.Boot
 import org.joda.time.DateTime
@@ -95,7 +94,6 @@ trait PersistenceEventStateSupport extends Actor with ActorLogging with CoreDBMa
   }
 
   protected def setLastProcessedSequenceNr(meta: EventMetadata): Boolean = {
-    log.debug(s"setLastProcessedSequenceNr in $persistenceStateStoreId ${meta.transactionNr}.${meta.seqNr} > ${lastTransactionNr}.${lastSequenceNr}")
     if (meta.transactionNr > lastTransactionNr) {
       lastSequenceNr = meta.seqNr
       lastTransactionNr = meta.transactionNr

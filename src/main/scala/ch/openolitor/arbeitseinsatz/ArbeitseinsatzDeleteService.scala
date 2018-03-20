@@ -39,14 +39,14 @@ object ArbeitseinsatzDeleteService {
 }
 
 class DefaultArbeitseinsatzDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends ArbeitseinsatzDeleteService(sysConfig: SystemConfig) with DefaultArbeitseinsatzWriteRepositoryComponent {
+  extends ArbeitseinsatzDeleteService(sysConfig: SystemConfig) with DefaultArbeitseinsatzWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Arbeitseinsatz Modul
  */
 class ArbeitseinsatzDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
-    with LazyLogging with AsyncConnectionPoolContextAware with ArbeitseinsatzDBMappings {
+  with LazyLogging with AsyncConnectionPoolContextAware with ArbeitseinsatzDBMappings {
   self: ArbeitseinsatzWriteRepositoryComponent =>
   import EntityStore._
 

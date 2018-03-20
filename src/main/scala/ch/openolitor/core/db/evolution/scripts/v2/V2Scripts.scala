@@ -28,17 +28,12 @@ import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
-import scalikejdbc.SQLSyntax._
 import scala.util.{ Try, Success }
-import ch.openolitor.util.IdUtil
 import org.joda.time.DateTime
 import ch.openolitor.core.Boot
 import ch.openolitor.core.repositories.CoreRepositoryQueries
 import ch.openolitor.core.models.PersistenceEventState
 import ch.openolitor.core.models.PersistenceEventStateId
-import ch.openolitor.core.eventsourcing.EventStoreSerializer
-import ch.openolitor.core.domain.PersistentEvent
-import ch.openolitor.core.repositories.BaseWriteRepository
 import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
@@ -220,5 +215,10 @@ object V2Scripts {
     OO697_Zusatzabos_add_modify_delete.scripts ++
     OO731_Reports.scripts ++
     OO760_add_missing_keys.scripts ++
+    OO829_add_zusatzabo_info_to_abo.scripts ++
+    OO846_delete_unmapped_zusatzabos.scripts ++
+    OO854_zusatzinfo_lieferung_200.scripts ++
+    OO861_recalculate_lieferung_counts.scripts ++
+    OO900_Guthaben.scripts ++
     OO109_Arbeitseinsatz.scripts
 }
