@@ -22,12 +22,10 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.models
 
-import ch.openolitor.buchhaltung._
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 
 sealed trait ZahlungsEingangStatus
 case object Ok extends ZahlungsEingangStatus
@@ -121,3 +119,23 @@ case class ZahlungsEingangModifyErledigt(
   id: ZahlungsEingangId,
   bemerkung: Option[String]
 ) extends JSONSerializable
+
+case class ZahlungsExportId(id: Long) extends BaseId
+
+case class ZahlungsExport(
+  id: ZahlungsExportId,
+  fileName: String,
+  rechnungen: Set[RechnungId],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[ZahlungsExportId]
+
+case class ZahlungsExportCreate(
+  id: ZahlungsExportId,
+  fileName: String,
+  rechnungen: Set[RechnungId]
+) extends JSONSerializable
+

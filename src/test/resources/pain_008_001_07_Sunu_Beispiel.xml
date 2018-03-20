@@ -30,7 +30,7 @@
            </Cdtr>
            <CdtrAcct>
                <Id>
-                   <iban>AD12000120302003591001000000000001</iban>
+                   <IBAN>AD12000120302003591001000000000001</IBAN>
                </Id>
            </CdtrAcct>
            <CdtrAgt>
@@ -70,7 +70,7 @@
                </Dbtr>
                <DbtrAcct>
                    <Id>
-                       <iban>AD12000120302003591001000000000001</iban>
+                       <IBAN>AD12000120302003591001000000000001</IBAN>
                    </Id>
                </DbtrAcct>
                <RmtInf>
