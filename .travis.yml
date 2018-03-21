@@ -1,3 +1,5 @@
+# sudo: required forces the travis build to gce. On gce the machine has 7.5GB Ram.
+sudo: required
 language: scala
 scala:
   - 2.11.8
