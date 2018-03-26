@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-import scala.concurrent.Future
 
 sealed trait FileStoreBucket
 case object VorlagenBucket extends FileStoreBucket

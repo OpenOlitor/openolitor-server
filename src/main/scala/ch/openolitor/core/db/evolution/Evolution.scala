@@ -50,7 +50,7 @@ case class EvolutionException(msg: String) extends Exception
  * Base evolution class to evolve database from a specific revision to another
  */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
-    with BuchhaltungDBMappings with ReportsDBMappings {
+  with BuchhaltungDBMappings with ReportsDBMappings {
   import IteratorUtil._
 
   logger.debug(s"Evolution manager consists of:$scripts")
@@ -142,7 +142,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
     val revision = if (currentDBRevision > 0) currentDBRevision else fromRevision
     logger.debug(s"evolveDatabase from ($currentDBRevision, $revision) to ${scripts.length}")
     scripts.takeRight(scripts.length - revision) match {
-      case Nil => Success(revision)
+      case Nil            => Success(revision)
       case scriptsToApply => evolve(scriptsToApply, revision)
     }
   }

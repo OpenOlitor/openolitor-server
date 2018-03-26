@@ -22,20 +22,14 @@
 \*                                                                           */
 package ch.openolitor.reports
 
-import java.util.UUID
-import ch.openolitor.core.models._
 import ch.openolitor.reports.models._
 import scalikejdbc._
-import scalikejdbc.TypeBinder._
 import ch.openolitor.core.repositories.DBMappings
-import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
-import ch.openolitor.core.scalax._
 import ch.openolitor.core.repositories.DBMappings
 
 //DB Model bindig
 trait ReportsDBMappings extends DBMappings {
-  import TypeBinder._
 
   // DB type binders for read operations
   implicit val reportsIdBinder: Binders[ReportId] = baseIdBinders(ReportId.apply _)

@@ -24,19 +24,12 @@ package ch.openolitor.reports
 
 import akka.actor._
 import ch.openolitor.core.models._
-import ch.openolitor.core.ws._
 import spray.json._
 import ch.openolitor.reports.models._
 import ch.openolitor.core.db._
-import scalikejdbc._
 import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.Boot
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.reports.repositories.DefaultReportsUpdateRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsUpdateRepositoryComponent
-import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 
 object ReportsDBEventEntityListener extends DefaultJsonProtocol {
   def props(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultReportsDBEventEntityListener], sysConfig, system)
@@ -49,7 +42,6 @@ class DefaultReportsDBEventEntityListener(sysConfig: SystemConfig, override val 
  */
 class ReportsDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with ReportsDBMappings with AsyncConnectionPoolContextAware {
   this: ReportsUpdateRepositoryComponent =>
-  import ReportsDBEventEntityListener._
 
   override def preStart() {
     super.preStart()

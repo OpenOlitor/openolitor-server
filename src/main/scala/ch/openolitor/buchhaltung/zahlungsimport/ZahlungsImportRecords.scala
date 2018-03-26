@@ -23,7 +23,6 @@
 package ch.openolitor.buchhaltung.zahlungsimport
 
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import ch.openolitor.stammdaten.models.Waehrung
 
 sealed trait Transaktionsart

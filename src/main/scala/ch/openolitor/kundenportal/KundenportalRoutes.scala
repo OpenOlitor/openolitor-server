@@ -48,10 +48,10 @@ import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryAsyncComponent
 
 trait KundenportalRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with StammdatenEventStoreSerializer
-    with BuchhaltungJsonProtocol
-    with StammdatenDBMappings {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with StammdatenEventStoreSerializer
+  with BuchhaltungJsonProtocol
+  with StammdatenDBMappings {
   self: KundenportalReadRepositoryAsyncComponent with FileStoreComponent =>
 
   implicit val rechnungIdPath = long2BaseIdPathMatcher(RechnungId.apply)
@@ -188,5 +188,5 @@ class DefaultKundenportalRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends KundenportalRoutes
-    with DefaultKundenportalReadRepositoryAsyncComponent
+  extends KundenportalRoutes
+  with DefaultKundenportalReadRepositoryAsyncComponent

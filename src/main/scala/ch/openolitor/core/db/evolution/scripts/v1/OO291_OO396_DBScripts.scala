@@ -27,7 +27,6 @@ import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.evolution.Script
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
-import scalikejdbc._
 
 object OO291_OO396_DBScripts {
   import scalikejdbc._

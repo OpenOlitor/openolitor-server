@@ -28,7 +28,6 @@ import spray.http.HttpMethods._
 import spray.routing._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.util.ConfigUtil._
-import com.typesafe.config.Config
 
 // see also https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 trait CORSSupport extends LazyLogging {

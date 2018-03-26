@@ -42,7 +42,7 @@ class DefaultReportsEntityStoreView(override val dbEvolutionActor: ActorRef, imp
  * Zusammenfügen des Componenten (cake pattern) zu der persistentView
  */
 trait ReportsEntityStoreView extends EntityStoreView
-    with ReportsEntityStoreViewComponent with ConnectionPoolContextAware {
+  with ReportsEntityStoreViewComponent with ConnectionPoolContextAware {
   self: ReportsWriteRepositoryComponent =>
 
   override val module = "reports"
@@ -55,7 +55,6 @@ trait ReportsEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait ReportsEntityStoreViewComponent extends EntityStoreViewComponent {
-  import EntityStore._
   val sysConfig: SystemConfig
   val system: ActorSystem
 

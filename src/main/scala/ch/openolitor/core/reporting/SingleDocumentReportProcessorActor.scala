@@ -23,16 +23,10 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
-import akka.util._
-import scala.concurrent.duration._
-import java.io.InputStream
 import org.odftoolkit.simple._
-import org.odftoolkit.simple.common.field._
 import scala.util._
 import spray.json._
 import java.io._
-import java.nio._
-import ch.openolitor.util.ByteBufferBackedInputStream
 import java.util.Locale
 
 object SingleDocumentReportProcessorActor {

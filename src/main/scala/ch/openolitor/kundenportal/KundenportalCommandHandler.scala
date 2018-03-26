@@ -73,5 +73,5 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
 }
 
 class DefaultKundenportalCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends KundenportalCommandHandler
-    with DefaultKundenportalReadRepositorySyncComponent {
+  with DefaultKundenportalReadRepositorySyncComponent {
 }

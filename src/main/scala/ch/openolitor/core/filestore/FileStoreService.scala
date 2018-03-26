@@ -24,7 +24,6 @@ package ch.openolitor.core.filestore
 
 import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
-import com.typesafe.config.Config
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.LazyLogging
 

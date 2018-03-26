@@ -25,21 +25,17 @@ package ch.openolitor.core
 import akka.actor._
 import ch.openolitor.helloworld.HelloWorldRoutes
 import ch.openolitor.stammdaten._
-import ch.openolitor.core._
 import ch.openolitor.core.models._
 import spray.routing._
 import spray.routing.authentication._
 import spray.httpx.SprayJsonSupport._
 import spray.json._
-import spray.json.DefaultJsonProtocol._
 import spray.http.HttpHeaders._
 import spray.httpx.unmarshalling._
 import spray.httpx.marshalling._
 import spray.http._
 import spray.util._
 import spray.caching._
-import HttpCharsets._
-import MediaTypes._
 import java.util.UUID
 import ch.openolitor.core.domain._
 import ch.openolitor.core.domain.EntityStore._
@@ -49,14 +45,11 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import spray.json._
 import ch.openolitor.core.BaseJsonProtocol._
-import com.typesafe.config.Config
 import scala.util._
 import stamina.Persister
-import stamina.json.JsonPersister
 import ch.openolitor.core.system._
 import java.io.ByteArrayInputStream
 import ch.openolitor.core.filestore._
-import spray.routing.StandardRoute
 import akka.util.ByteString
 import scala.reflect.ClassTag
 import ch.openolitor.buchhaltung._
@@ -69,16 +62,12 @@ import ch.openolitor.core.reporting._
 import ch.openolitor.core.reporting.ReportSystem._
 import ch.openolitor.util.InputStreamUtil._
 import java.io.InputStream
-import java.util.zip.ZipInputStream
 import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
-import ch.openolitor.util.ZipBuilder
 import ch.openolitor.kundenportal.KundenportalRoutes
 import ch.openolitor.kundenportal.DefaultKundenportalRoutes
 import ch.openolitor.reports._
 import ch.openolitor.stammdaten.models.ProjektVorlageId
-import spray.can.server.Response
 import ch.openolitor.core.ws.ExportFormat
-import ch.openolitor.core.ws.Json
 import ch.openolitor.core.ws.ODS
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
@@ -90,7 +79,6 @@ import scala.None
 import scala.collection.Iterable
 import collection.JavaConverters._
 import java.io.File
-import java.io.FileInputStream
 import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
 import scala.concurrent.ExecutionContext
 import ch.openolitor.util.ZipBuilderWithFile
@@ -139,17 +127,17 @@ trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache
 // we don't implement our route structure directly in the service actor because(entityStore, sysConfig, system, fileStore, actorRefFactory)
 // we want to be able to test it independently, without having to spin up an actor
 trait RouteServiceActor
-    extends Actor with ActorReferences
-    with DefaultRouteService
-    with HelloWorldRoutes
-    with StatusRoutes
-    with FileStoreRoutes
-    with FileStoreComponent
-    with CORSSupport
-    with BaseJsonProtocol
-    with RoleBasedAuthorization
-    with AirbrakeNotifierReference
-    with LazyLogging {
+  extends Actor with ActorReferences
+  with DefaultRouteService
+  with HelloWorldRoutes
+  with StatusRoutes
+  with FileStoreRoutes
+  with FileStoreComponent
+  with CORSSupport
+  with BaseJsonProtocol
+  with RoleBasedAuthorization
+  with AirbrakeNotifierReference
+  with LazyLogging {
   self: RouteServiceComponent =>
 
   //initially run db evolution
@@ -238,11 +226,11 @@ trait RouteServiceActor
 
 // this trait defines our service behavior independently from the service actor
 trait DefaultRouteService extends HttpService with ActorReferences with BaseJsonProtocol with StreamSupport
-    with FileStoreComponent
-    with LazyLogging
-    with SprayDeserializers
-    with ReportJsonProtocol
-    with DateFormats {
+  with FileStoreComponent
+  with LazyLogging
+  with SprayDeserializers
+  with ReportJsonProtocol
+  with DateFormats {
 
   implicit val timeout = Timeout(5.seconds)
   implicit lazy val executionContext: ExecutionContext = system.dispatcher
@@ -258,7 +246,8 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def create[E <: AnyRef: ClassTag, I <: BaseId](idFactory: Long => I)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], persister: Persister[E, _], subject: Subject
+  ) = {
     requestInstance { request =>
       entity(as[E]) { entity =>
         created(request)(entity)
@@ -282,13 +271,15 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject
+  ) = {
     entity(as[E]) { entity => updated(id, entity) }
   }
 
   protected def update[E <: AnyRef: ClassTag, I <: BaseId](id: I, entity: E)(implicit
     um: FromRequestUnmarshaller[E],
-    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject) = {
+    tr: ToResponseMarshaller[I], idPersister: Persister[I, _], entityPersister: Persister[E, _], subject: Subject
+  ) = {
     updated(id, entity)
   }
 
@@ -317,16 +308,16 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
           def writeToRow(row: Row, element: Any, cellIndex: Int): Unit = {
             element match {
-              case null =>
-              case some: Some[Any] => writeToRow(row, some.x, cellIndex)
-              case None =>
-              case ite: Iterable[Any] => ite map { item => writeToRow(row, item, cellIndex) }
-              case id: BaseId => row.getCellByIndex(cellIndex).setDoubleValue(id.id)
-              case stringId: BaseStringId => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + stringId.id).trim)
-              case str: String => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + str).trim)
+              case null                        =>
+              case some: Some[Any]             => writeToRow(row, some.x, cellIndex)
+              case None                        =>
+              case ite: Iterable[Any]          => ite map { item => writeToRow(row, item, cellIndex) }
+              case id: BaseId                  => row.getCellByIndex(cellIndex).setDoubleValue(id.id)
+              case stringId: BaseStringId      => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + stringId.id).trim)
+              case str: String                 => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + str).trim)
               case dat: org.joda.time.DateTime => row.getCellByIndex(cellIndex).setDateTimeValue(dat.toCalendar(Locale.GERMAN))
-              case nbr: Number => row.getCellByIndex(cellIndex).setDoubleValue(nbr.doubleValue())
-              case x => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + x.toString).trim)
+              case nbr: Number                 => row.getCellByIndex(cellIndex).setDoubleValue(nbr.doubleValue())
+              case x                           => row.getCellByIndex(cellIndex).setStringValue((row.getCellByIndex(cellIndex).getStringValue + " " + x.toString).trim)
             }
           }
 
@@ -355,7 +346,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
                           case ((fieldName, value), colIndex) =>
                             fieldName match {
                               case "passwort" => writeToRow(row, "Not available", colIndex)
-                              case _ => writeToRow(row, value, colIndex)
+                              case _          => writeToRow(row, value, colIndex)
                             }
                         }
                     }
@@ -397,7 +388,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           streamOds("Daten_" + System.currentTimeMillis + ".ods", outputStream.toByteArray())
         }
         //matches "None" and "Some(Json)"
-        case None => complete(result)
+        case None    => complete(result)
         case Some(x) => complete(result)
       }
     }
@@ -422,7 +413,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
 
   protected def downloadAll(zipFileName: String, fileType: FileType, ids: Seq[FileStoreFileId]) = {
     ids match {
-      case Seq() => complete(StatusCodes.BadRequest)
+      case Seq()            => complete(StatusCodes.BadRequest)
       case Seq(fileStoreId) => download(fileType, fileStoreId.id)
       case list =>
         val refs = ids.map(id => FileStoreFileReference(fileType, id))
@@ -561,7 +552,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   protected def storeToFileStore(fileType: FileType, name: Option[String] = None, content: InputStream, fileName: String)(onUpload: (String, FileStoreFileMetadata) => RequestContext => Unit, onError: Option[FileStoreError => RequestContext => Unit] = None): RequestContext => Unit = {
     val id = name.getOrElse(UUID.randomUUID.toString)
     onSuccess(fileStore.putFile(fileType.bucket, Some(id), FileStoreFileMetadata(fileName, fileType), content)) {
-      case Left(e) => onError.map(_(e)).getOrElse(complete(StatusCodes.BadRequest, s"File of file type ${fileType} with id ${id} could not be stored. Error: ${e}"))
+      case Left(e)         => onError.map(_(e)).getOrElse(complete(StatusCodes.BadRequest, s"File of file type ${fileType} with id ${id} could not be stored. Error: ${e}"))
       case Right(metadata) => onUpload(id, metadata)
     }
   }
@@ -631,17 +622,17 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
         }
       }) match {
         case Success(result) => result
-        case Failure(error) => complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:${error}")
+        case Failure(error)  => complete(StatusCodes.BadRequest, s"Der Bericht konnte nicht erzeugt werden:${error}")
       }
     }
   }
 
   private def loadVorlage(datenExtrakt: Boolean, file: Option[(InputStream, String)], vorlageId: Option[ProjektVorlageId]): Try[BerichtsVorlage] = {
     (datenExtrakt, file, vorlageId) match {
-      case (true, _, _) => Success(DatenExtrakt)
-      case (false, Some((is, name)), _) => is.toByteArray.map(result => EinzelBerichtsVorlage(result))
+      case (true, _, _)                   => Success(DatenExtrakt)
+      case (false, Some((is, name)), _)   => is.toByteArray.map(result => EinzelBerichtsVorlage(result))
       case (false, None, Some(vorlageId)) => Success(ProjektBerichtsVorlage(vorlageId))
-      case _ => Success(StandardBerichtsVorlage)
+      case _                              => Success(StandardBerichtsVorlage)
     }
   }
 }
@@ -659,4 +650,4 @@ class DefaultRouteServiceActor(
   override val system: ActorSystem,
   override val loginTokenCache: Cache[Subject]
 ) extends RouteServiceActor
-    with DefaultRouteServiceComponent
+  with DefaultRouteServiceComponent

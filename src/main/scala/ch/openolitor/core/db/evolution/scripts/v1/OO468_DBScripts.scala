@@ -22,8 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.db.evolution.scripts.v1
 
-import scalikejdbc._
-import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.db.evolution.scripts.recalculations.RecalulateAnzahlAktiveAbosCounter
 
 object OO468_DBScripts {

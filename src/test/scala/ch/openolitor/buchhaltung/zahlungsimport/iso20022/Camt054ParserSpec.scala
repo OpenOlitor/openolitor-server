@@ -23,9 +23,6 @@
 package ch.openolitor.buchhaltung.zahlungsimport.iso20022
 
 import org.specs2.mutable._
-import org.joda.time.DateTime
-import java.nio.file.{ Files, Paths }
-import scala.io.Source
 import ch.openolitor.stammdaten.models.CHF
 import ch.openolitor.buchhaltung.zahlungsimport.Gutschrift
 import org.joda.time.format.ISODateTimeFormat

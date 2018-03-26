@@ -31,9 +31,8 @@ resolvers += Resolver.typesafeRepo("releases")
 
 val buildSettings = Seq(
   scalariformPreferences := scalariformPreferences.value
-  .setPreference(AlignSingleLineCaseStatements, true)
-  .setPreference(DoubleIndentConstructorArguments, true)
-  .setPreference(DanglingCloseParenthesis, Preserve),
+  .setPreference(DanglingCloseParenthesis, Force)
+  .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
   version := "2.0.6-SNAPSHOT",
   scalaVersion := "2.11.11",
@@ -43,7 +42,7 @@ val buildSettings = Seq(
   resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven",
   resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8"/*, "-Ywarn-unused-import"*/),
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature"),
   mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
   libraryDependencies ++= {
@@ -143,4 +142,7 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
 
 lazy val root = (project in file("root")).settings(buildSettings).aggregate(macroSub, main, sprayJsonMacro)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> v2

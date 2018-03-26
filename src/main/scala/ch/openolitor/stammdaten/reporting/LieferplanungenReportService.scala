@@ -23,7 +23,6 @@
 package ch.openolitor.stammdaten.reporting
 
 import ch.openolitor.core.reporting._
-import ch.openolitor.core.reporting.models._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
@@ -35,7 +34,6 @@ import ch.openolitor.core.models.PersonId
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
-import org.joda.time.DateTime
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait LieferplanungReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {

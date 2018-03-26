@@ -22,9 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import scalikejdbc.config._
 
-import akka.actor.{ ActorSystem, Props, ActorRef }
+import akka.actor.{ ActorSystem, ActorRef }
 import akka.pattern.ask
 import akka.io.IO
 import spray.can.Http
@@ -32,34 +31,26 @@ import spray.can.server.UHttp
 import akka.util.Timeout
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import com.typesafe.config.ConfigFactory
 import collection.JavaConversions._
 import scalaz._
 import scalaz.Scalaz._
 import com.typesafe.config.Config
-import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.stammdaten._
 import scalikejdbc.ConnectionPoolContext
 import ch.openolitor.core.db._
-import org.slf4j.Logger
-import akka.event.slf4j.Logger
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models.PersonId
-import java.util.UUID
 import ch.openolitor.core.ws.ClientMessagesServer
 import resource._
 import java.net.ServerSocket
-import spray.http.Uri
 import ch.openolitor.core.proxy.ProxyServiceActor
 import ch.openolitor.core.db.evolution.Evolution
-import scala.util._
 import ch.openolitor.buchhaltung.BuchhaltungEntityStoreView
 import ch.openolitor.buchhaltung.BuchhaltungDBEventEntityListener
 import ch.openolitor.reports.ReportsEntityStoreView
 import ch.openolitor.reports.ReportsDBEventEntityListener
-import ch.openolitor.core.models.BaseId
 import spray.caching.LruCache
 import ch.openolitor.core.security.Subject
 import ch.openolitor.core.reporting._

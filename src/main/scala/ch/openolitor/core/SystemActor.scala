@@ -25,9 +25,6 @@ package ch.openolitor.core
 import akka.actor._
 import scala.concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
-import scalikejdbc._
-import scalikejdbc.config._
-import ch.openolitor.core.db._
 import akka.pattern.BackoffSupervisor
 import akka.pattern.Backoff
 

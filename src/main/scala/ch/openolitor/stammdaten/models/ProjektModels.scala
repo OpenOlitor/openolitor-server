@@ -22,12 +22,10 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import java.util.UUID
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
-import scala.collection.immutable.TreeMap
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
 
@@ -74,29 +72,29 @@ case class Geschaeftsjahr(monat: Int, tag: Int) {
 }
 
 case class Projekt(
-    id: ProjektId,
-    bezeichnung: String,
-    strasse: Option[String],
-    hausNummer: Option[String],
-    adressZusatz: Option[String],
-    plz: Option[String],
-    ort: Option[String],
-    preiseSichtbar: Boolean,
-    preiseEditierbar: Boolean,
-    emailErforderlich: Boolean,
-    waehrung: Waehrung,
-    geschaeftsjahrMonat: Int,
-    geschaeftsjahrTag: Int,
-    twoFactorAuthentication: Map[Rolle, Boolean],
-    sprache: Locale,
-    welcomeMessage1: Option[String],
-    welcomeMessage2: Option[String],
-    maintenanceMode: Boolean,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
+  id: ProjektId,
+  bezeichnung: String,
+  strasse: Option[String],
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: Option[String],
+  ort: Option[String],
+  preiseSichtbar: Boolean,
+  preiseEditierbar: Boolean,
+  emailErforderlich: Boolean,
+  waehrung: Waehrung,
+  geschaeftsjahrMonat: Int,
+  geschaeftsjahrTag: Int,
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  sprache: Locale,
+  welcomeMessage1: Option[String],
+  welcomeMessage2: Option[String],
+  maintenanceMode: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
 }
@@ -118,26 +116,26 @@ case class ProjektPublik(
 ) extends JSONSerializable
 
 case class ProjektReport(
-    id: ProjektId,
-    bezeichnung: String,
-    strasse: Option[String],
-    hausNummer: Option[String],
-    adressZusatz: Option[String],
-    plz: Option[String],
-    ort: Option[String],
-    preiseSichtbar: Boolean,
-    preiseEditierbar: Boolean,
-    emailErforderlich: Boolean,
-    waehrung: Waehrung,
-    geschaeftsjahrMonat: Int,
-    geschaeftsjahrTag: Int,
-    twoFactorAuthentication: Map[Rolle, Boolean],
-    sprache: Locale,
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
+  id: ProjektId,
+  bezeichnung: String,
+  strasse: Option[String],
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: Option[String],
+  ort: Option[String],
+  preiseSichtbar: Boolean,
+  preiseEditierbar: Boolean,
+  emailErforderlich: Boolean,
+  waehrung: Waehrung,
+  geschaeftsjahrMonat: Int,
+  geschaeftsjahrTag: Int,
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  sprache: Locale,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends BaseEntity[ProjektId] {
   lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
   lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
@@ -187,7 +185,7 @@ case class CustomKundentyp(
   modifikator: PersonId
 ) extends BaseEntity[CustomKundentypId]
 
-// Don't use! 
+// Don't use!
 case class CustomKundentypModifyV1(beschreibung: Option[String]) extends JSONSerializable
 
 case class CustomKundentypModify(kundentyp: KundentypId, id: CustomKundentypId, beschreibung: Option[String]) extends JSONSerializable

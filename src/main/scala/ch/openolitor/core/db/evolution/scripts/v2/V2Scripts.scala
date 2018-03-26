@@ -28,17 +28,12 @@ import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
-import scalikejdbc.SQLSyntax._
 import scala.util.{ Try, Success }
-import ch.openolitor.util.IdUtil
 import org.joda.time.DateTime
 import ch.openolitor.core.Boot
 import ch.openolitor.core.repositories.CoreRepositoryQueries
 import ch.openolitor.core.models.PersistenceEventState
 import ch.openolitor.core.models.PersistenceEventStateId
-import ch.openolitor.core.eventsourcing.EventStoreSerializer
-import ch.openolitor.core.domain.PersistentEvent
-import ch.openolitor.core.repositories.BaseWriteRepository
 import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.StammdatenDBMappings
 

@@ -25,7 +25,6 @@ package ch.openolitor.core.reporting
 import akka.actor._
 import spray.json._
 import ch.openolitor.core.filestore._
-import java.util.zip.ZipFile
 import java.util.Locale
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.JSONSerializable
@@ -65,7 +64,7 @@ object ReportSystem {
   case class ZipReportResult(stats: GenerateReportsStats, errors: Seq[ReportError], results: Option[Array[Byte]]) extends ReportResult
   case class BatchStoredPdfReportResult(stats: GenerateReportsStats, errors: Seq[ReportError], results: Seq[FileStoreFileReference]) extends ReportResult with JSONSerializable
   case class GenerateReportsStats(originator: PersonId, jobId: JobId, numberOfReportsInProgress: Int, numberOfSuccess: Int, numberOfFailures: Int) extends ReportResult
-      with JSONSerializable {
+    with JSONSerializable {
     def incSuccess: GenerateReportsStats =
       copy(numberOfSuccess = this.numberOfSuccess + 1, numberOfReportsInProgress = this.numberOfReportsInProgress - 1)
     def incError: GenerateReportsStats =

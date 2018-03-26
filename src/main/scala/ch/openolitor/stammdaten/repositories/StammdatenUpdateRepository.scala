@@ -30,8 +30,8 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.EventStream
 
 trait StammdatenUpdateRepository extends BaseUpdateRepository
-    with StammdatenReadRepositorySync
-    with EventStream {
+  with StammdatenReadRepositorySync
+  with EventStream {
 
   def updateHauptAboAddZusatzabo(add: ZusatzAbo)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId): Option[HauptAbo]
 

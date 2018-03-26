@@ -54,12 +54,12 @@ import ch.openolitor.buchhaltung.reporting.MahnungReportService
 import java.io.ByteArrayInputStream
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
-    with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
-    with BuchhaltungJsonProtocol
-    with BuchhaltungEventStoreSerializer
-    with RechnungReportService
-    with MahnungReportService
-    with BuchhaltungDBMappings {
+  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+  with BuchhaltungJsonProtocol
+  with BuchhaltungEventStoreSerializer
+  with RechnungReportService
+  with MahnungReportService
+  with BuchhaltungDBMappings {
   self: BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
   implicit val rechnungIdPath = long2BaseIdPathMatcher(RechnungId.apply)
@@ -361,6 +361,6 @@ class DefaultBuchhaltungRoutes(
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
-    extends BuchhaltungRoutes
-    with DefaultBuchhaltungReadRepositoryAsyncComponent
-    with DefaultStammdatenReadRepositoryAsyncComponent
+  extends BuchhaltungRoutes
+  with DefaultBuchhaltungReadRepositoryAsyncComponent
+  with DefaultStammdatenReadRepositoryAsyncComponent
