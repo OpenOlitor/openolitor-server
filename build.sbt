@@ -141,8 +141,3 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
     )) dependsOn (macroSub, sprayJsonMacro, akkaPersistenceSqlAsync)
 
 lazy val root = (project in file("root")).settings(buildSettings).aggregate(macroSub, main, sprayJsonMacro)
-
-<<<<<<< HEAD
-
-=======
->>>>>>> v2
