@@ -125,7 +125,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
                   case (true, xmlData) => {
                     val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
                     storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_07") { (fileId, meta) =>
-                      createZahlungExport(fileId, rechnungen)
+                      createZahlungExport(fileId, rechnungen, xmlData)
                     }
                   }
                   case (false, errorMessage) => {
@@ -358,11 +358,11 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
-  def createZahlungExport(file: String, rechnungen: List[Rechnung])(implicit subject: Subject) = {
+  def createZahlungExport(file: String, rechnungen: List[Rechnung], fileContent: String)(implicit subject: Subject) = {
     onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen, file)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
-      case _ => complete("")
+      case _ => complete(fileContent)
     }
   }
 
