@@ -30,11 +30,12 @@ import ch.openolitor.core.scalax.Tuple26
 case class KundeId(id: Long) extends BaseId
 
 sealed trait PaymentType
+case object Anderer extends PaymentType
 case object DirectDebit extends PaymentType
 case object Transfer extends PaymentType
 
 object PaymentType {
-  val AllePaymentTypes = Vector(DirectDebit, Transfer)
+  val AllePaymentTypes = Vector(Anderer, DirectDebit, Transfer)
 
   def apply(value: String): Option[PaymentType] = {
     AllePaymentTypes.find(_.toString == value)
