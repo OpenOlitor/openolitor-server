@@ -210,7 +210,7 @@ object V2Scripts {
     }
   }
 
-  def scripts(system: ActorSystem) = Seq(oo656(system), oo688, arbeitseinsatzDBInitializationScript) ++
+  def scripts(system: ActorSystem) = Seq(oo656(system), oo688) ++
     OO686_Add_Rechnungspositionen.scripts ++
     OO697_Zusatzabos_add_modify_delete.scripts ++
     OO731_Reports.scripts ++
@@ -220,5 +220,7 @@ object V2Scripts {
     OO854_zusatzinfo_lieferung_200.scripts ++
     OO861_recalculate_lieferung_counts.scripts ++
     OO900_Guthaben.scripts ++
+    OO942_EnlargeFileRef.scripts ++
+    Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts
 }
