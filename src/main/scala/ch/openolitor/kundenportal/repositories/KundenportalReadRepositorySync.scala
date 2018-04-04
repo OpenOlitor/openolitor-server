@@ -32,12 +32,17 @@ import com.typesafe.scalalogging.LazyLogging
  * Synchronous Repository
  */
 trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
+  def getProjekt(implicit session: DBSession): Option[Projekt]
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
   def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
   def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
 }
 
 trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync with LazyLogging with KundenportalRepositoryQueries {
+  def getProjekt(implicit session: DBSession): Option[Projekt] = {
+    getProjektQuery.apply()
+  }
+
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
     getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
   }

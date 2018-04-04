@@ -38,11 +38,13 @@ import ch.openolitor.arbeitseinsatz.models._
 
 import akka.actor.ActorSystem
 import scalikejdbc.DB
+import org.joda.time.DateTime
 
 object KundenportalCommandHandler {
   case class AbwesenheitErstellenCommand(originator: PersonId, subject: Subject, entity: AbwesenheitCreate) extends UserCommand
   case class AbwesenheitLoeschenCommand(originator: PersonId, subject: Subject, aboId: AboId, abwesenheitId: AbwesenheitId) extends UserCommand
   case class ArbeitseinsatzErstellenCommand(originator: PersonId, subject: Subject, entity: ArbeitseinsatzCreate) extends UserCommand
+  case class ArbeitseinsatzModifizierenCommand(originator: PersonId, subject: Subject, entity: Arbeitseinsatz) extends UserCommand
   case class ArbeitseinsatzLoeschenCommand(originator: PersonId, subject: Subject, arbeitseinsatzId: ArbeitseinsatzId) extends UserCommand
 }
 
@@ -86,16 +88,38 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
         } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot wurde nicht gefunden.")))
       }
 
+    case ArbeitseinsatzModifizierenCommand(personId, subject, entity: Arbeitseinsatz) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        kundenportalReadRepository.getProjekt map { projekt =>
+          kundenportalReadRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
+            if (arbeitsangebot.status == Bereit) {
+              if (arbeitsangebot.zeitVon isBefore DateTime.now.plusDays(projekt.einsatzAbsageVorlaufTage)) {
+                Success(Seq(EntityUpdateEvent(entity.id, entity)))
+              } else {
+                Failure(new InvalidStateException(s"Arbeitseinsätze können nur bis ${projekt.einsatzAbsageVorlaufTage} Tage vor Start modifiziert werden."))
+              }
+            } else {
+              Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' modifiziert werden."))
+            }
+          } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot wurde nicht gefunden.")))
+        } getOrElse (Failure(new InvalidStateException(s"Projekt konnte nicht geladen werden.")))
+      }
+
     case ArbeitseinsatzLoeschenCommand(personId, subject, arbeitseinsatzId) => idFactory => meta =>
       DB readOnly { implicit session =>
-        kundenportalReadRepository.getArbeitseinsatzDetail(arbeitseinsatzId) map { arbeitseinsatz =>
-          //TODO check better if this operation is ok
-          if (arbeitseinsatz.arbeitsangebot.status == Bereit) {
-            Success(Seq(EntityDeleteEvent(arbeitseinsatzId)))
-          } else {
-            Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' entfernt werden."))
-          }
-        } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot doer der Arbeitseinsatz wurden nicht gefunden.")))
+        kundenportalReadRepository.getProjekt map { projekt =>
+          kundenportalReadRepository.getArbeitseinsatzDetail(arbeitseinsatzId) map { arbeitseinsatz =>
+            if (arbeitseinsatz.arbeitsangebot.status == Bereit) {
+              if (arbeitseinsatz.arbeitsangebot.zeitVon isBefore DateTime.now.plusDays(projekt.einsatzAbsageVorlaufTage)) {
+                Success(Seq(EntityDeleteEvent(arbeitseinsatzId)))
+              } else {
+                Failure(new InvalidStateException(s"Arbeitseinsätze können nur bis ${projekt.einsatzAbsageVorlaufTage} Tage vor Start gelöscht werden."))
+              }
+            } else {
+              Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' entfernt werden."))
+            }
+          } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot doer der Arbeitseinsatz wurden nicht gefunden.")))
+        } getOrElse (Failure(new InvalidStateException(s"Projekt konnte nicht geladen werden.")))
       }
 
   }

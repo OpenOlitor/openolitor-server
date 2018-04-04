@@ -133,9 +133,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
     path("arbeitsangebote") {
       get {
         list(kundenportalReadRepository.getArbeitsangebote)
-      }
-    } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath / "participate") { arbeitsangebotId =>
+      } ~
         post {
           requestInstance { request =>
             entity(as[ArbeitseinsatzCreate]) { arbein =>
@@ -148,19 +146,33 @@ trait KundenportalRoutes extends HttpService with ActorReferences
             }
           }
         }
-      } ~
+    } ~
       path("arbeitseinsaetze") {
         get {
           list(kundenportalReadRepository.getArbeitseinsaetze)
         }
       } ~
-      path("arbeitseinsaetze" / arbeitseinsatzIdPath / "zurücktreten") { arbeitseinsatzId =>
-        onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzLoeschenCommand(subject.personId, subject, arbeitseinsatzId)) {
-          case UserCommandFailed =>
-            complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht gelöscht werden.")
-          case _ =>
-            complete("")
-        }
+      path("arbeitseinsaetze" / arbeitseinsatzIdPath) { arbeitseinsatzId =>
+        post {
+          requestInstance { request =>
+            entity(as[Arbeitseinsatz]) { arbein =>
+              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzModifizierenCommand(subject.personId, subject, arbein)) {
+                case UserCommandFailed =>
+                  complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht modifiziert werden.")
+                case _ =>
+                  complete("")
+              }
+            }
+          }
+        } ~
+          delete {
+            onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzLoeschenCommand(subject.personId, subject, arbeitseinsatzId)) {
+              case UserCommandFailed =>
+                complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht gelöscht werden.")
+              case _ =>
+                complete("")
+            }
+          }
       }
 
   }

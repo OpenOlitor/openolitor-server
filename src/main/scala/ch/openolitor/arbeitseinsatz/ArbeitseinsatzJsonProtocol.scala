@@ -29,7 +29,7 @@ import com.typesafe.scalalogging.LazyLogging
 import zangelo.spray.json.AutoProductFormats
 
 /**
- * JSON Format deklarationen für das Modul Stammdaten
+ * JSON Format deklarationen für das Modul rbeitseinsatz
  */
 trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] with StammdatenJsonProtocol {
 
@@ -42,6 +42,7 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
   implicit val arbeitseinsatzIdFormat = baseIdFormat(ArbeitseinsatzId)
 
   implicit val arbeitskategorieFormat = autoProductFormat[Arbeitskategorie]
+  implicit val arbeitskategorieBezFormat = autoProductFormat[ArbeitskategorieBez]
   implicit val arbeitsangebotFormat = autoProductFormat[Arbeitsangebot]
   implicit val arbeitseinsatzFormat = autoProductFormat[Arbeitseinsatz]
 
