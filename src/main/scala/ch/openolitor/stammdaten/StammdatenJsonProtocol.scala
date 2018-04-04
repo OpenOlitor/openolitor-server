@@ -109,14 +109,16 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val paymentTypeFormat = new JsonFormat[PaymentType] {
     def write(obj: PaymentType): JsValue =
       obj match {
-        case DirectDebit => JsString("directDebit")
-        case Transfer => JsString("transfer")
+        case Anderer => JsString("Anderer")
+        case DirectDebit => JsString("DirectDebit")
+        case Transfer => JsString("Transfer")
       }
 
     def read(json: JsValue): PaymentType =
       json match {
-        case JsString("directDebit") => DirectDebit
-        case JsString("transfer") => Transfer
+        case JsString("Anderer") => Anderer
+        case JsString("DirectDebit") => DirectDebit
+        case JsString("Transfer") => Transfer
         case pe => sys.error(s"Unknown payment type:$pe")
       }
   }
