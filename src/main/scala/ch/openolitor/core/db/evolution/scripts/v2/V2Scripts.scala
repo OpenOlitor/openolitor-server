@@ -236,6 +236,7 @@ object V2Scripts {
     OO_sunu_11_adding_payment_parameters_to_kunde.scripts ++
     OO_sunu_13_adding_payment_type_to_rechnung.scripts ++
     OO_sunu_14_new_zahlung_export_table.scripts ++
+    OO_sunu_26_adding_payment_types.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts
 }
