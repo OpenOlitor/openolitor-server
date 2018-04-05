@@ -41,6 +41,17 @@ object ZahlungsEingangStatus {
   }
 }
 
+sealed trait ZahlungsExportStatus
+case object Created extends ZahlungsExportStatus
+case object Sent extends ZahlungsExportStatus
+case object Archived extends ZahlungsExportStatus
+
+object ZahlungsExportStatus {
+  def apply(value: String): ZahlungsExportStatus = {
+    Vector(Created, Sent, Archived).find(_.toString == value).getOrElse(Created)
+  }
+}
+
 case class ZahlungsEingangId(id: Long) extends BaseId
 
 case class ZahlungsImportId(id: Long) extends BaseId
@@ -126,6 +137,7 @@ case class ZahlungsExport(
   id: ZahlungsExportId,
   fileName: String,
   rechnungen: Set[RechnungId],
+  status: ZahlungsExportStatus,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -136,6 +148,7 @@ case class ZahlungsExport(
 case class ZahlungsExportCreate(
   id: ZahlungsExportId,
   fileName: String,
-  rechnungen: Set[RechnungId]
+  rechnungen: Set[RechnungId],
+  status: ZahlungsExportStatus
 ) extends JSONSerializable
 

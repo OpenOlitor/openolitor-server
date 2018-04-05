@@ -257,7 +257,8 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       get(list(buchhaltungReadRepository.getZahlungsExports))
     } ~
       path("zahlungsexports" / zahlungsExportIdPath) { id =>
-        get(detail(buchhaltungReadRepository.getZahlungsExportDetail(id)))
+        get(detail(buchhaltungReadRepository.getZahlungsExportDetail(id))) ~
+          (put | post)(update[ZahlungsExportCreate, ZahlungsExportId](id))
       } ~
       path("zahlungsexports" / zahlungsExportIdPath / "download") { id =>
         get {
