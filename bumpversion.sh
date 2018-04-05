@@ -47,7 +47,7 @@ done
 VERSION_REGEX="version.*?\K(\d+)\.(\d+)\.(\d+)(-SNAPSHOT)?"
 MANIFEST_REGEX="openolitor-server-\K(\d+).(\d+).(\d+)(-SNAPSHOT)?"
 
-BUILD_FILE='project/Build.scala'
+BUILD_FILE='build.sbt'
 
 CURRENT_VERSION="$(grep -Po $VERSION_REGEX $BUILD_FILE)"
 echo "Current version is: "$CURRENT_VERSION
