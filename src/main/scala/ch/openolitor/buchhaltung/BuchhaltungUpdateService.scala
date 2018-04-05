@@ -54,6 +54,7 @@ class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends Eve
     case EntityUpdatedEvent(meta, id: RechnungId, entity: RechnungModify) => updateRechnung(meta, id, entity)
     case EntityUpdatedEvent(meta, id: RechnungsPositionId, entity: RechnungsPositionModify) => updateRechnungsPosition(meta, id, entity)
     case EntityUpdatedEvent(meta, id: RechnungsPositionId, entity: RechnungsPositionAssignToRechnung) => assignRechnungsPositionToRechnung(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: ZahlungsExportId, entity: ZahlungsExportCreate) => updateZahlungExport(meta, id, entity)
     case e =>
   }
 
@@ -84,6 +85,14 @@ class BuchhaltungUpdateService(override val sysConfig: SystemConfig) extends Eve
         rechnungsPositionMapping.column.anzahlLieferungen -> update.anzahlLieferungen,
         rechnungsPositionMapping.column.betrag -> update.betrag,
         rechnungsPositionMapping.column.status -> update.status
+      )
+    }
+  }
+
+  def updateZahlungExport(meta: EventMetadata, id: ZahlungsExportId, update: ZahlungsExportCreate)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.updateEntity(id)(
+        zahlungsExportMapping.column.status -> update.status
       )
     }
   }

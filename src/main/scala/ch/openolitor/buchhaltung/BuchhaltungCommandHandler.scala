@@ -200,7 +200,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
         val rechnungIdList = rechnungen.map { rechnung =>
           rechnung.id
         }
-        val zahlungsExportEvent = DefaultResultingEvent(factory => ZahlungsExportCreatedEvent(factory.newMetadata(), ZahlungsExportCreate(id, file, rechnungIdList.toSet)))
+        val zahlungsExportEvent = DefaultResultingEvent(factory => ZahlungsExportCreatedEvent(factory.newMetadata(), ZahlungsExportCreate(id, file, rechnungIdList.toSet, Created)))
         val verschicktEvents = rechnungIdList.map(r => DefaultResultingEvent(factory => RechnungVerschicktEvent(factory.newMetadata(), r)))
         Success(zahlungsExportEvent :: verschicktEvents)
       }

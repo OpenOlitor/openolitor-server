@@ -39,6 +39,7 @@ trait BuchhaltungJsonProtocol extends BaseJsonProtocol with LazyLogging with Aut
   implicit val rechnungsPositionStatusFormat = enumFormat(RechnungsPositionStatus.apply)
   implicit val rechnungsPositionTypFormat = enumFormat(RechnungsPositionTyp.apply)
   implicit val zahlungsEingangStatusFormat = enumFormat(ZahlungsEingangStatus.apply)
+  implicit val zahlungsExportStatusFormat = enumFormat(ZahlungsExportStatus.apply)
 
   //id formats
   implicit val rechnungIdFormat = baseIdFormat(RechnungId)

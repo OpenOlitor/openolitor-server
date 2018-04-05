@@ -66,6 +66,7 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
   implicit val zahlungsEingangIdPersister = persister[ZahlungsEingangId]("zahlungs-eingang-id")
   implicit val zahlungsEingangErledigtEventPersister = persister[ZahlungsEingangErledigtEvent, V2]("zahlungs-eingang-erledigt-event", V1toV2metaDataMigration)
 
+  implicit val zahlungsExportCreatePersister = persister[ZahlungsExportCreate]("zahlungs-export-create")
   implicit val zahlungsExportIdPersister = persister[ZahlungsExportId]("zahlungs-export-id")
   implicit val zahlungsExportCreatedEventPersister = persister[ZahlungsExportCreatedEvent]("zahlungs-export-created-event")
 
@@ -90,6 +91,7 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
     zahlungsImportCreatedEventPersister,
     zahlungsEingangIdPersister,
     zahlungsEingangErledigtEventPersister,
+    zahlungsExportCreatePersister,
     zahlungsExportIdPersister,
     zahlungsExportCreatedEventPersister,
     rechnungPDFStoreEventPersister,
