@@ -188,6 +188,7 @@ case class ArbeitseinsatzModify(
 case class ArbeitseinsatzCreate(
   arbeitsangebotId: ArbeitsangebotId,
   kundeId: KundeId,
+  personId: Option[PersonId],
   anzahlPersonen: Int,
   bemerkungen: Option[String]
 ) extends JSONSerializable

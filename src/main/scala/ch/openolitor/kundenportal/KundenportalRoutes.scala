@@ -155,8 +155,8 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       path("arbeitseinsaetze" / arbeitseinsatzIdPath) { arbeitseinsatzId =>
         post {
           requestInstance { request =>
-            entity(as[Arbeitseinsatz]) { arbein =>
-              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzModifizierenCommand(subject.personId, subject, arbein)) {
+            entity(as[ArbeitseinsatzCreate]) { arbein =>
+              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzModifizierenCommand(subject.personId, subject, arbeitseinsatzId, arbein)) {
                 case UserCommandFailed =>
                   complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht modifiziert werden.")
                 case _ =>
