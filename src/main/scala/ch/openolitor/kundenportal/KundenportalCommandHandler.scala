@@ -36,6 +36,7 @@ import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransaction
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
 import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId }
 import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.Macros._
 
 import akka.actor.ActorSystem
 import scalikejdbc.DB
@@ -108,7 +109,7 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
             kundenportalReadRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
               if (arbeitsangebot.status == Bereit) {
                 if (arbeitsangebot.zeitVon isAfter DateTime.now.plusDays(projekt.einsatzAbsageVorlaufTage)) {
-                  val entityToSave = arbeitseinsatz.copy(anzahlPersonen = entity.anzahlPersonen, bemerkungen = entity.bemerkungen)
+                  val entityToSave = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](arbeitseinsatz, "anzahlPersonen" -> entity.anzahlPersonen, "bemerkungen" -> entity.bemerkungen)
                   Success(Seq(EntityUpdateEvent(id, entityToSave)))
                 } else {
                   Failure(new InvalidStateException(s"Arbeitseinsätze können nur bis ${projekt.einsatzAbsageVorlaufTage} Tage vor Start modifiziert werden."))
