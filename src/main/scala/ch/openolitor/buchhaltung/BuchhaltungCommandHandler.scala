@@ -38,17 +38,13 @@ import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
 
 import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, ZahlungsImportRecordResult }
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_001_07_Export.exportPain008_001_07
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
