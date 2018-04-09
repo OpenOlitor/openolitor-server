@@ -65,7 +65,6 @@ object ClientMessagesServer {
 }
 class ClientMessagesServer(loginTokenCache: Cache[Subject]) extends Actor with ActorLogging {
 
-
   override def preStart() {
     super.preStart()
     //register ourself as listener to sendtoclient commands
