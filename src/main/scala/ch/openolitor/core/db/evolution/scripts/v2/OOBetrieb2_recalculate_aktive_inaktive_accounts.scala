@@ -20,7 +20,14 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.repositories
+package ch.openolitor.core.db.evolution.scripts.v2
 
-trait BaseUpdateRepositoryComponent {
+import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAbosCounter
+import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAktiveAbosCounter
+
+object OOBetrieb2_recalculate_aktive_inaktive_accounts {
+  val scripts = Seq(
+    RecalculateAnzahlAbosCounter.scripts,
+    RecalculateAnzahlAktiveAbosCounter.scripts
+  )
 }
