@@ -56,7 +56,7 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
               val copy = arbeitsangebot.copy(status = Archiviert)
               Success(Seq(EntityUpdateEvent(id, copy)))
             case _ =>
-              Failure(new InvalidStateException("Der Arbeitseinsatz muss Offen sein."))
+              Failure(new InvalidStateException("Der Arbeitseinsatz muss 'Bereit' sein."))
           }
         } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
       }
