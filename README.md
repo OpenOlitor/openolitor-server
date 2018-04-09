@@ -13,7 +13,7 @@ Release Notes stehen projektübergreifend zur Verfügung:
 https://github.com/OpenOlitor/OpenOlitor/wiki/Release-Notes
 
 ## Lizenz / License
-Code bis April 2018 wurde unter [LICENSE_legacy](GPL v3) publiziert. Ab April 2018 wird OpenOlitor unter [LICENSE_legacy](AGPL v3) veröffentlicht.
+Code bis April 2018 wurde unter [GPL v3](LICENSE_legacy) publiziert. Ab April 2018 wird OpenOlitor unter [AGPL v3](LICENSE_legacy) veröffentlicht.
 
 ## bumpversion.sh
 Mittels `./bumpversion.sh` (`./bumpversion.sh -v 1.0.x`) wird die Version in `project/Build.scala` erhöht.
