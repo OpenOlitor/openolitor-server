@@ -26,20 +26,41 @@ import akka.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
+import ch.openolitor.core.exceptions.InvalidStateException
+import scalikejdbc.DB
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._
+import ch.openolitor.core.models.PersonId
 
 import scala.util._
 
 object ArbeitseinsatzCommandHandler {
-  //case class LieferplanungAbschliessenCommand(originator: PersonId, id: LieferplanungId) extends UserCommand
+  case class ArbeitsangebotArchivedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
 }
 
 trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware {
-  self: ArbeitseinsatzWriteRepositoryComponent =>
+  self: ArbeitseinsatzReadRepositorySyncComponent =>
+  import ArbeitseinsatzCommandHandler._
   import EntityStore._
 
   override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {
+
+    /*
+    * Custom update command handling
+    */
+    case ArbeitsangebotArchivedCommand(id, personId) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, id) map { arbeitsangebot =>
+          arbeitsangebot.status match {
+            case (Bereit) =>
+              val copy = arbeitsangebot.copy(status = Archiviert)
+              Success(Seq(EntityUpdateEvent(id, copy)))
+            case _ =>
+              Failure(new InvalidStateException("Der Arbeitseinsatz muss Offen sein."))
+          }
+        } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
+      }
+
     /*
      * Insert command handling
      */
@@ -50,13 +71,9 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
     case e @ InsertEntityCommand(personId, entity: ArbeitseinsatzModify) => idFactory => meta =>
       handleEntityInsert[ArbeitseinsatzModify, ArbeitseinsatzId](idFactory, meta, entity, ArbeitseinsatzId.apply)
 
-    /*
-    * Custom update command handling
-    */
-
   }
 }
 
 class DefaultArbeitseinsatzCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends ArbeitseinsatzCommandHandler
-  with DefaultArbeitseinsatzWriteRepositoryComponent {
+  with DefaultArbeitseinsatzReadRepositorySyncComponent {
 }

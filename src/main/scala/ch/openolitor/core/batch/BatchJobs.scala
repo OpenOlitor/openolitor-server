@@ -28,6 +28,7 @@ import akka.actor.Actor
 import org.joda.time.DateTime
 import akka.actor.Cancellable
 import akka.actor.ActorRef
+import scala.language.postfixOps
 
 object BatchJobs {
   case object InitializeBatchJob
@@ -90,5 +91,10 @@ trait BaseBatchJob extends Actor with LazyLogging {
   protected def untilNextMidnight: FiniteDuration = {
     val untilNextMidnight = new DateTime().withTimeAtStartOfDay.plusDays(1).getMillis - DateTime.now.getMillis
     untilNextMidnight millis
+  }
+
+  protected def onceAnHour: FiniteDuration = {
+    val onceAnHour = new DateTime().plusHours(1).getMillis - DateTime.now.getMillis
+    onceAnHour millis
   }
 }

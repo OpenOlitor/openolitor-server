@@ -20,25 +20,24 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.batch
+package ch.openolitor.arbeitseinsatz.batch
 
-import akka.actor.Props
-import ch.openolitor.stammdaten.batch.StammdatenBatchJobs
-import akka.actor.ActorSystem
 import ch.openolitor.core.SystemConfig
+import akka.actor.ActorSystem
+import akka.actor.Props
+import ch.openolitor.arbeitseinsatz.repositories.DefaultArbeitseinsatzWriteRepositoryComponent
+import ch.openolitor.core.batch.BaseBatchJobsSupervisor
 import akka.actor.ActorRef
-import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.core.filestore.batch.FileStoreBatchJobs
-import ch.openolitor.arbeitseinsatz.batch.ArbeitseinsatzBatchJobs
+import ch.openolitor.arbeitseinsatz.batch.calculations.ArbeitseinsatzStatusUpdater
 
-object OpenOlitorBatchJobs {
-  def props(entityStore: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[OpenOlitorBatchJobs], sysConfig, system, entityStore, fileStore)
+object ArbeitseinsatzBatchJobs {
+  def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[DefaultArbeitseinsatzBatchJobs], sysConfig, system, entityStore)
 }
 
-class OpenOlitorBatchJobs(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef, fileStore: FileStore) extends BaseBatchJobsSupervisor {
+class ArbeitseinsatzBatchJobs(val sysConfig: SystemConfig, val system: ActorSystem, val entityStore: ActorRef) extends BaseBatchJobsSupervisor {
   override lazy val batchJobs = Set(
-    context.actorOf(StammdatenBatchJobs.props(sysConfig, system, entityStore)),
-    context.actorOf(FileStoreBatchJobs.props(sysConfig, system, fileStore)),
-    context.actorOf(ArbeitseinsatzBatchJobs.props(sysConfig, system, entityStore))
+    context.actorOf(ArbeitseinsatzStatusUpdater.props(sysConfig, system, entityStore))
   )
 }
+
+class DefaultArbeitseinsatzBatchJobs(override val sysConfig: SystemConfig, override val system: ActorSystem, override val entityStore: ActorRef) extends ArbeitseinsatzBatchJobs(sysConfig, system, entityStore) with DefaultArbeitseinsatzWriteRepositoryComponent

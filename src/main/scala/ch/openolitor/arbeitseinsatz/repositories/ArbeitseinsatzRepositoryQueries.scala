@@ -30,6 +30,7 @@ import ch.openolitor.stammdaten.models.KundeId
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import scalikejdbc._
+import scala.language.postfixOps
 
 trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings with StammdatenDBMappings {
 
@@ -154,6 +155,16 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         ArbeitseinsatzAbrechnung(kunde.id, kunde.bezeichnung, summeEinsaetzeSoll, summeEinsaetzeIst, summeEinsaetzeDelta)
       }.list
 
+  }
+
+  protected def getArbeitsangebotArchivedQuery = {
+    withSQL {
+      select
+        .from(arbeitsangebotMapping as arbeitsangebot)
+        .where.lt(arbeitsangebot.zeitBis, new DateTime())
+        .and.eq(arbeitsangebot.status, Offen)
+        .orderBy(arbeitsangebot.zeitVon)
+    }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
 
 }

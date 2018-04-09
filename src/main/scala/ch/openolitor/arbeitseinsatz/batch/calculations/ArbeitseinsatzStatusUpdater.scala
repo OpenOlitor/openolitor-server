@@ -20,25 +20,46 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.batch
+package ch.openolitor.arbeitseinsatz.batch.calculations
 
-import akka.actor.Props
-import ch.openolitor.stammdaten.batch.StammdatenBatchJobs
-import akka.actor.ActorSystem
 import ch.openolitor.core.SystemConfig
+import akka.actor.ActorSystem
+import akka.actor.Props
+import ch.openolitor.core.batch.BaseBatchJob
+import scala.concurrent.duration._
+import ch.openolitor.core.batch.BatchJobs._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import ch.openolitor.arbeitseinsatz.repositories.DefaultArbeitseinsatzWriteRepositoryComponent
+import scalikejdbc._
+import ch.openolitor.arbeitseinsatz.repositories.ArbeitseinsatzRepositoryQueries
 import akka.actor.ActorRef
-import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.core.filestore.batch.FileStoreBatchJobs
-import ch.openolitor.arbeitseinsatz.batch.ArbeitseinsatzBatchJobs
+import akka.actor.actorRef2Scala
+import scala.language.postfixOps
+import scala.concurrent.ExecutionContext.Implicits.global
 
-object OpenOlitorBatchJobs {
-  def props(entityStore: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[OpenOlitorBatchJobs], sysConfig, system, entityStore, fileStore)
+object ArbeitseinsatzStatusUpdater {
+  def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[ArbeitseinsatzStatusUpdater], sysConfig, system, entityStore)
 }
 
-class OpenOlitorBatchJobs(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef, fileStore: FileStore) extends BaseBatchJobsSupervisor {
-  override lazy val batchJobs = Set(
-    context.actorOf(StammdatenBatchJobs.props(sysConfig, system, entityStore)),
-    context.actorOf(FileStoreBatchJobs.props(sysConfig, system, fileStore)),
-    context.actorOf(ArbeitseinsatzBatchJobs.props(sysConfig, system, entityStore))
-  )
+class ArbeitseinsatzStatusUpdater(override val sysConfig: SystemConfig, override val system: ActorSystem, val entityStore: ActorRef) extends BaseBatchJob
+  with AsyncConnectionPoolContextAware
+  with DefaultArbeitseinsatzWriteRepositoryComponent
+  with ArbeitseinsatzRepositoryQueries {
+
+  override def process(): Unit = {
+    DB autoCommit { implicit session =>
+      val archived = getArbeitsangebotArchivedQuery()
+
+      logger.debug(s"Found ${archived.size} archived Arbeitsangebote for ${sysConfig.mandantConfiguration.name}")
+
+      archived foreach { arbeitsangebot =>
+        entityStore ! ArbeitseinsatzCommandHandler.ArbeitsangebotArchivedCommand(arbeitsangebot.id)
+      }
+    }
+  }
+
+  protected def handleInitialization(): Unit = {
+    batchJob = Some(context.system.scheduler.schedule(onceAnHour, 1 hour)(self ! StartBatchJob))
+  }
 }
