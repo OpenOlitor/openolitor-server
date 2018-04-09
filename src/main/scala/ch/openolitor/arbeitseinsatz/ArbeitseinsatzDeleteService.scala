@@ -23,16 +23,16 @@
 package ch.openolitor.arbeitseinsatz
 
 import akka.actor._
+import scalikejdbc._
+import ch.openolitor.core._
+import ch.openolitor.core.models._
+import ch.openolitor.core.db._
+import ch.openolitor.core.domain._
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
-import ch.openolitor.core._
-import ch.openolitor.core.db._
-import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.domain._
-import ch.openolitor.core.models._
-import ch.openolitor.core.repositories.EventPublishingImplicits._
 import com.typesafe.scalalogging.LazyLogging
-import scalikejdbc.DB
+import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.core.repositories.EventPublishingImplicits._
 
 object ArbeitseinsatzDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzDeleteService = new DefaultArbeitseinsatzDeleteService(sysConfig, system)
@@ -73,7 +73,19 @@ class ArbeitseinsatzDeleteService(override val sysConfig: SystemConfig) extends 
 
   def delteArbeitseinsatz(meta: EventMetadata, id: ArbeitseinsatzId)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      arbeitseinsatzWriteRepository.deleteEntity[Arbeitseinsatz, ArbeitseinsatzId](id)
+      arbeitseinsatzWriteRepository.deleteEntity[Arbeitseinsatz, ArbeitseinsatzId](id) match {
+        case Some(arbeitseinsatz) =>
+          arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, arbeitseinsatz.arbeitsangebotId) match {
+            case Some(arbeitsangebot) =>
+              //update arbeitsangebot
+              val anzPersonen = arbeitsangebot.anzahlEingeschriebene - arbeitseinsatz.anzahlPersonen
+              arbeitseinsatzWriteRepository.updateEntity[Arbeitsangebot, ArbeitsangebotId](arbeitseinsatz.arbeitsangebotId)(
+                arbeitsangebotMapping.column.anzahlEingeschriebene -> anzPersonen
+              )
+            case None =>
+          }
+        case None =>
+      }
     }
   }
 }

@@ -124,7 +124,15 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
             "modifikator" -> meta.originator
           )
           //create arbeitseinsatz
-          arbeitseinsatzWriteRepository.insertEntity[Arbeitseinsatz, ArbeitseinsatzId](ae)
+          arbeitseinsatzWriteRepository.insertEntity[Arbeitseinsatz, ArbeitseinsatzId](ae) match {
+            case Some(arbeitseinsatz) =>
+              //update arbeitsangebot
+              val anzPersonen = arbeitsangebot.anzahlEingeschriebene + arbeitseinsatz.anzahlPersonen
+              arbeitseinsatzWriteRepository.updateEntity[Arbeitsangebot, ArbeitsangebotId](arbeitsangebot.id)(
+                arbeitsangebotMapping.column.anzahlEingeschriebene -> anzPersonen
+              )
+            case None =>
+          }
         }
       }
     }
