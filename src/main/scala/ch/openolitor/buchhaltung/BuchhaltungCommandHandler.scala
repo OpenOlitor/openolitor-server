@@ -24,7 +24,6 @@ package ch.openolitor.buchhaltung
 
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
-import ch.openolitor.core.RouteServiceActor._
 import ch.openolitor.stammdaten.models.{ KundeId }
 import scala.util._
 import scalikejdbc.DB
@@ -33,16 +32,12 @@ import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.filestore._
 
 import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, ZahlungsImportRecordResult }
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_001_07_Export.exportPain008_001_07
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand

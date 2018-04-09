@@ -22,8 +22,6 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.rechnungsexport
 
-import scala.util._
-import java.io.ByteArrayInputStream
 import ch.openolitor.buchhaltung.models.RechnungId
 
 trait RechnungExporter {

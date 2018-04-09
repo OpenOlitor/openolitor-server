@@ -454,8 +454,8 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   def checkEmptyIban(rechnungen: List[(Rechnung, KontoDaten)])(implicit subect: Subject): List[KundeId] = {
     rechnungen flatMap { rechnung =>
       (rechnung._2.iban, rechnung._2.nameAccountHolder) match {
-        case (None, _) => Some(rechnung._1.kundeId)
-        case (_, None) => Some(rechnung._1.kundeId)
+        case (None, _)          => Some(rechnung._1.kundeId)
+        case (_, None)          => Some(rechnung._1.kundeId)
         case (Some(_), Some(_)) => None
       }
     }

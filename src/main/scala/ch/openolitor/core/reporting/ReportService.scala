@@ -32,7 +32,7 @@ import scala.concurrent.Future
 import spray.json.JsonFormat
 import ch.openolitor.core.JSONSerializable
 import com.typesafe.scalalogging.LazyLogging
-import scala.util.{ Success => TrySuccess, Failure => TryFailure }
+import scala.util.{Success => TrySuccess, Failure => TryFailure }
 import ch.openolitor.util.InputStreamUtil._
 import java.util.Locale
 import ch.openolitor.core.models.PersonId

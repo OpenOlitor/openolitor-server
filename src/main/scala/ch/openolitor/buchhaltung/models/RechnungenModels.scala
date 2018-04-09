@@ -222,34 +222,34 @@ case class RechnungDetail(
 ) extends JSONSerializable
 
 case class RechnungDetailReport(
-    id: RechnungId,
-    kunde: Kunde,
-    kontoDaten: KontoDaten,
-    titel: String,
-    waehrung: Waehrung,
-    betrag: BigDecimal,
-    rechnungsPositionen: Seq[RechnungsPositionDetail],
-    einbezahlterBetrag: Option[BigDecimal],
-    rechnungsDatum: DateTime,
-    faelligkeitsDatum: DateTime,
-    eingangsDatum: Option[DateTime],
-    status: RechnungStatus,
-    referenzNummer: String,
-    esrNummer: String,
-    anzahlMahnungen: Int,
-    // rechnungsadresse
-    strasse: String,
-    hausNummer: Option[String],
-    adressZusatz: Option[String],
-    plz: String,
-    ort: String,
-    paymentType: Option[PaymentType],
-    // modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId,
-    projekt: ProjektReport
+  id: RechnungId,
+  kunde: Kunde,
+  kontoDaten: KontoDaten,
+  titel: String,
+  waehrung: Waehrung,
+  betrag: BigDecimal,
+  rechnungsPositionen: Seq[RechnungsPositionDetail],
+  einbezahlterBetrag: Option[BigDecimal],
+  rechnungsDatum: DateTime,
+  faelligkeitsDatum: DateTime,
+  eingangsDatum: Option[DateTime],
+  status: RechnungStatus,
+  referenzNummer: String,
+  esrNummer: String,
+  anzahlMahnungen: Int,
+  // rechnungsadresse
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  paymentType: Option[PaymentType],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId,
+  projekt: ProjektReport
 ) extends JSONSerializable {
   lazy val referenzNummerFormatiert: String = referenzNummer.reverse.grouped(5).map(_.reverse).toList.reverse.mkString(" ")
   lazy val betragRappen = (betrag - betrag.toLong) * 100
