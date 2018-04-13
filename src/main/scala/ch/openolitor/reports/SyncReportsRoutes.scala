@@ -55,7 +55,6 @@ trait SyncReportsRoutes extends HttpService with ActorReferences
 
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
 
-
   def syncReportsRoute(implicit subect: Subject) =
     parameters('f.?) { (f) =>
       implicit val filter = f flatMap { filterString =>

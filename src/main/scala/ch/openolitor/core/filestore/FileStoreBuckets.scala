@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-
 sealed trait FileStoreBucket
 case object VorlagenBucket extends FileStoreBucket
 case object GeneriertBucket extends FileStoreBucket

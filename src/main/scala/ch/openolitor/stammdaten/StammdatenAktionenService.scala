@@ -63,22 +63,22 @@ object StammdatenAktionenService {
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-    extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateReadRepositoryComponent {
+  extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateReadRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
  */
 abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with MailServiceReference
-    with StammdatenEventStoreSerializer
-    with SammelbestellungenHandler
-    with LieferungHandler
-    with MailTemplateService
-    with SystemConfigReference {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with MailServiceReference
+  with StammdatenEventStoreSerializer
+  with SammelbestellungenHandler
+  with LieferungHandler
+  with MailTemplateService
+  with SystemConfigReference {
   self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
 
   // implicitly expose the eventStream

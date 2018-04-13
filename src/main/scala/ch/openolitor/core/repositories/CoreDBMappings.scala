@@ -71,8 +71,8 @@ trait CoreDBMappings extends DBMappings {
       )
       super.updateParameters(state) ++
         Seq(
-          column.lastTransactionNr -> parameter(state.lastTransactionNr),
-          column.lastSequenceNr -> parameter(state.lastSequenceNr)
+          column.lastTransactionNr -> state.lastTransactionNr,
+          column.lastSequenceNr -> state.lastSequenceNr
         )
     }
   }

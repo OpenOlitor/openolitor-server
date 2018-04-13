@@ -35,9 +35,9 @@ import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
 
 trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with MailTemplateDBMappings {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with MailTemplateDBMappings {
   self: MailTemplateWriteRepositoryComponent =>
 
   // implicitly expose the eventStream

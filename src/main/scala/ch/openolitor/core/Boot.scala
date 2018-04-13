@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core
 
-
 import akka.actor.{ ActorSystem, ActorRef }
 import akka.pattern.ask
 import akka.io.IO

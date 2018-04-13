@@ -41,7 +41,7 @@ trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappi
     withSQL {
       select
         .from(mailTemplateMapping as mailTemplate)
-        .where.eq(mailTemplate.templateName, parameter(templateName))
+        .where.eq(mailTemplate.templateName, templateName)
     }.map(mailTemplateMapping(mailTemplate)).single
   }
 }

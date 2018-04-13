@@ -64,7 +64,6 @@ object JobQueueService {
  */
 class JobQueueService(mandantConfiguration: MandantConfiguration) extends Actor with ActorLogging {
 
-
   /**
    * Implicit convertion from personid object model to string based representation used in akka system
    */

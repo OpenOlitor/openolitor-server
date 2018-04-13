@@ -165,25 +165,25 @@ case class Bestellung(
 ) extends BaseEntity[BestellungId]
 
 case class BestellungMail(
-    id: BestellungId,
-    sammelbestellungId: SammelbestellungId,
-    // Summe der Preise der Bestellpositionen
-    preisTotal: BigDecimal,
-    steuerSatz: Option[BigDecimal],
-    // Berechnete Steuer nach Abzug (adminProzenteAbzug)
-    steuer: BigDecimal,
-    totalSteuer: BigDecimal,
-    adminProzente: BigDecimal,
-    bestellpositionen: Seq[BestellpositionMail],
-    // Berechneter Abzug auf preisTotal
-    adminProzenteAbzug: BigDecimal,
-    totalNachAbzugAdminProzente: BigDecimal,
+  id: BestellungId,
+  sammelbestellungId: SammelbestellungId,
+  // Summe der Preise der Bestellpositionen
+  preisTotal: BigDecimal,
+  steuerSatz: Option[BigDecimal],
+  // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+  steuer: BigDecimal,
+  totalSteuer: BigDecimal,
+  adminProzente: BigDecimal,
+  bestellpositionen: Seq[BestellpositionMail],
+  // Berechneter Abzug auf preisTotal
+  adminProzenteAbzug: BigDecimal,
+  totalNachAbzugAdminProzente: BigDecimal,
 
-    //modification flags
-    erstelldat: DateTime,
-    ersteller: PersonId,
-    modifidat: DateTime,
-    modifikator: PersonId
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
 ) extends BaseEntity[BestellungId] {
   def hasAdminProzente: Boolean = adminProzente > 0
 }

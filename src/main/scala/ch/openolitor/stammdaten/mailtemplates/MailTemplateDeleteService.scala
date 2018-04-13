@@ -35,9 +35,9 @@ import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
 
 trait MailTemplateDeleteService extends EventService[EntityDeletedEvent[_ <: BaseId]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with MailTemplateDBMappings {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with MailTemplateDBMappings {
   self: MailTemplateWriteRepositoryComponent =>
 
   // implicitly expose the eventStream

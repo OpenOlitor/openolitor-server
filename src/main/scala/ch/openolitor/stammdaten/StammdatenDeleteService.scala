@@ -42,14 +42,14 @@ object StammdatenDeleteService {
 }
 
 class DefaultStammdatenDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-    extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent {
+  extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
  */
 class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
-    with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler with MailTemplateDeleteService {
+  with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler with MailTemplateDeleteService {
   self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
   import EntityStore._
 
