@@ -42,6 +42,7 @@ val buildSettings = Seq(
   resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven",
   resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
+  resolvers += "zalando-maven" at "https://dl.bintray.com/zalando/maven",
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature"),
   mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
@@ -91,7 +92,8 @@ val buildSettings = Seq(
     "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
     "me.lessis"                    %%  "courier"                              % "0.1.3",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
-    "com.github.blemale"           %% "scaffeine"                             % "2.2.0"
+    "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
+    "de.zalando"                   %% "beard"                                 % "0.2.0"
   )
 }
 )

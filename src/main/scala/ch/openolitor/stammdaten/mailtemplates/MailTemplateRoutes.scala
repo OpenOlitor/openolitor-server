@@ -41,20 +41,31 @@ import ch.openolitor.stammdaten.mailtemplates.model._
 import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateDBMappings
 import ch.openolitor.stammdaten.mailtemplates.eventsourcing._
 import ch.openolitor.core.domain.EntityStore
+import ch.openolitor.util.parsing.UriQueryParamFilterParser
+import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 
 trait MailTemplateRoutes extends HttpService
-    with AsyncConnectionPoolContextAware
-    with SprayDeserializers
-    with DefaultRouteService
-    with LazyLogging
-    with MailTemplateJsonProtocol
-    with MailTemplateDBMappings
-    with MailTemplateEventStoreSerializer {
-  self: MailTemplateReadRepositoryComponent =>
+  with AsyncConnectionPoolContextAware
+  with SprayDeserializers
+  with DefaultRouteService
+  with LazyLogging
+  with MailTemplateJsonProtocol
+  with MailTemplateDBMappings
+  with MailTemplateEventStoreSerializer {
+  self: MailTemplateReadRepositoryComponent with StammdatenReadRepositoryAsyncComponent =>
 
   implicit val mailTemplateIdPath = long2BaseIdPathMatcher(MailTemplateId.apply)
 
-  def mailTemplateRoute(implicit subject: Subject) =
+  def mailRoute(implicit subect: Subject) =
+    parameters('f.?) { (f) =>
+      implicit val filter = f flatMap { filterString =>
+        UriQueryParamFilterParser.parse(filterString)
+      }
+      mailTemplateRoute
+    }
+
+  def mailTemplateRoute(implicit subject: Subject, filter: Option[FilterExpr]) =
     path("mailtemplatetypes") {
       get {
         complete(MailTemplateType.AllTemplateTypes)
@@ -65,6 +76,9 @@ trait MailTemplateRoutes extends HttpService
           post(create[MailTemplateModify, MailTemplateId](MailTemplateId.apply _))
       } ~
       path("mailtemplates" / mailTemplateIdPath) { mailTemplateId =>
+        val impl2 = mailTemplateIdBinder
+        val impl = implicitly[scalikejdbc.Binders[MailTemplateId]]
+
         get(detail(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
           (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId))
       }

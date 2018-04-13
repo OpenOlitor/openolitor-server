@@ -54,13 +54,13 @@ class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val syste
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
  */
 class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
-    with LazyLogging
-    with AsyncConnectionPoolContextAware
-    with StammdatenDBMappings
-    with KorbHandler
-    with SammelbestellungenHandler
-    with LieferungHandler
-    with MailTemplateInsertService {
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with StammdatenDBMappings
+  with KorbHandler
+  with SammelbestellungenHandler
+  with LieferungHandler
+  with MailTemplateInsertService {
   self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
 
   // implicitly expose the eventStream

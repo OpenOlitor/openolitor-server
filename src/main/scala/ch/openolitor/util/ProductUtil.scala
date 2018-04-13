@@ -57,10 +57,10 @@ object ProductUtil {
       val defaultMapper: PartialFunction[Any, Any] = { case x => x }
       val converters = customConverter orElse defaultMapper
       def toVals(x: Any): Any = x match {
-        case t: Traversable[_] => t.map(toVals(_))
-        case o: Option[_] => o.map(toVals(_)).getOrElse(converters(None))
+        case t: Traversable[_]                => t.map(toVals(_))
+        case o: Option[_]                     => o.map(toVals(_)).getOrElse(converters(None))
         case p: Product if p.productArity > 0 => p.toMap(customConverter)
-        case x => converters(x)
+        case x                                => converters(x)
       }
 
       val fieldsAsPairs = for {
@@ -92,7 +92,7 @@ object ProductUtil {
           case e: Exception => None
         }
       }
-      // concat field values and method return types, append methods after field that hidden methods for 
+      // concat field values and method return types, append methods after field that hidden methods for
       // lazy vals will overrite field value which will always be set to null
       val allTuples = fieldsAsPairs ++ methodsAsPairs.flatten
 

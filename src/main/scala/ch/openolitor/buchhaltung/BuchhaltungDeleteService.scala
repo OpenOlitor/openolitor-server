@@ -50,7 +50,7 @@ class DefaultBuchhaltungDeleteService(sysConfig: SystemConfig, override val syst
  * Actor zum Verarbeiten der Delete Anweisungen für das Buchhaltung Modul
  */
 class BuchhaltungDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
-    with LazyLogging with AsyncConnectionPoolContextAware with BuchhaltungDBMappings {
+  with LazyLogging with AsyncConnectionPoolContextAware with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
   import EntityStore._
 

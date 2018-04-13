@@ -49,7 +49,7 @@ class DefaultReportsInsertService(sysConfig: SystemConfig, override val system: 
  * Actor zum Verarbeiten der Insert Anweisungen für das Reports Modul
  */
 class ReportsInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]] with LazyLogging with AsyncConnectionPoolContextAware
-    with ReportsDBMappings {
+  with ReportsDBMappings {
   self: ReportsWriteRepositoryComponent =>
 
   val handle: Handle = {
