@@ -20,10 +20,14 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.db.evolution.scripts.v1
+package ch.openolitor.core.db.evolution.scripts.v2
 
+import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAbosCounter
 import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAktiveAbosCounter
 
-object OO468_DBScripts {
-  val scripts = Seq(RecalculateAnzahlAktiveAbosCounter.scripts)
+object OOBetrieb2_recalculate_aktive_inaktive_accounts {
+  val scripts = Seq(
+    RecalculateAnzahlAbosCounter.scripts,
+    RecalculateAnzahlAktiveAbosCounter.scripts
+  )
 }

@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.db.evolution.scripts.v1
 
-import ch.openolitor.core.db.evolution.scripts.recalculations.RecalulateAnzahlAktiveAbosCounter
+import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAktiveAbosCounter
 
 object OO564_DBScripts {
-  val scripts = Seq(RecalulateAnzahlAktiveAbosCounter.scripts)
+  val scripts = Seq(RecalculateAnzahlAktiveAbosCounter.scripts)
 }
