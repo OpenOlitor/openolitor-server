@@ -28,7 +28,6 @@ import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple23
 import ch.openolitor.core.scalax.Tuple26
 import ch.openolitor.core.scalax.Tuple27
 
@@ -121,7 +120,7 @@ case class Projekt(
 
 object Projekt {
   def unapply(o: Projekt) = {
-    Some(Tuple23(
+    Some(Tuple26(
       o.id,
       o.bezeichnung,
       o.strasse,
@@ -137,6 +136,9 @@ object Projekt {
       o.geschaeftsjahrTag,
       o.twoFactorAuthentication,
       o.sprache,
+      o.welcomeMessage1,
+      o.welcomeMessage2,
+      o.maintenanceMode,
       o.generierteMailsSenden,
       o.einsatzEinheit,
       o.einsatzAbsageVorlaufTage,
