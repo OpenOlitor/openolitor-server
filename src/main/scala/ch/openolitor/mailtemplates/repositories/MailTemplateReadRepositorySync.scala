@@ -20,16 +20,23 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates
+package ch.openolitor.mailtemplates.repositories
 
-import spray.json._
-import ch.openolitor.core.BaseJsonProtocol
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.stammdaten.mailtemplates.model._
-import zangelo.spray.json.AutoProductFormats
+import scalikejdbc._
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
+import ch.openolitor.core.db._
+import ch.openolitor.core.db.OOAsyncDB._
+import akka.actor.ActorSystem
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.core.repositories.BaseReadRepositorySync
 
-trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
-  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
+trait MailTemplateReadRepositorySync extends BaseReadRepositorySync {
+  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
+}
 
-  implicit val mailTemplateTypeFormat: RootJsonFormat[MailTemplateType] = enumFormat(MailTemplateType.apply)
+trait MailTemplateReadRepositorySyncImpl extends MailTemplateReadRepositorySync with MailTemplateRepositoryQueries {
+  def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate] = {
+    getMailTemplateByNameQuery(templateName).apply()
+  }
 }

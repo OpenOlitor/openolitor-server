@@ -20,37 +20,43 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.repositories
+package ch.openolitor.mailtemplates
 
-import ch.openolitor.core.repositories.DBMappings
-import ch.openolitor.stammdaten.mailtemplates.model._
 import scalikejdbc._
-import ch.openolitor.core.repositories._
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
+import ch.openolitor.core.models._
+import ch.openolitor.core.domain._
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.Macros._
+import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateDBMappings extends DBMappings {
-  implicit val mailTemplateTypeBinder: Binders[MailTemplateType] = toStringBinder(MailTemplateType.apply)
-  implicit val mailTemplateIdBinder: Binders[MailTemplateId] = baseIdBinders(MailTemplateId.apply)
+trait MailTemplateInsertService extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with MailTemplateDBMappings {
+  self: MailTemplateWriteRepositoryComponent =>
 
-  implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
-    override val tableName = "MailTemplate"
+  // implicitly expose the eventStream
+  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
 
-    override lazy val columns = autoColumns[MailTemplate]()
+  val mailTemplateInsertHandle: Handle = {
+    case EntityInsertedEvent(meta, id: MailTemplateId, create: MailTemplateModify) =>
+      createMailTemplateVorlage(meta, id, create)
+  }
 
-    def apply(rn: ResultName[MailTemplate])(rs: WrappedResultSet): MailTemplate =
-      autoConstruct(rs, rn)
+  def createMailTemplateVorlage(meta: EventMetadata, id: MailTemplateId, create: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      val template = copyTo[MailTemplateModify, MailTemplate](create, "id" -> id,
+        "erstelldat" -> meta.timestamp,
+        "ersteller" -> meta.originator,
+        "modifidat" -> meta.timestamp,
+        "modifikator" -> meta.originator)
 
-    def parameterMappings(entity: MailTemplate): Seq[ParameterBinder] =
-      parameters(MailTemplate.unapply(entity).get)
-
-    override def updateParameters(entity: MailTemplate) = {
-      super.updateParameters(entity) ++
-        Seq(
-          column.templateType -> entity.templateType,
-          column.templateName -> entity.templateName,
-          column.description -> entity.description,
-          column.subject -> entity.subject,
-          column.body -> entity.body
-        )
+      mailTemplateWriteRepository.insertEntity[MailTemplate, MailTemplateId](template)
     }
   }
 }

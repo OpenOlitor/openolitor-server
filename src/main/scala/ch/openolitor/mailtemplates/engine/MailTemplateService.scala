@@ -1,9 +1,9 @@
-package ch.openolitor.stammdaten.mailtemplates.engine
+package ch.openolitor.mailtemplates.engine
 
 import scala.concurrent._
 import scala.util.Try
-import ch.openolitor.stammdaten.mailtemplates.repositories._
-import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.model._
 import ch.openolitor.core.mailservice.MailPayload
 import ch.openolitor.core.db._
 import ch.openolitor.core._

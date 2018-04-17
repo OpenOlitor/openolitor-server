@@ -20,17 +20,30 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.repositories
+package ch.openolitor.mailtemplates.repositories
 
-import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
-import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
+import scalikejdbc._
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
+import scala.concurrent.Future
+import ch.openolitor.core.db._
+import ch.openolitor.core.db.OOAsyncDB._
 import akka.actor.ActorSystem
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.core.repositories._
 
-trait MailTemplateWriteRepositoryComponent extends BaseWriteRepositoryComponent {
-  val mailTemplateWriteRepository: MailTemplateWriteRepository
+trait MailTemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
+  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
+
+  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
 }
 
-trait DefaultMailTemplateWriteRepositoryComponent extends MailTemplateWriteRepositoryComponent {
-  val system: ActorSystem
-  override val mailTemplateWriteRepository: MailTemplateWriteRepository = new DefaultActorSystemReference(system) with MailTemplateWriteRepositoryImpl with AkkaEventStream
+trait MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
+  def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
+    getMailTemplateByNameQuery(templateName).future()
+  }
+
+  def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]] = {
+    getMailTemplatesQuery().future()
+  }
 }

@@ -20,19 +20,18 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.engine
+package ch.openolitor.mailtemplates.repositories
 
-import de.zalando.beard.renderer._
-import scalikejdbc._
-import scala.io.Source
-import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.DefaultActorSystemReference
+import akka.actor.ActorSystem
 
-/**
- * TemplateLoader backed by map of strings to resolve templates from.
- */
-class MapTemplateLoader(templateMap: Map[String, String]) extends TemplateLoader with LazyLogging {
+trait MailTemplateReadRepositoryComponent {
+  val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync
+  val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync
+}
 
-  override def load(templateName: TemplateName): Option[Source] = {
-    templateMap.get(templateName.name).map(template => Source.fromString(template))
-  }
+trait DefaultMailTemplateReadRepositoryComponent extends MailTemplateReadRepositoryComponent {
+  val system: ActorSystem
+  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new DefaultActorSystemReference(system) with MailTemplateReadRepositoryAsyncImpl
+  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new DefaultActorSystemReference(system) with MailTemplateReadRepositorySyncImpl
 }

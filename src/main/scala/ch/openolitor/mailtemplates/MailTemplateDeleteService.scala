@@ -20,28 +20,38 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.repositories
+package ch.openolitor.mailtemplates
 
 import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.core.models._
+import ch.openolitor.core.domain._
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
-  lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
+trait MailTemplateDeleteService extends EventService[EntityDeletedEvent[_ <: BaseId]]
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with MailTemplateDBMappings {
+  self: MailTemplateWriteRepositoryComponent =>
 
-  protected def getMailTemplatesQuery() = {
-    withSQL {
-      select
-        .from(mailTemplateMapping as mailTemplate)
-    }.map(mailTemplateMapping(mailTemplate)).list
+  // implicitly expose the eventStream
+  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
+
+  val mailTemplateDeleteHandle: Handle = {
+    case EntityDeletedEvent(meta, id: MailTemplateId) =>
+      deleteMailTemplate(meta, id)
   }
 
-  protected def getMailTemplateByNameQuery(templateName: String) = {
-    withSQL {
-      select
-        .from(mailTemplateMapping as mailTemplate)
-        .where.eq(mailTemplate.templateName, templateName)
-    }.map(mailTemplateMapping(mailTemplate)).single
+  def deleteMailTemplate(meta: EventMetadata, id: MailTemplateId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      mailTemplateWriteRepository.deleteEntity[MailTemplate, MailTemplateId](id)
+    }
   }
 }
+

@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.model
+package ch.openolitor.mailtemplates.model
 
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._

@@ -20,26 +20,21 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.engine
+package ch.openolitor.mailtemplates.engine
 
 import de.zalando.beard.renderer._
+import scalikejdbc._
 import scala.io.Source
-import scala.concurrent.duration._
-import scala.concurrent._
-import ch.openolitor.core.filestore._
 import com.typesafe.scalalogging.LazyLogging
 
 /**
- * TemplateLoader backed by a filestore storage service. The template loader gets intialized with a filestorebucket to resolve templates from
+ * TemplateLoader trying to resolve templates from multiple templateloaders in the order provided in the constructor
  */
-class FileStoreTemplateLoader(fileStore: FileStore, bucket: FileStoreBucket, maxAwaitTime: Duration)(implicit ec: ExecutionContext) extends TemplateLoader with LazyLogging {
+class FallbackTemplateLoader(templateLoader: TemplateLoader, fallbackTemplateLoaders: TemplateLoader*) extends TemplateLoader with LazyLogging {
+
+  val templateLoaderOrder = templateLoader +: fallbackTemplateLoaders
 
   override def load(templateName: TemplateName): Option[Source] = {
-    Await.result(fileStore.getFile(bucket, templateName.name).map(_ match {
-      case Right(FileStoreFile(_, is)) => Option(Source.fromInputStream(is))
-      case Left(x) =>
-        logger.warn(s"Could not resolve template from filestore. TemplateName:${templateName.name}, result:$x")
-        None
-    }), maxAwaitTime)
+    templateLoaderOrder.foldLeft[Option[Source]](None)(_ orElse _.load(templateName))
   }
 }

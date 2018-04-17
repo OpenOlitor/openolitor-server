@@ -49,14 +49,14 @@ import scalikejdbc.DBSession
 import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.stammdaten.mailtemplates.engine.MailTemplateService
-import ch.openolitor.stammdaten.mailtemplates.model.MailTemplateType
+import ch.openolitor.mailtemplates.engine.MailTemplateService
+import ch.openolitor.mailtemplates.model.MailTemplateType
 import scala.util.{ Failure, Success }
-import ch.openolitor.stammdaten.mailtemplates.repositories._
-import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.model._
 import ch.openolitor.core.filestore.FileStoreReference
 import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.stammdaten.mailtemplates.model.ProduzentenBestellungMailTemplateType
+import ch.openolitor.mailtemplates.model.ProduzentenBestellungMailTemplateType
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
