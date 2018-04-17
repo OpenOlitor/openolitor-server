@@ -20,43 +20,13 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates
+package ch.openolitor.mailtemplates.repositories
 
-import scalikejdbc._
-import ch.openolitor.stammdaten.mailtemplates.model._
-import ch.openolitor.stammdaten.mailtemplates.repositories._
-import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
-import ch.openolitor.core.models._
-import ch.openolitor.core.domain._
-import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.core.Macros._
-import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.repositories.BaseWriteRepository
+import ch.openolitor.core.EventStream
 
-trait MailTemplateInsertService extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
-  with LazyLogging
-  with AsyncConnectionPoolContextAware
-  with MailTemplateDBMappings {
-  self: MailTemplateWriteRepositoryComponent =>
+trait MailTemplateWriteRepository extends BaseWriteRepository with MailTemplateReadRepositorySync with EventStream {
 
-  // implicitly expose the eventStream
-  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
-
-  val mailTemplateInsertHandle: Handle = {
-    case EntityInsertedEvent(meta, id: MailTemplateId, create: MailTemplateModify) =>
-      createMailTemplateVorlage(meta, id, create)
-  }
-
-  def createMailTemplateVorlage(meta: EventMetadata, id: MailTemplateId, create: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      val template = copyTo[MailTemplateModify, MailTemplate](create, "id" -> id,
-        "erstelldat" -> meta.timestamp,
-        "ersteller" -> meta.originator,
-        "modifidat" -> meta.timestamp,
-        "modifikator" -> meta.originator)
-
-      mailTemplateWriteRepository.insertEntity[MailTemplate, MailTemplateId](template)
-    }
-  }
 }
+
+trait MailTemplateWriteRepositoryImpl extends MailTemplateWriteRepository with MailTemplateRepositoryQueries with MailTemplateReadRepositorySyncImpl

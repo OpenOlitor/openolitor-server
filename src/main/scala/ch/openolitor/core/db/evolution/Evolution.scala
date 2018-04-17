@@ -33,7 +33,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.mailtemplates.model._
 import ch.openolitor.buchhaltung.models._
 import scala.reflect._
 import ch.openolitor.core.SystemConfig
@@ -42,7 +42,7 @@ import ch.openolitor.reports.ReportsDBMappings
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import akka.actor.ActorSystem
 import ch.openolitor.core.ActorSystemReference
-import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateDBMappings
+import ch.openolitor.mailtemplates.repositories.MailTemplateDBMappings
 
 trait Script {
 

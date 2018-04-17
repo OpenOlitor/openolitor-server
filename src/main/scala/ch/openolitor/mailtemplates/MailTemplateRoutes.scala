@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates
+package ch.openolitor.mailtemplates
 
 import spray.json._
 import spray.json.DefaultJsonProtocol._
@@ -36,10 +36,10 @@ import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.security.Subject
-import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateReadRepositoryComponent
-import ch.openolitor.stammdaten.mailtemplates.model._
-import ch.openolitor.stammdaten.mailtemplates.repositories.MailTemplateDBMappings
-import ch.openolitor.stammdaten.mailtemplates.eventsourcing._
+import ch.openolitor.mailtemplates.repositories.MailTemplateReadRepositoryComponent
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories.MailTemplateDBMappings
+import ch.openolitor.mailtemplates.eventsourcing._
 import ch.openolitor.core.domain.EntityStore
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr

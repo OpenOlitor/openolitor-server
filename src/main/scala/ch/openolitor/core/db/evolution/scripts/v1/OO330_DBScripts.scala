@@ -35,7 +35,7 @@ import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.core.db.evolution.scripts.recalculations.RecalulateLieferungCounter
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
-import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.repositories._
 
 object OO330_DBScripts {
 

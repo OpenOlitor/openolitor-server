@@ -20,18 +20,27 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.repositories
+package ch.openolitor.mailtemplates.eventsourcing
 
-import ch.openolitor.core.DefaultActorSystemReference
-import akka.actor.ActorSystem
+import stamina._
+import stamina.json._
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates._
+import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.core.domain.EntityStoreJsonProtocol
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+import java.util.Locale
+import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import spray.json.JsValue
 
-trait MailTemplateReadRepositoryComponent {
-  val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync
-  val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync
-}
+trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
+  //V1 persisters
+  implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
+  implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
 
-trait DefaultMailTemplateReadRepositoryComponent extends MailTemplateReadRepositoryComponent {
-  val system: ActorSystem
-  override val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = new DefaultActorSystemReference(system) with MailTemplateReadRepositoryAsyncImpl
-  override val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = new DefaultActorSystemReference(system) with MailTemplateReadRepositorySyncImpl
+  val mailTemplatePersisters = List(
+    mailTemplateModifyPersister,
+    mailTemplateIdPersister
+  )
 }

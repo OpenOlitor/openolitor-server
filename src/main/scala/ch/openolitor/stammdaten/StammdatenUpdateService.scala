@@ -41,8 +41,8 @@ import ch.openolitor.util.ConfigUtil._
 import org.joda.time.DateTime
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.stammdaten.mailtemplates.MailTemplateUpdateService
-import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.MailTemplateUpdateService
+import ch.openolitor.mailtemplates.repositories._
 
 object StammdatenUpdateService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenUpdateService = new DefaultStammdatenUpdateService(sysConfig, system)

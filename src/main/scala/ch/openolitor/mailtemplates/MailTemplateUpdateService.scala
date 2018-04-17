@@ -20,11 +20,11 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates
+package ch.openolitor.mailtemplates
 
 import scalikejdbc._
-import ch.openolitor.stammdaten.mailtemplates.model._
-import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.models._
@@ -34,7 +34,7 @@ import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateDeleteService extends EventService[EntityDeletedEvent[_ <: BaseId]]
+trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with MailTemplateDBMappings {
@@ -43,15 +43,18 @@ trait MailTemplateDeleteService extends EventService[EntityDeletedEvent[_ <: Bas
   // implicitly expose the eventStream
   implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
 
-  val mailTemplateDeleteHandle: Handle = {
-    case EntityDeletedEvent(meta, id: MailTemplateId) =>
-      deleteMailTemplate(meta, id)
+  val mailTemplateUpdateHandle: Handle = {
+    case EntityUpdatedEvent(meta, id: MailTemplateId, update: MailTemplateModify) => updateMailTemplate(meta, id, update)
+
   }
 
-  def deleteMailTemplate(meta: EventMetadata, id: MailTemplateId)(implicit personId: PersonId = meta.originator) = {
+  def updateMailTemplate(meta: EventMetadata, id: MailTemplateId, update: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      mailTemplateWriteRepository.deleteEntity[MailTemplate, MailTemplateId](id)
+      mailTemplateWriteRepository.getById(mailTemplateMapping, id) map { template =>
+        val copy = copyFrom(template, update,
+          "modifidat" -> meta.timestamp, "modifikator" -> personId)
+        mailTemplateWriteRepository.updateEntityFully[MailTemplate, MailTemplateId](copy)
+      }
     }
   }
 }
-

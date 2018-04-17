@@ -20,41 +20,16 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates
+package ch.openolitor.mailtemplates
 
-import scalikejdbc._
-import ch.openolitor.stammdaten.mailtemplates.model._
-import ch.openolitor.stammdaten.mailtemplates.repositories._
-import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.models._
-import ch.openolitor.core.domain._
-import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.core.Macros._
-import com.typesafe.scalalogging.LazyLogging
+import spray.json._
+import ch.openolitor.core.BaseJsonProtocol
+import ch.openolitor.core.JSONSerializable
+import ch.openolitor.mailtemplates.model._
+import zangelo.spray.json.AutoProductFormats
 
-trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
-  with LazyLogging
-  with AsyncConnectionPoolContextAware
-  with MailTemplateDBMappings {
-  self: MailTemplateWriteRepositoryComponent =>
+trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
+  implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
 
-  // implicitly expose the eventStream
-  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
-
-  val mailTemplateUpdateHandle: Handle = {
-    case EntityUpdatedEvent(meta, id: MailTemplateId, update: MailTemplateModify) => updateMailTemplate(meta, id, update)
-
-  }
-
-  def updateMailTemplate(meta: EventMetadata, id: MailTemplateId, update: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
-    DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      mailTemplateWriteRepository.getById(mailTemplateMapping, id) map { template =>
-        val copy = copyFrom(template, update,
-          "modifidat" -> meta.timestamp, "modifikator" -> personId)
-        mailTemplateWriteRepository.updateEntityFully[MailTemplate, MailTemplateId](copy)
-      }
-    }
-  }
+  implicit val mailTemplateTypeFormat: RootJsonFormat[MailTemplateType] = enumFormat(MailTemplateType.apply)
 }

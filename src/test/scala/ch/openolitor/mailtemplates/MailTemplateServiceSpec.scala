@@ -1,13 +1,13 @@
-package ch.openolitor.stammdaten.mailtemplates
+package ch.openolitor.mailtemplates
 
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 import org.mockito.Matchers.{ eq => eqz, _ }
-import ch.openolitor.stammdaten.mailtemplates.repositories._
-import ch.openolitor.stammdaten.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.model._
 import org.specs2.matcher._
 import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.stammdaten.mailtemplates.engine.MailTemplateService
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 import org.joda.time.DateTime
 import scala.util.Random
 import ch.openolitor.core.models.PersonId

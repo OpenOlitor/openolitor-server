@@ -54,8 +54,8 @@ import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.core.security.RequestFailed
-import ch.openolitor.stammdaten.mailtemplates.MailTemplateRoutes
-import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.MailTemplateRoutes
+import ch.openolitor.mailtemplates.repositories._
 
 trait StammdatenRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging

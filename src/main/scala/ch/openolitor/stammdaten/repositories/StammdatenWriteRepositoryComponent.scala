@@ -27,7 +27,7 @@ import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
 
 import akka.actor.ActorSystem
 import ch.openolitor.core.EventStream
-import ch.openolitor.stammdaten.mailtemplates.repositories._
+import ch.openolitor.mailtemplates.repositories._
 
 trait StammdatenWriteRepositoryComponent extends BaseWriteRepositoryComponent {
   val stammdatenWriteRepository: StammdatenWriteRepository

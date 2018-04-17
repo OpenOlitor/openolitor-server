@@ -20,21 +20,28 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.engine
+package ch.openolitor.mailtemplates.repositories
 
-import de.zalando.beard.renderer._
 import scalikejdbc._
-import scala.io.Source
+import scalikejdbc.async._
+import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
 
-/**
- * TemplateLoader trying to resolve templates from multiple templateloaders in the order provided in the constructor
- */
-class FallbackTemplateLoader(templateLoader: TemplateLoader, fallbackTemplateLoaders: TemplateLoader*) extends TemplateLoader with LazyLogging {
+trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
+  lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
 
-  val templateLoaderOrder = templateLoader +: fallbackTemplateLoaders
+  protected def getMailTemplatesQuery() = {
+    withSQL {
+      select
+        .from(mailTemplateMapping as mailTemplate)
+    }.map(mailTemplateMapping(mailTemplate)).list
+  }
 
-  override def load(templateName: TemplateName): Option[Source] = {
-    templateLoaderOrder.foldLeft[Option[Source]](None)(_ orElse _.load(templateName))
+  protected def getMailTemplateByNameQuery(templateName: String) = {
+    withSQL {
+      select
+        .from(mailTemplateMapping as mailTemplate)
+        .where.eq(mailTemplate.templateName, templateName)
+    }.map(mailTemplateMapping(mailTemplate)).single
   }
 }

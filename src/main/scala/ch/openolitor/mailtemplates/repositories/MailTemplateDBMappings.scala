@@ -20,13 +20,37 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.repositories
+package ch.openolitor.mailtemplates.repositories
 
-import ch.openolitor.core.repositories.BaseWriteRepository
-import ch.openolitor.core.EventStream
+import ch.openolitor.core.repositories.DBMappings
+import ch.openolitor.mailtemplates.model._
+import scalikejdbc._
+import ch.openolitor.core.repositories._
 
-trait MailTemplateWriteRepository extends BaseWriteRepository with MailTemplateReadRepositorySync with EventStream {
+trait MailTemplateDBMappings extends DBMappings {
+  implicit val mailTemplateTypeBinder: Binders[MailTemplateType] = toStringBinder(MailTemplateType.apply)
+  implicit val mailTemplateIdBinder: Binders[MailTemplateId] = baseIdBinders(MailTemplateId.apply)
 
+  implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
+    override val tableName = "MailTemplate"
+
+    override lazy val columns = autoColumns[MailTemplate]()
+
+    def apply(rn: ResultName[MailTemplate])(rs: WrappedResultSet): MailTemplate =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: MailTemplate): Seq[ParameterBinder] =
+      parameters(MailTemplate.unapply(entity).get)
+
+    override def updateParameters(entity: MailTemplate) = {
+      super.updateParameters(entity) ++
+        Seq(
+          column.templateType -> entity.templateType,
+          column.templateName -> entity.templateName,
+          column.description -> entity.description,
+          column.subject -> entity.subject,
+          column.body -> entity.body
+        )
+    }
+  }
 }
-
-trait MailTemplateWriteRepositoryImpl extends MailTemplateWriteRepository with MailTemplateRepositoryQueries with MailTemplateReadRepositorySyncImpl

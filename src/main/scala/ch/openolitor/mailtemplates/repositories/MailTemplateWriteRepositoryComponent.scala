@@ -20,27 +20,17 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.mailtemplates.eventsourcing
+package ch.openolitor.mailtemplates.repositories
 
-import stamina._
-import stamina.json._
-import ch.openolitor.stammdaten.mailtemplates.model._
-import ch.openolitor.stammdaten.mailtemplates._
-import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
-import java.util.Locale
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import spray.json.JsValue
+import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
+import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
+import akka.actor.ActorSystem
 
-trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
-  //V1 persisters
-  implicit val mailTemplateModifyPersister = persister[MailTemplateModify]("mail-template-modify")
-  implicit val mailTemplateIdPersister = persister[MailTemplateId]("mail-template-id")
+trait MailTemplateWriteRepositoryComponent extends BaseWriteRepositoryComponent {
+  val mailTemplateWriteRepository: MailTemplateWriteRepository
+}
 
-  val mailTemplatePersisters = List(
-    mailTemplateModifyPersister,
-    mailTemplateIdPersister
-  )
+trait DefaultMailTemplateWriteRepositoryComponent extends MailTemplateWriteRepositoryComponent {
+  val system: ActorSystem
+  override val mailTemplateWriteRepository: MailTemplateWriteRepository = new DefaultActorSystemReference(system) with MailTemplateWriteRepositoryImpl with AkkaEventStream
 }
