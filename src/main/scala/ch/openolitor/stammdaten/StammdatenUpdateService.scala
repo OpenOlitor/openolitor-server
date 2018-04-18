@@ -49,7 +49,7 @@ object StammdatenUpdateService {
 }
 
 class DefaultStammdatenUpdateService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent {
+  extends StammdatenUpdateService(sysConfig) with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
@@ -60,9 +60,8 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
   with LieferungHandler
-  with MailTemplateUpdateService
   with KorbHandler {
-  self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
+  self: StammdatenWriteRepositoryComponent
 
   // implicitly expose the eventStream
   implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
@@ -107,7 +106,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case e =>
   }
 
-  val handle: Handle = stammdatenUpdateHandle orElse mailTemplateUpdateHandle
+  val handle: Handle = stammdatenUpdateHandle
 
   private def updateVertrieb(meta: EventMetadata, id: VertriebId, update: VertriebModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>

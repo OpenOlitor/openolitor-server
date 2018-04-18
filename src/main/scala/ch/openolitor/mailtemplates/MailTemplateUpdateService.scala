@@ -33,8 +33,18 @@ import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
+import akka.actor.ActorSystem
+import ch.openolitor.core.SystemConfig
 
-trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
+object MailTemplateUpdateService {
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): MailTemplateUpdateService = new DefaultMailTemplateUpdateService(sysConfig, system)
+}
+
+class DefaultMailTemplateUpdateService(sysConfig: SystemConfig, val system: ActorSystem) extends MailTemplateUpdateService(sysConfig) with DefaultMailTemplateWriteRepositoryComponent {
+
+}
+
+class MailTemplateUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with MailTemplateDBMappings {
@@ -45,7 +55,6 @@ trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: Bas
 
   val mailTemplateUpdateHandle: Handle = {
     case EntityUpdatedEvent(meta, id: MailTemplateId, update: MailTemplateModify) => updateMailTemplate(meta, id, update)
-
   }
 
   def updateMailTemplate(meta: EventMetadata, id: MailTemplateId, update: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
@@ -57,4 +66,6 @@ trait MailTemplateUpdateService extends EventService[EntityUpdatedEvent[_ <: Bas
       }
     }
   }
+
+  val handle: Handle = mailTemplateUpdateHandle
 }
