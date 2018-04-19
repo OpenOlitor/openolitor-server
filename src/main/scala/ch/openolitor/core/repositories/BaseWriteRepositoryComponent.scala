@@ -22,6 +22,5 @@
 \*                                                                           */
 package ch.openolitor.core.repositories
 
-
 trait BaseWriteRepositoryComponent extends BaseUpdateRepositoryComponent {
 }

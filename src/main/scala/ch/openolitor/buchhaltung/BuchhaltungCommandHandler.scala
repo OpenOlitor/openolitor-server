@@ -35,14 +35,12 @@ import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 
-
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
-
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
@@ -238,7 +236,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
                 rechnungsPositionen.map(_.betrag).sum,
                 rechnungsPositionenCreateRechnungen.rechnungsDatum,
                 rechnungsPositionenCreateRechnungen.faelligkeitsDatum,
-                Some(meta.timestamp),
+                None,
                 kunde.strasse,
                 kunde.hausNummer,
                 kunde.adressZusatz,

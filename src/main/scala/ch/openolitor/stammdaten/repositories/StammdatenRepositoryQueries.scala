@@ -1488,12 +1488,18 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getZusatzaboIdsQuery(lieferungId: LieferungId, korbStatus: KorbStatus) = {
+
+    val statusL = korbStatus match {
+      case WirdGeliefert => WirdGeliefert :: Geliefert :: Nil
+      case _             => korbStatus :: Nil
+    }
+
     withSQL {
       select(zusatzAbo.hauptAboId)
         .from(zusatzAboMapping as zusatzAbo)
         .join(korbMapping as korb).on(korb.aboId, zusatzAbo.id)
         .where.eq(korb.lieferungId, lieferungId)
-        .and.eq(korb.status, korbStatus)
+        .and.in(korb.status, statusL)
     }.map(res => AboId(res.long(1))).list
   }
 
