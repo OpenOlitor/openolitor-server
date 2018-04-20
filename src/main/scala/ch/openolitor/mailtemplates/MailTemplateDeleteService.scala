@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
+import akka.actor.ActorSystem
 import scalikejdbc._
 import ch.openolitor.mailtemplates.model._
 import ch.openolitor.mailtemplates.repositories._
@@ -32,9 +33,17 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.core.Macros._
+import ch.openolitor.core.SystemConfig
 import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateDeleteService extends EventService[EntityDeletedEvent[_ <: BaseId]]
+object MailTemplateDeleteService {
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): MailTemplateDeleteService = new DefaultMailTemplateDeleteService(sysConfig, system)
+}
+
+class DefaultMailTemplateDeleteService(sysConfig: SystemConfig, val system: ActorSystem) extends MailTemplateDeleteService(sysConfig) with DefaultMailTemplateWriteRepositoryComponent {
+}
+
+class MailTemplateDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with MailTemplateDBMappings {
@@ -53,5 +62,7 @@ trait MailTemplateDeleteService extends EventService[EntityDeletedEvent[_ <: Bas
       mailTemplateWriteRepository.deleteEntity[MailTemplate, MailTemplateId](id)
     }
   }
+
+  val handle: Handle = mailTemplateDeleteHandle
 }
 

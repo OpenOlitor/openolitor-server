@@ -30,3 +30,4 @@ trait MailTemplateWriteRepository extends BaseWriteRepository with MailTemplateR
 }
 
 trait MailTemplateWriteRepositoryImpl extends MailTemplateWriteRepository with MailTemplateRepositoryQueries with MailTemplateReadRepositorySyncImpl
+  with EventStream
