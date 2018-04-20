@@ -28,16 +28,11 @@ trait MailTemplateEntityStoreViewComponent extends EntityStoreViewComponent {
   val system: ActorSystem
 
   override val updateService = MailTemplateUpdateService(sysConfig, system)
+  override val insertService = MailTemplateInsertService(sysConfig, system)
+  override val deleteService = MailTemplateDeleteService(sysConfig, system)
+  override val aktionenService: EventService[PersistentEvent] = ignore()
 
   def ignore[A <: ch.openolitor.core.domain.PersistentEvent]() = new EventService[A] {
-    //override val handle: Handle = new PartialFunction[A, Unit] {
-    //  override def isDefinedAt(x: A): Boolean = false
-    //  override def apply(v1: A): Unit = {}
-    //}
     override val handle = Map[A, Unit]()
   }
-
-  override val insertService: EventService[EntityStore.EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]] = ignore()
-  override val deleteService: EventService[EntityStore.EntityDeletedEvent[_ <: BaseId]] = ignore()
-  override val aktionenService: EventService[PersistentEvent] = ignore()
 }

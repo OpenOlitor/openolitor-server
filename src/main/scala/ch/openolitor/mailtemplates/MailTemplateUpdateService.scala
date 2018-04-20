@@ -41,7 +41,6 @@ object MailTemplateUpdateService {
 }
 
 class DefaultMailTemplateUpdateService(sysConfig: SystemConfig, val system: ActorSystem) extends MailTemplateUpdateService(sysConfig) with DefaultMailTemplateWriteRepositoryComponent {
-
 }
 
 class MailTemplateUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]

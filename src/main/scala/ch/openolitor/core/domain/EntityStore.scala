@@ -127,6 +127,7 @@ trait EntityStore extends AggregateRoot
     stammdatenCommandHandler,
     buchhaltungCommandHandler,
     reportsCommandHandler,
+    mailTemplateCommandHandler,
     kundenportalCommandHandler,
     baseCommandHandler
   )

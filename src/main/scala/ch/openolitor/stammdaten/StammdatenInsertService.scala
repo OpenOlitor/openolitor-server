@@ -27,7 +27,7 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.mailtemplates._
+//import ch.openolitor.mailtemplates._
 import java.util.UUID
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
@@ -48,7 +48,7 @@ object StammdatenInsertService {
 }
 
 class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateWriteRepositoryComponent
+  extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent //with DefaultMailTemplateWriteRepositoryComponent
 
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
@@ -59,9 +59,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   with StammdatenDBMappings
   with KorbHandler
   with SammelbestellungenHandler
-  with LieferungHandler
-  with MailTemplateInsertService {
-  self: StammdatenWriteRepositoryComponent with MailTemplateWriteRepositoryComponent =>
+  with LieferungHandler /*with MailTemplateInsertService*/ {
+  self: StammdatenWriteRepositoryComponent /*with MailTemplateWriteRepositoryComponent*/ =>
 
   // implicitly expose the eventStream
   implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
@@ -131,7 +130,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     case e =>
   }
 
-  val handle: Handle = stammdatenInsertHandle orElse mailTemplateInsertHandle
+  val handle: Handle = stammdatenInsertHandle //orElse mailTemplateInsertHandle
 
   def createAbotyp(meta: EventMetadata, id: AbotypId, abotyp: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     val typ = copyTo[AbotypModify, Abotyp](

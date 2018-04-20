@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
+import akka.actor.ActorSystem
 import scalikejdbc._
 import ch.openolitor.mailtemplates.model._
 import ch.openolitor.mailtemplates.repositories._
@@ -32,16 +33,27 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.core.Macros._
+import ch.openolitor.core.SystemConfig
 import com.typesafe.scalalogging.LazyLogging
 
-trait MailTemplateInsertService extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
+object MailTemplateInsertService {
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): MailTemplateInsertService = new DefaultMailTemplateInsertService(sysConfig, system)
+}
+
+class DefaultMailTemplateInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
+  extends MailTemplateInsertService(sysConfig)
+  with DefaultMailTemplateWriteRepositoryComponent {
+
+}
+
+class MailTemplateInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with MailTemplateDBMappings {
   self: MailTemplateWriteRepositoryComponent =>
 
   // implicitly expose the eventStream
-  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
+  implicit lazy val mailTemplateWriteRepositoryImplicit = mailTemplateWriteRepository
 
   val mailTemplateInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: MailTemplateId, create: MailTemplateModify) =>
@@ -59,4 +71,6 @@ trait MailTemplateInsertService extends EventService[EntityInsertedEvent[_ <: Ba
       mailTemplateWriteRepository.insertEntity[MailTemplate, MailTemplateId](template)
     }
   }
+
+  override val handle: Handle = mailTemplateInsertHandle
 }

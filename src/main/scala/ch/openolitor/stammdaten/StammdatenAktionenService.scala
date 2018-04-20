@@ -49,8 +49,8 @@ import scalikejdbc.DBSession
 import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.mailtemplates.engine.MailTemplateService
-import ch.openolitor.mailtemplates.model.MailTemplateType
+//import ch.openolitor.mailtemplates.engine.MailTemplateService
+//import ch.openolitor.mailtemplates.model.MailTemplateType
 import scala.util.{ Failure, Success }
 import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.mailtemplates.model._
@@ -77,9 +77,9 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
   with StammdatenEventStoreSerializer
   with SammelbestellungenHandler
   with LieferungHandler
-  with MailTemplateService
+  //with MailTemplateService
   with SystemConfigReference {
-  self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
+  self: StammdatenWriteRepositoryComponent /*with MailTemplateReadRepositoryComponent*/ =>
 
   // implicitly expose the eventStream
   implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
@@ -197,7 +197,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
               )
 
               // generate mail
-              generateMail(ProduzentenBestellungMailTemplateType, None, mailContext) map {
+              /*generateMail(ProduzentenBestellungMailTemplateType, None, mailContext) map {
                 case Success(mailPayload) =>
                   val mail = mailPayload.toMail(1, produzent.email, None, None)
 
@@ -209,7 +209,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
                   }
                 case Failure(e) =>
                   logger.warn(s"Failed preparing mail", e)
-              }
+              }*/
             }
           case _ => //ignore
             logger.debug(s"Don't resend Bestellung, already delivered")
@@ -275,7 +275,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
           // TODO: replace templatename with selected name from client
           val mailContext = EinladungMailContext(person, einladung, baseLink)
-          generateMail(mailTemplateType, None, mailContext) map {
+          /*generateMail(mailTemplateType, None, mailContext) map {
             case Success(mailPayload) =>
               // email wurde bereits im CommandHandler überprüft
               val mail = mailPayload.toMail(1, person.email.get, None, None)
@@ -288,7 +288,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
               }
             case Failure(e) =>
               logger.warn(s"Failed preparing mail", e)
-          }
+          }*/
 
         } else {
           logger.debug(s"Don't send Einladung, has been send earlier: ${einladungCreate.id}")

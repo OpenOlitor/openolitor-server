@@ -40,3 +40,4 @@ trait MailTemplateReadRepositorySyncImpl extends MailTemplateReadRepositorySync 
     getMailTemplateByNameQuery(templateName).apply()
   }
 }
+

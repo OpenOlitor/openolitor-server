@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
+import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import spray.http._
@@ -36,11 +37,11 @@ import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.security.Subject
-import ch.openolitor.mailtemplates.repositories.MailTemplateReadRepositoryComponent
+import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateReadRepositoryComponent, MailTemplateDBMappings, MailTemplateReadRepositoryComponent }
 import ch.openolitor.mailtemplates.model._
-import ch.openolitor.mailtemplates.repositories.MailTemplateDBMappings
 import ch.openolitor.mailtemplates.eventsourcing._
 import ch.openolitor.core.domain.EntityStore
+import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
@@ -53,7 +54,7 @@ trait MailTemplateRoutes extends HttpService
   with MailTemplateJsonProtocol
   with MailTemplateDBMappings
   with MailTemplateEventStoreSerializer {
-  self: MailTemplateReadRepositoryComponent with StammdatenReadRepositoryAsyncComponent =>
+  self: MailTemplateReadRepositoryComponent =>
 
   implicit val mailTemplateIdPath = long2BaseIdPathMatcher(MailTemplateId.apply)
 
@@ -80,7 +81,23 @@ trait MailTemplateRoutes extends HttpService
         val impl = implicitly[scalikejdbc.Binders[MailTemplateId]]
 
         get(detail(mailTemplateReadRepositoryAsync.getById(mailTemplateMapping, mailTemplateId))) ~
-          (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId))
+          (put | post)(update[MailTemplateModify, MailTemplateId](mailTemplateId)) ~
+          delete(remove(mailTemplateId))
       }
 
 }
+
+class DefaultMailTemplateRoutes(
+  override val dbEvolutionActor: ActorRef,
+  override val entityStore: ActorRef,
+  override val eventStore: ActorRef,
+  override val mailService: ActorRef,
+  override val reportSystem: ActorRef,
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val fileStore: FileStore,
+  override val actorRefFactory: ActorRefFactory,
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef
+) extends MailTemplateRoutes
+  with DefaultMailTemplateReadRepositoryComponent
