@@ -4,7 +4,6 @@ import akka.actor.{ ActorRef, ActorSystem, Props }
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._
-import ch.openolitor.core.models.BaseId
 import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateWriteRepositoryComponent, MailTemplateWriteRepositoryComponent }
 
 object MailTemplateEntityStoreView {
@@ -33,6 +32,8 @@ trait MailTemplateEntityStoreViewComponent extends EntityStoreViewComponent {
   override val aktionenService: EventService[PersistentEvent] = ignore()
 
   def ignore[A <: ch.openolitor.core.domain.PersistentEvent]() = new EventService[A] {
-    override val handle = Map[A, Unit]()
+    override val handle: Handle = {
+      case e =>
+    }
   }
 }

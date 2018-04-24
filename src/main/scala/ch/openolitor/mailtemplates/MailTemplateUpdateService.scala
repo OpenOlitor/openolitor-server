@@ -54,6 +54,7 @@ class MailTemplateUpdateService(override val sysConfig: SystemConfig) extends Ev
 
   val mailTemplateUpdateHandle: Handle = {
     case EntityUpdatedEvent(meta, id: MailTemplateId, update: MailTemplateModify) => updateMailTemplate(meta, id, update)
+    case e =>
   }
 
   def updateMailTemplate(meta: EventMetadata, id: MailTemplateId, update: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
