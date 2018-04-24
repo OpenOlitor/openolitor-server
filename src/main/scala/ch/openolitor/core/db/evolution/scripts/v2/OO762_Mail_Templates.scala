@@ -24,12 +24,10 @@ package ch.openolitor.core.db.evolution.scripts.v2
 
 import ch.openolitor.core.db.evolution.Script
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
 import scala.util.Try
 import scala.util.Success
-import ch.openolitor.stammdaten.models._
 import ch.openolitor.reports.ReportsDBMappings
 
 object OO762_Mail_Templates {
@@ -44,7 +42,7 @@ object OO762_Mail_Templates {
         `template_name` varchar(200) NOT NULL COLLATE utf8_unicode_ci,
         `description` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
         `subject` varchar(500) NOT NULL COLLATE utf8_unicode_ci,
-        `body` varchar(5000) NOT NULL COLLATE utf8_unicode_ci,
+        `body` varchar(50000) NOT NULL COLLATE utf8_unicode_ci,
         `erstelldat` datetime NOT NULL,
         `ersteller` bigint(20) NOT NULL,
         `modifidat` datetime NOT NULL,
@@ -56,5 +54,59 @@ object OO762_Mail_Templates {
     }
   }
 
-  val scripts = Seq(CreateMailTemplateTable)
+  val CreateInitialTemplates = new Script with LazyLogging with ReportsDBMappings {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""
+INSERT INTO MailTemplate
+(id, template_type, template_name, description, subject, body, erstelldat, ersteller, modifidat, modifikator)
+VALUES(10, 'ProduzentenBestellungMailTemplateType', 'Produzenten Bestellung Mail', 'Produzenten Bestellung Mail', 'Produzenten Bestellung Mail',
+'Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} {{ produzent.vorname }}:
+
+Lieferung: {{ datum | date format="dd.MM.yyyy" }}
+
+Bestellpositionen:
+{{for bestellung in bestellungen}}
+{{if bestellung.hasAdminProzente }}
+Adminprozente: {{ bestellung.adminProzente }}%:
+{{/if}}
+{{for bestellposition in bestellung.bestellpositionen}}
+{{ bestellposition.produktBeschrieb }}: {{ bestellposition.anzahl }} x {{ bestellposition.menge }} {{bestellposition.einheit }} à {{ bestellposition.preisEinheit }}{{ bestellposition.detail }} = {{ bestellposition.preis }} {{ projekt.waehrung }} ⇒ {{ bestellposition.mengeTotal }} {{ bestellposition.einheit }}{{/for}}{{/for}}
+
+Summe [{{ projekt.waehrung }}]: {{ preisTotal | number format="#.00" }}',
+"2017-10-03 10:30:00", 100, "2017-10-03 10:30:00", 100);
+      """.execute.apply()
+
+      sql"""
+INSERT INTO MailTemplate
+(id, template_type, template_name, description, subject, body, erstelldat, ersteller, modifidat, modifikator)
+VALUES(11, 'InvitationMailTemplateType', 'Invitation Mail', 'Invitation Mail', 'Invitation Mail',
+?
+, "2017-10-03 10:30:00", 100, "2017-10-03 10:30:00", 100);
+      """.bind("""{{ person.anrede }} {{ person.vorname }} {{person.name }},
+
+Aktivieren Sie Ihren Zugang mit folgendem Link: {{ baseLink }}?token={{ einladung.uid }}""").execute.apply()
+
+      sql"""
+INSERT INTO MailTemplate
+(id, template_type, template_name, description, subject, body, erstelldat, ersteller, modifidat, modifikator)
+VALUES(12, 'PasswordResetMailTemplateType', 'Password Reset Mail', 'Password Reset Mail', 'Password Reset Mail',
+?
+, "2017-10-03 10:30:00", 100, "2017-10-03 10:30:00", 100);
+      """.bind("""{{ person.anrede }} {{ person.vorname }} {{person.name }},
+
+Sie können Ihr Passwort mit folgendem Link neu setzten: {{ baseLink }}?token={{ einladung.uid }}""").execute.apply()
+
+      sql"""
+INSERT INTO MailTemplate
+(id, template_type, template_name, description, subject, body, erstelldat, ersteller, modifidat, modifikator)
+VALUES(100, 'CustomMailTemplateType', 'Custom Mail', 'Custom Mail', 'Custom Mail', 'Custom Mail', "2017-10-03 10:30:00", 100, "2017-10-03 10:30:00", 100);
+      """.execute.apply()
+      Success(true)
+    }
+  }
+
+  val scripts = Seq(
+    CreateMailTemplateTable,
+    CreateInitialTemplates
+  )
 }
