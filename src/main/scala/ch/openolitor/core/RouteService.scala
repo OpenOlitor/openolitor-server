@@ -172,7 +172,7 @@ trait RouteServiceActor
   // other things here, like request stream processing
   // or timeout handling
 
-  val receive: Receive = runRoute(cors(dbEvolutionRoutes))
+  lazy val receive: Receive = runRoute(cors(dbEvolutionRoutes))
 
   val initializedDB: Receive = runRoute(cors(
     // unsecured routes

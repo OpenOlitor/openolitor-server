@@ -64,7 +64,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   self: StammdatenWriteRepositoryComponent =>
 
   // implicitly expose the eventStream
-  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   // Hotfix
   lazy val startTime = DateTime.now.minusSeconds(sysConfig.mandantConfiguration.config.getIntOption("startTimeDelationSeconds") getOrElse 10)

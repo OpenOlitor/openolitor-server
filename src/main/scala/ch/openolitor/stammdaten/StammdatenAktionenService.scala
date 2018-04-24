@@ -82,7 +82,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
   self: StammdatenWriteRepositoryComponent /*with MailTemplateReadRepositoryComponent*/ =>
 
   // implicitly expose the eventStream
-  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
