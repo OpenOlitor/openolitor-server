@@ -43,7 +43,8 @@ val buildSettings = Seq(
   resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   resolvers += "zalando-maven" at "https://dl.bintray.com/zalando/maven",
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature"),
+  // add -Xcheckinit to scalac options to check for null val's during initialization see also: https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature", "-language:_"),
   mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
   libraryDependencies ++= {

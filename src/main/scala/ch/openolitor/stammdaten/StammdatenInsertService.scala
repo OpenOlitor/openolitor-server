@@ -63,7 +63,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   self: StammdatenWriteRepositoryComponent /*with MailTemplateWriteRepositoryComponent*/ =>
 
   // implicitly expose the eventStream
-  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
 

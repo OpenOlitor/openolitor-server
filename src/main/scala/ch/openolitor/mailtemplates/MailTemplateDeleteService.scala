@@ -50,11 +50,12 @@ class MailTemplateDeleteService(override val sysConfig: SystemConfig) extends Ev
   self: MailTemplateWriteRepositoryComponent =>
 
   // implicitly expose the eventStream
-  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
+  implicit lazy val mailTemplateepositoryImplicit = mailTemplateWriteRepository
 
   val mailTemplateDeleteHandle: Handle = {
     case EntityDeletedEvent(meta, id: MailTemplateId) =>
       deleteMailTemplate(meta, id)
+    case e =>
   }
 
   def deleteMailTemplate(meta: EventMetadata, id: MailTemplateId)(implicit personId: PersonId = meta.originator) = {

@@ -54,7 +54,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
   import EntityStore._
 
   // implicitly expose the eventStream
-  implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   val ZERO = 0
 

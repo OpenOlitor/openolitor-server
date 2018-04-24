@@ -50,7 +50,7 @@ class MailTemplateUpdateService(override val sysConfig: SystemConfig) extends Ev
   self: MailTemplateWriteRepositoryComponent =>
 
   // implicitly expose the eventStream
-  implicit val mailTemplateepositoryImplicit = mailTemplateWriteRepository
+  implicit lazy val mailTemplateepositoryImplicit = mailTemplateWriteRepository
 
   val mailTemplateUpdateHandle: Handle = {
     case EntityUpdatedEvent(meta, id: MailTemplateId, update: MailTemplateModify) => updateMailTemplate(meta, id, update)
