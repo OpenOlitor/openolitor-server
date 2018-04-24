@@ -58,6 +58,7 @@ class MailTemplateInsertService(override val sysConfig: SystemConfig) extends Ev
   val mailTemplateInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: MailTemplateId, create: MailTemplateModify) =>
       createMailTemplateVorlage(meta, id, create)
+    case e =>
   }
 
   def createMailTemplateVorlage(meta: EventMetadata, id: MailTemplateId, create: MailTemplateModify)(implicit personId: PersonId = meta.originator) = {
