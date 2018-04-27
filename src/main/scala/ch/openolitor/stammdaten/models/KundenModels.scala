@@ -302,6 +302,17 @@ case class KundeModify(
   ansprechpersonen: Seq[PersonModify]
 ) extends JSONSerializable
 
+case class KundeMailRequest(
+  ids: Seq[KundeId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class KundeMailContext(
+  person: Person,
+  kunde: Kunde
+) extends JSONSerializable
+
 sealed trait Anrede
 case object Herr extends Anrede
 case object Frau extends Anrede
@@ -490,6 +501,16 @@ case class PersonCreate(
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
+
+case class PersonMailContext(
+  person: Person
+) extends JSONSerializable
+
+case class PersonMailRequest(
+  ids: Seq[PersonId],
+  subject: String,
+  body: String
+) extends JSONSerializable
 
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus
