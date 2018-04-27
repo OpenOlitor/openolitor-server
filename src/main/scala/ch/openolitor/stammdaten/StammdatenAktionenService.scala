@@ -31,8 +31,6 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.mailtemplates.model.{ MailTemplateType, _ }
 import ch.openolitor.mailtemplates.repositories._
@@ -40,13 +38,11 @@ import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.util.ConfigUtil._
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.util.ConfigUtil._
 import scalikejdbc.DBSession
-import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import scalikejdbc.DB
