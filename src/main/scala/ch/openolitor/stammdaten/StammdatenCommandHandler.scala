@@ -25,6 +25,7 @@ package ch.openolitor.stammdaten
 import ch.openolitor.buchhaltung.models.{ RechnungsPositionStatus, RechnungsPositionTyp }
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
+
 import scala.util._
 import scalikejdbc.DB
 import ch.openolitor.stammdaten.models._
@@ -34,10 +35,12 @@ import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.Macros._
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.buchhaltung.models.RechnungsPositionCreate
 import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import org.joda.time.DateTime
 import java.util.UUID
+import scala.concurrent.ExecutionContext.Implicits.global
 import scalikejdbc.DBSession
 
 object StammdatenCommandHandler {
@@ -62,6 +65,9 @@ object StammdatenCommandHandler {
   case class AboDeaktivierenCommand(aboId: AboId, originator: PersonId = PersonId(100)) extends UserCommand
 
   case class DeleteAbwesenheitCommand(originator: PersonId, id: AbwesenheitId) extends UserCommand
+  case class SendEmailToKundenCommand(originator: PersonId, subject: String, body: String, ids: Seq[KundeId]) extends UserCommand
+  case class SendEmailToPersonenCommand(originator: PersonId, subject: String, body: String, ids: Seq[PersonId]) extends UserCommand
+  case class SendEmailToAbosSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[AboId]) extends UserCommand
 
   case class LieferplanungAbschliessenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
   case class LieferplanungAbrechnenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
@@ -83,10 +89,13 @@ object StammdatenCommandHandler {
 
   case class AboAktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
   case class AboDeaktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToPersonEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: PersonMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToKundeEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: KundeMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToAboSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: AboMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
 trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
-  with LieferungDurchschnittspreisHandler {
+  with LieferungDurchschnittspreisHandler with MailTemplateService {
 
   self: StammdatenReadRepositorySyncComponent =>
   import StammdatenCommandHandler._
@@ -104,6 +113,63 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
               Failure(new InvalidStateException("Die der Abwesenheit zugeordnete Lieferung muss Offen oder Ungeplant sein."))
           }
         } getOrElse Failure(new InvalidStateException(s"Keine Lieferung zu Abwesenheit Nr. $id gefunden"))
+      }
+
+    case SendEmailToKundenCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateKunden(body, subject, ids)) {
+          val events = ids flatMap { kundeId =>
+            stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
+              person.email map { emailAddress =>
+                stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
+                  val mailContext = KundeMailContext(person, kunde)
+                  DefaultResultingEvent(factory => SendEmailToKundeEvent(factory.newMetadata(), subject, body, person, mailContext))
+                }
+              }
+            }
+          }
+          Success(events.flatten)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToPersonenCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplatePersonen(body, subject, ids)) {
+          val events = ids flatMap { id =>
+            stammdatenReadRepository.getById(personMapping, id) flatMap { person =>
+              person.email map { emailAddress =>
+                val mailContext = PersonMailContext(person)
+                DefaultResultingEvent(factory => SendEmailToPersonEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToAbosSubscribersCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateAbosSubscribers(body, subject, ids)) {
+          val events = ids flatMap { aboId: AboId =>
+            stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
+              stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
+              stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
+                stammdatenReadRepository.getPersonen(abo.kundeId) flatMap { person =>
+                  person.email map { emailAddress =>
+                    val mailContext = AboMailContext(person, abo)
+                    DefaultResultingEvent(factory => SendEmailToAboSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                  }
+                }
+              }
+          }
+          Success(events.flatten)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
       }
 
     case LieferplanungAbschliessenCommand(personId, id) => idFactory => meta =>
@@ -902,6 +968,55 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         SammelbestellungModify(lieferposition.produzentId, lieferplanungId, lieferung.datum)
       }
     }.flatten.toSet
+  }
+
+  private def checkTemplateAbosSubscribers(body: String, subject: String, ids: Seq[AboId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { aboId: AboId =>
+      stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
+        stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
+        stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
+          stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
+            val mailContext = AboMailContext(person, abo)
+            generateMail(subject, body, mailContext) match {
+              case Success(mailPayload) => true
+              case Failure(e)           => false
+            }
+          }
+        }
+    }
+    templateCorrect.flatten.forall(x => x == true)
+  }
+
+  private def checkTemplateKunden(body: String, subject: String, ids: Seq[KundeId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { kundeId: KundeId =>
+      stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
+        person.email map { emailAddress =>
+          stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
+            val mailContext = KundeMailContext(person, kunde)
+            generateMail(subject, body, mailContext) match {
+              case Success(mailPayload) => true
+              case Failure(e)           => false
+            }
+          }
+        }
+      }
+    }
+    templateCorrect.flatten.forall(x => x == true)
+  }
+
+  private def checkTemplatePersonen(body: String, subject: String, ids: Seq[PersonId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { personId: PersonId =>
+      stammdatenReadRepository.getById(personMapping, personId) flatMap { person =>
+        person.email map { emailAddress =>
+          val mailContext = PersonMailContext(person)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
   }
 }
 

@@ -181,6 +181,10 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val passwortResetGesendetEventPersister = persister[PasswortResetGesendetEvent, V2]("passwort-reset-gesendet", V1toV2metaDataMigration)
   implicit val rolleGewechseltEventPersister = persister[RolleGewechseltEvent, V2]("rolle-gewechselt-gesendet", V1toV2metaDataMigration)
 
+  implicit val SendEmailToPersonEventPersister = persister[SendEmailToPersonEvent]("send-email-person")
+  implicit val SendEmailToKundeEventPersister = persister[SendEmailToKundeEvent]("send-email-kunde")
+  implicit val SendEmailToAboSubscriberEventPersister = persister[SendEmailToAboSubscriberEvent]("send-email-abo-subscriber")
+
   implicit val aboAktiviertEventPersister = persister[AboAktiviertEvent, V2]("abo-aktiviert-event", V1toV2metaDataMigration)
   implicit val aboDeaktiviertEventPersister = persister[AboDeaktiviertEvent, V2]("abo-deaktiviert-event", V1toV2metaDataMigration)
 
@@ -280,6 +284,9 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     einladungGesendetEventPersister,
     passwortResetGesendetEventPersister,
     rolleGewechseltEventPersister,
+    SendEmailToPersonEventPersister,
+    SendEmailToKundeEventPersister,
+    SendEmailToAboSubscriberEventPersister,
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
     korbIdPersister

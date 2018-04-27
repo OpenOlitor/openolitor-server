@@ -27,7 +27,6 @@ import spray.routing._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
@@ -53,9 +52,6 @@ import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
-import ch.openolitor.core.security.RequestFailed
-//import ch.openolitor.mailtemplates.MailTemplateRoutes
-//import ch.openolitor.mailtemplates.repositories._
 
 trait StammdatenRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -84,7 +80,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       }
       kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ personenRoute ~
         kundentypenRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
-        produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute
+        produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
+        mailingRoute
     }
 
   private def kontoDatenRoute(implicit subject: Subject): Route =
@@ -828,6 +825,62 @@ trait StammdatenRoutes extends HttpService with ActorReferences
             }
           }
       }
+
+  private def mailingRoute(implicit subject: Subject): Route =
+    path("mailing" / "sendEmailToKunden") {
+      post {
+        requestInstance { request =>
+          entity(as[KundeMailRequest]) { kundeMailRequest =>
+            sendEmailsToKunden(kundeMailRequest.subject, kundeMailRequest.body, kundeMailRequest.ids)
+          }
+        }
+      }
+    } ~
+      path("mailing" / "sendEmailToPersonen") {
+        post {
+          requestInstance { request =>
+            entity(as[PersonMailRequest]) { personMailRequest =>
+              sendEmailsToPersonen(personMailRequest.subject, personMailRequest.body, personMailRequest.ids)
+            }
+          }
+        }
+      } ~
+      path("mailing" / "sendEmailToAbosSubscribers") {
+        post {
+          requestInstance { request =>
+            entity(as[AboMailRequest]) { aboMailRequest =>
+              sendEmailsToAbosSubscribers(aboMailRequest.subject, aboMailRequest.body, aboMailRequest.ids)
+            }
+          }
+        }
+      }
+
+  private def sendEmailsToKunden(emailSubject: String, body: String, ids: Seq[KundeId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToKundenCommand(subject.personId, emailSubject, body, ids))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
+      case _ =>
+        complete("")
+    }
+  }
+
+  private def sendEmailsToPersonen(emailSubject: String, body: String, ids: Seq[PersonId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToPersonenCommand(subject.personId, emailSubject, body, ids))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
+      case _ =>
+        complete("")
+    }
+  }
+
+  private def sendEmailsToAbosSubscribers(emailSubject: String, body: String, ids: Seq[AboId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToAbosSubscribersCommand(subject.personId, emailSubject, body, ids))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
+      case _ =>
+        complete("")
+    }
+  }
 
   private def generateFileStoreId(vorlage: ProjektVorlage): String = {
     vorlage.name.replace(" ", "_") + ".odt"
