@@ -26,6 +26,7 @@ import ch.openolitor.core._
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
+import ch.openolitor.core.models.BaseId
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.exceptions._
@@ -36,6 +37,8 @@ import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.models.AbotypModify
 import ch.openolitor.core.models.PersonId
 import scalikejdbc.DBSession
+import ch.openolitor.util.ConfigUtil._
+import org.joda.time.DateTime
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 
@@ -50,7 +53,7 @@ class DefaultStammdatenUpdateService(sysConfig: SystemConfig, override val syste
 /**
  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Stammdaten Moduls
  */
-class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]]
+class StammdatenUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
@@ -58,7 +61,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
 
-  val handle: Handle = {
+  // implicitly expose the eventStream
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
+  // Hotfix
+  lazy val startTime = DateTime.now.minusSeconds(sysConfig.mandantConfiguration.config.getIntOption("startTimeDelationSeconds") getOrElse 10)
+
+  val stammdatenUpdateHandle: Handle = {
     case EntityUpdatedEvent(meta, id: VertriebId, entity: VertriebModify)                   => updateVertrieb(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AbotypId, entity: AbotypModify)                       => updateAbotyp(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AbotypId, entity: ZusatzAbotypModify)                 => updateZusatzAbotyp(meta, id, entity)
@@ -70,7 +79,6 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: AboId, entity: HeimlieferungAboModify)                => updateHeimlieferungAbo(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: PostlieferungAboModify)                => updatePostlieferungAbo(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: DepotlieferungAboModify)               => updateDepotlieferungAbo(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: AboId, entity: ZusatzAboModify)                       => updateZusatzAboModify(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboGuthabenModify)                     => updateAboGuthaben(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboVertriebsartModify)                 => updateAboVertriebsart(meta, id, entity)
     case EntityUpdatedEvent(meta, id: DepotId, entity: DepotModify)                         => updateDepot(meta, id, entity)
@@ -95,6 +103,8 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: SammelbestellungId, entity: SammelbestellungStatusModify) => updateSammelbestellungStatusModify(meta, id, entity)
     case e =>
   }
+
+  val handle: Handle = stammdatenUpdateHandle
 
   private def updateVertrieb(meta: EventMetadata, id: VertriebId, update: VertriebModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>

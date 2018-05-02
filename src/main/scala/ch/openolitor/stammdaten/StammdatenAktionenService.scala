@@ -22,58 +22,64 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import ch.openolitor.core._
-import ch.openolitor.core.Macros._
-import ch.openolitor.core.db._
-import ch.openolitor.core.domain._
-import scala.concurrent.duration._
-import ch.openolitor.stammdaten.models._
-import scalikejdbc.DB
-import com.typesafe.scalalogging.LazyLogging
-import akka.actor.ActorSystem
-import akka.actor.ActorRef
+import akka.actor.{ ActorRef, ActorSystem }
 import akka.pattern.ask
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.StammdatenCommandHandler._
-import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
-import org.joda.time.DateTime
-import ch.openolitor.core.mailservice.Mail
+import ch.openolitor.core.Macros._
+import ch.openolitor.core._
+import ch.openolitor.core.db._
+import ch.openolitor.core.domain._
 import ch.openolitor.core.mailservice.MailService._
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.mailtemplates.engine.MailTemplateService
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.stammdaten.StammdatenCommandHandler._
+import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
+import ch.openolitor.stammdaten.models._
+import ch.openolitor.stammdaten.repositories._
+import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.util.ConfigUtil._
 import scalikejdbc.DBSession
-import BigDecimal.RoundingMode._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import scalikejdbc.DB
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
+import TemplateType._
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
 }
 
 class DefaultStammdatenAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-  extends StammdatenAktionenService(sysConfig, mailService)
-  with DefaultStammdatenWriteRepositoryComponent {
+  extends StammdatenAktionenService(sysConfig, mailService) with DefaultStammdatenWriteRepositoryComponent with DefaultMailTemplateReadRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Stammdaten Modul
  */
-class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
+abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
   with MailServiceReference
   with StammdatenEventStoreSerializer
   with SammelbestellungenHandler
-  with LieferungHandler {
-  self: StammdatenWriteRepositoryComponent =>
+  with LieferungHandler
+  with MailTemplateService
+  with SystemConfigReference {
+  self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
+
+  // implicitly expose the eventStream
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
-  lazy val config = sysConfig.mandantConfiguration.config
   lazy val BaseZugangLink = config.getStringOption(s"security.zugang-base-url").getOrElse("")
   lazy val BasePasswortResetLink = config.getStringOption(s"security.passwort-reset-base-url").getOrElse("")
 
@@ -102,6 +108,12 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
       sendPasswortReset(meta, einladung)
     case RolleGewechseltEvent(meta, _, personId, rolle) =>
       changeRolle(meta, personId, rolle)
+    case SendEmailToPersonEvent(meta, subject, body, person, context) =>
+      sendEmail(meta, subject, body, person, context)
+    case SendEmailToKundeEvent(meta, subject, body, person, context) =>
+      sendEmail(meta, subject, body, person, context)
+    case SendEmailToAboSubscriberEvent(meta, subject, body, person, context) =>
+      sendEmail(meta, subject, body, person, context)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -165,43 +177,33 @@ class StammdatenAktionenService(override val sysConfig: SystemConfig, override v
           //send mails only if current event timestamp is past the timestamp of last delivered mail
           case sammelbestellung if (sammelbestellung.datumVersendet.isEmpty || sammelbestellung.datumVersendet.get.isBefore(meta.timestamp)) =>
             stammdatenWriteRepository.getProduzentDetail(sammelbestellung.produzentId) map { produzent =>
-
+              // prepare data for mail
               val bestellungen = stammdatenWriteRepository.getBestellungen(sammelbestellung.id) map { bestellung =>
-
                 val bestellpositionen = stammdatenWriteRepository.getBestellpositionen(bestellung.id) map {
                   bestellposition =>
-                    val preisPos = (bestellposition.preisEinheit.getOrElse(0: BigDecimal) * bestellposition.menge).setScale(2, HALF_UP)
-                    val mengeTotal = bestellposition.anzahl * bestellposition.menge
-                    val detail = if (bestellposition.preisEinheit.getOrElse(0: BigDecimal).compare(preisPos) == 0) "" else s""" ≙ ${preisPos}"""
-                    s"""${bestellposition.produktBeschrieb}: ${bestellposition.anzahl} x ${bestellposition.menge} ${bestellposition.einheit} à ${bestellposition.preisEinheit.getOrElse("")}${detail} = ${bestellposition.preis.getOrElse("")} ${projekt.waehrung} ⇒ ${mengeTotal} ${bestellposition.einheit}"""
+                    copyTo[Bestellposition, BestellpositionMail](bestellposition)
                 }
-
-                val infoAdminproz = bestellung.adminProzente match {
-                  case x if x == 0 => ""
-                  case _           => s"""Adminprozente: ${bestellung.adminProzente}%:"""
-                }
-
-                s"""${infoAdminproz}
-
-${bestellpositionen.mkString("\n")}
-                """
-
+                copyTo[Bestellung, BestellungMail](bestellung, "bestellpositionen" -> bestellpositionen)
               }
-              val text = s"""Bestellung von ${projekt.bezeichnung} an ${produzent.name} ${produzent.vorname.getOrElse("")}:
 
-Lieferung: ${format.print(sammelbestellung.datum)}
-
-Bestellpositionen:
-${bestellungen.mkString("\n")}
-
-Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
-              val mail = Mail(1, produzent.email, None, None, "Bestellung " + format.print(sammelbestellung.datum), text)
-
-              mailService ? SendMailCommandWithCallback(SystemEvents.SystemPersonId, mail, Some(5 minutes), id) map {
-                case _: SendMailEvent =>
-                //ok
-                case other =>
-                  logger.debug(s"Sending Mail failed resulting in $other")
+              val mailContext = SammelbestellungMailContext(sammelbestellung, projekt, produzent, bestellungen)
+              mailTemplateReadRepositorySync.getMailTemplateByTemplateType(ProduzentenBestellungMailTemplateType) match {
+                case Some(template: MailTemplate) => {
+                  generateMail(template.subject, template.body, mailContext) match {
+                    case Success(mailPayload) =>
+                      val mail = mailPayload.toMail(1, produzent.email, None, None)
+                      mailService ? SendMailCommandWithCallback(personId, mail, Some(5 minutes), produzent.id) map
+                        {
+                          case _: SendMailEvent =>
+                          //ok
+                          case other =>
+                            logger.debug(s"Sending Mail failed resulting in $other")
+                        }
+                    case Failure(e) =>
+                      logger.warn(s"Failed preparing mail", e)
+                  }
+                }
+                case None => logger.warn(s"No mail template was found for the type ProduzentenBestellungMailTemplateType")
               }
             }
           case _ => //ignore
@@ -238,14 +240,31 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
   }
 
   def sendPasswortReset(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
-    sendEinladung(meta, einladungCreate, "Sie können Ihr Passwort mit folgendem Link neu setzten:", BasePasswortResetLink)
+    sendEinladung(meta, einladungCreate, BasePasswortResetLink, PasswordResetMailTemplateType)
   }
 
   def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
-    sendEinladung(meta, einladungCreate, "Aktivieren Sie Ihren Zugang mit folgendem Link:", BaseZugangLink)
+    sendEinladung(meta, einladungCreate, BaseZugangLink, InvitationMailTemplateType)
   }
 
-  def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseText: String, baseLink: String)(implicit originator: PersonId): Unit = {
+  private def sendEmail(meta: EventMetadata, emailSubject: String, body: String, person: Person, mailContext: Product)(implicit originator: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      generateMail(emailSubject, body, mailContext) match {
+        case Success(mailPayload) =>
+          val mail = mailPayload.toMail(1, person.email.get, None, None)
+          mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
+            case _: SendMailEvent =>
+            //ok
+            case other =>
+              logger.debug(s"Sending Mail failed resulting in $other")
+          }
+        case Failure(e) =>
+          logger.warn(s"Failed preparing mail", e)
+      }
+    }
+  }
+
+  private def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseLink: String, mailTemplateType: TemplateType)(implicit originator: PersonId): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(personMapping, einladungCreate.personId) map { person =>
 
@@ -258,29 +277,30 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
             "modifidat" -> meta.timestamp,
             "modifikator" -> meta.originator
           )
-
           stammdatenWriteRepository.insertEntity[Einladung, EinladungId](inserted)
           inserted
         }
 
         if (einladung.erstelldat.isAfter(new DateTime(2017, 3, 2, 12, 0)) && (einladung.datumVersendet.isEmpty || einladung.datumVersendet.get.isBefore(meta.timestamp)) && einladung.expires.isAfter(DateTime.now)) {
           setLoginAktiv(meta, einladung.personId)
-
-          val text = s"""
-	        ${person.vorname} ${person.name},
-
-	        ${baseText} ${baseLink}?token=${einladung.uid}
-
-	        """
-
-          // email wurde bereits im CommandHandler überprüft
-          val mail = Mail(1, person.email.get, None, None, "OpenOlitor Zugang", text)
-
-          mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), einladung.id) map {
-            case _: SendMailEvent =>
-            //ok
-            case other =>
-              logger.debug(s"Sending Mail failed resulting in $other")
+          mailTemplateReadRepositorySync.getMailTemplateByTemplateType(mailTemplateType) match {
+            case Some(template: MailTemplate) => {
+              val mailContext = EinladungMailContext(person, einladung, baseLink)
+              generateMail(template.subject, template.body, mailContext) match {
+                case Success(mailPayload) =>
+                  val mail = mailPayload.toMail(1, person.email.get, None, None)
+                  mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map
+                    {
+                      case _: SendMailEvent =>
+                      //ok
+                      case other =>
+                        logger.debug(s"Sending Mail failed resulting in $other")
+                    }
+                case Failure(e) =>
+                  logger.warn(s"Failed preparing mail", e)
+              }
+            }
+            case None => logger.warn(s"No mail template was found for the type $mailTemplateType")
           }
         } else {
           logger.debug(s"Don't send Einladung, has been send earlier: ${einladungCreate.id}")
@@ -316,7 +336,6 @@ Summe [${projekt.waehrung}]: ${sammelbestellung.preisTotal}"""
         sammelbestellungMapping.column.status -> Verrechnet,
         sammelbestellungMapping.column.datumAbrechnung -> Option(datum)
       )
-
     }
   }
 }

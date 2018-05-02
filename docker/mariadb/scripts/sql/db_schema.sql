@@ -36,3 +36,14 @@ CREATE TABLE IF NOT EXISTS DBSchema (
   PRIMARY KEY (id)
 ) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
 
+CREATE TABLE IF NOT EXISTS PersistenceEventState  (
+  id BIGINT not null,
+  persistence_id varchar(100) not null,
+  last_transaction_nr BIGINT default 0,
+  last_sequence_nr BIGINT default 0,
+  erstelldat datetime not null,
+  ersteller BIGINT not null,
+  modifidat datetime not null,
+  modifikator BIGINT not null
+) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
+

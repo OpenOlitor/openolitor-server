@@ -37,31 +37,39 @@ import spray.http._
 import spray.util._
 import spray.caching._
 import java.util.UUID
+
 import ch.openolitor.core.domain._
 import ch.openolitor.core.domain.EntityStore._
 import akka.pattern.ask
+
 import scala.concurrent.Future
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import spray.json._
 import ch.openolitor.core.BaseJsonProtocol._
+
 import scala.util._
 import stamina.Persister
 import ch.openolitor.core.system._
 import java.io.ByteArrayInputStream
+
 import ch.openolitor.core.filestore._
 import akka.util.ByteString
+
 import scala.reflect.ClassTag
 import ch.openolitor.buchhaltung._
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing.RequestContext
 import java.io.InputStream
+
 import ch.openolitor.core.security._
 import ch.openolitor.stammdaten.models.{ AdministratorZugang, KundenZugang }
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.reporting.ReportSystem._
 import ch.openolitor.util.InputStreamUtil._
 import java.io.InputStream
+
 import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
 import ch.openolitor.kundenportal.KundenportalRoutes
 import ch.openolitor.kundenportal.DefaultKundenportalRoutes
@@ -74,12 +82,17 @@ import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.SpreadsheetDocument
 import java.io.ByteArrayOutputStream
 import java.util.Locale
+
 import org.odftoolkit.simple.style.StyleTypeDefinitions
+
 import scala.None
 import scala.collection.Iterable
 import collection.JavaConverters._
 import java.io.File
+
 import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
+import ch.openolitor.mailtemplates.{ DefaultMailTemplateRoutes, MailTemplateRoutes }
+
 import scala.concurrent.ExecutionContext
 import ch.openolitor.util.ZipBuilderWithFile
 
@@ -103,6 +116,7 @@ trait RouteServiceComponent extends ActorReferences {
 
   val stammdatenRouteService: StammdatenRoutes
   val stammdatenRouteOpenService: StammdatenOpenRoutes
+  val mailtemplateRouteService: MailTemplateRoutes
   val buchhaltungRouteService: BuchhaltungRoutes
   val reportsRouteService: ReportsRoutes
   val syncReportsRouteService: SyncReportsRoutes
@@ -115,6 +129,7 @@ trait RouteServiceComponent extends ActorReferences {
 trait DefaultRouteServiceComponent extends RouteServiceComponent with TokenCache {
   override lazy val stammdatenRouteService = new DefaultStammdatenRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
   override lazy val stammdatenRouteOpenService = new DefaultStammdatenOpenRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
+  override lazy val mailtemplateRouteService = new DefaultMailTemplateRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
   override lazy val buchhaltungRouteService = new DefaultBuchhaltungRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
   override lazy val reportsRouteService = new DefaultReportsRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
   override lazy val syncReportsRouteService = new DefaultSyncReportsRoutes(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, sysConfig, system, fileStore, actorRefFactory, airbrakeNotifier, jobQueueService)
@@ -157,7 +172,7 @@ trait RouteServiceActor
   // other things here, like request stream processing
   // or timeout handling
 
-  val receive: Receive = runRoute(cors(dbEvolutionRoutes))
+  lazy val receive: Receive = runRoute(cors(dbEvolutionRoutes))
 
   val initializedDB: Receive = runRoute(cors(
     // unsecured routes
@@ -173,6 +188,7 @@ trait RouteServiceActor
           loginRouteService.logoutRoute ~
           authorize(hasRole(AdministratorZugang)) {
             stammdatenRouteService.stammdatenRoute ~
+              mailtemplateRouteService.mailRoute ~
               buchhaltungRouteService.buchhaltungRoute ~
               reportsRouteService.reportsRoute ~
               syncReportsRouteService.syncReportsRoute ~

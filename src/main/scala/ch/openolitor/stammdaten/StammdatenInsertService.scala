@@ -38,6 +38,7 @@ import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
 }
@@ -48,7 +49,7 @@ class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val syste
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
  */
-class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
+class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
@@ -57,12 +58,15 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
+  // implicitly expose the eventStream
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
 
   val ZERO = 0
   val FALSE = false
 
-  val handle: Handle = {
+  val stammdatenInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: AbotypId, abotyp: AbotypModify) =>
       createAbotyp(meta, id, abotyp)
     case EntityInsertedEvent(meta, id: AbotypId, zusatzabotyp: ZusatzAbotypModify) =>
@@ -121,6 +125,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createPostAuslieferung(meta, id, postAuslieferung)
     case e =>
   }
+
+  val handle: Handle = stammdatenInsertHandle
 
   def createAbotyp(meta: EventMetadata, id: AbotypId, abotyp: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     val typ = copyTo[AbotypModify, Abotyp](
@@ -444,15 +450,9 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "modifikator" -> meta.originator
                   ))
               }
-              // create required Koerbe for abo
-              //              maybeAbo map (abo => modifyKoerbeForAboDatumChange(abo, None))
               maybeAbo map (abo => modifyKoerbeForAbo(abo, None))
           }
       }
-
-      //stammdatenWriteRepository.getAbo(id) map { abo =>
-      //  modifyKoerbeForAbo(abo, None)
-      //}
     }
   }
 
