@@ -254,7 +254,7 @@ object Boot extends App with LazyLogging {
     val models = config.getStringList("db.default.seed.models")
     val mappings: Seq[(Class[_], Long)] = models.map { model =>
       Class.forName(model) -> config.getLong(s"db.default.seed.mappings.$model")
-    }.toSeq
+    }
     mappings.toMap.asInstanceOf[Map[Class[_ <: ch.openolitor.core.models.BaseId], Long]]
   }
 

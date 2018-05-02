@@ -17,7 +17,6 @@ trait MailTemplateCommandHandler extends CommandHandler with MailTemplateDBMappi
   override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {
     case e @ InsertEntityCommand(personIdd, entity: MailTemplateModify) => idFactory => meta =>
       handleEntityInsert[MailTemplateModify, MailTemplateId](idFactory, meta, entity, MailTemplateId.apply)
-    //case e @ EntityDeleted(personId, entity: MailTemplateId) =>
   }
 }
 

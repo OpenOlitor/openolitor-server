@@ -34,23 +34,21 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-//import ch.openolitor.mailtemplates._
-//import ch.openolitor.mailtemplates.repositories._
 
 object StammdatenDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenDeleteService = new DefaultStammdatenDeleteService(sysConfig, system)
 }
 
 class DefaultStammdatenDeleteService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent /*with DefaultMailTemplateWriteRepositoryComponent*/ {
+  extends StammdatenDeleteService(sysConfig: SystemConfig) with DefaultStammdatenWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
  */
 class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
-  with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler /*with MailTemplateDeleteService*/ {
-  self: StammdatenWriteRepositoryComponent /*with MailTemplateWriteRepositoryComponent*/ =>
+  with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler {
+  self: StammdatenWriteRepositoryComponent =>
   import EntityStore._
 
   // implicitly expose the eventStream

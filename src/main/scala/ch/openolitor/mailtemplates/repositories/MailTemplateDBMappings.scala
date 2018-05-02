@@ -28,8 +28,8 @@ import scalikejdbc._
 import ch.openolitor.core.repositories._
 
 trait MailTemplateDBMappings extends DBMappings {
-  implicit val mailTemplateTypeBinder: Binders[MailTemplateType] = toStringBinder(MailTemplateType.apply)
   implicit val mailTemplateIdBinder: Binders[MailTemplateId] = baseIdBinders(MailTemplateId.apply)
+  implicit val templateTypeStringBinder: Binders[TemplateType] = toStringBinder(TemplateType.apply)
 
   implicit val mailTemplateMapping = new BaseEntitySQLSyntaxSupport[MailTemplate] {
     override val tableName = "MailTemplate"

@@ -32,7 +32,7 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.mailtemplates.engine.MailTemplateService
-import ch.openolitor.mailtemplates.model.{ MailTemplateType, _ }
+import ch.openolitor.mailtemplates.model._
 import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
@@ -50,6 +50,7 @@ import scalikejdbc.DB
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
+import TemplateType._
 
 object StammdatenAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): StammdatenAktionenService = new DefaultStammdatenAktionenService(sysConfig, system, mailService)
@@ -176,39 +177,34 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
           //send mails only if current event timestamp is past the timestamp of last delivered mail
           case sammelbestellung if (sammelbestellung.datumVersendet.isEmpty || sammelbestellung.datumVersendet.get.isBefore(meta.timestamp)) =>
             stammdatenWriteRepository.getProduzentDetail(sammelbestellung.produzentId) map { produzent =>
-
               // prepare data for mail
               val bestellungen = stammdatenWriteRepository.getBestellungen(sammelbestellung.id) map { bestellung =>
-
                 val bestellpositionen = stammdatenWriteRepository.getBestellpositionen(bestellung.id) map {
                   bestellposition =>
                     copyTo[Bestellposition, BestellpositionMail](bestellposition)
                 }
-
                 copyTo[Bestellung, BestellungMail](bestellung, "bestellpositionen" -> bestellpositionen)
               }
 
-              val mailContext = copyTo[Sammelbestellung, SammelbestellungMail](
-                sammelbestellung,
-                "produzent" -> produzent,
-                "projekt" -> projekt,
-                "bestellungen" -> bestellungen
-              )
-
-              // generate mail
-              /*generateMail(ProduzentenBestellungMailTemplateType, None, mailContext) map {
-                case Success(mailPayload) =>
-                  val mail = mailPayload.toMail(1, produzent.email, None, None)
-
-                  mailService ? SendMailCommandWithCallback(SystemEvents.SystemPersonId, mail, Some(5 minutes), id) map {
-                    case _: SendMailEvent =>
-                    //ok
-                    case other =>
-                      logger.debug(s"Sending Mail failed resulting in $other")
+              val mailContext = SammelbestellungMailContext(sammelbestellung, projekt, produzent, bestellungen)
+              mailTemplateReadRepositorySync.getMailTemplateByTemplateType(ProduzentenBestellungMailTemplateType) match {
+                case Some(template: MailTemplate) => {
+                  generateMail(template.subject, template.body, mailContext) match {
+                    case Success(mailPayload) =>
+                      val mail = mailPayload.toMail(1, produzent.email, None, None)
+                      mailService ? SendMailCommandWithCallback(personId, mail, Some(5 minutes), produzent.id) map
+                        {
+                          case _: SendMailEvent =>
+                          //ok
+                          case other =>
+                            logger.debug(s"Sending Mail failed resulting in $other")
+                        }
+                    case Failure(e) =>
+                      logger.warn(s"Failed preparing mail", e)
                   }
-                case Failure(e) =>
-                  logger.warn(s"Failed preparing mail", e)
-              }*/
+                }
+                case None => logger.warn(s"No mail template was found for the type ProduzentenBestellungMailTemplateType")
+              }
             }
           case _ => //ignore
             logger.debug(s"Don't resend Bestellung, already delivered")
@@ -268,7 +264,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     }
   }
 
-  private def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseLink: String, mailTemplateType: MailTemplateType)(implicit originator: PersonId): Unit = {
+  private def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseLink: String, mailTemplateType: TemplateType)(implicit originator: PersonId): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(personMapping, einladungCreate.personId) map { person =>
 
@@ -281,31 +277,31 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
             "modifidat" -> meta.timestamp,
             "modifikator" -> meta.originator
           )
-
           stammdatenWriteRepository.insertEntity[Einladung, EinladungId](inserted)
           inserted
         }
 
         if (einladung.erstelldat.isAfter(new DateTime(2017, 3, 2, 12, 0)) && (einladung.datumVersendet.isEmpty || einladung.datumVersendet.get.isBefore(meta.timestamp)) && einladung.expires.isAfter(DateTime.now)) {
           setLoginAktiv(meta, einladung.personId)
-
-          // TODO: replace templatename with selected name from client
-          val mailContext = EinladungMailContext(person, einladung, baseLink)
-          /*generateMail(mailTemplateType, None, mailContext) map {
-            case Success(mailPayload) =>
-              // email wurde bereits im CommandHandler überprüft
-              val mail = mailPayload.toMail(1, person.email.get, None, None)
-
-              mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), einladung.id) map {
-                case _: SendMailEvent =>
-                //ok
-                case other =>
-                  logger.debug(s"Sending Mail failed resulting in $other")
+          mailTemplateReadRepositorySync.getMailTemplateByTemplateType(mailTemplateType) match {
+            case Some(template: MailTemplate) => {
+              val mailContext = EinladungMailContext(person, einladung, baseLink)
+              generateMail(template.subject, template.body, mailContext) match {
+                case Success(mailPayload) =>
+                  val mail = mailPayload.toMail(1, person.email.get, None, None)
+                  mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map
+                    {
+                      case _: SendMailEvent =>
+                      //ok
+                      case other =>
+                        logger.debug(s"Sending Mail failed resulting in $other")
+                    }
+                case Failure(e) =>
+                  logger.warn(s"Failed preparing mail", e)
               }
-            case Failure(e) =>
-              logger.warn(s"Failed preparing mail", e)
-          }*/
-
+            }
+            case None => logger.warn(s"No mail template was found for the type $mailTemplateType")
+          }
         } else {
           logger.debug(s"Don't send Einladung, has been send earlier: ${einladungCreate.id}")
         }
@@ -340,7 +336,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
         sammelbestellungMapping.column.status -> Verrechnet,
         sammelbestellungMapping.column.datumAbrechnung -> Option(datum)
       )
-
     }
   }
 }

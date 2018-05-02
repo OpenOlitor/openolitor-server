@@ -26,6 +26,7 @@ import scalikejdbc._
 import scalikejdbc.async._
 import scalikejdbc.async.FutureImplicits._
 import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.mailtemplates.model._
 
 trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
   lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")
@@ -42,6 +43,14 @@ trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappi
       select
         .from(mailTemplateMapping as mailTemplate)
         .where.eq(mailTemplate.templateName, templateName)
+    }.map(mailTemplateMapping(mailTemplate)).single
+  }
+
+  protected def getMailTemplateByTemplateTypeQuery(templateType: TemplateType) = {
+    withSQL {
+      select
+        .from(mailTemplateMapping as mailTemplate)
+        .where.eq(mailTemplate.templateType, templateType)
     }.map(mailTemplateMapping(mailTemplate)).single
   }
 }

@@ -22,6 +22,8 @@
 \*                                                                           */
 package ch.openolitor.util
 
+import ch.openolitor.core.models.{ BaseId, BaseStringId }
+
 import scala.collection.immutable.HashSet
 
 object ProductUtil {
@@ -57,7 +59,10 @@ object ProductUtil {
       val defaultMapper: PartialFunction[Any, Any] = { case x => x }
       val converters = customConverter orElse defaultMapper
       def toVals(x: Any): Any = x match {
+        case m: Map[_, _]                     => m.map { case (key, value) => toVals(key).toString -> toVals(value) }
         case t: Traversable[_]                => t.map(toVals(_))
+        case i: BaseId                        => i.id
+        case s: BaseStringId                  => s.id
         case o: Option[_]                     => o.map(toVals(_)).getOrElse(converters(None))
         case p: Product if p.productArity > 0 => p.toMap(customConverter)
         case x                                => converters(x)
@@ -81,6 +86,9 @@ object ProductUtil {
         if (method.getParameterCount == 0)
         // ignore system methods
         if (!method.getName.contains("$"))
+        // ignore function methods curried and tupled
+        if (!method.getName.contains("curried"))
+        if (!method.getName.contains("tupled"))
         // ignore other known default methods
         if (!defaultMethods.contains(method.getName))
       } yield {

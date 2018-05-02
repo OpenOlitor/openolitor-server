@@ -68,7 +68,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   with ProduzentenabrechnungReportService
   with LieferplanungReportService
   with FileTypeFilenameMapping
-  with StammdatenPaths /*with MailTemplateRoutes*/ {
+  with StammdatenPaths {
   self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent =>
 
   import EntityStore._

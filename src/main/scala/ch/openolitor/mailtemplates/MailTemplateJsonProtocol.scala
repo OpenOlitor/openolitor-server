@@ -30,6 +30,5 @@ import zangelo.spray.json.AutoProductFormats
 
 trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
   implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
-
-  implicit val mailTemplateTypeFormat: RootJsonFormat[MailTemplateType] = enumFormat(MailTemplateType.apply)
+  implicit val mailTemplateTypeFormat: RootJsonFormat[TemplateType] = enumFormat(TemplateType.apply)
 }

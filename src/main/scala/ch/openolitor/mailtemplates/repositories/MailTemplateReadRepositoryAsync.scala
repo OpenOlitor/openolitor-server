@@ -22,25 +22,26 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates.repositories
 
-import scalikejdbc._
 import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
 import scala.concurrent.Future
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
-import akka.actor.ActorSystem
 import ch.openolitor.mailtemplates.model._
 import ch.openolitor.core.repositories._
 
 trait MailTemplateReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
-
+  def getMailTemplateByTemplateType(templateType: TemplateType)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]]
   def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]]
 }
 
 trait MailTemplateReadRepositoryAsyncImpl extends MailTemplateReadRepositoryAsync with MailTemplateRepositoryQueries {
   def getMailTemplateByName(templateName: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
     getMailTemplateByNameQuery(templateName).future()
+  }
+
+  def getMailTemplateByTemplateType(templateType: TemplateType)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[MailTemplate]] = {
+    getMailTemplateByTemplateTypeQuery(templateType).future()
   }
 
   def getMailTemplates()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[MailTemplate]] = {

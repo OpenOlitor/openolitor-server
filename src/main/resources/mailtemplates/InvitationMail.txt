@@ -1,3 +1,0 @@
-{{ person.anrede }} {{ person.vorname }} {{person.name }},
-
-Aktivieren Sie Ihren Zugang mit folgendem Link: {{ baseLink }}?token={{ einladung.uid }}

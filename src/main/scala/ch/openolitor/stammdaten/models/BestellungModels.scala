@@ -138,6 +138,13 @@ case class SammelbestellungDetail(
   modifikator: PersonId
 ) extends JSONSerializable
 
+case class SammelbestellungMailContext(
+  sammelbestellung: Sammelbestellung,
+  projekt: Projekt,
+  produzent: Produzent,
+  bestellungen: Seq[BestellungMail]
+) extends JSONSerializable
+
 case class BestellungId(id: Long) extends BaseId
 
 /**

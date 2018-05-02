@@ -27,8 +27,6 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
-//import ch.openolitor.mailtemplates._
-import java.util.UUID
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
@@ -40,15 +38,13 @@ import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.mailtemplates.repositories._
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
 }
 
 class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent //with DefaultMailTemplateWriteRepositoryComponent
+  extends StammdatenInsertService(sysConfig) with DefaultStammdatenWriteRepositoryComponent
 
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
@@ -59,8 +55,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   with StammdatenDBMappings
   with KorbHandler
   with SammelbestellungenHandler
-  with LieferungHandler /*with MailTemplateInsertService*/ {
-  self: StammdatenWriteRepositoryComponent /*with MailTemplateWriteRepositoryComponent*/ =>
+  with LieferungHandler {
+  self: StammdatenWriteRepositoryComponent =>
 
   // implicitly expose the eventStream
   implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
@@ -130,7 +126,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     case e =>
   }
 
-  val handle: Handle = stammdatenInsertHandle //orElse mailTemplateInsertHandle
+  val handle: Handle = stammdatenInsertHandle
 
   def createAbotyp(meta: EventMetadata, id: AbotypId, abotyp: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     val typ = copyTo[AbotypModify, Abotyp](
@@ -454,15 +450,9 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "modifikator" -> meta.originator
                   ))
               }
-              // create required Koerbe for abo
-              //              maybeAbo map (abo => modifyKoerbeForAboDatumChange(abo, None))
               maybeAbo map (abo => modifyKoerbeForAbo(abo, None))
           }
       }
-
-      //stammdatenWriteRepository.getAbo(id) map { abo =>
-      //  modifyKoerbeForAbo(abo, None)
-      //}
     }
   }
 

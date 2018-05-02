@@ -67,15 +67,10 @@ trait MailTemplateRoutes extends HttpService
     }
 
   def mailTemplateRoute(implicit subject: Subject, filter: Option[FilterExpr]) =
-    path("mailtemplatetypes") {
-      get {
-        complete(MailTemplateType.AllTemplateTypes)
-      }
+    path("mailtemplates") {
+      get(list(mailTemplateReadRepositoryAsync.getMailTemplates())) ~
+        post(create[MailTemplateModify, MailTemplateId](MailTemplateId.apply _))
     } ~
-      path("mailtemplates") {
-        get(list(mailTemplateReadRepositoryAsync.getMailTemplates())) ~
-          post(create[MailTemplateModify, MailTemplateId](MailTemplateId.apply _))
-      } ~
       path("mailtemplates" / mailTemplateIdPath) { mailTemplateId =>
         val impl2 = mailTemplateIdBinder
         val impl = implicitly[scalikejdbc.Binders[MailTemplateId]]

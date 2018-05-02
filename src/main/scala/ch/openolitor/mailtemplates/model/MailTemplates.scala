@@ -22,73 +22,28 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates.model
 
-import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
-import java.util.Locale
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.filestore.FileType
-import ch.openolitor.core.filestore.MailTemplateBucket
-import ch.openolitor.core.JSONSerializable
-import scala.io.Source
-import ch.openolitor.stammdaten.models.EinladungMailContext
 
-sealed trait MailTemplateType extends FileType {
-  val defaultSubject: String
-  val defaultBody: String
-  type templateDataType
+sealed trait TemplateType
+case object ProduzentenBestellungMailTemplateType extends TemplateType
+case object PasswordResetMailTemplateType extends TemplateType
+case object InvitationMailTemplateType extends TemplateType
+case object CustomMailTemplateType extends TemplateType
 
-  protected def loadTemplate(name: String): String = Source.fromInputStream(getClass.getResourceAsStream(name), "UTF-8").mkString
+object TemplateType {
+  val AllTemplateTypes = Vector(ProduzentenBestellungMailTemplateType, PasswordResetMailTemplateType, InvitationMailTemplateType, CustomMailTemplateType)
 
-  val bucket = MailTemplateBucket
-}
-
-case object ProduzentenBestellungMailTemplateType extends MailTemplateType {
-  val defaultSubject = """Bestellung {{ datum | date format="dd.MM.yyyy" }}"""
-  val defaultBody = loadTemplate("/mailtemplates/ProduzentenBestellungMail.txt")
-  // TODO: define once data type is clear
-  override type templateDataType = Product
-}
-case object InvitationMailTemplateType extends MailTemplateType {
-  val defaultSubject = """OpenOlitor Zugang"""
-  val defaultBody = loadTemplate("/mailtemplates/InvitationMail.txt")
-  override type templateDataType = EinladungMailContext
-}
-case object PasswordResetMailTemplateType extends MailTemplateType {
-  val defaultSubject = """OpenOlitor Zugang"""
-  val defaultBody = loadTemplate("/mailtemplates/PasswordResetMail.txt")
-  override type templateDataType = EinladungMailContext
-}
-case object CustomMailTemplateType extends MailTemplateType {
-  val defaultSubject = ""
-  val defaultBody = ""
-  type templateDataType = Product
-}
-case object UnknownMailTemplateType extends MailTemplateType {
-  val defaultSubject = ""
-  val defaultBody = ""
-  type templateDataType = Product
-}
-
-object MailTemplateType extends LazyLogging {
-  val AllTemplateTypes: List[MailTemplateType] = List(
-    ProduzentenBestellungMailTemplateType,
-    CustomMailTemplateType,
-    InvitationMailTemplateType,
-    PasswordResetMailTemplateType
-  )
-
-  def apply(value: String): MailTemplateType = {
-    logger.debug(s"MailTemplateType.apply:$value")
-    AllTemplateTypes.find(_.toString.toLowerCase == value.toLowerCase).getOrElse(UnknownMailTemplateType)
+  def apply(value: String): TemplateType = {
+    AllTemplateTypes.find(_.toString == value).get
   }
 }
 
 case class MailTemplateId(id: Long) extends BaseId
 case class MailTemplate(
   id: MailTemplateId,
-  templateType: MailTemplateType,
+  templateType: TemplateType,
   templateName: String,
   description: Option[String],
   subject: String,
@@ -101,7 +56,7 @@ case class MailTemplate(
 ) extends BaseEntity[MailTemplateId] with JSONSerializable
 
 case class MailTemplateModify(
-  templateType: MailTemplateType,
+  templateType: TemplateType,
   templateName: String,
   description: Option[String],
   subject: String,

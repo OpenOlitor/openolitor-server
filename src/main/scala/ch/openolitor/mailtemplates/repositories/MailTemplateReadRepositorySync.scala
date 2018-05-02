@@ -33,11 +33,16 @@ import ch.openolitor.core.repositories.BaseReadRepositorySync
 
 trait MailTemplateReadRepositorySync extends BaseReadRepositorySync {
   def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
+  def getMailTemplateByTemplateType(templateType: TemplateType)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
 }
 
 trait MailTemplateReadRepositorySyncImpl extends MailTemplateReadRepositorySync with MailTemplateRepositoryQueries {
   def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate] = {
     getMailTemplateByNameQuery(templateName).apply()
+  }
+
+  def getMailTemplateByTemplateType(templateType: TemplateType)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate] = {
+    getMailTemplateByTemplateTypeQuery(templateType).apply()
   }
 }
 

@@ -60,19 +60,10 @@ object OO762_Mail_Templates {
 INSERT INTO MailTemplate
 (id, template_type, template_name, description, subject, body, erstelldat, ersteller, modifidat, modifikator)
 VALUES(10, 'ProduzentenBestellungMailTemplateType', 'Produzenten Bestellung Mail', 'Produzenten Bestellung Mail', 'Produzenten Bestellung Mail',
-'Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} {{ produzent.vorname }}:
+'Bestellung von {{ projekt.bezeichnung }} an {{produzent.name}} :
 
-Lieferung: {{ datum | date format="dd.MM.yyyy" }}
-
-Bestellpositionen:
-{{for bestellung in bestellungen}}
-{{if bestellung.hasAdminProzente }}
-Adminprozente: {{ bestellung.adminProzente }}%:
-{{/if}}
-{{for bestellposition in bestellung.bestellpositionen}}
-{{ bestellposition.produktBeschrieb }}: {{ bestellposition.anzahl }} x {{ bestellposition.menge }} {{bestellposition.einheit }} à {{ bestellposition.preisEinheit }}{{ bestellposition.detail }} = {{ bestellposition.preis }} {{ projekt.waehrung }} ⇒ {{ bestellposition.mengeTotal }} {{ bestellposition.einheit }}{{/for}}{{/for}}
-
-Summe [{{ projekt.waehrung }}]: {{ preisTotal | number format="#.00" }}',
+Lieferung: {{ sammelbestellung.datum | date format="dd.MM.yyyy" }}
+',
 "2017-10-03 10:30:00", 100, "2017-10-03 10:30:00", 100);
       """.execute.apply()
 

@@ -3,7 +3,6 @@ package ch.openolitor.mailtemplates.engine
 import scala.concurrent._
 import scala.util.Try
 import ch.openolitor.core.mailservice.MailPayload
-import ch.openolitor.core.db._
 import ch.openolitor.core._
 
 import ch.openolitor.util.ProductUtil._
@@ -15,7 +14,7 @@ import org.joda.time.DateTime
 /**
  * This trait provides functionality to generate mail payloads based on either custom or a default template
  */
-trait MailTemplateService extends AsyncConnectionPoolContextAware with SystemConfigReference with LazyLogging {
+trait MailTemplateService extends SystemConfigReference with LazyLogging {
 
   val format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
   /**
@@ -40,7 +39,6 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with SystemCon
   def generateMails[P <: Product](subject: String, body: String, contexts: Seq[P])(implicit ec: ExecutionContext): Try[Seq[MailPayload]] = {
     // first try to resolve mail template
     val (subjectTemplate, bodyTemplate) = (subject, body)
-
     // prepare renderer and compiler for the whole run
     val subjectCompiler = new CustomizableTemplateCompiler(templateLoader = new MapTemplateLoader(Map("Subject" -> subjectTemplate)))
     val subjectRenderer = new BeardTemplateRenderer(subjectCompiler)
@@ -54,6 +52,7 @@ trait MailTemplateService extends AsyncConnectionPoolContextAware with SystemCon
     } yield {
 
       //render mails for every context
+
       contexts.map { context =>
         val contextMap = context.toMap(typeConverter)
 
