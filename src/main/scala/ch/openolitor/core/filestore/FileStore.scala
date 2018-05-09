@@ -277,7 +277,6 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
           .withKey(metadata.key)
           .withPartNumber(partNumber)
           .withBucketName(bucketName(metadata.bucket))
-          .withObjectMetadata(transform(metadata.metadata))
           .withInputStream(part)
           .withUploadId(metadata.uploadId)
           .withPartSize(partSize)
@@ -332,8 +331,8 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
       try {
         val result = FileStoreBucket.AllFileStoreBuckets map { bucket =>
           client.createBucket(new CreateBucketRequest(bucketName(bucket)))
-
-          // FIXME This doesn't work with our current provider's s3 instance configureLifeCycle(bucket)
+          
+          configureLifeCycle(bucket)
         }
         Right(FileStoreSuccess())
       } catch {
