@@ -68,7 +68,6 @@ import ch.openolitor.stammdaten.models.{ AdministratorZugang, KundenZugang }
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.reporting.ReportSystem._
 import ch.openolitor.util.InputStreamUtil._
-import java.io.InputStream
 
 import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
 import ch.openolitor.kundenportal.KundenportalRoutes
@@ -441,7 +440,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     tryDownload(fileType, id, Fetch)(e => complete(StatusCodes.NotFound, s"File of file type ${fileType} with id ${id} was not found."))
   }
 
-  protected def download(fileType: FileType, id: String): Route = {
+  protected def download(fileType: FileType, id: String) = {
     tryDownload(fileType, id, Download)(e => complete(StatusCodes.NotFound, s"File of file type ${fileType} with id ${id} was not found."))
   }
 

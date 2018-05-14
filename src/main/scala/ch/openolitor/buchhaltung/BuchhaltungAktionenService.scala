@@ -33,6 +33,7 @@ import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.pattern.ask
 import akka.util.Timeout
+import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.core.Macros._
@@ -72,7 +73,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
   val False = false
   val Zero = 0
 
-  implicit val timeout = Timeout(15.seconds)
+  implicit val timeout = Timeout(config.getStringOption("openolitor.emailTimeOut").getOrElse("15").toInt.seconds)
 
   val handle: Handle = {
     case RechnungVerschicktEvent(meta, id: RechnungId) =>

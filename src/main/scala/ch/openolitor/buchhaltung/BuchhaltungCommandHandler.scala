@@ -224,10 +224,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
             buchhaltungReadRepository.getById(rechnungMapping, rechnungId) map { rechnung =>
               buchhaltungReadRepository.getPerson(rechnung.id) map { person =>
                 val mailContext = RechnungMailContext(person, rechnung)
-                rechnung.fileStoreId match {
-                  case Some(invoiceReference) => DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, person, Some(invoiceReference), mailContext))
-                  case None                   => DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, person, None, mailContext))
-                }
+                DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, person, rechnung.fileStoreId, mailContext))
               }
             }
           }
@@ -340,10 +337,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
       buchhaltungReadRepository.getPerson(rechnungId) flatMap { person =>
         buchhaltungReadRepository.getById(rechnungMapping, rechnungId) map { rechnung =>
           val mailContext = RechnungMailContext(person, rechnung)
-          generateMail(subject, body, mailContext) match {
-            case Success(mailPayload) => true
-            case Failure(e)           => false
-          }
+          generateMail(subject, body, mailContext).isSuccess
         }
       }
     }

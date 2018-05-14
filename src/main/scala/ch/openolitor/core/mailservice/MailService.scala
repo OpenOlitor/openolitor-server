@@ -42,6 +42,7 @@ import javax.mail.internet.InternetAddress
 
 import stamina.Persister
 import java.util.UUID
+import javax.mail.util.ByteArrayDataSource
 
 import scala.collection.immutable.TreeSet
 import ch.openolitor.core.JSONSerializable
@@ -49,6 +50,7 @@ import ch.openolitor.util.ConfigUtil._
 
 import scala.concurrent.Await
 import ch.openolitor.core.filestore._
+import spray.util._
 
 object MailService {
 
@@ -87,7 +89,7 @@ trait MailService extends AggregateRoot
   lazy val fromAddress = sysConfig.mandantConfiguration.config.getString("smtp.from")
   lazy val maxNumberOfRetries = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
   lazy val sendEmailOutbound = sysConfig.mandantConfiguration.config.getBooleanOption("smtp.send-email").getOrElse(true)
-
+  lazy val DefaultChunkSize = sysConfig.mandantConfiguration.config.getIntBytes("smtp.max-chunk-size")
   lazy val mailer = Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port"))
     .auth(true)
     .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password"))
@@ -130,22 +132,19 @@ trait MailService extends AggregateRoot
   }
 
   def sendMail(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef]): Either[String, MailSentEvent] = {
-
-    val inputStreamfile = mail.attachmentReference.map { attachment: String =>
+    val inputStreamfile = mail.attachmentReference map { attachment: String =>
       Await.result(fileStore.getFile(GeneriertBucket, attachment), 5 seconds)
-    }.getOrElse(Left(FileStoreError("Error")))
+    } getOrElse(Left(FileStoreError("Error")))
     if (sendEmailOutbound) {
-      var envelope = mail.attachmentReference match {
+      val envelope = mail.attachmentReference match {
         case Some(attachment) => {
           inputStreamfile match {
             case Right(f) => {
-              val file = new File("rechnung.pdf")
-              Files.copy(f.file, file.toPath, StandardCopyOption.REPLACE_EXISTING)
               Right(Envelope.from(new InternetAddress(fromAddress))
                 .to(InternetAddress.parse(mail.to): _*)
                 .subject(mail.subject)
                 .content(Multipart()
-                  .attach(file)
+                  .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
                   .html(s"${mail.content}")))
             }
             case Left(e) => Left(e)
@@ -179,8 +178,11 @@ trait MailService extends AggregateRoot
       // we have to await the result, maybe switch to standard javax.mail later
       try {
         val result = envelope match {
-          case Right(e) => Right(Await.ready(mailer(e), 5 seconds).value.get)
-          case Left(e)  => Left(e)
+          case Right(e) => Await.ready(mailer(e), 5 seconds).value match {
+            case Some(e) => Right(e)
+            case None    => Left("Error sending the email")
+          }
+          case Left(e) => Left(e)
         }
 
         result match {
