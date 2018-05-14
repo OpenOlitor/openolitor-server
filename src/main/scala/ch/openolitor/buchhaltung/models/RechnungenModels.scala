@@ -281,6 +281,18 @@ case class RechnungModify(
   ort: String
 ) extends JSONSerializable
 
+case class RechnungMailRequest(
+  ids: Seq[RechnungId],
+  attachInvoice: Boolean,
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class RechnungMailContext(
+  person: Person,
+  rechnung: Rechnung
+) extends JSONSerializable
+
 case class RechnungsPositionCreate(
   kundeId: KundeId,
   aboId: Option[AboId],

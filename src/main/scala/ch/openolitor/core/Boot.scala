@@ -182,6 +182,7 @@ object Boot extends App with LazyLogging {
       // initialise root actors
       val duration = Duration.create(1, SECONDS);
       val airbrakeNotifier = startAirbrakeService
+      val fileStoreComponent = new DefaultFileStoreComponent(cfg.name, sysCfg, app)
 
       val evolution = new Evolution(sysCfg, Scripts.current(app))
       val system = app.actorOf(SystemActor.props(airbrakeNotifier), "oo-system")
@@ -192,10 +193,9 @@ object Boot extends App with LazyLogging {
       logger.debug(s"oo-system:$system -> entityStore:$entityStore")
       val eventStore = Await.result(system ? SystemActor.Child(SystemEventStore.props(dbEvolutionActor), "event-store"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$eventStore")
-      val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor), "mail-service"), duration).asInstanceOf[ActorRef]
+      val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor, fileStoreComponent.fileStore), "mail-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
-      val fileStoreComponent = new DefaultFileStoreComponent(cfg.name, sysCfg, app)
       val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStoreComponent.fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
       val jobQueueService = Await.result(system ? SystemActor.Child(JobQueueService.props(cfg), "job-queue"), duration).asInstanceOf[ActorRef]
@@ -205,7 +205,7 @@ object Boot extends App with LazyLogging {
       val stammdatenMailSentListener = Await.result(system ? SystemActor.Child(StammdatenMailListener.props, "stammdaten-mail-listener"), duration).asInstanceOf[ActorRef]
       val stammdatenGeneratedEventsListener = Await.result(system ? SystemActor.Child(StammdatenGeneratedEventsListener.props, "stammdaten-generated-events-listener"), duration).asInstanceOf[ActorRef]
 
-      val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(dbEvolutionActor), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
+      val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(mailService, dbEvolutionActor), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 

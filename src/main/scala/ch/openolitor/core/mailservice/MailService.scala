@@ -22,6 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.mailservice
 
+import java.nio.file.{ Files, StandardCopyOption }
+import java.io.File
+
 import ch.openolitor.core.domain.AggregateRoot
 import akka.actor._
 import ch.openolitor.core.models.PersonId
@@ -30,18 +33,22 @@ import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import org.joda.time.DateTime
 import akka.persistence.SnapshotMetadata
-import scala.util.Try
+
 import scala.util.Failure
 import scala.util.Success
 import scala.concurrent.duration._
 import courier._
 import javax.mail.internet.InternetAddress
+
 import stamina.Persister
 import java.util.UUID
+
 import scala.collection.immutable.TreeSet
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.util.ConfigUtil._
+
 import scala.concurrent.Await
+import ch.openolitor.core.filestore._
 
 object MailService {
 
@@ -60,22 +67,23 @@ object MailService {
   case class MailSentEvent(meta: EventMetadata, uid: String, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
   case class SendMailFailedEvent(meta: EventMetadata, uid: String, numberOfRetries: Int, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
 
-  def props(dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig, dbEvolutionActor)
+  def props(dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig, dbEvolutionActor, fileStore)
 
   case object CheckMailQueue
 }
 
 trait MailService extends AggregateRoot
   with ConnectionPoolContextAware
-  with CommandHandlerComponent
+  with FileStoreComponent
+
   with MailRetryHandler {
 
   import MailService._
   import AggregateRoot._
 
+  override val fileStore: FileStore = null
   override def persistenceId: String = MailService.persistenceId
   type S = MailServiceState
-
   lazy val fromAddress = sysConfig.mandantConfiguration.config.getString("smtp.from")
   lazy val maxNumberOfRetries = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
   lazy val sendEmailOutbound = sysConfig.mandantConfiguration.config.getBooleanOption("smtp.send-email").getOrElse(true)
@@ -102,10 +110,10 @@ trait MailService extends AggregateRoot
       state.mailQueue map { enqueued =>
         // sending a mail has to be blocking, otherwise there will be concurrent mail queue access
         sendMail(enqueued.meta, enqueued.uid, enqueued.mail, enqueued.commandMeta) match {
-          case Success(event) =>
+          case Right(event) =>
             persist(event)(afterEventPersisted)
-          case Failure(e) =>
-            log.warning(s"Failed to send mail ${e} ${e.getMessage}. Trying again later.")
+          case Left(e) =>
+            log.warning(s"Failed to send mail ${e}. Trying again later.")
 
             calculateRetryEnqueued(enqueued).fold(
               _ => {
@@ -121,39 +129,77 @@ trait MailService extends AggregateRoot
     }
   }
 
-  def sendMail(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef]): Try[MailSentEvent] = {
+  def sendMail(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef]): Either[String, MailSentEvent] = {
+
+    val inputStreamfile = mail.attachmentReference.map { attachment: String =>
+      Await.result(fileStore.getFile(GeneriertBucket, attachment), 5 seconds)
+    }.getOrElse(Left(FileStoreError("Error")))
     if (sendEmailOutbound) {
-      var envelope = Envelope.from(new InternetAddress(fromAddress))
-        .to(InternetAddress.parse(mail.to): _*)
-        .subject(mail.subject)
-        .content(Text(mail.content))
+      var envelope = mail.attachmentReference match {
+        case Some(attachment) => {
+          inputStreamfile match {
+            case Right(f) => {
+              val file = new File("rechnung.pdf")
+              Files.copy(f.file, file.toPath, StandardCopyOption.REPLACE_EXISTING)
+              Right(Envelope.from(new InternetAddress(fromAddress))
+                .to(InternetAddress.parse(mail.to): _*)
+                .subject(mail.subject)
+                .content(Multipart()
+                  .attach(file)
+                  .html(s"${mail.content}")))
+            }
+            case Left(e) => Left(e)
+          }
+        }
+        case None =>
+          {
+            Right(
+              Envelope.from(new InternetAddress(fromAddress))
+                .to(InternetAddress.parse(mail.to): _*)
+                .subject(mail.subject)
+                .content(Text(mail.content))
+            )
+          }
+      }
 
       mail.cc map { cc =>
-        envelope = envelope.cc(InternetAddress.parse(cc): _*)
+        envelope match {
+          case Right(e) => e.cc(InternetAddress.parse(cc): _*)
+          case Left(e)  => Left(e)
+        }
       }
 
       mail.bcc map { bcc =>
-        envelope = envelope.bcc(InternetAddress.parse(bcc): _*)
+        envelope match {
+          case Right(e) => e.bcc(InternetAddress.parse(bcc): _*)
+          case Left(e)  => Left(e)
+        }
       }
 
       // we have to await the result, maybe switch to standard javax.mail later
       try {
-        val result = Await.ready(mailer(envelope), 5 seconds).value.get
+        val result = envelope match {
+          case Right(e) => Right(Await.ready(mailer(e), 5 seconds).value.get)
+          case Left(e)  => Left(e)
+        }
 
         result match {
-          case Success(_) => Success(MailSentEvent(metadata(meta.originator), uid, commandMeta))
-          case Failure(e) => Failure(e)
+          case Right(mailer) => mailer match {
+            case Success(_) => Right(MailSentEvent(metadata(meta.originator), uid, commandMeta))
+            case Failure(e) => Left(e.toString)
+          }
+          case Left(e) => Left(e.toString)
         }
       } catch {
         case e: Exception =>
-          Failure(e)
+          Left(e.toString)
       }
     } else {
       log.debug(s"=====================================================================")
       log.debug(s"| Sending Email: ${mail}")
       log.debug(s"=====================================================================")
 
-      Success(MailSentEvent(metadata(meta.originator), uid, commandMeta))
+      Right(MailSentEvent(metadata(meta.originator), uid, commandMeta))
     }
   }
 
@@ -259,7 +305,7 @@ trait MailService extends AggregateRoot
   override val receiveCommand = uninitialized
 }
 
-class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef) extends MailService
+class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val fileStore: FileStore) extends MailService
   with DefaultCommandHandlerComponent
   with DefaultMailRetryHandler {
   lazy val system = context.system

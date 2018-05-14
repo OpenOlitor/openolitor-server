@@ -74,7 +74,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute
+      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute
     }
 
   def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
@@ -208,6 +208,17 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / "aktionen" / "automatischerledigen") { id =>
         post(entity(as[Seq[ZahlungsEingangModifyErledigt]]) { entities => zahlungsEingaengeErledigen(entities) })
       }
+
+  private def mailingRoute(implicit subject: Subject): Route =
+    path("mailing" / "sendEmailToInvoicesSubscribers") {
+      post {
+        requestInstance { request =>
+          entity(as[RechnungMailRequest]) { rechnungMailRequest =>
+            sendEmailsToInvoicesSubscribers(rechnungMailRequest.subject, rechnungMailRequest.body, rechnungMailRequest.ids, rechnungMailRequest.attachInvoice)
+          }
+        }
+      }
+    }
 
   def verschicken(id: RechnungId)(implicit idPersister: Persister[RechnungId, _], subject: Subject) = {
     onSuccess(entityStore ? BuchhaltungCommandHandler.RechnungVerschickenCommand(subject.personId, id)) {
@@ -346,6 +357,14 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+  private def sendEmailsToInvoicesSubscribers(emailSubject: String, body: String, ids: Seq[RechnungId], attachInvoice: Boolean)(implicit subject: Subject) = {
+    onSuccess((entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, ids, attachInvoice))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
+      case _ =>
+        complete("")
+    }
+  }
 }
 
 class DefaultBuchhaltungRoutes(

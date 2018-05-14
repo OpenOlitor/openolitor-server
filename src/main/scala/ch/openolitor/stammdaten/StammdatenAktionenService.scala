@@ -198,7 +198,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
                 case Some(template: MailTemplate) => {
                   generateMail(template.subject, template.body, mailContext) match {
                     case Success(mailPayload) =>
-                      val mail = mailPayload.toMail(1, produzent.email, None, None)
+                      val mail = mailPayload.toMail(1, produzent.email, None, None, None)
                       mailService ? SendMailCommandWithCallback(personId, mail, Some(5 minutes), produzent.id) map
                         {
                           case _: SendMailEvent =>
@@ -259,7 +259,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
       generateMail(emailSubject, body, mailContext) match {
         case Success(mailPayload) =>
           person.email map { email =>
-            val mail = mailPayload.toMail(1, email, None, None)
+            val mail = mailPayload.toMail(1, email, None, None, None)
             mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
               case _: SendMailEvent =>
               //ok
@@ -297,7 +297,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
               val mailContext = EinladungMailContext(person, einladung, baseLink)
               generateMail(template.subject, template.body, mailContext) match {
                 case Success(mailPayload) =>
-                  val mail = mailPayload.toMail(1, person.email.get, None, None)
+                  val mail = mailPayload.toMail(1, person.email.get, None, None, None)
                   mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map
                     {
                       case _: SendMailEvent =>

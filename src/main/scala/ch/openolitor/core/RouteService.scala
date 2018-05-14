@@ -441,7 +441,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     tryDownload(fileType, id, Fetch)(e => complete(StatusCodes.NotFound, s"File of file type ${fileType} with id ${id} was not found."))
   }
 
-  protected def download(fileType: FileType, id: String) = {
+  protected def download(fileType: FileType, id: String): Route = {
     tryDownload(fileType, id, Download)(e => complete(StatusCodes.NotFound, s"File of file type ${fileType} with id ${id} was not found."))
   }
 
