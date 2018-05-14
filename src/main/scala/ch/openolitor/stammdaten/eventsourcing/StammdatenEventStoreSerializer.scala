@@ -36,8 +36,9 @@ import java.util.Locale
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import spray.json.JsValue
+import ch.openolitor.mailtemplates.eventsourcing._
 
-trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
+trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with MailTemplateEventStoreSerializer {
   //V1 persisters
   implicit val depotModifyPersister = persister[DepotModify]("depot-modify")
   implicit val depotIdPersister = persister[DepotId]("depot-id")
@@ -180,6 +181,14 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val passwortResetGesendetEventPersister = persister[PasswortResetGesendetEvent, V2]("passwort-reset-gesendet", V1toV2metaDataMigration)
   implicit val rolleGewechseltEventPersister = persister[RolleGewechseltEvent, V2]("rolle-gewechselt-gesendet", V1toV2metaDataMigration)
 
+  implicit val SendEmailToPersonEventPersister = persister[SendEmailToPersonEvent]("send-email-person")
+  implicit val SendEmailToKundeEventPersister = persister[SendEmailToKundeEvent]("send-email-kunde")
+  implicit val SendEmailToAboSubscriberEventPersister = persister[SendEmailToAboSubscriberEvent]("send-email-abo-subscriber")
+  implicit val SendEmailToAbotypSubscriberEventPersister = persister[SendEmailToAbotypSubscriberEvent]("send-email-abotyp-subscriber")
+  implicit val SendEmailToZusatzabotypSubscriberEventPersister = persister[SendEmailToZusatzabotypSubscriberEvent]("send-email-zusatzabotyp-subscriber")
+  implicit val SendEmailToTourSubscriberEventPersister = persister[SendEmailToTourSubscriberEvent]("send-email-tour-subscriber")
+  implicit val SendEmailToDepotSubscriberEventPersister = persister[SendEmailToDepotSubscriberEvent]("send-email-depot-subscriber")
+
   implicit val aboAktiviertEventPersister = persister[AboAktiviertEvent, V2]("abo-aktiviert-event", V1toV2metaDataMigration)
   implicit val aboDeaktiviertEventPersister = persister[AboDeaktiviertEvent, V2]("abo-deaktiviert-event", V1toV2metaDataMigration)
 
@@ -279,10 +288,17 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     einladungGesendetEventPersister,
     passwortResetGesendetEventPersister,
     rolleGewechseltEventPersister,
+    SendEmailToPersonEventPersister,
+    SendEmailToKundeEventPersister,
+    SendEmailToAboSubscriberEventPersister,
+    SendEmailToAbotypSubscriberEventPersister,
+    SendEmailToZusatzabotypSubscriberEventPersister,
+    SendEmailToTourSubscriberEventPersister,
+    SendEmailToDepotSubscriberEventPersister,
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
     korbIdPersister
-  )
+  ) ++ mailTemplatePersisters
 
   def fixToOptionLocalDate(in: JsValue, attribute: Symbol): JsValue = {
     // convert wrong date js values

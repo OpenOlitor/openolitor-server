@@ -27,6 +27,11 @@ import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 
+case class MailPayload(subject: String, content: String) {
+  def toMail(priority: Int, to: String, cc: Option[String], bcc: Option[String]): Mail =
+    Mail(priority, to, cc, bcc, subject, content)
+}
+
 case class Mail(priority: Int, to: String, cc: Option[String], bcc: Option[String], subject: String, content: String) extends JSONSerializable
 
 case class MailEnqueued(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef], nextTry: DateTime, expires: DateTime, retries: Int)

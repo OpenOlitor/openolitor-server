@@ -262,5 +262,5 @@ trait MailService extends AggregateRoot
 class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef) extends MailService
   with DefaultCommandHandlerComponent
   with DefaultMailRetryHandler {
-  val system = context.system
+  lazy val system = context.system
 }

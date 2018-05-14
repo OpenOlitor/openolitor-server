@@ -102,6 +102,17 @@ sealed trait AboModify extends JSONSerializable {
   val ende: Option[LocalDate]
 }
 
+case class AboMailRequest(
+  ids: Seq[AboId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class AboMailContext(
+  person: Person,
+  abo: Abo
+) extends JSONSerializable
+
 case class DepotlieferungAbo(
   id: AboId,
   kundeId: KundeId,

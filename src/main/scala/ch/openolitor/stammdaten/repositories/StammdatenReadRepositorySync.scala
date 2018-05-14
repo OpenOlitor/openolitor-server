@@ -48,6 +48,10 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getCustomKundentypen(implicit session: DBSession): List[CustomKundentyp]
   def getPersonen(implicit session: DBSession): List[Person]
   def getPersonen(kundeId: KundeId)(implicit session: DBSession): List[Person]
+  def getPersonenForAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person]
+  def getPersonenForZusatzabotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person]
+  def getPersonen(tourId: TourId)(implicit session: DBSession): List[Person]
+  def getPersonen(DepotId: DepotId)(implicit session: DBSession): List[Person]
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz]
 
   def getLatestLieferplanung(implicit session: DBSession): Option[Lieferplanung]
@@ -244,6 +248,22 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getPersonen(kundeId: KundeId)(implicit session: DBSession): List[Person] = {
     getPersonenQuery(kundeId).apply()
+  }
+
+  def getPersonenForAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person] = {
+    getPersonenForAbotypQuery(abotypId).apply()
+  }
+
+  def getPersonenForZusatzabotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person] = {
+    getPersonenForZusatzabotypQuery(abotypId).apply()
+  }
+
+  def getPersonen(tourId: TourId)(implicit session: DBSession): List[Person] = {
+    getPersonenQuery(tourId).apply()
+  }
+
+  def getPersonen(depotId: DepotId)(implicit session: DBSession): List[Person] = {
+    getPersonenQuery(depotId).apply()
   }
 
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz] = {
