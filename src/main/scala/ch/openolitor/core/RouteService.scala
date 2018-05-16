@@ -68,7 +68,6 @@ import ch.openolitor.stammdaten.models.{ AdministratorZugang, KundenZugang }
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.reporting.ReportSystem._
 import ch.openolitor.util.InputStreamUtil._
-import java.io.InputStream
 
 import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
 import ch.openolitor.kundenportal.KundenportalRoutes
