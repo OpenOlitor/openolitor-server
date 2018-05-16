@@ -42,7 +42,7 @@ object OO762_Mail_Templates {
         `template_name` varchar(200) NOT NULL COLLATE utf8_unicode_ci,
         `description` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
         `subject` varchar(500) NOT NULL COLLATE utf8_unicode_ci,
-        `body` varchar(50000) NOT NULL COLLATE utf8_unicode_ci,
+        `body` text(50000) NOT NULL COLLATE utf8_unicode_ci,
         `erstelldat` datetime NOT NULL,
         `ersteller` bigint(20) NOT NULL,
         `modifidat` datetime NOT NULL,
