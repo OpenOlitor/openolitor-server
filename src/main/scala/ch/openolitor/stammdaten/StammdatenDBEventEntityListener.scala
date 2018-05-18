@@ -629,6 +629,20 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         // TODO who is changing KorbStatus?
         // kann the handle KorbStatusChanged be removed and the recaculate be done?
       }
+
+      // Update all later Körbe (status = WirdGeliefert) and subtract or add 1 from guthabenVorLieferung
+      stammdatenUpdateRepository.getKorbeLaterWirdGeliefert(korb.id) map { laterKorb =>
+        val adaptedGuthabenVorLieferung = (korb.status, statusAlt) match {
+          case (FaelltAusAbwesend, WirdGeliefert) => {
+            laterKorb.guthabenVorLieferung + 1
+          }
+          case (WirdGeliefert, FaelltAusAbwesend) => {
+            laterKorb.guthabenVorLieferung - 1
+          }
+          case (_, _) => laterKorb.guthabenVorLieferung
+        }
+        stammdatenUpdateRepository.updateEntity[Korb, KorbId](laterKorb.id)(korbMapping.column.guthabenVorLieferung -> adaptedGuthabenVorLieferung)
+      }
     }
   }
 
