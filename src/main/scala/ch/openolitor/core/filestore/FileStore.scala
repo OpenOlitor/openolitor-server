@@ -331,7 +331,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
       try {
         val result = FileStoreBucket.AllFileStoreBuckets map { bucket =>
           client.createBucket(new CreateBucketRequest(bucketName(bucket)))
-          
+
           configureLifeCycle(bucket)
         }
         Right(FileStoreSuccess())
