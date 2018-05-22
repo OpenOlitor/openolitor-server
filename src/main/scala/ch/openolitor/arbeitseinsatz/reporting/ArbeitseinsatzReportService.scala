@@ -20,31 +20,39 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.models
+package ch.openolitor.arbeitseinsatz.reporting
 
+import scala.concurrent.Future
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
-import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.reporting._
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
+import ch.openolitor.arbeitseinsatz.repositories.ArbeitseinsatzReadRepositoryAsyncComponent
+import ch.openolitor.core.jobs.JobQueueService.JobId
 
-trait VorlageTyp extends FileType
+trait ArbeitseinsatzReportService extends AsyncConnectionPoolContextAware with ReportService with ArbeitseinsatzJsonProtocol with ArbeitsangebotReportData {
+  self: ArbeitseinsatzReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
-object VorlageTyp extends LazyLogging {
-  val AlleVorlageTypen = List(
-    VorlageRechnung,
-    VorlageDepotLieferschein,
-    VorlageTourLieferschein,
-    VorlagePostLieferschein,
-    VorlageDepotLieferetiketten,
-    VorlageTourLieferetiketten,
-    VorlagePostLieferetiketten,
-    VorlageKundenbrief,
-    VorlageDepotbrief,
-    VorlageProduzentenbrief,
-    VorlageProduzentenabrechnung,
-    VorlageLieferplanung,
-    VorlageArbeitseinsatz
-  )
+  def generateArbeitseinsatzReports(config: ReportConfig[ArbeitseinsatzId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ArbeitseinsatzId]]] = {
+    generateReports[ArbeitseinsatzId, ArbeitseinsatzDetailReport](
+      config,
+      arbeitsangebotByIds,
+      VorlageArbeitseinsatz,
+      None,
+      _.id,
+      TemporaryData,
+      x => Some(x.id.id.toString),
+      name,
+      _.projekt.sprache,
+      JobId("Arbeitseinsätze")
+    )
+  }
 
-  def apply(value: String): VorlageTyp = {
-    AlleVorlageTypen.find(_.toString.toLowerCase == value.toLowerCase).getOrElse(UnknownFileType)
+  private def name(arbeitseinsatz: ArbeitseinsatzDetailReport) = {
+    s"arbeitseinsatz_nr_${arbeitseinsatz.id}";
   }
 }

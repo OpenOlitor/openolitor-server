@@ -23,9 +23,11 @@
 package ch.openolitor.arbeitseinsatz
 
 import akka.actor._
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
+import ch.openolitor.arbeitseinsatz.reporting._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.filestore._
@@ -41,8 +43,10 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
   with ArbeitseinsatzJsonProtocol
   with ArbeitseinsatzEventStoreSerializer
+  with ArbeitsangebotReportService
+  with ArbeitseinsatzReportService
   with Defaults {
-  self: ArbeitseinsatzReadRepositoryAsyncComponent =>
+  self: ArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
   implicit val kundeIdPath = long2BaseIdPathMatcher(KundeId.apply)
 
@@ -71,6 +75,12 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
           delete(remove(id))
       } ~
+      path("arbeitsangebote" / arbeitsangebotIdPath / "berichte/arbeitseinsatzbrief") { id =>
+        (post) {
+          implicit val personId = subject.personId
+          generateReport[ArbeitsangebotId](Some(id), generateArbeitsangebotReports _)(ArbeitsangebotId.apply)
+        }
+      } ~
       path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze") { id =>
         get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(id))) ~
           post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
@@ -95,6 +105,12 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](id)) ~
           delete(remove(id))
       } ~
+      path("arbeitseinsaetze" / arbeitseinsatzIdPath / "berichte/arbeitseinsatzbrief") { id =>
+        (post) {
+          implicit val personId = subject.personId
+          generateReport[ArbeitseinsatzId](Some(id), generateArbeitseinsatzReports _)(ArbeitseinsatzId.apply)
+        }
+      } ~
       path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId)))
       } ~
@@ -117,4 +133,4 @@ class DefaultArbeitseinsatzRoutes(
   override val jobQueueService: ActorRef
 )
   extends ArbeitseinsatzRoutes
-  with DefaultArbeitseinsatzReadRepositoryAsyncComponent
+  with DefaultArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent
