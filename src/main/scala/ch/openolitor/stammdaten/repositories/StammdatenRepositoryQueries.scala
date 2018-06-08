@@ -64,6 +64,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val produktekategorie = produktekategorieMapping.syntax("produktekategorie")
   lazy val produzent = produzentMapping.syntax("produzent")
   lazy val projekt = projektMapping.syntax("projekt")
+  lazy val projektV1 = projektV1Mapping.syntax("projektV1")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
   lazy val produktProduzent = produktProduzentMapping.syntax("produktProduzent")
   lazy val produktProduktekategorie = produktProduktekategorieMapping.syntax("produktProduktekategorie")
@@ -1016,6 +1017,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(projektMapping as projekt)
     }.map(projektMapping(projekt)).single
+  }
+
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  protected def getProjektV1Query = {
+    withSQL {
+      select
+        .from(projektV1Mapping as projektV1)
+    }.map(projektV1Mapping(projektV1)).single
   }
 
   protected def getKontoDatenQuery = {

@@ -145,12 +145,10 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     from[V1]
       .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
       .to[V3](_.update('maintenanceMode ! set[Boolean](false)))
-      .to[V4](proj => {
-        proj.update('generierteMailsSenden ! set[Boolean](false))
-        proj.update('einsatzEinheit ! set[EinsatzEinheit](Halbtage))
-        proj.update('einsatzAbsageVorlaufTage ! set[Int](3))
-        proj.update('einsatzShowListeKunde ! set[Boolean](true))
-      })
+      .to[V4](_.update('generierteMailsSenden ! set[Boolean](false))
+          .update('einsatzEinheit ! set[EinsatzEinheit](Halbtage))
+          .update('einsatzAbsageVorlaufTage ! set[Int](3))
+          .update('einsatzShowListeKunde ! set[Boolean](true)))
   )
 
   implicit val projektIdPersister = persister[ProjektId]("projekt-id")

@@ -818,6 +818,40 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  implicit val projektV1Mapping = new BaseEntitySQLSyntaxSupport[ProjektV1] {
+    override val tableName = "Projekt"
+
+    override lazy val columns = autoColumns[ProjektV1]()
+
+    def apply(rn: ResultName[ProjektV1])(rs: WrappedResultSet): ProjektV1 =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: ProjektV1): Seq[ParameterBinder] = parameters(ProjektV1.unapply(entity).get)
+
+    override def updateParameters(projekt: ProjektV1) = {
+      super.updateParameters(projekt) ++ Seq(
+        column.bezeichnung -> projekt.bezeichnung,
+        column.strasse -> projekt.strasse,
+        column.hausNummer -> projekt.hausNummer,
+        column.adressZusatz -> projekt.adressZusatz,
+        column.plz -> projekt.plz,
+        column.ort -> projekt.ort,
+        column.preiseSichtbar -> projekt.preiseSichtbar,
+        column.preiseEditierbar -> projekt.preiseEditierbar,
+        column.emailErforderlich -> projekt.emailErforderlich,
+        column.waehrung -> projekt.waehrung,
+        column.geschaeftsjahrMonat -> projekt.geschaeftsjahrMonat,
+        column.geschaeftsjahrTag -> projekt.geschaeftsjahrTag,
+        column.twoFactorAuthentication -> projekt.twoFactorAuthentication,
+        column.sprache -> projekt.sprache,
+        column.welcomeMessage1 -> projekt.welcomeMessage1,
+        column.welcomeMessage2 -> projekt.welcomeMessage2,
+        column.maintenanceMode -> projekt.maintenanceMode
+      )
+    }
+  }
+
   implicit val produktProduzentMapping = new BaseEntitySQLSyntaxSupport[ProduktProduzent] {
     override val tableName = "ProduktProduzent"
 

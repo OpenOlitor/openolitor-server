@@ -178,7 +178,7 @@ object V2Scripts {
         anzahl_eingeschriebene DECIMAL(3,0) not null,
         anzahl_personen DECIMAL(3,0),
         mehr_personen_ok varchar(1) not null,
-        einsatz_zeit DECIMAL(3,0),
+        einsatz_zeit DECIMAL(5,2),
         status varchar(20) not null,
         erstelldat datetime not null,
         ersteller BIGINT not null,

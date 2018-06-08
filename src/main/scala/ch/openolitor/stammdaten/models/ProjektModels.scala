@@ -229,6 +229,35 @@ case class ProjektModify(
   einsatzShowListeKunde: Boolean
 ) extends JSONSerializable
 
+@deprecated("This class exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+case class ProjektV1(
+  id: ProjektId,
+  bezeichnung: String,
+  strasse: Option[String],
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: Option[String],
+  ort: Option[String],
+  preiseSichtbar: Boolean,
+  preiseEditierbar: Boolean,
+  emailErforderlich: Boolean,
+  waehrung: Waehrung,
+  geschaeftsjahrMonat: Int,
+  geschaeftsjahrTag: Int,
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  sprache: Locale,
+  welcomeMessage1: Option[String],
+  welcomeMessage2: Option[String],
+  maintenanceMode: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[ProjektId] {
+  lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
+}
+
 case class KundentypId(id: String) extends BaseStringId
 
 case class CustomKundentypId(id: Long) extends BaseId
