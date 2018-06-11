@@ -317,8 +317,16 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
     withSQL {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
         .where.eq(arbeitseinsatz.kundeId, owner.kundeId)
         .orderBy(arbeitseinsatz.zeitVon)
-    }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
+    }.one(arbeitseinsatzMapping(arbeitseinsatz))
+      .toOne(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
+      )
+      .map { (arbeitseinsatz, arbeitsangebote) =>
+        val arbeitsangebot = arbeitsangebote.filter(_.id == arbeitseinsatz.arbeitsangebotId)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+      }.list
   }
 }
