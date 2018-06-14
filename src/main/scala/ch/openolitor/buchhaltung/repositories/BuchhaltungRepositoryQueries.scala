@@ -138,7 +138,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     withSQL {
       select
         .from(zahlungsImportMapping as zahlungsImport)
-        .leftJoin(rechnungMapping as rechnung).on(rechnung.id, zahlungsEingang.zahlungsImportId)
+        .leftJoin(zahlungsEingangMapping as zahlungsEingang).on(zahlungsImport.id, zahlungsEingang.zahlungsImportId)
         .where.eq(zahlungsImport.id, id)
     }.one(zahlungsImportMapping(zahlungsImport))
       .toMany(
