@@ -29,7 +29,7 @@ import scala.collection.immutable.TreeMap
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.kundenportal.models.BelongsToKunde
-import ch.openolitor.core.scalax.Tuple23
+import ch.openolitor.core.scalax.Tuple24
 import ch.openolitor.core.scalax.Tuple26
 
 case class AboId(id: Long) extends BaseId
@@ -383,7 +383,7 @@ case class PostlieferungAbo(
 
 object PostlieferungAbo {
   def unapply(o: PostlieferungAbo) = {
-    Some(Tuple23(
+    Some(Tuple24(
       o.id,
       o.kundeId,
       o.kunde,
@@ -400,6 +400,7 @@ object PostlieferungAbo {
       o.letzteLieferung,
       o.anzahlAbwesenheiten,
       o.anzahlLieferungen,
+      o.anzahlEinsaetze,
       o.aktiv,
       o.zusatzAboIds,
       o.zusatzAbotypNames,
