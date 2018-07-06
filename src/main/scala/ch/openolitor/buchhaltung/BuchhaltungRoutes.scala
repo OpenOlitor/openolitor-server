@@ -412,6 +412,12 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       }
     }
 
+    val projektWithFuture = stammdatenReadRepository.getProjekt map { maybeProjekt =>
+      maybeProjekt match {
+        case Some(p) => p
+      }
+    }
+
     val rechnungenWithFutures = ids.map {
       rechnung =>
         stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { maybeKontoDatenKunde =>
@@ -425,6 +431,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     //sequence will transform from list[Future] to future[list]
     val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
     val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
+    val projekt = Await.result(projektWithFuture, d)
 
     (kontoDatenProjekt.iban, kontoDatenProjekt.creditorIdentifier) match {
       case (Some(""), Some(_)) => { (false, s"The iban is not defined for the project") }
@@ -432,7 +439,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       case (Some(iban), Some(creditorIdentifier)) => {
         val emptyIbanList = checkEmptyIban(rechnungen)
         if (emptyIbanList.isEmpty) {
-          val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs)
+          val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
           (true, xmlText)
         } else {
           val decoratedEmptyList = emptyIbanList.mkString(" ")
