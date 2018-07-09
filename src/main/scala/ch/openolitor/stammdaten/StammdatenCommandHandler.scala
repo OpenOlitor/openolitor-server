@@ -891,27 +891,15 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   private def getPostAndDepotAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, date: DateTime, listVertriebsartDetail: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     val koerbe = getAllKoerbeForDepotOrPost(date, listVertriebsartDetail)
-    val newAuslieferung = createAuslieferungDepotPost(idFactory, meta, date, listVertriebsartDetail.head, countHauptAbos(koerbe)).get
-    (for { vertriebsartDetail <- listVertriebsartDetail } yield {
-      val koerbe = stammdatenReadRepository.getKoerbe(date, vertriebsartDetail.id, WirdGeliefert)
-      if (vertriebsartDetail == listVertriebsartDetail.head) {
-        if (!koerbe.isEmpty) {
-          val updates = koerbe map {
-            logger.debug(s"update Auslieferung for : ${date}:${vertriebsartDetail.id}.")
-            korb => EntityUpdateEvent(korb.id, KorbAuslieferungModify(newAuslieferung.id, None))
-          }
-          logger.debug(s"createNewAuslieferung for: ${date}:${vertriebsartDetail.id}.")
-          EntityInsertEvent(newAuslieferung.id, newAuslieferung) :: updates
-        } else {
-          Nil
-        }
-      } else {
-        koerbe map {
-          logger.debug(s"Auslieferugn already created; update Auslieferung for : ${date}:${vertriebsartDetail.id}.")
-          korb => EntityUpdateEvent(korb.id, KorbAuslieferungModify(newAuslieferung.id, None))
-        }
+    if (!koerbe.isEmpty) {
+      val newAuslieferung = createAuslieferungDepotPost(idFactory, meta, date, listVertriebsartDetail.head, countHauptAbos(koerbe)).get
+      val updates = koerbe map {
+        korb => EntityUpdateEvent(korb.id, KorbAuslieferungModify(newAuslieferung.id, None))
       }
-    }).flatten
+      EntityInsertEvent(newAuslieferung.id, newAuslieferung) :: updates
+    } else {
+      Nil
+    }
   }
 
   private def getAllKoerbeForDepotOrPost(date: DateTime, vertriebsartDetailList: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession): List[Korb] = {
