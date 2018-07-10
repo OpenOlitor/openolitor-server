@@ -44,13 +44,12 @@ import com.typesafe.scalalogging.LazyLogging
 class Pain008_001_07_Export extends LazyLogging {
 
   private def exportPain008_001_07(rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String, projekt: Projekt): String = {
-    getPaymentInstructionInformationSDD(projekt, rechnungen, kontoDatenProjekt, NbOfTxs)
 
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
       scalaxb.toXML[ch.openolitor.generated.xsd.pain008_001_07.Document](ch.openolitor.generated.xsd.pain008_001_07.Document(
         CustomerDirectDebitInitiationV07(
           getGroupHeaderSDD(rechnungen.map(_._1), kontoDatenProjekt, NbOfTxs, projekt),
-          Seq(getPaymentInstructionInformationSDD(projekt, rechnungen, kontoDatenProjekt, NbOfTxs))
+          Seq(getPaymentInstructionInformationSDD(projekt, kontoDatenProjekt, rechnungen, NbOfTxs))
         )
       ), "Document", defineNamespaceBinding()).toString()
   }
@@ -85,11 +84,7 @@ class Pain008_001_07_Export extends LazyLogging {
     GroupHeader55(MsgId, CreDtTm, Seq(), NbOfTxs, Some(CtrlSum), partyIdentification43)
   }
 
-  private def getPaymentInstructionInformationSDD(projekt: Projekt, rechnungen: List[(Rechnung, KontoDaten)], kontoDatenProjekt: KontoDaten, NbOfTxs: String): PaymentInstruction21 = {
-    getPaymentInstruction(projekt, kontoDatenProjekt, rechnungen, NbOfTxs)
-  }
-
-  private def getPaymentInstruction(projekt: Projekt, kontoDatenProjekt: KontoDaten, rechnungen: List[(Rechnung, KontoDaten)], transactionNumber: String): PaymentInstruction21 = {
+  private def getPaymentInstructionInformationSDD(projekt: Projekt, kontoDatenProjekt: KontoDaten, rechnungen: List[(Rechnung, KontoDaten)], transactionNumber: String): PaymentInstruction21 = {
     val PmtInfId = kontoDatenProjekt.iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
     val PmtMtd = DD
     val BtchBookg = None

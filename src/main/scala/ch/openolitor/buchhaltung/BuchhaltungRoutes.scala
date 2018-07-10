@@ -56,10 +56,9 @@ import java.io.ByteArrayInputStream
 
 import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
-
 import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -123,13 +122,13 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
             entity(as[RechnungenContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 generatePain008(rechnungen) match {
-                  case (true, xmlData) => {
+                  case Right(xmlData) => {
                     val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
                     storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_07") { (fileId, meta) =>
                       createZahlungExport(fileId, rechnungen, xmlData)
                     }
                   }
-                  case (false, errorMessage) => {
+                  case Left(errorMessage) => {
                     logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
                     complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
                   }
@@ -424,57 +423,39 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         complete("")
     }
 
-  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): (Boolean, String) = {
+  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): Either[String, String] = {
     val NbOfTxs = ids.size.toString
 
-    val kontoDatenProjektWithFuture = stammdatenReadRepository.getKontoDatenProjekt map { maybeKontoDatenProjekt =>
-      maybeKontoDatenProjekt match {
-        case Some(kdp) => kdp
-      }
-    }
-
-    val projektWithFuture = stammdatenReadRepository.getProjekt map { maybeProjekt =>
-      maybeProjekt match {
-        case Some(p) => p
-      }
-    }
-
-    val rechnungenWithFutures = ids.map {
-      rechnung =>
-        stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { maybeKontoDatenKunde =>
-          maybeKontoDatenKunde match {
-            case Some(kontoDatenKunde) => (rechnung, kontoDatenKunde)
-          }
-        }
-    }
+    val rechnungenWithFutures: Future[List[(Rechnung, KontoDaten)]] = Future.sequence(ids.map { rechnung =>
+      stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { k => (rechnung, k.get) }
+    })
     val d = Duration(1, SECONDS)
 
-    //sequence will transform from list[Future] to future[list]
-    val rechnungen = Await.result(scala.concurrent.Future.sequence(rechnungenWithFutures), d)
-    val kontoDatenProjekt = Await.result(kontoDatenProjektWithFuture, d)
-    val projekt = Await.result(projektWithFuture, d)
+    val rechnungen: List[(Rechnung, KontoDaten)] = Await.result(rechnungenWithFutures, d)
+    val kontoDatenProjekt: KontoDaten = Await.result(stammdatenReadRepository.getKontoDatenProjekt, d).get
+    val projekt: Projekt = Await.result(stammdatenReadRepository.getProjekt, d).get
 
     (kontoDatenProjekt.iban, kontoDatenProjekt.creditorIdentifier) match {
-      case (Some(""), Some(_)) => { (false, s"The iban is not defined for the project") }
-      case (Some(_), Some("")) => { (false, "The creditorIdentifier is not defined for the project ") }
+      case (Some(""), Some(_)) => { Left(s"The iban is not defined for the project") }
+      case (Some(_), Some("")) => { Left("The creditorIdentifier is not defined for the project ") }
       case (Some(iban), Some(creditorIdentifier)) => {
         val emptyIbanList = checkEmptyIban(rechnungen)
         if (emptyIbanList.isEmpty) {
           val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
-          (true, xmlText)
+          Right(xmlText)
         } else {
           val decoratedEmptyList = emptyIbanList.mkString(" ")
-          (false, s"The iban or name account holder is not defined for the user: $decoratedEmptyList")
+          Left(s"The iban or name account holder is not defined for the user: $decoratedEmptyList")
         }
       }
       case (None, Some(creditorIdentifier)) => {
-        (false, s"The iban is not defined for the project")
+        Left(s"The iban is not defined for the project")
       }
       case (Some(iban), None) => {
-        (false, "The creditorIdentifier is not defined for the project ")
+        Left("The creditorIdentifier is not defined for the project ")
       }
       case (None, None) => {
-        (false, "Neither the creditorIdentifier nor the iban is defined for the project")
+        Left("Neither the creditorIdentifier nor the iban is defined for the project")
       }
     }
   }
