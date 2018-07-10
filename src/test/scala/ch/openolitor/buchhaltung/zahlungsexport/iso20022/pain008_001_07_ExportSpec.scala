@@ -28,6 +28,7 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models._
 import org.joda.time.DateTime
 import org.specs2.mutable._
+import java.util.Locale
 
 import scala.io.Source.fromInputStream
 
@@ -97,8 +98,18 @@ class pain008_001_07_ExportSpec extends Specification {
         PersonId(1)
       )
 
+      val projekt = Projekt(
+        ProjektId(1),
+        "Project name", None, None, None, None, None, false, false, false, Waehrung("CHF"),
+        1, 1, Map(), Locale.ENGLISH, None, None, false,
+        DateTime.parse("2017-08-07T14:48:06"),
+        PersonId(1),
+        DateTime.parse("2017-08-07T14:48:06"),
+        PersonId(1)
+      )
+
       val exampleFileStringNoSpaces = exampleFileString.split('\n').map(_.trim.filter(_ >= ' ')).mkString
-      val result = Pain008_001_07_Export.exportPain008_001_07(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1")
+      val result = Pain008_001_07_Export.exportPain008_001_07(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1", projekt)
       //delete the dates and id from the result and the expected xml
       val exampleFileNoDates = exampleFileStringNoSpaces.replaceAll("<CreDtTm>.*</CreDtTm>", "<CreDtTm></CreDtTm>")
         .replaceAll("<ReqdColltnDt>.*</ReqdColltnDt>", "<ReqdColltnDt></ReqdColltnDt>")

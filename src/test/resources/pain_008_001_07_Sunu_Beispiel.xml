@@ -7,7 +7,7 @@
            <NbOfTxs>1</NbOfTxs>
            <CtrlSum>99.99</CtrlSum>
            <InitgPty>
-               <Nm>Musterfirma</Nm>
+               <Nm>Project name</Nm>
            </InitgPty>
        </GrpHdr>
        <PmtInf>
@@ -26,7 +26,7 @@
            </PmtTpInf>
            <ReqdColltnDt>2017-08-07</ReqdColltnDt>
            <Cdtr>
-               <Nm>Musterfrau, Birgit</Nm>
+               <Nm>Project name</Nm>
            </Cdtr>
            <CdtrAcct>
                <Id>
@@ -41,7 +41,7 @@
                <Id>
                    <PrvtId>
                        <Othr>
-                           <Id>AD12000120302003591001000000000001</Id>
+                           <Id>Musterfirma</Id>
                            <SchmeNm>
                                <Prtry>SEPA</Prtry>
                            </SchmeNm>
@@ -74,7 +74,7 @@
                    </Id>
                </DbtrAcct>
                <RmtInf>
-                   <Ustrd>Text auf Kontoauszug Musterfrau</Ustrd>
+                   <Ustrd>referenzNummer</Ustrd>
                </RmtInf>
            </DrctDbtTxInf>
         </PmtInf>
