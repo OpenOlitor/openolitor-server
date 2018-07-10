@@ -142,7 +142,7 @@ class Pain008_001_07_Export extends LazyLogging {
     val RgltryRptg = Nil
     val Tax = None
     val RltdRmtInf = Nil
-    val RmtInf = Some(pain008_001_07.RemittanceInformation11(Seq(s"${rechnung.referenzNummer} ${rechnung.titel}"), Nil))
+    val RmtInf = Some(pain008_001_07.RemittanceInformation11(Seq(s"${rechnung.referenzNummer}${rechnung.titel}"), Nil))
     val SplmtryData = Nil
     DirectDebitTransactionInformation22(PmtId, PmtTpInf, InstdAmt, ChrgBr, DrctDbtTx, UltmtCdtr, DbtrAgt, DbtrAgtAcct, Dbtr, DbtrAcct, UltmtDbtr, InstrForCdtrAgt, Purp, RgltryRptg, Tax, RltdRmtInf, RmtInf, SplmtryData)
   }
