@@ -488,8 +488,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[HeimlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
     case e @ InsertEntityCommand(personId, entity: PostlieferungAbotypModify) => idFactory => meta =>
       handleEntityInsert[PostlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: DepotlieferungAboModify) => idFactory => meta =>
-      handleEntityInsert[DepotlieferungAboModify, AboId](idFactory, meta, entity, AboId.apply)
+    case e @ InsertEntityCommand(personId, entity: DepotlieferungAboCreate) => idFactory => meta =>
+      handleEntityInsert[DepotlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
     case e @ InsertEntityCommand(personId, entity: HeimlieferungAboModify) => idFactory => meta =>
       handleEntityInsert[HeimlieferungAboModify, AboId](idFactory, meta, entity, AboId.apply)
     case e @ InsertEntityCommand(personId, entity: PostlieferungAboModify) => idFactory => meta =>
