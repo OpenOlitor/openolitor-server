@@ -94,10 +94,16 @@ sealed trait AboDetail extends JSONSerializable {
   val aktiv: Boolean
 }
 
-sealed trait AboModify extends JSONSerializable {
+sealed trait AboCreate extends JSONSerializable {
   val kundeId: KundeId
   val kunde: String
   val vertriebsartId: VertriebsartId
+  val start: LocalDate
+  val ende: Option[LocalDate]
+}
+
+sealed trait AboModify extends JSONSerializable {
+  val kundeId: KundeId
   val start: LocalDate
   val ende: Option[LocalDate]
 }
@@ -227,11 +233,17 @@ case class DepotlieferungAboDetail(
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
 
-case class DepotlieferungAboModify(
+case class DepotlieferungAboCreate(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
   depotId: DepotId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends AboCreate
+
+case class DepotlieferungAboModify(
+  kundeId: KundeId,
   start: LocalDate,
   ende: Option[LocalDate]
 ) extends AboModify
@@ -332,11 +344,17 @@ case class HeimlieferungAboDetail(
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
 
-case class HeimlieferungAboModify(
+case class HeimlieferungAboCreate(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
   tourId: TourId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends AboCreate
+
+case class HeimlieferungAboModify(
+  kundeId: KundeId,
   start: LocalDate,
   ende: Option[LocalDate]
 ) extends AboModify
@@ -431,10 +449,16 @@ case class PostlieferungAboDetail(
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
 
-case class PostlieferungAboModify(
+case class PostlieferungAboCreate(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends AboCreate
+
+case class PostlieferungAboModify(
+  kundeId: KundeId,
   start: LocalDate,
   ende: Option[LocalDate]
 ) extends AboModify

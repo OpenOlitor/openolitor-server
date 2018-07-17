@@ -112,12 +112,12 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       path("kunden" / kundeIdPath / "abos") { kundeId =>
         post {
           requestInstance { request =>
-            entity(as[AboModify]) {
-              case dl: DepotlieferungAboModify =>
+            entity(as[AboCreate]) {
+              case dl: DepotlieferungAboCreate =>
                 created(request)(dl)
-              case hl: HeimlieferungAboModify =>
+              case hl: HeimlieferungAboCreate =>
                 created(request)(hl)
-              case pl: PostlieferungAboModify =>
+              case pl: PostlieferungAboCreate =>
                 created(request)(pl)
             }
           }
