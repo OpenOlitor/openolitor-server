@@ -82,7 +82,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       handleDepotlieferungAboDeleted(entity)(personId)
       handleAboDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: DepotlieferungAbo, orig: DepotlieferungAbo) if entity.depotId != orig.depotId =>
-      handleDepotlieferungAboDepotChanged(entity, orig.depotId, entity.depotId)(personId)
+      handleDepotlieferungAboDepotChanged(entity, orig, entity)(personId)
       handleAboModified(orig, entity)(personId)
     case e @ EntityCreated(personId, entity: HeimlieferungAbo) =>
       handleHeimlieferungAboCreated(entity)(personId)
@@ -91,7 +91,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       handleHeimlieferungAboDeleted(entity)(personId)
       handleAboDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) if entity.tourId != orig.tourId =>
-      handleHeimlieferungAboTourChanged(entity, orig.tourId, entity.tourId)(personId)
+      handleHeimlieferungAboTourChanged(entity, orig, entity)(personId)
       handleAboModified(orig, entity)(personId)
     case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) =>
       handleAboModified(orig, entity)(personId)
@@ -199,9 +199,9 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     }
   }
 
-  def handleDepotlieferungAboDepotChanged(abo: DepotlieferungAbo, from: DepotId, to: DepotId)(implicit personId: PersonId) = {
+  def handleDepotlieferungAboDepotChanged(abo: DepotlieferungAbo, from: DepotlieferungAbo, to: DepotlieferungAbo)(implicit personId: PersonId) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      stammdatenUpdateRepository.modifyEntity[Depot, DepotId](from) { depot =>
+      stammdatenUpdateRepository.modifyEntity[Depot, DepotId](from.depotId) { depot =>
         log.debug(s"Remove abonnent from depot:${depot.id}")
         Map(
           depotMapping.column.anzahlAbonnenten -> (depot.anzahlAbonnenten - 1),
@@ -209,12 +209,32 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         )
       }
 
-      stammdatenUpdateRepository.modifyEntity[Depot, DepotId](to) { depot =>
+      stammdatenUpdateRepository.modifyEntity[Depot, DepotId](to.depotId) { depot =>
         log.debug(s"Add abonnent to depot:${depot.id}")
         Map(
           depotMapping.column.anzahlAbonnenten -> (depot.anzahlAbonnenten + 1),
           depotMapping.column.anzahlAbonnentenAktiv -> (depot.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo))
         )
+      }
+
+      stammdatenUpdateRepository.getById(depotlieferungMapping, from.vertriebsartId) map { f =>
+        stammdatenUpdateRepository.modifyEntity[Depotlieferung, VertriebsartId](f.id) { depotlieferung =>
+          log.debug(s"Remove 1 abo from depotLieferung:${depotlieferung.id}")
+          Map(
+            depotlieferungMapping.column.anzahlAbos -> (depotlieferung.anzahlAbos - 1),
+            depotlieferungMapping.column.anzahlAbosAktiv -> (depotlieferung.anzahlAbosAktiv - calculateAboAktivCreate(abo))
+          )
+        }
+      }
+
+      stammdatenUpdateRepository.getById(depotlieferungMapping, to.vertriebsartId) map { t =>
+        stammdatenUpdateRepository.modifyEntity[Depotlieferung, VertriebsartId](t.id) { depotlieferung =>
+          log.debug(s"Remove 1 abo to depotLieferung:${depotlieferung.id}")
+          Map(
+            depotlieferungMapping.column.anzahlAbos -> (depotlieferung.anzahlAbos + 1),
+            depotlieferungMapping.column.anzahlAbosAktiv -> (depotlieferung.anzahlAbosAktiv + calculateAboAktivCreate(abo))
+          )
+        }
       }
     }
   }
@@ -243,9 +263,9 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     }
   }
 
-  def handleHeimlieferungAboTourChanged(abo: HeimlieferungAbo, from: TourId, to: TourId)(implicit personId: PersonId) = {
+  def handleHeimlieferungAboTourChanged(abo: HeimlieferungAbo, from: HeimlieferungAbo, to: HeimlieferungAbo)(implicit personId: PersonId) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      stammdatenUpdateRepository.modifyEntity[Tour, TourId](from) { tour =>
+      stammdatenUpdateRepository.modifyEntity[Tour, TourId](from.tourId) { tour =>
         log.debug(s"Remove abonnent from tour:${tour.id}")
         Map(
           tourMapping.column.anzahlAbonnenten -> (tour.anzahlAbonnenten - 1),
@@ -253,12 +273,32 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
         )
       }
 
-      stammdatenUpdateRepository.modifyEntity[Tour, TourId](to) { tour =>
+      stammdatenUpdateRepository.modifyEntity[Tour, TourId](to.tourId) { tour =>
         log.debug(s"Add abonnent to tour:${tour.id}")
         Map(
           tourMapping.column.anzahlAbonnenten -> (tour.anzahlAbonnenten + 1),
           tourMapping.column.anzahlAbonnentenAktiv -> (tour.anzahlAbonnentenAktiv + calculateAboAktivCreate(abo))
         )
+      }
+
+      stammdatenUpdateRepository.getById(heimlieferungMapping, from.vertriebsartId) map { f =>
+        stammdatenUpdateRepository.modifyEntity[Heimlieferung, VertriebsartId](f.id) { heimlieferung =>
+          log.debug(s"Remove 1 abo from heimLieferung:${heimlieferung.id}")
+          Map(
+            heimlieferungMapping.column.anzahlAbos -> (heimlieferung.anzahlAbos - 1),
+            heimlieferungMapping.column.anzahlAbosAktiv -> (heimlieferung.anzahlAbosAktiv - calculateAboAktivCreate(abo))
+          )
+        }
+      }
+
+      stammdatenUpdateRepository.getById(heimlieferungMapping, to.vertriebsartId) map { t =>
+        stammdatenUpdateRepository.modifyEntity[Heimlieferung, VertriebsartId](t.id) { heimlieferung =>
+          log.debug(s"Add 1 abo to heimlieferung:${heimlieferung.id}")
+          Map(
+            heimlieferungMapping.column.anzahlAbos -> (heimlieferung.anzahlAbos + 1),
+            heimlieferungMapping.column.anzahlAbosAktiv -> (heimlieferung.anzahlAbosAktiv + calculateAboAktivCreate(abo))
+          )
+        }
       }
     }
   }
