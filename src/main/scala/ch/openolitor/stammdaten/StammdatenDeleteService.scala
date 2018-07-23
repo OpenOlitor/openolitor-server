@@ -220,11 +220,19 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
+  private def deleteKoerbeForDeletedLieferung(lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
+    logger.debug(s"deleteKoerbeForDeletedLieferung => lieferung: $lieferung")
+    stammdatenWriteRepository.getKoerbe(lieferung.id) map {
+      korb => stammdatenWriteRepository.deleteEntity[Korb, KorbId](korb.id)
+    }
+  }
+
   def removeLieferungPlanung(meta: EventMetadata, id: LieferungOnLieferplanungId)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.deleteLieferpositionen(id.getLieferungId())
 
       stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, id.getLieferungId) map { lieferung =>
+        deleteKoerbeForDeletedLieferung(lieferung)
         stammdatenWriteRepository.getAbotypById(lieferung.abotypId) collect {
           case abotyp: ZusatzAbotyp =>
             stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](id.getLieferungId)
