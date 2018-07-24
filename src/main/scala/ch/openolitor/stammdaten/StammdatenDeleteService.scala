@@ -225,6 +225,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
       stammdatenWriteRepository.deleteLieferpositionen(id.getLieferungId())
 
       stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, id.getLieferungId) map { lieferung =>
+        stammdatenWriteRepository.deleteKoerbe(lieferung.id)
         stammdatenWriteRepository.getAbotypById(lieferung.abotypId) collect {
           case abotyp: ZusatzAbotyp =>
             stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](id.getLieferungId)
