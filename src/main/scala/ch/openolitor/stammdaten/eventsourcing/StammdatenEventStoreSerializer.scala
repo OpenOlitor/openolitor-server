@@ -92,6 +92,10 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val aboHLV2Persister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
 
+  implicit val aboDLCreatePersister = persister[DepotlieferungAboCreate]("depotlieferungabo-create")
+  implicit val aboPLCreatePersister = persister[PostlieferungAboCreate]("postlieferungabo-create")
+  implicit val aboHLCreatePersister = persister[HeimlieferungAboCreate]("heimlieferungabo-create")
+
   implicit val customKundetypCreatePersister = persister[CustomKundentypCreate]("custom-kundetyp-create")
   implicit val customKundetypModifyV1Persister = persister[CustomKundentypModifyV1]("custom-kundetyp-modify")
   implicit val customKundetypModifyPersister = persister[CustomKundentypModify]("custom-kundetyp-modify-v2")
@@ -219,6 +223,9 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     aboDLV2Persister,
     aboPLV2Persister,
     aboHLV2Persister,
+    aboDLCreatePersister,
+    aboPLCreatePersister,
+    aboHLCreatePersister,
     aboGuthabenModifyV2Persister,
     aboVertriebsartModifyPersister,
     customKundetypCreatePersister,

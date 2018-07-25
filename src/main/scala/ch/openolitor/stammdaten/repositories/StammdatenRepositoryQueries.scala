@@ -81,6 +81,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val korbShort = korbMapping.syntax
   lazy val zusatzAboShort = zusatzAboMapping.syntax
 
+  lazy val korbSecond = korbMapping.syntax("korbSecond")
+  lazy val lieferungSecond = lieferungMapping.syntax("lieferungSecond")
+
   protected def getAbotypenQuery(filter: Option[FilterExpr]) = {
     withSQL {
       select
@@ -979,10 +982,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(tourMapping as tour)
         .leftJoin(tourlieferungMapping as tourlieferung).on(tour.id, tourlieferung.tourId)
-        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(tourlieferung.id, heimlieferungAbo.id)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(sqls"${tourlieferung.id} = ${heimlieferungAbo.id} and ${heimlieferungAbo.aktiv} IN (${aktiveOnly}, true)")
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${tourlieferung.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} IN (${aktiveOnly}, true)")
         .where.eq(tour.id, id)
-        .and.in(heimlieferungAbo.aktiv, List[Boolean](aktiveOnly, true))
         .orderBy(tourlieferung.sort)
     }.one(tourMapping(tour))
       .toManies(
@@ -1678,6 +1680,31 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferungMapping as lieferung).on(lieferung.id, korb.lieferungId)
         .where.eq(korb.aboId, aboId).and.eq(lieferung.status, Offen)
         .orderBy(lieferung.datum)
+    }.map(korbMapping(korb))
+      .list
+  }
+
+  protected def getKorbLatestWirdGeliefertQuery(aboId: AboId, beforeDate: DateTime) = {
+    withSQL {
+      select
+        .from(korbMapping as korb)
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.id, korb.lieferungId)
+        .where.eq(korb.aboId, aboId).and.eq(korb.status, WirdGeliefert)
+        .and.lt(lieferung.datum, beforeDate)
+        .orderBy(lieferung.datum).desc.limit(1)
+    }.map(korbMapping(korb))
+      .single
+  }
+
+  protected def getKorbeLaterWirdGeliefertQuery(korbId: KorbId) = {
+    withSQL {
+      select
+        .from(korbMapping as korb)
+        .leftJoin(korbMapping as korbSecond).on(korb.aboId, korbSecond.aboId)
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.id, korb.lieferungId)
+        .leftJoin(lieferungMapping as lieferungSecond).on(lieferungSecond.id, korbSecond.lieferungId)
+        .where.eq(korbSecond.id, korbId).and.eq(korb.status, WirdGeliefert)
+        .and.gt(lieferung.datum, lieferungSecond.datum)
     }.map(korbMapping(korb))
       .list
   }
