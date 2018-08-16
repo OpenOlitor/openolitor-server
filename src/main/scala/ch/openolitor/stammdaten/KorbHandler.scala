@@ -316,8 +316,8 @@ trait KorbHandler extends KorbStatusHandler
       abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
     } yield {
       /* create or delete basket for the main abo*/
-      val offenLieferungen = stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId)
-      stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
+      val offenLieferungenForMainAbo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId)
+      offenLieferungenForMainAbo map { lieferung =>
         if (lieferung.vertriebId == originalAbo.vertriebId) {
           deleteKorb(lieferung, originalAbo)
         }
@@ -328,7 +328,6 @@ trait KorbHandler extends KorbStatusHandler
 
       /* create or delete basket for the zusatzabo*/
       stammdatenWriteRepository.getZusatzAbos(abo.id).filter(z => z.aktiv) map { zusatzabo =>
-        val offenLieferungenForMainAbo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId)
         stammdatenWriteRepository.getZusatzAbotypDetail(zusatzabo.abotypId) map {
           zusatzabotyp =>
             val offenLieferungenForZusatzabo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(zusatzabo.abotypId)
@@ -353,7 +352,7 @@ trait KorbHandler extends KorbStatusHandler
             }
         }
       }
-      offenLieferungen.map(recalculateNumbersLieferung(_))
+      offenLieferungenForMainAbo.map(recalculateNumbersLieferung(_))
     }
   }
 
