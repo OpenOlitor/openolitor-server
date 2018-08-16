@@ -23,7 +23,6 @@
 package ch.openolitor.util
 
 import java.util.zip._
-import java.io.ByteArrayOutputStream
 import scala.util.Try
 import java.io.InputStream
 import java.io.File
@@ -35,11 +34,7 @@ class ZipBuilder(outputStream: OutputStream) {
 
   def addZipEntry(fileName: String, document: File): Try[Boolean] = {
     val is = new FileInputStream(document)
-    try {
-      addZipEntry(fileName, is)
-    } finally {
-      is.close()
-    }
+    addZipEntry(fileName, is)
   }
 
   def addZipEntry(fileName: String, document: Array[Byte]): Try[Boolean] = {
@@ -53,10 +48,9 @@ class ZipBuilder(outputStream: OutputStream) {
   }
 
   def addZipEntry(fileName: String, is: InputStream): Try[Boolean] = {
-    Try {
+    try {
       val zipEntry = new ZipEntry(fileName)
       zipOutputStream.putNextEntry(zipEntry)
-      val baos = new ByteArrayOutputStream()
       val bytes = new Array[Byte](1024);
       var length = is.read(bytes)
       while (length >= 0) {
@@ -65,12 +59,16 @@ class ZipBuilder(outputStream: OutputStream) {
       }
 
       zipOutputStream.closeEntry()
-      true
+
+      Try(true)
+    } finally {
+      is.close()
     }
+
   }
 
   def close(): Option[File] = {
-    Try(zipOutputStream.close)
+    Try(zipOutputStream.close())
     None
   }
 }
