@@ -308,22 +308,51 @@ trait KorbHandler extends KorbStatusHandler
     }
   }
 
-  def modifyKoerbeForAboVertriebChange(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+  def modifyKoerbeForAboVertriebChange(abo: HauptAbo, orig: Option[HauptAbo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     logger.debug(s"modifyKoerbeForAboVertriebChange abo: $abo orig: $orig")
     for {
       originalAbo <- orig
       if (abo.vertriebId != originalAbo.vertriebId)
       abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
     } yield {
-      stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
+      /* create or delete basket for the main abo*/
+      val offenLieferungenForMainAbo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId)
+      offenLieferungenForMainAbo map { lieferung =>
         if (lieferung.vertriebId == originalAbo.vertriebId) {
           deleteKorb(lieferung, originalAbo)
         }
         if (lieferung.vertriebId == abo.vertriebId) {
           upsertKorb(lieferung, abo, abotyp)
         }
-        recalculateNumbersLieferung(lieferung)
       }
+
+      /* create or delete basket for the zusatzabo*/
+      stammdatenWriteRepository.getZusatzAbos(abo.id).filter(z => z.aktiv) map { zusatzabo =>
+        stammdatenWriteRepository.getZusatzAbotypDetail(zusatzabo.abotypId) map {
+          zusatzabotyp =>
+            val offenLieferungenForZusatzabo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(zusatzabo.abotypId)
+            offenLieferungenForZusatzabo map { lieferung =>
+              if (lieferung.vertriebId == originalAbo.vertriebId) {
+                deleteKorb(lieferung, zusatzabo)
+              }
+              //check if the zusatzlieferung is programmed for the main lieferung. In other cases we don't even try to create a basket for the zusatzabo
+              offenLieferungenForMainAbo.filter(l => l.lieferplanungId == lieferung.lieferplanungId) map {
+                mainAboLieferung =>
+                  stammdatenWriteRepository.getKorb(mainAboLieferung.id, abo.id) match {
+                    case Some(_) =>
+                      if (lieferung.abotypId == zusatzabo.abotypId) {
+                        upsertKorb(lieferung, zusatzabo, zusatzabotyp)
+                      } else if (offenLieferungenForZusatzabo.filter(l => l.abotypId == zusatzabo.abotypId).isEmpty) {
+                        adjustOpenLieferplanung(zusatzabo.id)
+                      }
+                      recalculateNumbersLieferung(lieferung)
+                    case None =>
+                  }
+              }
+            }
+        }
+      }
+      offenLieferungenForMainAbo.map(recalculateNumbersLieferung(_))
     }
   }
 
