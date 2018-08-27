@@ -23,14 +23,14 @@
 package ch.openolitor.buchhaltung
 
 import spray.routing._
-
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
+
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
@@ -51,7 +51,7 @@ import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
-import java.io.ByteArrayInputStream
+import java.io._
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -124,7 +124,9 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         (post)(mahnungBerichte())
       } ~
       path("rechnungen" / rechnungIdPath) { id =>
-        get(detail(buchhaltungReadRepository.getRechnungDetail(id))) ~
+        get({
+          detail(buchhaltungReadRepository.getRechnungDetail(id))
+        }) ~
           delete(deleteRechnung(id)) ~
           (put | post)(entity(as[RechnungModify]) { entity => safeRechnung(id, entity) })
       } ~

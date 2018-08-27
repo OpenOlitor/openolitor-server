@@ -134,7 +134,7 @@ trait MailService extends AggregateRoot
   def sendMail(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef]): Either[String, MailSentEvent] = {
     val inputStreamfile = mail.attachmentReference map { attachment: String =>
       Await.result(fileStore.getFile(GeneriertBucket, attachment), 5 seconds)
-    } getOrElse(Left(FileStoreError("Error")))
+    } getOrElse (Left(FileStoreError("Error")))
     if (sendEmailOutbound) {
       val envelope = mail.attachmentReference match {
         case Some(attachment) => {
