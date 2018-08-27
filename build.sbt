@@ -94,7 +94,8 @@ val buildSettings = Seq(
     "me.lessis"                    %%  "courier"                              % "0.1.3",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
-    "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic")
+    "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic"),
+    "net.codecrete.qrbill"         % "qrbill-generator"                      % "1.0.0"
   )
 }
 )
