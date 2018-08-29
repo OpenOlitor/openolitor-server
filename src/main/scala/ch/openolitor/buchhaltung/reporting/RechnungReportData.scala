@@ -127,7 +127,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
       }
       debtor.setName(p.mkString(","));
       debtor.setStreet(rechnung.kunde.strasse);
-      debtor.setHouseNo(rechnung.kunde.hausNummer.toString);
+      debtor.setHouseNo(rechnung.kunde.hausNummer.getOrElse(""));
       debtor.setPostalCode(rechnung.kunde.plz);
       debtor.setTown(rechnung.kunde.ort);
       debtor.setCountryCode("CH");
