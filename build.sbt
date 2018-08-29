@@ -95,7 +95,10 @@ val buildSettings = Seq(
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
     "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic"),
-    "net.codecrete.qrbill"         % "qrbill-generator"                      % "1.0.0"
+    "net.codecrete.qrbill"         % "qrbill-generator"                       % "1.0.0",
+    "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
+    "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9"
+
   )
 }
 )
