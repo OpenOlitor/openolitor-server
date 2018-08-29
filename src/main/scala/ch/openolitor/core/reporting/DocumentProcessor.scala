@@ -336,12 +336,10 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def processFrame(p: Paragraph, frame: Frame, props: Map[String, Value], locale: Locale) = {
-    val todos = props.get(frame.getName)
-    val filtered = props.get(frame.getName) collect {
-      case (Value(JsArray(values), _)) => processFrameWithValues(p, frame, props, values, locale)
-      //    case (Value(value, _))           => processFrameWithValues(p, frame, props, Vector(value), locale)
-    }
-    filtered.getOrElse(logger.debug(s"Frame not mapped to property, will be processed statically:${frame.getName}"))
+    props.get(frame.getName) collect {
+      case (Value(JsArray(values), _)) =>
+        processFrameWithValues(p, frame, props, values, locale)
+    } getOrElse (logger.debug(s"Frame not mapped to property, will be processed statically:${frame.getName}"))
   }
 
   private def processFrameWithValues(p: Paragraph, frame: Frame, props: Map[String, Value], values: Vector[JsValue], locale: Locale) = {
@@ -352,7 +350,6 @@ trait DocumentProcessor extends LazyLogging {
       val firstTextBox = OdfElement.findFirstChildNode(classOf[DrawTextBoxElement], frame.getOdfElement())
       val container = new GenericParagraphContainerImpl(firstTextBox)
       processTextboxes(container, props, locale, Seq(key))
-      //  processImages(container, props, locale, Seq(key))
       //append section
       p.appendFrame(frame)
     }
