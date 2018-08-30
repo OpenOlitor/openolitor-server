@@ -35,7 +35,7 @@ case class AboId(id: Long) extends BaseId
 object IAbo {
   def calculateAktiv(start: LocalDate, ende: Option[LocalDate]): Boolean = {
     val yesterday = LocalDate.now.minusDays(1)
-    (start.isBefore(LocalDate.now) || start.isEqual(LocalDate.now)) && (ende map (_.isAfter(yesterday)) getOrElse true)
+    !start.isAfter(LocalDate.now) && (ende map (_.isAfter(yesterday)) getOrElse true)
   }
 }
 
