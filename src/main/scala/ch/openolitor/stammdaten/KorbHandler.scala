@@ -92,12 +92,22 @@ trait KorbHandler extends KorbStatusHandler
         val mainAbo = stammdatenWriteRepository.getHauptAbo(zusatzAbo.id)
         val hauptabotyp = stammdatenWriteRepository.getAbotypDetail(zusatzAbo.hauptAbotypId)
         val abwCount = stammdatenWriteRepository.countAbwesend(mainAbo.get.id, lieferung.datum.toLocalDate)
-        (calculateKorbStatus(abwCount, mainAbo.get.guthaben, hauptabotyp.get.guthabenMindestbestand), mainAbo.get.guthaben)
+        val guthabenVorLieferung = stammdatenWriteRepository.getKorbLatestWirdGeliefert(zusatzAbo.id, lieferung.datum) match {
+          case Some(korb) =>
+            (korb.guthabenVorLieferung - 1)
+          case None => mainAbo.get.guthaben
+        }
+        (calculateKorbStatus(abwCount, mainAbo.get.guthaben, hauptabotyp.get.guthabenMindestbestand), guthabenVorLieferung)
       case abo: HauptAbo =>
         val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
         abotyp match {
           case hauptabotyp: Abotyp =>
-            (calculateKorbStatus(abwCount, abo.guthaben, hauptabotyp.guthabenMindestbestand), abo.guthaben)
+            val guthabenVorLieferung = stammdatenWriteRepository.getKorbLatestWirdGeliefert(abo.id, lieferung.datum) match {
+              case Some(korb) =>
+                (korb.guthabenVorLieferung - 1)
+              case None => abo.guthaben
+            }
+            (calculateKorbStatus(abwCount, abo.guthaben, hauptabotyp.guthabenMindestbestand), guthabenVorLieferung)
           case _ =>
             logger.error(s"calculateStatusGuthaben: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
             throw new InvalidStateException(s"calculateStatusGuthaben: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
