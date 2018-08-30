@@ -40,7 +40,8 @@ object VorlageTyp extends LazyLogging {
     VorlageDepotbrief,
     VorlageProduzentenbrief,
     VorlageProduzentenabrechnung,
-    VorlageLieferplanung
+    VorlageLieferplanung,
+    VorlageMahnung
   )
 
   def apply(value: String): VorlageTyp = {
