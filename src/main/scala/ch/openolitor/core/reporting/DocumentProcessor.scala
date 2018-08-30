@@ -30,17 +30,28 @@ import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text._
 import org.odftoolkit.simple.text.list._
 import org.odftoolkit.simple.draw._
+
 import scala.util.Try
 import spray.json._
+
 import scala.collection.JavaConversions._
 import org.joda.time.format.ISODateTimeFormat
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.format.DateTimeFormat
 import java.util.Locale
 import java.text.DecimalFormat
+
 import scala.annotation.tailrec
-import ch.openolitor.core.reporting.odf.NestedTextboxIterator
+import ch.openolitor.core.reporting.odf.{ NestedImageIterator, NestedTextboxIterator }
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement
+import java.io._
+import java.net._
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import java.nio.file.Paths;
+
+import org.odftoolkit.odfdom.pkg.manifest.OdfFileEntry
 
 case class Value(jsValue: JsValue, value: String)
 
@@ -48,6 +59,9 @@ class ReportException(msg: String) extends Exception(msg)
 
 trait DocumentProcessor extends LazyLogging {
   import OdfToolkitUtils._
+
+  val qrCodeSVGFilename = "./qrCode.svg"
+  val qrCodePNGFilename = "./qrCode.png"
 
   val dateFormatPattern = """date:\s*"(.*)"""".r
   val numberFormatPattern = """number:\s*"(\[([#@]?[\w\.]+)\])?([#,.0]+)(;((\[([#@]?[\w\.]+)\])?-([#,.0]+)))?"""".r
@@ -128,6 +142,7 @@ trait DocumentProcessor extends LazyLogging {
       _ <- Try(processFrames(doc, props, locale))
       _ <- Try(processSections(doc, props, locale))
       _ <- Try(processTextboxes(doc, props, locale, Nil))
+      _ <- Try(processImages(doc, props, locale, Nil))
       //TODO Reactivate a smarter way (i.e. only boolean and number fields?)
       //_ <- Try(registerVariables(doc, props))
     } yield true
@@ -322,9 +337,9 @@ trait DocumentProcessor extends LazyLogging {
 
   private def processFrame(p: Paragraph, frame: Frame, props: Map[String, Value], locale: Locale) = {
     props.get(frame.getName) collect {
-      case Value(JsArray(values), _) =>
+      case (Value(JsArray(values), _)) =>
         processFrameWithValues(p, frame, props, values, locale)
-    } getOrElse logger.debug(s"Frame not mapped to property, will be processed statically:${frame.getName}")
+    } getOrElse (logger.debug(s"Frame not mapped to property, will be processed statically:${frame.getName}"))
   }
 
   private def processFrameWithValues(p: Paragraph, frame: Frame, props: Map[String, Value], values: Vector[JsValue], locale: Locale) = {
@@ -340,6 +355,61 @@ trait DocumentProcessor extends LazyLogging {
     }
     //remove template
     frame.remove()
+  }
+
+  /**
+   * Process images and fill in content based on
+   *
+   */
+
+  private def processImages(cont: TextDocument, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
+    for {
+      p <- cont.getParagraphIterator
+      t <- new NestedImageIterator(p.getFrameContainerElement)
+    } {
+      val (name, formats) = parseFormats(t.getName)
+      val propertyKey = parsePropertyKey(name, pathPrefixes)
+      logger.debug(s"processImage: ${propertyKey} | formats:$formats")
+
+      // resolve textbox content from properties, otherwise only apply formats to current content
+      props.get(propertyKey) map {
+        case Value(_, value) =>
+          val filenameSVG = qrCodeSVGFilename
+          val filenamePNG = qrCodePNGFilename
+          // create a new svg file with the svg qrcode content in the value
+          val fileSVG = new File(filenameSVG)
+          val pw = new PrintWriter(fileSVG)
+          pw.write(value)
+          pw.close
+
+          //transform the svg in a png and getting the reference of the file
+          svg2png(filenameSVG)
+          val uri = new URI(filenamePNG)
+          val filePNG = new File(filenamePNG)
+
+          val templateFilename = t.getInternalPath
+          //remove the template image
+          cont.getPackage().remove(templateFilename)
+          cont.newImage(uri)
+          //insert the new image
+          val mediaType = OdfFileEntry.getMediaTypeString(uri.toString)
+          cont.getPackage.insert(uri, templateFilename, mediaType)
+          //delete both svg and png files
+          fileSVG.delete
+          filePNG.delete
+      }
+    }
+  }
+
+  def svg2png(svgFile: String) {
+    val svg_URI_input = Paths.get(svgFile).toUri().toURL().toString()
+    val input_svg_image = new TranscoderInput(svg_URI_input)
+    val png_ostream = new FileOutputStream(qrCodePNGFilename)
+    val output_png_image = new TranscoderOutput(png_ostream)
+    val my_converter = new PNGTranscoder()
+    my_converter.transcode(input_svg_image, output_png_image)
+    png_ostream.flush()
+    png_ostream.close()
   }
 
   /**

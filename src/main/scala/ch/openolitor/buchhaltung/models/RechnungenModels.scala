@@ -240,6 +240,7 @@ case class RechnungDetailReport(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  qrCode: Option[String],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
