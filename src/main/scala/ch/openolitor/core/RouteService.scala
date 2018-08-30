@@ -88,6 +88,7 @@ import scala.None
 import scala.collection.Iterable
 import collection.JavaConverters._
 import java.io.File
+import java.io.FileInputStream
 
 import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
 import ch.openolitor.mailtemplates.{ DefaultMailTemplateRoutes, MailTemplateRoutes }
