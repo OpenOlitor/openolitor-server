@@ -982,10 +982,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(tourMapping as tour)
         .leftJoin(tourlieferungMapping as tourlieferung).on(tour.id, tourlieferung.tourId)
-        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(tourlieferung.id, heimlieferungAbo.id)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(sqls"${tourlieferung.id} = ${heimlieferungAbo.id} and ${heimlieferungAbo.aktiv} IN (${aktiveOnly}, true)")
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${tourlieferung.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} IN (${aktiveOnly}, true)")
         .where.eq(tour.id, id)
-        .and.in(heimlieferungAbo.aktiv, List[Boolean](aktiveOnly, true))
         .orderBy(tourlieferung.sort)
     }.one(tourMapping(tour))
       .toManies(
