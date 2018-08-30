@@ -53,13 +53,13 @@ class calculateAktivTest extends Specification with LazyLogging {
       IAbo.calculateAktiv(startsBeforeMidday.toLocalDate, None) === true
     }
   }
-  "An abo starting today before midday and with no end date" should {
+  "An abo starting today after midday and with no end date" should {
     "be active" in {
       val startsAfterMidday = LocalDateTime.now.withTime(12, 0, 0, 1)
       IAbo.calculateAktiv(startsAfterMidday.toLocalDate, None) === true
     }
   }
-  "An abo starting today before midday and with no end date" should {
+  "An abo starting today at midday and with no end date" should {
     "be active" in {
       var startsAtMidday = LocalDateTime.now.withTime(12, 0, 0, 0)
       IAbo.calculateAktiv(startsAtMidday.toLocalDate, None) === true
