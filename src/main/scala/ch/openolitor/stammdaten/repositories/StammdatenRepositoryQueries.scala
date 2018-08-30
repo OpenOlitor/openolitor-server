@@ -1739,7 +1739,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(depotlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(depotlieferungAbo.id, zusatzAbo.hauptAboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.start} <= ${depotAuslieferung.datum} and (${zusatzAbo.ende} > ${depotAuslieferung.datum} or ${zusatzAbo.ende} is null)")
         .where.eq(depotAuslieferung.id, auslieferungId)
     }.one(depotAuslieferungMapping(depotAuslieferung))
       .toManies(
@@ -1784,7 +1784,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(heimlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(heimlieferungAbo.id, zusatzAbo.hauptAboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${heimlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.start} <= ${tourAuslieferung.datum} and (${zusatzAbo.ende} > ${tourAuslieferung.datum} or ${zusatzAbo.ende} is null)")
         .where.eq(tourAuslieferung.id, auslieferungId)
         .orderBy(korb.sort)
     }.one(tourAuslieferungMapping(tourAuslieferung))
@@ -1829,7 +1829,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(postlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(postlieferungAbo.id, zusatzAbo.hauptAboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${postlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.start} <= ${postAuslieferung.datum} and (${zusatzAbo.ende} > ${postAuslieferung.datum} or ${zusatzAbo.ende} is null)")
         .where.eq(postAuslieferung.id, auslieferungId)
     }.one(postAuslieferungMapping(postAuslieferung))
       .toManies(
