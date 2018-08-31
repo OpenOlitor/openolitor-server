@@ -79,64 +79,70 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
   }
 
   def createQrCode(rechnung: RechnungDetail, kontoDaten: KontoDaten, projekt: Projekt): String = {
-    val result = stammdatenReadRepository.getPersonen(rechnung.kunde.id) map { personen =>
-      var bill = new Bill();
-      val language = projekt.sprache match {
-        case Locale.FRENCH  => Bill.Language.FR;
-        case Locale.GERMAN  => Bill.Language.DE;
-        case Locale.ITALIAN => Bill.Language.IT;
-        case Locale.ENGLISH => Bill.Language.EN;
-        case _              => Bill.Language.DE;
-      }
-      bill.setLanguage(language)
-      kontoDaten.iban map { iban =>
-        bill.setAccount(iban);
-      }
-      bill.setAmount(rechnung.betrag.toDouble);
-      bill.setCurrency(projekt.waehrung.toString);
+    /* the iban is mandatory in order to get a valid qrCode. In case the system does not have one iban setup
+    * the qrcode will be empty*/
+    kontoDaten.iban match {
+      case Some("") => ""
+      case Some(iban) =>
+        val result = stammdatenReadRepository.getPersonen(rechnung.kunde.id) map { personen =>
+          var bill = new Bill();
+          val language = projekt.sprache match {
+            case Locale.FRENCH  => Bill.Language.FR;
+            case Locale.GERMAN  => Bill.Language.DE;
+            case Locale.ITALIAN => Bill.Language.IT;
+            case Locale.ENGLISH => Bill.Language.EN;
+            case _              => Bill.Language.DE;
+          }
+          bill.setLanguage(language)
+          //this value is mandatory for the qrCode. In case of generating qrCode
+          bill.setAccount(iban)
+          bill.setAmount(rechnung.betrag.toDouble);
+          bill.setCurrency(projekt.waehrung.toString);
 
-      // Set creditor
-      val creditor = new Address();
-      creditor.setName(projekt.bezeichnung)
-      creditor.setStreet(projekt.strasse.getOrElse(""));
-      creditor.setHouseNo(projekt.hausNummer.getOrElse(""));
-      creditor.setPostalCode(projekt.plz.getOrElse(""));
-      creditor.setTown(projekt.ort.getOrElse(""));
-      creditor.setCountryCode("CH");
-      bill.setCreditor(creditor);
+          // Set creditor
+          val creditor = new Address();
+          creditor.setName(projekt.bezeichnung)
+          creditor.setStreet(projekt.strasse.getOrElse(""));
+          creditor.setHouseNo(projekt.hausNummer.getOrElse(""));
+          creditor.setPostalCode(projekt.plz.getOrElse(""));
+          creditor.setTown(projekt.ort.getOrElse(""));
+          creditor.setCountryCode("CH");
+          bill.setCreditor(creditor);
 
-      // Set final creditor
-      val finalCreditor = new Address();
-      finalCreditor.setName(projekt.bezeichnung);
-      finalCreditor.setStreet(projekt.strasse.getOrElse(""));
-      finalCreditor.setHouseNo(projekt.hausNummer.getOrElse(""));
-      finalCreditor.setPostalCode(projekt.plz.getOrElse(""));
-      finalCreditor.setTown(projekt.ort.getOrElse(""));
-      finalCreditor.setCountryCode("CH");
-      bill.setFinalCreditor(finalCreditor);
+          // Set final creditor
+          val finalCreditor = new Address();
+          finalCreditor.setName(projekt.bezeichnung);
+          finalCreditor.setStreet(projekt.strasse.getOrElse(""));
+          finalCreditor.setHouseNo(projekt.hausNummer.getOrElse(""));
+          finalCreditor.setPostalCode(projekt.plz.getOrElse(""));
+          finalCreditor.setTown(projekt.ort.getOrElse(""));
+          finalCreditor.setCountryCode("CH");
+          bill.setFinalCreditor(finalCreditor);
 
-      // more bill data
-      bill.setDueDate(toLocalDate(rechnung.faelligkeitsDatum));
-      bill.setReferenceNo(rechnung.referenzNummer);
-      bill.setAdditionalInfo(null);
+          // more bill data
+          bill.setDueDate(toLocalDate(rechnung.faelligkeitsDatum));
+          bill.setReferenceNo(rechnung.referenzNummer);
+          bill.setAdditionalInfo(null);
 
-      // Set debtor
-      val debtor = new Address();
-      val p = personen map { person =>
-        person.fullName
-      }
-      debtor.setName(p.mkString(","));
-      debtor.setStreet(rechnung.kunde.strasse);
-      debtor.setHouseNo(rechnung.kunde.hausNummer.getOrElse(""));
-      debtor.setPostalCode(rechnung.kunde.plz);
-      debtor.setTown(rechnung.kunde.ort);
-      debtor.setCountryCode("CH");
-      bill.setDebtor(debtor);
+          // Set debtor
+          val debtor = new Address();
+          val p = personen map { person =>
+            person.fullName
+          }
+          debtor.setName(p.mkString(","));
+          debtor.setStreet(rechnung.kunde.strasse);
+          debtor.setHouseNo(rechnung.kunde.hausNummer.getOrElse(""));
+          debtor.setPostalCode(rechnung.kunde.plz);
+          debtor.setTown(rechnung.kunde.ort);
+          debtor.setCountryCode("CH");
+          bill.setDebtor(debtor);
 
-      val svg = QRBill.generate(bill, QRBill.BillFormat.A6_LANDSCAPE_SHEET, QRBill.GraphicsFormat.SVG)
-      new String(svg)
+          val svg = QRBill.generate(bill, QRBill.BillFormat.A6_LANDSCAPE_SHEET, QRBill.GraphicsFormat.SVG)
+          new String(svg)
+        }
+        Await.result(result, 5.seconds)
+      case None => ""
     }
-    Await.result(result, 5.seconds)
   }
 
   def toLocalDate(dateTime: DateTime) = {
