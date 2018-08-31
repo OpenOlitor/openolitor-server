@@ -60,8 +60,7 @@ class ReportException(msg: String) extends Exception(msg)
 trait DocumentProcessor extends LazyLogging {
   import OdfToolkitUtils._
 
-  val qrCodeSVGFilename = "./qrCode.svg"
-  val qrCodePNGFilename = "./qrCode.png"
+  val qrCodeFilename = "./qrCode"
 
   val dateFormatPattern = """date:\s*"(.*)"""".r
   val numberFormatPattern = """number:\s*"(\[([#@]?[\w\.]+)\])?([#,.0]+)(;((\[([#@]?[\w\.]+)\])?-([#,.0]+)))?"""".r
@@ -374,37 +373,41 @@ trait DocumentProcessor extends LazyLogging {
       // resolve textbox content from properties, otherwise only apply formats to current content
       props.get(propertyKey) map {
         case Value(_, value) =>
-          val filenameSVG = qrCodeSVGFilename
-          val filenamePNG = qrCodePNGFilename
-          // create a new svg file with the svg qrcode content in the value
-          val fileSVG = new File(filenameSVG)
-          val pw = new PrintWriter(fileSVG)
-          pw.write(value)
-          pw.close
+          if (!value.isEmpty) {
+            props.get("referenzNummer") map { referenzNummer =>
+              val filenameSVG = qrCodeFilename + referenzNummer.value + ".svg"
+              val filenamePNG = qrCodeFilename + referenzNummer.value + ".png"
+              // create a new svg file with the svg qrcode content in the value
+              val fileSVG = new File(filenameSVG)
+              val pw = new PrintWriter(fileSVG)
+              pw.write(value)
+              pw.close
 
-          //transform the svg in a png and getting the reference of the file
-          svg2png(filenameSVG)
-          val uri = new URI(filenamePNG)
-          val filePNG = new File(filenamePNG)
+              //transform the svg in a png and getting the reference of the file
+              svg2png(filenameSVG, referenzNummer.value)
+              val uri = new URI(filenamePNG)
+              val filePNG = new File(filenamePNG)
 
-          val templateFilename = t.getInternalPath
-          //remove the template image
-          cont.getPackage().remove(templateFilename)
-          cont.newImage(uri)
-          //insert the new image
-          val mediaType = OdfFileEntry.getMediaTypeString(uri.toString)
-          cont.getPackage.insert(uri, templateFilename, mediaType)
-          //delete both svg and png files
-          fileSVG.delete
-          filePNG.delete
+              val templateFilename = t.getInternalPath
+              //remove the template image
+              cont.getPackage().remove(templateFilename)
+              cont.newImage(uri)
+              //insert the new image
+              val mediaType = OdfFileEntry.getMediaTypeString(uri.toString)
+              cont.getPackage.insert(uri, templateFilename, mediaType)
+              //delete both svg and png files
+              fileSVG.delete
+              filePNG.delete
+            }
+          }
       }
     }
   }
 
-  def svg2png(svgFile: String) {
+  def svg2png(svgFile: String, referenzNummer: String) {
     val svg_URI_input = Paths.get(svgFile).toUri().toURL().toString()
     val input_svg_image = new TranscoderInput(svg_URI_input)
-    val png_ostream = new FileOutputStream(qrCodePNGFilename)
+    val png_ostream = new FileOutputStream(qrCodeFilename + referenzNummer + ".png")
     val output_png_image = new TranscoderOutput(png_ostream)
     val my_converter = new PNGTranscoder()
     my_converter.transcode(input_svg_image, output_png_image)
