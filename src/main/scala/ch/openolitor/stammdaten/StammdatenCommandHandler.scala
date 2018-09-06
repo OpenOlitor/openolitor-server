@@ -141,7 +141,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       DB readOnly { implicit session =>
         stammdatenReadRepository.getById(lieferplanungMapping, lieferplanungPositionenModify.id) map { lieferplanung =>
           lieferplanung.status match {
-            case state @ (Offen | Abgeschlossen) =>
+            case state @ Offen =>
+              Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, Set.empty, lieferplanungPositionenModify.lieferungen))) :: Nil)
+            case state @ Abgeschlossen =>
               val allLieferpositionen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPositionenModify =>
                 lieferungPositionenModify.lieferpositionen.lieferpositionen
               }
