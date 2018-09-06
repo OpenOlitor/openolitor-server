@@ -142,39 +142,21 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         stammdatenReadRepository.getById(lieferplanungMapping, lieferplanungPositionenModify.id) map { lieferplanung =>
           lieferplanung.status match {
             case state @ (Offen | Abgeschlossen) =>
+              val allLieferpositionen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPositionenModify =>
+                lieferungPositionenModify.lieferpositionen.lieferpositionen
+              }
 
-              val missingSammelbestellungen = if (state == Abgeschlossen) {
-                // get existing sammelbestellungen
-                val existingSammelbestellungen = (stammdatenReadRepository.getSammelbestellungen(lieferplanungPositionenModify.id) map { sammelbestellung =>
-                  SammelbestellungModify(sammelbestellung.produzentId, lieferplanung.id, sammelbestellung.datum)
-                }).toSet
+              val allLieferungpositionPerProduzent = allLieferpositionen.groupBy(_.produzentId)
 
-                // get distinct sammelbestellungen by lieferplanung
-                val distinctSammelbestellungen = getDistinctSammelbestellungModifyByLieferplan(lieferplanung.id)
-
-                // in case a sammelbestellung needs to be created from one of the new lieferpositions, this needs to be extracted
-                // and added to the set of new sammelbestellungen
-                val newSammelbestellungen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPosition =>
-                  lieferungPosition.lieferpositionen.lieferpositionen flatMap { lieferposition =>
-                    stammdatenReadRepository.getById(lieferungMapping, lieferposition.lieferungId) flatMap { lieferung =>
-                      stammdatenReadRepository.getSammelbestellungenByProduzent(lieferposition.produzentId, lieferplanung.id) match {
-                        case Nil =>
-                          Option(SammelbestellungCreate(idFactory.newId(SammelbestellungId.apply), lieferposition.produzentId, lieferplanung.id, lieferung.datum))
-                        case _ => None
-                      }
-                    }
+              val sammelBestellungToCreate = allLieferungpositionPerProduzent flatMap { l =>
+                stammdatenReadRepository.getById(lieferungMapping, l._2.head.lieferungId) map { lieferung: Lieferung =>
+                  stammdatenReadRepository.getSammelbestellungenByProduzent(l._1, lieferplanung.id) match {
+                    case Nil => Some(SammelbestellungCreate(idFactory.newId(SammelbestellungId.apply), l._1, lieferplanung.id, lieferung.datum))
+                    case _   => None
                   }
                 }
-
-                // evaluate which sammelbestellungen are missing and have to be inserted
-                // they will be used in handleLieferungChanged afterwards
-                ((distinctSammelbestellungen -- existingSammelbestellungen).map { s =>
-                  SammelbestellungCreate(idFactory.newId(SammelbestellungId.apply), s.produzentId, s.lieferplanungId, s.datum)
-                } ++ newSammelbestellungen).toSeq
-              } else {
-                Nil
               }
-              Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, missingSammelbestellungen.toSet, lieferplanungPositionenModify.lieferungen))) :: Nil)
+              Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, sammelBestellungToCreate.flatten.toSet, lieferplanungPositionenModify.lieferungen))) :: Nil)
             case _ =>
               Failure(new InvalidStateException("Eine Lieferplanung kann nur im Status 'Offen' oder 'Abgeschlossen' aktualisiert werden"))
           }
@@ -773,7 +755,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   private def recalculateValuesForLieferplanungAbgeschlossen(lieferungen: List[Lieferung])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     //calculate new values
-    (lieferungen flatMap { lieferung =>
+    lieferungen flatMap { lieferung =>
       //calculate total of lieferung
       val total = stammdatenReadRepository.getLieferpositionenByLieferung(lieferung.id).map(_.preis.getOrElse(0.asInstanceOf[BigDecimal])).sum
       val lieferungCopy = lieferung.copy(preisTotal = total, status = Abgeschlossen)
@@ -798,7 +780,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       }).getOrElse(Nil)
 
       EntityUpdateEvent(lieferungCopy.id, lieferungModifyCopy) :: updates
-    })
+    }
   }
 
   private def updateSammelbestellungStatus(lieferungen: List[Lieferung], lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
