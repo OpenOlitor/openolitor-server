@@ -1223,7 +1223,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(lieferungMapping(lieferung)).list
   }
 
-  protected def sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId: VertriebId, datum: DateTime, startGeschaeftsjahr: DateTime) = {
+  protected def sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime) = {
     sql"""
       select
         sum(${lieferung.preisTotal})
@@ -1231,6 +1231,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         ${lieferungMapping as lieferung}
       where
         ${lieferung.vertriebId} = ${vertriebId.id}
+        and ${lieferung.abotypId} = ${abotypId.id}
         and ${lieferung.lieferplanungId} IS NOT NULL
         and ${lieferung.datum} < ${datum}
         and ${lieferung.datum} >= ${startGeschaeftsjahr}
@@ -1238,11 +1239,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .map(x => BigDecimal(x.bigDecimalOpt(1).getOrElse(java.math.BigDecimal.ZERO))).single
   }
 
-  protected def getGeplanteLieferungVorherQuery(vertriebId: VertriebId, datum: DateTime) = {
+  protected def getGeplanteLieferungVorherQuery(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime) = {
     withSQL {
       select
         .from(lieferungMapping as lieferung)
         .where.eq(lieferung.vertriebId, vertriebId)
+        .and.eq(lieferung.abotypId, abotypId)
         .and.not.isNull(lieferung.lieferplanungId)
         .and.lt(lieferung.datum, datum)
         .orderBy(lieferung.datum).desc
@@ -1250,11 +1252,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(lieferungMapping(lieferung)).single
   }
 
-  protected def getGeplanteLieferungNachherQuery(vertriebId: VertriebId, datum: DateTime) = {
+  protected def getGeplanteLieferungNachherQuery(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime) = {
     withSQL {
       select
         .from(lieferungMapping as lieferung)
         .where.eq(lieferung.vertriebId, vertriebId)
+        .and.eq(lieferung.abotypId, abotypId)
         .and.not.isNull(lieferung.lieferplanungId)
         .and.gt(lieferung.datum, datum)
         .orderBy(lieferung.datum).asc

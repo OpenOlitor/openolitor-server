@@ -215,9 +215,9 @@ trait KorbHandler extends KorbStatusHandler
 
   private def offenLieferung(lieferplanungId: LieferplanungId, project: Option[Projekt], lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
     logger.debug(s" offenLieferung : lieferplanungId : $lieferplanungId project : $project lieferung : $lieferung")
-    val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.datum) match {
+    val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.abotypId, lieferung.datum) match {
       case Some(lieferungVorher) if project.get.geschaftsjahr.isInSame(lieferungVorher.datum.toLocalDate(), lieferung.datum.toLocalDate()) =>
-        val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.datum, project.get.geschaftsjahr.start(lieferung.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
+        val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.abotypId, lieferung.datum, project.get.geschaftsjahr.start(lieferung.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
 
         val durchschnittspreisBisher: BigDecimal = lieferungVorher.anzahlLieferungen match {
           case 0 => BigDecimal(0)
