@@ -87,9 +87,9 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getLieferungen(id: LieferplanungId)(implicit session: DBSession): List[Lieferung]
   def getLieferungen(id: VertriebId)(implicit session: DBSession): List[Lieferung]
   def getLieferungenDetails(id: LieferplanungId)(implicit session: DBSession): List[LieferungDetail]
-  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal]
-  def getGeplanteLieferungVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
-  def getGeplanteLieferungNachher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
+  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal]
+  def getGeplanteLieferungVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
+  def getGeplanteLieferungNachher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
   def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int]
   def getSammelbestellungen(id: LieferplanungId)(implicit session: DBSession): List[Sammelbestellung]
   def getSammelbestellungen(id: LieferungId)(implicit session: DBSession): List[Sammelbestellung]
@@ -423,16 +423,16 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getLieferungenDetailsQuery(id)()
   }
 
-  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal] = {
-    sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId, datum, startGeschaeftsjahr).apply()
+  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal] = {
+    sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId, abotypId, datum, startGeschaeftsjahr).apply()
   }
 
-  def getGeplanteLieferungVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
-    getGeplanteLieferungVorherQuery(vertriebId, datum).apply()
+  def getGeplanteLieferungVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
+    getGeplanteLieferungVorherQuery(vertriebId, abotypId, datum).apply()
   }
 
-  def getGeplanteLieferungNachher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
-    getGeplanteLieferungNachherQuery(vertriebId, datum).apply()
+  def getGeplanteLieferungNachher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
+    getGeplanteLieferungNachherQuery(vertriebId, abotypId, datum).apply()
   }
 
   def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int] = {
