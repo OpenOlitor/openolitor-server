@@ -1020,8 +1020,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       if (entity.anzahlLieferungen == 1) {
         recalculateLieferungOffen(entity, None)
       }
-      val lieferungVorher = stammdatenUpdateRepository.getGeplanteLieferungVorher(orig.vertriebId, entity.datum)
-      stammdatenUpdateRepository.getGeplanteLieferungNachher(orig.vertriebId, entity.datum) match {
+      val lieferungVorher = stammdatenUpdateRepository.getGeplanteLieferungVorher(orig.vertriebId, orig.abotypId, entity.datum)
+      stammdatenUpdateRepository.getGeplanteLieferungNachher(orig.vertriebId, orig.abotypId, entity.datum) match {
         case Some(lieferungNach) => recalculateLieferungOffen(lieferungNach, Some(entity))
         case _                   =>
       }
@@ -1032,7 +1032,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     val project = stammdatenUpdateRepository.getProjekt
     val (newDurchschnittspreis, newAnzahlLieferungen) = lieferungVorher match {
       case Some(lieferung) if project.get.geschaftsjahr.isInSame(lieferung.datum.toLocalDate(), entity.datum.toLocalDate()) =>
-        val sum = stammdatenUpdateRepository.sumPreisTotalGeplanteLieferungenVorher(entity.vertriebId, entity.datum, project.get.geschaftsjahr.start(entity.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
+        val sum = stammdatenUpdateRepository.sumPreisTotalGeplanteLieferungenVorher(entity.vertriebId, entity.abotypId, entity.datum, project.get.geschaftsjahr.start(entity.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
 
         val durchschnittspreisBisher: BigDecimal = lieferung.anzahlLieferungen match {
           case 0 => BigDecimal(0)
