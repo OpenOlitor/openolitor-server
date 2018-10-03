@@ -25,6 +25,7 @@ package ch.openolitor.arbeitseinsatz.repositories
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models.KundeId
 import com.typesafe.scalalogging.LazyLogging
@@ -90,6 +91,23 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .where.eq(arbeitseinsatz.id, arbeitseinsatzId)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).single
+  }
+
+  protected def getArbeitseinsatzDetailQuery(arbeitseinsatzId: ArbeitseinsatzId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .leftJoin(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
+        .where.eq(arbeitseinsatz.id, arbeitseinsatzId)
+    }.one(arbeitseinsatzMapping(arbeitseinsatz))
+      .toMany(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
+      )
+      .map({ (arbeitseinsatz, arbeitsangebote) =>
+        val arbeitsangebot = arbeitsangebote.head
+
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
+      }).single
   }
 
   protected def getArbeitseinsaetzeQuery(kundeId: KundeId) = {
@@ -167,4 +185,20 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
 
+  protected def getArbeitseinsatzDetailByArbeitsangebotQuery(arbeitsangebotId: ArbeitsangebotId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .leftJoin(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
+        .where.eq(arbeitseinsatz.arbeitsangebotId, arbeitsangebotId)
+    }.one(arbeitseinsatzMapping(arbeitseinsatz))
+      .toMany(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
+      )
+      .map({ (arbeitseinsatz, arbeitsangebote) =>
+        val arbeitsangebot = arbeitsangebote.head
+
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
+      }).list
+  }
 }
