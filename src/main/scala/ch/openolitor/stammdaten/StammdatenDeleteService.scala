@@ -46,14 +46,17 @@ class DefaultStammdatenDeleteService(sysConfig: SystemConfig, override val syste
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Stammdaten Modul
  */
-class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
+class StammdatenDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
   with LazyLogging with AsyncConnectionPoolContextAware with StammdatenDBMappings with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
   import EntityStore._
 
+  // implicitly expose the eventStream
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
   val ZERO = 0
 
-  val handle: Handle = {
+  val stammdatenDeleteHandle: Handle = {
     case EntityDeletedEvent(meta, id: AbotypId) => deleteAbotyp(meta, id)
     case EntityDeletedEvent(meta, id: AbwesenheitId) => deleteAbwesenheit(meta, id)
     case EntityDeletedEvent(meta, id: PersonId) => deletePerson(meta, id)
@@ -75,6 +78,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     case EntityDeletedEvent(meta, id: LieferungOnLieferplanungId) => removeLieferungPlanung(meta, id)
     case e =>
   }
+
+  val handle: Handle = stammdatenDeleteHandle
 
   def deleteAbotyp(meta: EventMetadata, id: AbotypId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
@@ -225,6 +230,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
       stammdatenWriteRepository.deleteLieferpositionen(id.getLieferungId())
 
       stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, id.getLieferungId) map { lieferung =>
+        stammdatenWriteRepository.deleteKoerbe(lieferung.id)
         stammdatenWriteRepository.getAbotypById(lieferung.abotypId) collect {
           case abotyp: ZusatzAbotyp =>
             stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](id.getLieferungId)

@@ -240,6 +240,7 @@ case class RechnungDetailReport(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  qrCode: Option[String],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -279,6 +280,18 @@ case class RechnungModify(
   adressZusatz: Option[String],
   plz: String,
   ort: String
+) extends JSONSerializable
+
+case class RechnungMailRequest(
+  ids: Seq[RechnungId],
+  attachInvoice: Boolean,
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class RechnungMailContext(
+  person: Person,
+  rechnung: Rechnung
 ) extends JSONSerializable
 
 case class RechnungsPositionCreate(

@@ -38,6 +38,7 @@ import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
 }
@@ -48,7 +49,7 @@ class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val syste
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
  */
-class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
+class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
@@ -57,12 +58,15 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
+  // implicitly expose the eventStream
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
 
   val ZERO = 0
   val FALSE = false
 
-  val handle: Handle = {
+  val stammdatenInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: AbotypId, abotyp: AbotypModify) =>
       createAbotyp(meta, id, abotyp)
     case EntityInsertedEvent(meta, id: AbotypId, zusatzabotyp: ZusatzAbotypModify) =>
@@ -75,7 +79,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createPendenz(meta, id, pendenz)
     case EntityInsertedEvent(meta, id: DepotId, depot: DepotModify) =>
       createDepot(meta, id, depot)
-    case EntityInsertedEvent(meta, id: AboId, abo: AboModify) =>
+    case EntityInsertedEvent(meta, id: AboId, abo: AboCreate) =>
       createAbo(meta, id, abo)
     case EntityInsertedEvent(meta, id: AboId, zusatzAbo: ZusatzAboCreate) =>
       createZusatzAbo(meta, id, zusatzAbo)
@@ -121,6 +125,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createPostAuslieferung(meta, id, postAuslieferung)
     case e =>
   }
+
+  val handle: Handle = stammdatenInsertHandle
 
   def createAbotyp(meta: EventMetadata, id: AbotypId, abotyp: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     val typ = copyTo[AbotypModify, Abotyp](
@@ -303,7 +309,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  def aboParameters(create: AboModify)(abotyp: IAbotyp): (Option[Int], Option[LocalDate], Boolean) = {
+  def aboParameters(create: AboCreate)(abotyp: IAbotyp): (Option[Int], Option[LocalDate], Boolean) = {
     abotyp.laufzeiteinheit match {
       case Unbeschraenkt =>
         (None, None, IAbo.calculateAktiv(create.start, None))
@@ -353,7 +359,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     stammdatenWriteRepository.getById(tourMapping, tourId)
   }
 
-  def createAbo(meta: EventMetadata, id: AboId, create: AboModify)(implicit personId: PersonId = meta.originator) = {
+  def createAbo(meta: EventMetadata, id: AboId, create: AboCreate)(implicit personId: PersonId = meta.originator) = {
     logger.debug(s"createAbo id= $id aboMOdify = $create")
     DB localTxPostPublish { implicit session => implicit publisher =>
       val emptyMap: TreeMap[String, Int] = TreeMap()
@@ -362,10 +368,10 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
           aboParameters(create)(abotyp) match {
             case (guthaben, ende, aktiv) =>
               val maybeAbo: Option[Abo] = create match {
-                case create: DepotlieferungAboModify =>
+                case create: DepotlieferungAboCreate =>
                   val depotName = depotById(create.depotId).map(_.name).getOrElse("")
 
-                  stammdatenWriteRepository.insertEntity[DepotlieferungAbo, AboId](copyTo[DepotlieferungAboModify, DepotlieferungAbo](
+                  stammdatenWriteRepository.insertEntity[DepotlieferungAbo, AboId](copyTo[DepotlieferungAboCreate, DepotlieferungAbo](
                     create,
                     "id" -> id,
                     "vertriebId" -> vertrieb.id,
@@ -389,10 +395,10 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "modifidat" -> meta.timestamp,
                     "modifikator" -> meta.originator
                   ))
-                case create: HeimlieferungAboModify =>
+                case create: HeimlieferungAboCreate =>
                   val tourName = tourById(create.tourId).map(_.name).getOrElse("")
 
-                  stammdatenWriteRepository.insertEntity[HeimlieferungAbo, AboId](copyTo[HeimlieferungAboModify, HeimlieferungAbo](
+                  stammdatenWriteRepository.insertEntity[HeimlieferungAbo, AboId](copyTo[HeimlieferungAboCreate, HeimlieferungAbo](
                     create,
                     "id" -> id,
                     "vertriebId" -> vertrieb.id,
@@ -422,8 +428,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     }
                     heimlieferungAbo
                   }
-                case create: PostlieferungAboModify =>
-                  stammdatenWriteRepository.insertEntity[PostlieferungAbo, AboId](copyTo[PostlieferungAboModify, PostlieferungAbo](
+                case create: PostlieferungAboCreate =>
+                  stammdatenWriteRepository.insertEntity[PostlieferungAbo, AboId](copyTo[PostlieferungAboCreate, PostlieferungAbo](
                     create,
                     "id" -> id,
                     "vertriebId" -> vertrieb.id,
@@ -447,15 +453,9 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "modifikator" -> meta.originator
                   ))
               }
-              // create required Koerbe for abo
-              //              maybeAbo map (abo => modifyKoerbeForAboDatumChange(abo, None))
               maybeAbo map (abo => modifyKoerbeForAbo(abo, None))
           }
       }
-
-      //stammdatenWriteRepository.getAbo(id) map { abo =>
-      //  modifyKoerbeForAbo(abo, None)
-      //}
     }
   }
 

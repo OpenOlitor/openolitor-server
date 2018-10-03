@@ -149,6 +149,60 @@ object Projekt {
       o.modifikator
     ))
   }
+
+  def build(
+    id: ProjektId = ProjektId(0),
+    bezeichnung: String,
+    strasse: Option[String] = None,
+    hausNummer: Option[String] = None,
+    adressZusatz: Option[String] = None,
+    plz: Option[String] = None,
+    ort: Option[String] = None,
+    preiseSichtbar: Boolean = false,
+    preiseEditierbar: Boolean = false,
+    emailErforderlich: Boolean = false,
+    waehrung: Waehrung = CHF,
+    geschaeftsjahrMonat: Int = 1,
+    geschaeftsjahrTag: Int = 1,
+    twoFactorAuthentication: Map[Rolle, Boolean] = Map(),
+    sprache: Locale = Locale.GERMAN,
+    welcomeMessage1: Option[String] = None,
+    welcomeMessage2: Option[String] = None,
+    maintenanceMode: Boolean = false,
+    generierteMailsSenden: Boolean = false,
+    einsatzEinheit: EinsatzEinheit = Stunden,
+    einsatzAbsageVorlaufTage: Int = 3,
+    einsatzShowListeKunde: Boolean = true
+  )(implicit person: PersonId): Projekt = {
+    Projekt(
+      id,
+      bezeichnung,
+      strasse,
+      hausNummer,
+      adressZusatz,
+      plz,
+      ort,
+      preiseSichtbar,
+      preiseEditierbar,
+      emailErforderlich,
+      waehrung,
+      geschaeftsjahrMonat,
+      geschaeftsjahrTag,
+      twoFactorAuthentication,
+      sprache,
+      welcomeMessage1,
+      welcomeMessage2,
+      maintenanceMode,
+      generierteMailsSenden,
+      einsatzEinheit,
+      einsatzAbsageVorlaufTage,
+      einsatzShowListeKunde,
+      erstelldat = DateTime.now,
+      ersteller = person,
+      modifidat = DateTime.now,
+      modifikator = person
+    )
+  }
 }
 
 case class ProjektPublik(
@@ -228,6 +282,35 @@ case class ProjektModify(
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean
 ) extends JSONSerializable
+
+@deprecated("This class exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+case class ProjektV1(
+  id: ProjektId,
+  bezeichnung: String,
+  strasse: Option[String],
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: Option[String],
+  ort: Option[String],
+  preiseSichtbar: Boolean,
+  preiseEditierbar: Boolean,
+  emailErforderlich: Boolean,
+  waehrung: Waehrung,
+  geschaeftsjahrMonat: Int,
+  geschaeftsjahrTag: Int,
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  sprache: Locale,
+  welcomeMessage1: Option[String],
+  welcomeMessage2: Option[String],
+  maintenanceMode: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[ProjektId] {
+  lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
+}
 
 case class KundentypId(id: String) extends BaseStringId
 

@@ -44,7 +44,7 @@ object OO109_Arbeitseinsatz {
       alterTableAddColumnIfNotExists(depotlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
       alterTableAddColumnIfNotExists(heimlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
       alterTableAddColumnIfNotExists(postlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
-      //alterTableAddColumnIfNotExists(zusatzAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
+      alterTableAddColumnIfNotExists(zusatzAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
 
       sql"""update Projekt set generierte_mails_senden = 1, einsatz_einheit = 'Halbtage',
       einsatz_absage_vorlauf_tage = 3, einsatz_show_liste_kunde = 1""".execute.apply()

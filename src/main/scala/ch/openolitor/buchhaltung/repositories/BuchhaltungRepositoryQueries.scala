@@ -43,6 +43,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
   lazy val zusatzAbo = zusatzAboMapping.syntax("zusatzAbo")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
+  lazy val person = personMapping.syntax("pers")
 
   protected def getRechnungenQuery(filter: Option[FilterExpr]) = {
     withSQL {
@@ -162,5 +163,14 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
       select
         .from(kontoDatenMapping as kontoDaten)
     }.map(kontoDatenMapping(kontoDaten)).single
+  }
+
+  protected def getPersonQuery(rechnungId: RechnungId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(rechnungMapping as rechnung).on(rechnung.kundeId, person.kundeId)
+        .where.eq(rechnung.id, rechnungId)
+    }.map(personMapping(person)).list
   }
 }

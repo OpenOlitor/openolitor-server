@@ -29,7 +29,7 @@ import scala.collection.immutable.TreeMap
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.kundenportal.models.BelongsToKunde
-import ch.openolitor.core.scalax.Tuple23
+import ch.openolitor.core.scalax.Tuple24
 import ch.openolitor.core.scalax.Tuple26
 
 case class AboId(id: Long) extends BaseId
@@ -37,7 +37,7 @@ case class AboId(id: Long) extends BaseId
 object IAbo {
   def calculateAktiv(start: LocalDate, ende: Option[LocalDate]): Boolean = {
     val yesterday = LocalDate.now.minusDays(1)
-    start.isBefore(LocalDate.now) && (ende map (_.isAfter(yesterday)) getOrElse true)
+    !start.isAfter(LocalDate.now) && (ende map (_.isAfter(yesterday)) getOrElse true)
   }
 }
 
@@ -98,13 +98,30 @@ sealed trait AboDetail extends JSONSerializable {
   val aktiv: Boolean
 }
 
-sealed trait AboModify extends JSONSerializable {
+sealed trait AboCreate extends JSONSerializable {
   val kundeId: KundeId
   val kunde: String
   val vertriebsartId: VertriebsartId
   val start: LocalDate
   val ende: Option[LocalDate]
 }
+
+sealed trait AboModify extends JSONSerializable {
+  val kundeId: KundeId
+  val start: LocalDate
+  val ende: Option[LocalDate]
+}
+
+case class AboMailRequest(
+  ids: Seq[AboId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class AboMailContext(
+  person: Person,
+  abo: Abo
+) extends JSONSerializable
 
 case class DepotlieferungAbo(
   id: AboId,
@@ -235,11 +252,17 @@ case class DepotlieferungAboDetail(
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
 
-case class DepotlieferungAboModify(
+case class DepotlieferungAboCreate(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
   depotId: DepotId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends AboCreate
+
+case class DepotlieferungAboModify(
+  kundeId: KundeId,
   start: LocalDate,
   ende: Option[LocalDate]
 ) extends AboModify
@@ -343,11 +366,17 @@ case class HeimlieferungAboDetail(
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
 
-case class HeimlieferungAboModify(
+case class HeimlieferungAboCreate(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
   tourId: TourId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends AboCreate
+
+case class HeimlieferungAboModify(
+  kundeId: KundeId,
   start: LocalDate,
   ende: Option[LocalDate]
 ) extends AboModify
@@ -383,7 +412,7 @@ case class PostlieferungAbo(
 
 object PostlieferungAbo {
   def unapply(o: PostlieferungAbo) = {
-    Some(Tuple23(
+    Some(Tuple24(
       o.id,
       o.kundeId,
       o.kunde,
@@ -400,6 +429,7 @@ object PostlieferungAbo {
       o.letzteLieferung,
       o.anzahlAbwesenheiten,
       o.anzahlLieferungen,
+      o.anzahlEinsaetze,
       o.aktiv,
       o.zusatzAboIds,
       o.zusatzAbotypNames,
@@ -444,10 +474,16 @@ case class PostlieferungAboDetail(
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
 
-case class PostlieferungAboModify(
+case class PostlieferungAboCreate(
   kundeId: KundeId,
   kunde: String,
   vertriebsartId: VertriebsartId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends AboCreate
+
+case class PostlieferungAboModify(
+  kundeId: KundeId,
   start: LocalDate,
   ende: Option[LocalDate]
 ) extends AboModify

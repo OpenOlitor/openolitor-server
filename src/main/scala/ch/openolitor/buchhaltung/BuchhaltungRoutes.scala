@@ -23,14 +23,14 @@
 package ch.openolitor.buchhaltung
 
 import spray.routing._
-
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
+
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
@@ -51,7 +51,7 @@ import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
-import java.io.ByteArrayInputStream
+import java.io._
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -74,7 +74,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute
+      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute
     }
 
   def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
@@ -124,7 +124,9 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         (post)(mahnungBerichte())
       } ~
       path("rechnungen" / rechnungIdPath) { id =>
-        get(detail(buchhaltungReadRepository.getRechnungDetail(id))) ~
+        get({
+          detail(buchhaltungReadRepository.getRechnungDetail(id))
+        }) ~
           delete(deleteRechnung(id)) ~
           (put | post)(entity(as[RechnungModify]) { entity => safeRechnung(id, entity) })
       } ~
@@ -208,6 +210,17 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / "aktionen" / "automatischerledigen") { id =>
         post(entity(as[Seq[ZahlungsEingangModifyErledigt]]) { entities => zahlungsEingaengeErledigen(entities) })
       }
+
+  private def mailingRoute(implicit subject: Subject): Route =
+    path("mailing" / "sendEmailToInvoicesSubscribers") {
+      post {
+        requestInstance { request =>
+          entity(as[RechnungMailRequest]) { rechnungMailRequest =>
+            sendEmailsToInvoicesSubscribers(rechnungMailRequest.subject, rechnungMailRequest.body, rechnungMailRequest.ids, rechnungMailRequest.attachInvoice)
+          }
+        }
+      }
+    }
 
   def verschicken(id: RechnungId)(implicit idPersister: Persister[RechnungId, _], subject: Subject) = {
     onSuccess(entityStore ? BuchhaltungCommandHandler.RechnungVerschickenCommand(subject.personId, id)) {
@@ -346,6 +359,14 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+  private def sendEmailsToInvoicesSubscribers(emailSubject: String, body: String, ids: Seq[RechnungId], attachInvoice: Boolean)(implicit subject: Subject) = {
+    onSuccess((entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, ids, attachInvoice))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
+      case _ =>
+        complete("")
+    }
+  }
 }
 
 class DefaultBuchhaltungRoutes(

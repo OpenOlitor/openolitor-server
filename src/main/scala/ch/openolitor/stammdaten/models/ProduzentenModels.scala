@@ -109,6 +109,56 @@ object Produzent {
       p.modifikator: PersonId
     ))
   }
+
+  def build(
+    id: ProduzentId = ProduzentId(0),
+    name: String,
+    vorname: Option[String] = None,
+    kurzzeichen: String,
+    strasse: Option[String] = None,
+    hausNummer: Option[String] = None,
+    adressZusatz: Option[String] = None,
+    plz: String,
+    ort: String,
+    bemerkungen: Option[String] = None,
+    email: String,
+    telefonMobil: Option[String] = None,
+    telefonFestnetz: Option[String] = None,
+    iban: Option[String] = None,
+    bank: Option[String] = None,
+    mwst: Boolean = false,
+    mwstSatz: Option[BigDecimal] = None,
+    mwstNr: Option[String] = None,
+    aktiv: Boolean = true
+  )(implicit person: PersonId): Produzent = {
+    Produzent(
+      id,
+      name,
+      vorname,
+      kurzzeichen,
+      strasse,
+      hausNummer,
+      adressZusatz,
+      plz,
+      ort,
+      bemerkungen,
+      email,
+      telefonMobil,
+      telefonFestnetz,
+      iban,
+      bank,
+      mwst,
+      mwstSatz,
+      mwstNr,
+      aktiv,
+      //modification flags
+      erstelldat = DateTime.now,
+      ersteller = person,
+      modifidat = DateTime.now,
+      modifikator = person
+    )
+  }
+
 }
 
 case class ProduzentModify(

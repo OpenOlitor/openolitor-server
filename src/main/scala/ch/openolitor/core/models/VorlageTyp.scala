@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.LazyLogging
 trait VorlageTyp extends FileType
 
 object VorlageTyp extends LazyLogging {
-  val AlleVorlageTypen = List(
+  val AlleVorlageTypen: List[VorlageTyp] = List(
     VorlageRechnung,
     VorlageDepotLieferschein,
     VorlageTourLieferschein,
@@ -41,7 +41,8 @@ object VorlageTyp extends LazyLogging {
     VorlageProduzentenbrief,
     VorlageProduzentenabrechnung,
     VorlageLieferplanung,
-    VorlageArbeitseinsatz
+    VorlageArbeitseinsatz,
+    VorlageMahnung
   )
 
   def apply(value: String): VorlageTyp = {

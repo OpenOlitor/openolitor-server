@@ -30,6 +30,7 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.domain._
+import ch.openolitor.core.models._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import com.typesafe.scalalogging.LazyLogging
@@ -46,7 +47,7 @@ class DefaultArbeitseinsatzUpdateService(sysConfig: SystemConfig, override val s
 /**
  * Actor zum Verarbeiten der Update Anweisungen innerhalb des Arbeitseinsatz Moduls
  */
-class ArbeitseinsatzUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware with ArbeitseinsatzDBMappings {
+class ArbeitseinsatzUpdateService(override val sysConfig: SystemConfig) extends EventService[EntityUpdatedEvent[_ <: BaseId, _ <: AnyRef]] with LazyLogging with AsyncConnectionPoolContextAware with ArbeitseinsatzDBMappings {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
   val FALSE = false

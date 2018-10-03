@@ -28,8 +28,8 @@ import ch.openolitor.kundenportal.DefaultKundenportalCommandHandler
 import ch.openolitor.arbeitseinsatz.DefaultArbeitseinsatzCommandHandler
 import ch.openolitor.stammdaten.DefaultStammdatenCommandHandler
 import ch.openolitor.reports.DefaultReportsCommandHandler
-
 import akka.actor.ActorSystem
+import ch.openolitor.mailtemplates.{ DefaultMailTemplateCommandHanlder }
 
 trait CommandHandlerComponent {
   val stammdatenCommandHandler: CommandHandler
@@ -37,6 +37,7 @@ trait CommandHandlerComponent {
   val arbeitseinsatzCommandHandler: CommandHandler
   val reportsCommandHandler: CommandHandler
   val kundenportalCommandHandler: CommandHandler
+  val mailTemplateCommandHandler: CommandHandler
   val baseCommandHandler: CommandHandler
 }
 
@@ -48,6 +49,7 @@ trait DefaultCommandHandlerComponent extends CommandHandlerComponent {
   override val buchhaltungCommandHandler = new DefaultBuchhaltungCommandHandler(sysConfig, system)
   override val arbeitseinsatzCommandHandler = new DefaultArbeitseinsatzCommandHandler(sysConfig, system)
   override val reportsCommandHandler = new DefaultReportsCommandHandler(sysConfig, system)
+  override val mailTemplateCommandHandler: CommandHandler = new DefaultMailTemplateCommandHanlder(sysConfig, system)
   override val kundenportalCommandHandler = new DefaultKundenportalCommandHandler(sysConfig, system)
   override val baseCommandHandler = new BaseCommandHandler()
 }

@@ -40,5 +40,6 @@ case class AuslieferungKorbUebersichtReport(
   projekt: ProjektReport,
   datum: DateTime,
   anzahlKoerbe: Int,
+  koerbeHauptabo: Seq[KorbUebersichtReportProAbotyp],
   koerbe: Seq[KorbUebersichtReportProAbotyp]
 ) extends JSONSerializable

@@ -33,6 +33,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.mailtemplates.model._
 import ch.openolitor.buchhaltung.models._
 import scala.reflect._
 import ch.openolitor.core.SystemConfig
@@ -40,6 +41,10 @@ import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.reports.ReportsDBMappings
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.db.evolution.scripts.Scripts
+import akka.actor.ActorSystem
+import ch.openolitor.core.ActorSystemReference
+import ch.openolitor.mailtemplates.repositories.MailTemplateDBMappings
 
 trait Script {
 
@@ -52,7 +57,7 @@ case class EvolutionException(msg: String) extends Exception
  * Base evolution class to evolve database from a specific revision to another
  */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
-  with BuchhaltungDBMappings with ReportsDBMappings with ArbeitseinsatzDBMappings {
+  with BuchhaltungDBMappings with ReportsDBMappings with ArbeitseinsatzDBMappings with MailTemplateDBMappings {
   import IteratorUtil._
 
   logger.debug(s"Evolution manager consists of:$scripts")
@@ -103,6 +108,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[Arbeitseinsatz, ArbeitseinsatzId](arbeitseinsatzMapping),
           adjustSeed[Einladung, EinladungId](einladungMapping),
           adjustSeed[Sammelbestellung, SammelbestellungId](sammelbestellungMapping),
+          adjustSeed[MailTemplate, MailTemplateId](mailTemplateMapping),
           adjustSeeds[AuslieferungId](
             maxId[DepotAuslieferung, AuslieferungId](depotAuslieferungMapping),
             maxId[TourAuslieferung, AuslieferungId](tourAuslieferungMapping),

@@ -23,24 +23,27 @@
 package ch.openolitor.buchhaltung
 
 import ch.openolitor.core.domain._
-import ch.openolitor.buchhaltung.models._
+import ch.openolitor.stammdaten.models.Person
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models.KundeId
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 
 import scala.util._
 import scalikejdbc.DB
+import scalikejdbc.DBSession
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.exceptions.InvalidStateException
 import akka.actor.ActorSystem
 import ch.openolitor.core._
+import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware
-
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
@@ -68,14 +71,19 @@ object BuchhaltungCommandHandler {
   case class ZahlungsEingangErledigenCommand(originator: PersonId, entity: ZahlungsEingangModifyErledigt) extends UserCommand
   case class ZahlungsEingaengeErledigenCommand(originator: PersonId, entities: Seq[ZahlungsEingangModifyErledigt]) extends UserCommand
 
+  case class SendEmailToInvoicesSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[RechnungId], invoice: Boolean) extends UserCommand
+
   case class ZahlungsImportCreatedEvent(meta: EventMetadata, entity: ZahlungsImportCreate) extends PersistentEvent with JSONSerializable
   case class ZahlungsEingangErledigtEvent(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt) extends PersistentEvent with JSONSerializable
 
   case class RechnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
   case class MahnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
+  case class SendEmailToInvoiceSubscribersEvent(meta: EventMetadata, subject: String, body: String, person: Person, invoiceReference: Option[String], context: RechnungMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
-trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware {
+trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware
+  with FileTypeFilenameMapping
+  with MailTemplateService {
   self: BuchhaltungReadRepositorySyncComponent =>
   import BuchhaltungCommandHandler._
   import EntityStore._
@@ -209,6 +217,23 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
         Success(successfuls flatMap (_.get))
       }
 
+    case SendEmailToInvoicesSubscribersCommand(personId, subject, body, ids, attachInvoice) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateInvoice(body, subject, ids)) {
+          val events = ids flatMap { rechnungId: RechnungId =>
+            buchhaltungReadRepository.getById(rechnungMapping, rechnungId) map { rechnung =>
+              buchhaltungReadRepository.getPerson(rechnung.id) map { person =>
+                val mailContext = RechnungMailContext(person, rechnung)
+                DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, person, rechnung.fileStoreId, mailContext))
+              }
+            }
+          }
+          Success(events.flatten)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
     case RechnungPDFStoredCommand(personId, id, fileStoreId) => idFactory => meta =>
       Success(Seq(DefaultResultingEvent(factory => RechnungPDFStoredEvent(factory.newMetadata(), id, fileStoreId))))
 
@@ -236,7 +261,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
                 rechnungsPositionen.map(_.betrag).sum,
                 rechnungsPositionenCreateRechnungen.rechnungsDatum,
                 rechnungsPositionenCreateRechnungen.faelligkeitsDatum,
-                Some(meta.timestamp),
+                None,
                 kunde.strasse,
                 kunde.hausNummer,
                 kunde.adressZusatz,
@@ -305,6 +330,18 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
       rechnungsPositionId,
       RechnungsPositionAssignToRechnung(rechnungId, index)
     )
+  }
+
+  private def checkTemplateInvoice(body: String, subject: String, ids: Seq[RechnungId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { rechnungId: RechnungId =>
+      buchhaltungReadRepository.getPerson(rechnungId) flatMap { person =>
+        buchhaltungReadRepository.getById(rechnungMapping, rechnungId) map { rechnung =>
+          val mailContext = RechnungMailContext(person, rechnung)
+          generateMail(subject, body, mailContext).isSuccess
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
   }
 }
 
