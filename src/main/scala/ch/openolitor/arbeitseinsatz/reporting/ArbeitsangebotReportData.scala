@@ -41,22 +41,24 @@ trait ArbeitsangebotReportData extends AsyncConnectionPoolContextAware with Arbe
   self: ArbeitseinsatzReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
 
   def arbeitseinsaetzeByArbeitsangebote(arbeitsangebotIds: Seq[ArbeitsangebotId]): Future[(Seq[ValidationError[ArbeitsangebotId]], Seq[ArbeitseinsatzDetailReport])] = {
-    stammdatenReadRepository.getProjekt flatMap { maybeProjekt =>
-      maybeProjekt flatMap { projekt =>
-        val results = arbeitsangebotIds.map { arbeitsangebotId =>
-          arbeitseinsatzReadRepository.getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId).map(_.map { arbeitseinsatz =>
-            val projektReport = copyTo[Projekt, ProjektReport](projekt)
-            copyTo[ArbeitseinsatzDetail, ArbeitseinsatzDetailReport](arbeitseinsatz, "projekt" -> projektReport)
-          })
-        }
-        (Seq(), Future.sequence(results) map (_.flatMap(s => s)))
+    stammdatenReadRepository.getProjekt flatMap {
+      _ map { projekt =>
+        val results = Future.sequence(arbeitsangebotIds.map { arbeitsangebotId =>
+          arbeitseinsatzReadRepository.getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId).map {
+            _.map { arbeitseinsatz =>
+              val projektReport = copyTo[Projekt, ProjektReport](projekt)
+              copyTo[ArbeitseinsatzDetail, ArbeitseinsatzDetailReport](arbeitseinsatz, "projekt" -> projektReport)
+            }
+          }
+        })
+        results.map(_.flatten).map(c => (Seq(), c))
       } getOrElse Future { (Seq(ValidationError[ArbeitsangebotId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }
   }
 
   def arbeitsangebotByIds(arbeitseinsaetzIds: Seq[ArbeitseinsatzId]): Future[(Seq[ValidationError[ArbeitseinsatzId]], Seq[ArbeitseinsatzDetailReport])] = {
-    stammdatenReadRepository.getProjekt flatMap { maybeProjekt =>
-      maybeProjekt flatMap { projekt =>
+    stammdatenReadRepository.getProjekt flatMap {
+      _ map { projekt =>
         val results = Future.sequence(arbeitseinsaetzIds.map { arbeitseinsatzId =>
           arbeitseinsatzReadRepository.getArbeitseinsatzDetail(arbeitseinsatzId).map(_ match {
             case Some(arbeitseinsatz) =>

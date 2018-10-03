@@ -24,6 +24,7 @@ package ch.openolitor.arbeitseinsatz
 
 import akka.actor._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
+import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
@@ -133,4 +134,4 @@ class DefaultArbeitseinsatzRoutes(
   override val jobQueueService: ActorRef
 )
   extends ArbeitseinsatzRoutes
-  with DefaultArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent
+  with DefaultArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with DefaultStammdatenReadRepositoryAsyncComponent
