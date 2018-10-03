@@ -263,7 +263,8 @@ case class DepotlieferungAboCreate(
   vertriebsartId: VertriebsartId,
   depotId: DepotId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends AboCreate
 
 case class DepotlieferungAboModify(
@@ -381,13 +382,14 @@ case class HeimlieferungAboCreate(
   vertriebsartId: VertriebsartId,
   tourId: TourId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends AboCreate
 
 case class HeimlieferungAboModify(
   kundeId: KundeId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
   price: Option[BigDecimal]
 ) extends AboModify
 
@@ -492,13 +494,14 @@ case class PostlieferungAboCreate(
   kunde: String,
   vertriebsartId: VertriebsartId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
+  price: Option[BigDecimal]
 ) extends AboCreate
 
 case class PostlieferungAboModify(
   kundeId: KundeId,
   start: LocalDate,
-  ende: Option[LocalDate]
+  ende: Option[LocalDate],
   price: Option[BigDecimal]
 ) extends AboModify
 
