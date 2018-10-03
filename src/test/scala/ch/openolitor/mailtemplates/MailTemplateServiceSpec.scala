@@ -39,7 +39,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
       val templateBody = """
         Person: {{ person.name }}
         Birthdate: {{ person.birthdate | date format="dd.MM.yyyy" }}
-        Age: {{ person.age }}        
+        Age: {{ person.age }}
         Addresses:
         ----------
         {{for address in person.addresses}}
@@ -49,7 +49,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
       val resultBody = """
         Person: Mickey Mouse
         Birthdate: 22.05.1980
-        Age: 102        
+        Age: 102
         Addresses:
         ----------
         Street: street1
@@ -104,7 +104,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
         new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0)),
       Projekt(ProjektId(0), "my project", None, None, None, None, None, false, false, false, CHF, 1, 1,
         Map(Rolle("AdministratorZugang").get -> false, Rolle("KundenZugang").get -> false),
-        Locale.GERMAN, None, None, false, new DateTime(2017, 1, 15, 0, 0, 0),
+        Locale.GERMAN, None, None, false, false, Stunden, 3, true, new DateTime(2017, 1, 15, 0, 0, 0),
         PersonId(0), new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0)),
       Produzent(ProduzentId(0), "TestProduzent", Some("Hans"), "PRZ", None, None, None, "1234", "Bern", None,
         "info@produzent.ch", None, None, None, None, false, None, None, false,
