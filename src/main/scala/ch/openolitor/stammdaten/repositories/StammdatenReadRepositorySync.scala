@@ -50,6 +50,10 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getCustomKundentypen(implicit session: DBSession): List[CustomKundentyp]
   def getPersonen(implicit session: DBSession): List[Person]
   def getPersonen(kundeId: KundeId)(implicit session: DBSession): List[Person]
+  def getPersonenForAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person]
+  def getPersonenForZusatzabotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person]
+  def getPersonen(tourId: TourId)(implicit session: DBSession): List[Person]
+  def getPersonen(DepotId: DepotId)(implicit session: DBSession): List[Person]
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz]
 
   def getLatestLieferplanung(implicit session: DBSession): Option[Lieferplanung]
@@ -74,6 +78,8 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getKoerbe(datum: DateTime, vertriebsartIds: List[VertriebsartId], status: KorbStatus)(implicit session: DBSession): List[Korb]
   def getKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): List[Korb]
   def getKoerbeNichtAusgeliefertByAbo(aboId: AboId)(implicit session: DBSession): List[Korb]
+  def getKorbLatestWirdGeliefert(aboId: AboId, beforeDate: DateTime)(implicit session: DBSession): Option[Korb]
+  def getKorbeLaterWirdGeliefert(korbId: KorbId)(implicit session: DBSession): List[Korb]
   def countKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): Option[Int]
   def getAktiveAbos(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime, lieferplanungId: LieferplanungId)(implicit session: DBSession): List[Abo]
   def countAbwesend(lieferungId: LieferungId, aboId: AboId)(implicit session: DBSession): Option[Int]
@@ -83,9 +89,9 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getLieferungen(id: LieferplanungId)(implicit session: DBSession): List[Lieferung]
   def getLieferungen(id: VertriebId)(implicit session: DBSession): List[Lieferung]
   def getLieferungenDetails(id: LieferplanungId)(implicit session: DBSession): List[LieferungDetail]
-  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal]
-  def getGeplanteLieferungVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
-  def getGeplanteLieferungNachher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
+  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal]
+  def getGeplanteLieferungVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
+  def getGeplanteLieferungNachher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
   def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int]
   def getSammelbestellungen(id: LieferplanungId)(implicit session: DBSession): List[Sammelbestellung]
   def getSammelbestellungen(id: LieferungId)(implicit session: DBSession): List[Sammelbestellung]
@@ -253,6 +259,22 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getPersonenQuery(kundeId).apply()
   }
 
+  def getPersonenForAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person] = {
+    getPersonenForAbotypQuery(abotypId).apply()
+  }
+
+  def getPersonenForZusatzabotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person] = {
+    getPersonenForZusatzabotypQuery(abotypId).apply()
+  }
+
+  def getPersonen(tourId: TourId)(implicit session: DBSession): List[Person] = {
+    getPersonenQuery(tourId).apply()
+  }
+
+  def getPersonen(depotId: DepotId)(implicit session: DBSession): List[Person] = {
+    getPersonenQuery(depotId).apply()
+  }
+
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz] = {
     getPendenzenQuery(id).apply()
   }
@@ -353,6 +375,14 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getKoerbeNichtAusgeliefertByAboQuery(aboId)()
   }
 
+  def getKorbLatestWirdGeliefert(aboId: AboId, beforeDate: DateTime)(implicit session: DBSession): Option[Korb] = {
+    getKorbLatestWirdGeliefertQuery(aboId, beforeDate)()
+  }
+
+  def getKorbeLaterWirdGeliefert(korbId: KorbId)(implicit session: DBSession): List[Korb] = {
+    getKorbeLaterWirdGeliefertQuery(korbId)()
+  }
+
   def getAktiveAbos(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime, lieferplanungId: LieferplanungId)(implicit session: DBSession): List[Abo] = {
     getAktiveDepotlieferungAbos(abotypId, vertriebId, lieferdatum) :::
       getAktiveHeimlieferungAbos(abotypId, vertriebId, lieferdatum) :::
@@ -400,16 +430,16 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getLieferungenDetailsQuery(id)()
   }
 
-  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal] = {
-    sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId, datum, startGeschaeftsjahr).apply()
+  def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal] = {
+    sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId, abotypId, datum, startGeschaeftsjahr).apply()
   }
 
-  def getGeplanteLieferungVorher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
-    getGeplanteLieferungVorherQuery(vertriebId, datum).apply()
+  def getGeplanteLieferungVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
+    getGeplanteLieferungVorherQuery(vertriebId, abotypId, datum).apply()
   }
 
-  def getGeplanteLieferungNachher(vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
-    getGeplanteLieferungNachherQuery(vertriebId, datum).apply()
+  def getGeplanteLieferungNachher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
+    getGeplanteLieferungNachherQuery(vertriebId, abotypId, datum).apply()
   }
 
   def countEarlierLieferungOffen(id: LieferplanungId)(implicit session: DBSession): Option[Int] = {

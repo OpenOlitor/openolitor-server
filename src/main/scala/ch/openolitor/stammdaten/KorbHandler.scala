@@ -92,12 +92,22 @@ trait KorbHandler extends KorbStatusHandler
         val mainAbo = stammdatenWriteRepository.getHauptAbo(zusatzAbo.id)
         val hauptabotyp = stammdatenWriteRepository.getAbotypDetail(zusatzAbo.hauptAbotypId)
         val abwCount = stammdatenWriteRepository.countAbwesend(mainAbo.get.id, lieferung.datum.toLocalDate)
-        (calculateKorbStatus(abwCount, mainAbo.get.guthaben, hauptabotyp.get.guthabenMindestbestand), mainAbo.get.guthaben)
+        val guthabenVorLieferung = stammdatenWriteRepository.getKorbLatestWirdGeliefert(zusatzAbo.id, lieferung.datum) match {
+          case Some(korb) =>
+            (korb.guthabenVorLieferung - 1)
+          case None => mainAbo.get.guthaben
+        }
+        (calculateKorbStatus(abwCount, mainAbo.get.guthaben, hauptabotyp.get.guthabenMindestbestand), guthabenVorLieferung)
       case abo: HauptAbo =>
         val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
         abotyp match {
           case hauptabotyp: Abotyp =>
-            (calculateKorbStatus(abwCount, abo.guthaben, hauptabotyp.guthabenMindestbestand), abo.guthaben)
+            val guthabenVorLieferung = stammdatenWriteRepository.getKorbLatestWirdGeliefert(abo.id, lieferung.datum) match {
+              case Some(korb) =>
+                (korb.guthabenVorLieferung - 1)
+              case None => abo.guthaben
+            }
+            (calculateKorbStatus(abwCount, abo.guthaben, hauptabotyp.guthabenMindestbestand), guthabenVorLieferung)
           case _ =>
             logger.error(s"calculateStatusGuthaben: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
             throw new InvalidStateException(s"calculateStatusGuthaben: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
@@ -205,9 +215,9 @@ trait KorbHandler extends KorbStatusHandler
 
   private def offenLieferung(lieferplanungId: LieferplanungId, project: Option[Projekt], lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
     logger.debug(s" offenLieferung : lieferplanungId : $lieferplanungId project : $project lieferung : $lieferung")
-    val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.datum) match {
+    val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.abotypId, lieferung.datum) match {
       case Some(lieferungVorher) if project.get.geschaftsjahr.isInSame(lieferungVorher.datum.toLocalDate(), lieferung.datum.toLocalDate()) =>
-        val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.datum, project.get.geschaftsjahr.start(lieferung.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
+        val sum = stammdatenWriteRepository.sumPreisTotalGeplanteLieferungenVorher(lieferung.vertriebId, lieferung.abotypId, lieferung.datum, project.get.geschaftsjahr.start(lieferung.datum.toLocalDate()).toDateTimeAtCurrentTime()).getOrElse(BigDecimal(0))
 
         val durchschnittspreisBisher: BigDecimal = lieferungVorher.anzahlLieferungen match {
           case 0 => BigDecimal(0)
@@ -298,22 +308,51 @@ trait KorbHandler extends KorbStatusHandler
     }
   }
 
-  def modifyKoerbeForAboVertriebChange(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+  def modifyKoerbeForAboVertriebChange(abo: HauptAbo, orig: Option[HauptAbo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     logger.debug(s"modifyKoerbeForAboVertriebChange abo: $abo orig: $orig")
     for {
       originalAbo <- orig
       if (abo.vertriebId != originalAbo.vertriebId)
       abotyp <- stammdatenWriteRepository.getAbotypById(abo.abotypId)
     } yield {
-      stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
+      /* create or delete basket for the main abo*/
+      val offenLieferungenForMainAbo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId)
+      offenLieferungenForMainAbo map { lieferung =>
         if (lieferung.vertriebId == originalAbo.vertriebId) {
           deleteKorb(lieferung, originalAbo)
         }
         if (lieferung.vertriebId == abo.vertriebId) {
           upsertKorb(lieferung, abo, abotyp)
         }
-        recalculateNumbersLieferung(lieferung)
       }
+
+      /* create or delete basket for the zusatzabo*/
+      stammdatenWriteRepository.getZusatzAbos(abo.id).filter(z => z.aktiv) map { zusatzabo =>
+        stammdatenWriteRepository.getZusatzAbotypDetail(zusatzabo.abotypId) map {
+          zusatzabotyp =>
+            val offenLieferungenForZusatzabo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(zusatzabo.abotypId)
+            offenLieferungenForZusatzabo map { lieferung =>
+              if (lieferung.vertriebId == originalAbo.vertriebId) {
+                deleteKorb(lieferung, zusatzabo)
+              }
+              //check if the zusatzlieferung is programmed for the main lieferung. In other cases we don't even try to create a basket for the zusatzabo
+              offenLieferungenForMainAbo.filter(l => l.lieferplanungId == lieferung.lieferplanungId) map {
+                mainAboLieferung =>
+                  stammdatenWriteRepository.getKorb(mainAboLieferung.id, abo.id) match {
+                    case Some(_) =>
+                      if (lieferung.abotypId == zusatzabo.abotypId) {
+                        upsertKorb(lieferung, zusatzabo, zusatzabotyp)
+                      } else if (offenLieferungenForZusatzabo.filter(l => l.abotypId == zusatzabo.abotypId).isEmpty) {
+                        adjustOpenLieferplanung(zusatzabo.id)
+                      }
+                      recalculateNumbersLieferung(lieferung)
+                    case None =>
+                  }
+              }
+            }
+        }
+      }
+      offenLieferungenForMainAbo.map(recalculateNumbersLieferung(_))
     }
   }
 

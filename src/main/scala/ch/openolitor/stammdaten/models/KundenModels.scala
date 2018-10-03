@@ -338,6 +338,17 @@ case class KundeModify(
   ansprechpersonen: Seq[PersonModify]
 ) extends JSONSerializable
 
+case class KundeMailRequest(
+  ids: Seq[KundeId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class KundeMailContext(
+  person: Person,
+  kunde: Kunde
+) extends JSONSerializable
+
 sealed trait Anrede
 case object Herr extends Anrede
 case object Frau extends Anrede
@@ -387,6 +398,51 @@ case class Person(
   modifikator: PersonId
 ) extends BaseEntity[PersonId] {
   def fullName = name + ' ' + vorname
+}
+
+object Person {
+  def build(
+    id: PersonId = PersonId(0),
+    kundeId: KundeId = KundeId(0),
+    anrede: Option[Anrede] = None,
+    name: String,
+    vorname: String,
+    email: Option[String] = None,
+    emailAlternative: Option[String] = None,
+    telefonMobil: Option[String] = None,
+    telefonFestnetz: Option[String] = None,
+    bemerkungen: Option[String] = None,
+    sort: Int = 1,
+    // security data
+    loginAktiv: Boolean = false,
+    passwort: Option[Array[Char]] = None,
+    letzteAnmeldung: Option[DateTime] = None,
+    passwortWechselErforderlich: Boolean = false,
+    rolle: Option[Rolle] = None
+  )(implicit person: PersonId): Person = Person(
+    id,
+    kundeId,
+    anrede,
+    name,
+    vorname,
+    email,
+    emailAlternative,
+    telefonMobil,
+    telefonFestnetz,
+    bemerkungen,
+    sort,
+    // security data
+    loginAktiv,
+    passwort,
+    letzteAnmeldung,
+    passwortWechselErforderlich,
+    rolle,
+    // modification flags
+    erstelldat = DateTime.now,
+    ersteller = person,
+    modifidat = DateTime.now,
+    modifikator = person
+  )
 }
 
 case class PersonDetail(
@@ -482,6 +538,16 @@ case class PersonCreate(
   def fullName = name + ' ' + vorname
 }
 
+case class PersonMailContext(
+  person: Person
+) extends JSONSerializable
+
+case class PersonMailRequest(
+  ids: Seq[PersonId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus
 case object Erledigt extends PendenzStatus
@@ -538,8 +604,28 @@ case class Einladung(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
-)
-  extends BaseEntity[EinladungId]
+) extends BaseEntity[EinladungId]
+
+object Einladung {
+  def build(
+    id: EinladungId = EinladungId(0),
+    personId: PersonId = PersonId(0),
+    uid: String,
+    expires: DateTime = DateTime.now,
+    datumVersendet: Option[DateTime] = None
+  )(implicit person: PersonId): Einladung = Einladung(
+    id,
+    personId,
+    uid,
+    expires,
+    datumVersendet,
+    // modification flags
+    erstelldat = DateTime.now,
+    ersteller = person,
+    modifidat = DateTime.now,
+    modifikator = person
+  )
+}
 
 case class EinladungCreate(
   id: EinladungId,
@@ -548,3 +634,9 @@ case class EinladungCreate(
   expires: DateTime,
   datumVersendet: Option[DateTime]
 ) extends JSONSerializable
+
+case class EinladungMailContext(
+  person: Person,
+  einladung: Einladung,
+  baseLink: String
+) extends Product

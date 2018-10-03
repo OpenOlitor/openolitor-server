@@ -44,7 +44,7 @@ class MailServiceSpec extends Specification {
   "MailService" should {
     "react to SendMailCommand" in new ActorTestScope {
       val probe = TestProbe()
-      val mailService = system.actorOf(MailService.props(null))
+      val mailService = system.actorOf(MailService.props(null, null))
 
       1 === 1
     }

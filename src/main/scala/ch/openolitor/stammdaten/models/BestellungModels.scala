@@ -49,6 +49,71 @@ case class Sammelbestellung(
   modifikator: PersonId
 ) extends BaseEntity[SammelbestellungId]
 
+case class SammelbestellungMail(
+  id: SammelbestellungId,
+  produzentId: ProduzentId,
+  produzentKurzzeichen: String,
+  lieferplanungId: LieferplanungId,
+  status: LieferungStatus,
+  datum: DateTime,
+  datumAbrechnung: Option[DateTime],
+  datumVersendet: Option[DateTime],
+  preisTotal: BigDecimal,
+  steuerSatz: Option[BigDecimal],
+  steuer: BigDecimal,
+  totalSteuer: BigDecimal,
+  bestellungen: Seq[BestellungMail],
+  projekt: Projekt,
+  produzent: Produzent,
+
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[SammelbestellungId]
+
+object SammelbestellungMail {
+  def build(
+    id: SammelbestellungId = SammelbestellungId(0),
+    produzentId: ProduzentId = ProduzentId(0),
+    produzentKurzzeichen: String,
+    lieferplanungId: LieferplanungId = LieferplanungId(0),
+    status: LieferungStatus,
+    datum: DateTime,
+    datumAbrechnung: Option[DateTime] = None,
+    datumVersendet: Option[DateTime] = None,
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal] = None,
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
+    bestellungen: Seq[BestellungMail] = Seq(),
+    projekt: Projekt,
+    produzent: Produzent
+  )(implicit person: PersonId): SammelbestellungMail = SammelbestellungMail(
+    id,
+    produzentId,
+    produzentKurzzeichen,
+    lieferplanungId,
+    status,
+    datum,
+    datumAbrechnung,
+    datumVersendet,
+    preisTotal,
+    steuerSatz,
+    steuer,
+    totalSteuer,
+    bestellungen,
+    projekt,
+    produzent,
+    //modification flags
+    erstelldat = DateTime.now,
+    ersteller = person,
+    modifidat = DateTime.now,
+    modifikator = person
+  )
+}
+
 case class SammelbestellungDetail(
   id: SammelbestellungId,
   produzentId: ProduzentId,
@@ -71,6 +136,13 @@ case class SammelbestellungDetail(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
+) extends JSONSerializable
+
+case class SammelbestellungMailContext(
+  sammelbestellung: Sammelbestellung,
+  projekt: Projekt,
+  produzent: Produzent,
+  bestellungen: Seq[BestellungMail]
 ) extends JSONSerializable
 
 case class BestellungId(id: Long) extends BaseId
@@ -98,6 +170,67 @@ case class Bestellung(
   modifidat: DateTime,
   modifikator: PersonId
 ) extends BaseEntity[BestellungId]
+
+case class BestellungMail(
+  id: BestellungId,
+  sammelbestellungId: SammelbestellungId,
+  // Summe der Preise der Bestellpositionen
+  preisTotal: BigDecimal,
+  steuerSatz: Option[BigDecimal],
+  // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+  steuer: BigDecimal,
+  totalSteuer: BigDecimal,
+  adminProzente: BigDecimal,
+  bestellpositionen: Seq[BestellpositionMail],
+  // Berechneter Abzug auf preisTotal
+  adminProzenteAbzug: BigDecimal,
+  totalNachAbzugAdminProzente: BigDecimal,
+
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[BestellungId] {
+  def hasAdminProzente: Boolean = adminProzente > 0
+}
+
+object BestellungMail {
+  def build(
+    id: BestellungId = BestellungId(0),
+    sammelbestellungId: SammelbestellungId = SammelbestellungId(0),
+    // Summe der Preise der Bestellpositionen
+    preisTotal: BigDecimal,
+    steuerSatz: Option[BigDecimal] = None,
+    // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+    steuer: BigDecimal,
+    totalSteuer: BigDecimal,
+    adminProzente: BigDecimal,
+    bestellpositionen: Seq[BestellpositionMail] = Seq(),
+    // Berechneter Abzug auf preisTotal
+    adminProzenteAbzug: BigDecimal,
+    totalNachAbzugAdminProzente: BigDecimal
+  )(implicit person: PersonId): BestellungMail = BestellungMail(
+    id,
+    sammelbestellungId,
+    // Summe der Preise der Bestellpositionen
+    preisTotal,
+    steuerSatz,
+    // Berechnete Steuer nach Abzug (adminProzenteAbzug)
+    steuer,
+    totalSteuer,
+    adminProzente,
+    bestellpositionen,
+    // Berechneter Abzug auf preisTotal
+    adminProzenteAbzug,
+    totalNachAbzugAdminProzente,
+    //modification flags
+    erstelldat = DateTime.now,
+    ersteller = person,
+    modifidat = DateTime.now,
+    modifikator = person
+  )
+}
 
 case class BestellungDetail(
   id: BestellungId,
@@ -161,8 +294,11 @@ case class BestellpositionId(id: Long) extends BaseId
 trait BestellpositionCalculatedFields {
   val menge: BigDecimal
   val anzahl: Int
+  val preisEinheit: Option[BigDecimal]
 
   lazy val mengeTotal = anzahl * menge
+  lazy val preisPos = (preisEinheit.getOrElse(BigDecimal(0)) * menge).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  lazy val detail = if (preisEinheit.getOrElse(BigDecimal(0)).compare(preisPos) == 0) "" else s""" ≙ ${preisPos}"""
 }
 
 case class Bestellposition(
@@ -181,6 +317,52 @@ case class Bestellposition(
   modifidat: DateTime,
   modifikator: PersonId
 ) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
+
+case class BestellpositionMail(
+  id: BestellpositionId,
+  bestellungId: BestellungId,
+  produktId: Option[ProduktId],
+  produktBeschrieb: String,
+  preisEinheit: Option[BigDecimal],
+  einheit: Liefereinheit,
+  menge: BigDecimal,
+  preis: Option[BigDecimal],
+  anzahl: Int,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[BestellpositionId] with BestellpositionCalculatedFields
+
+object BestellpositionMail {
+  def build(
+    id: BestellpositionId = BestellpositionId(0),
+    bestellungId: BestellungId = BestellungId(0),
+    produktId: Option[ProduktId] = None,
+    produktBeschrieb: String,
+    preisEinheit: Option[BigDecimal] = None,
+    einheit: Liefereinheit,
+    menge: BigDecimal,
+    preis: Option[BigDecimal] = None,
+    anzahl: Int
+  )(implicit person: PersonId): BestellpositionMail = BestellpositionMail(
+    id,
+    bestellungId,
+    produktId,
+    produktBeschrieb,
+    preisEinheit,
+    einheit,
+    menge,
+    preis,
+    anzahl,
+    //modification flags
+    erstelldat = DateTime.now,
+    ersteller = person,
+    modifidat = DateTime.now,
+    modifikator = person
+  )
+}
 
 case class BestellpositionModify(
   bestellungId: BestellungId,

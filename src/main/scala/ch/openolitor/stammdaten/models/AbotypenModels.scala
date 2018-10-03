@@ -223,6 +223,17 @@ case class AbotypModify(
   wirdGeplant: Boolean
 ) extends AktivRange with JSONSerializable
 
+case class AbotypMailRequest(
+  ids: Seq[AbotypId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class AbotypMailContext(
+  person: Person,
+  abotyp: IAbotyp
+) extends JSONSerializable
+
 case class ZusatzAbotyp(
   id: AbotypId,
   name: String,
@@ -304,3 +315,14 @@ case class ZusatzAbotypModify(
   wirdGeplant: Boolean,
   waehrung: Waehrung
 ) extends AktivRange with JSONSerializable
+
+case class ZusatzabotypMailRequest(
+  ids: Seq[AbotypId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class ZusatzabotypMailContext(
+  person: Person,
+  zusatzabotyp: ZusatzAbotyp
+) extends JSONSerializable

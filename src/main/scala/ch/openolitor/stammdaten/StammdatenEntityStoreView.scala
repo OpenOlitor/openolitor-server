@@ -27,6 +27,8 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.stammdaten.repositories._
+import ch.openolitor.core.filestore.FileStoreReference
+import ch.openolitor.core.filestore.FileStore
 
 object StammdatenEntityStoreView {
   def props(mailService: ActorRef, dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenEntityStoreView], mailService, dbEvolutionActor, sysConfig, system)
@@ -58,10 +60,8 @@ trait StammdatenEntityStoreView extends EntityStoreView
 /**
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
-trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent {
-  val mailService: ActorRef
-  val sysConfig: SystemConfig
-  val system: ActorSystem
+trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with MailServiceReference with SystemConfigReference {
+  import EntityStore._
 
   override val insertService = StammdatenInsertService(sysConfig, system)
   override val updateService = StammdatenUpdateService(sysConfig, system)

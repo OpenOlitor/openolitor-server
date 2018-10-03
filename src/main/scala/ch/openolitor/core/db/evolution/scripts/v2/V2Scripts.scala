@@ -223,5 +223,6 @@ object V2Scripts {
     OO942_EnlargeFileRef.scripts ++
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
-    OO109_Arbeitseinsatz.scripts
+    OO109_Arbeitseinsatz.scripts ++
+    OO762_Mail_Templates.scripts
 }

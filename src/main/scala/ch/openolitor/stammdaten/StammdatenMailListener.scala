@@ -47,6 +47,9 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
   with ConnectionPoolContextAware {
   this: StammdatenWriteRepositoryComponent =>
 
+  // implicitly expose the eventStream
+  lazy implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
   override def preStart() {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[MailSentEvent])

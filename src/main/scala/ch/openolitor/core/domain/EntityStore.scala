@@ -128,6 +128,7 @@ trait EntityStore extends AggregateRoot
     buchhaltungCommandHandler,
     arbeitseinsatzCommandHandler,
     reportsCommandHandler,
+    mailTemplateCommandHandler,
     kundenportalCommandHandler,
     baseCommandHandler
   )
@@ -278,5 +279,5 @@ trait EntityStore extends AggregateRoot
 
 class DefaultEntityStore(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val evolution: Evolution) extends EntityStore
   with DefaultCommandHandlerComponent {
-  val system = context.system
+  lazy val system = context.system
 }

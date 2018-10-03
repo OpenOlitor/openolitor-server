@@ -1,0 +1,64 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
+package ch.openolitor.mailtemplates.model
+
+import ch.openolitor.core.models._
+import org.joda.time.DateTime
+import ch.openolitor.core.JSONSerializable
+
+sealed trait TemplateType
+case object ProduzentenBestellungMailTemplateType extends TemplateType
+case object PasswordResetMailTemplateType extends TemplateType
+case object InvitationMailTemplateType extends TemplateType
+case object CustomMailTemplateType extends TemplateType
+
+object TemplateType {
+  val AllTemplateTypes = Vector(ProduzentenBestellungMailTemplateType, PasswordResetMailTemplateType, InvitationMailTemplateType, CustomMailTemplateType)
+
+  def apply(value: String): TemplateType = {
+    AllTemplateTypes.find(_.toString == value).get
+  }
+}
+
+case class MailTemplateId(id: Long) extends BaseId
+case class MailTemplate(
+  id: MailTemplateId,
+  templateType: TemplateType,
+  templateName: String,
+  description: Option[String],
+  subject: String,
+  body: String,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[MailTemplateId] with JSONSerializable
+
+case class MailTemplateModify(
+  templateType: TemplateType,
+  templateName: String,
+  description: Option[String],
+  subject: String,
+  body: String
+) extends JSONSerializable

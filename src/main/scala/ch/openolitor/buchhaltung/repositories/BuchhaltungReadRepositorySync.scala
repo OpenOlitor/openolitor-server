@@ -41,6 +41,7 @@ trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
   def getZahlungsEingangByReferenznummer(referenzNummer: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[ZahlungsEingang]
 
   def getKontoDaten(implicit session: DBSession): Option[KontoDaten]
+  def getPerson(rechnungId: RechnungId)(implicit session: DBSession): List[Person]
 }
 
 trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync with LazyLogging with BuchhaltungRepositoryQueries {
@@ -78,5 +79,9 @@ trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync wi
 
   def getKontoDaten(implicit session: DBSession): Option[KontoDaten] = {
     getKontoDatenQuery.apply()
+  }
+
+  def getPerson(rechnungId: RechnungId)(implicit session: DBSession): List[Person] = {
+    getPersonQuery(rechnungId).apply()
   }
 }
