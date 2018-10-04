@@ -422,6 +422,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       case _ =>
         complete("")
     }
+  }
 
   def generatePain008(ids: List[Rechnung])(implicit subect: Subject): Either[String, String] = {
     val NbOfTxs = ids.size.toString

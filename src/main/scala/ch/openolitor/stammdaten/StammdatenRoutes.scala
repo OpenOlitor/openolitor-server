@@ -81,7 +81,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
         mailingRoute
-        kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
+      kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute
     }
 

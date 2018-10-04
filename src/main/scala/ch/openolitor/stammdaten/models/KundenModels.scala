@@ -443,7 +443,8 @@ object Person {
     passwort: Option[Array[Char]] = None,
     letzteAnmeldung: Option[DateTime] = None,
     passwortWechselErforderlich: Boolean = false,
-    rolle: Option[Rolle] = None
+    rolle: Option[Rolle] = None,
+    categories: Set[PersonCategoryNameId] = Set()
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -462,6 +463,7 @@ object Person {
     letzteAnmeldung,
     passwortWechselErforderlich,
     rolle,
+    categories,
     // modification flags
     erstelldat = DateTime.now,
     ersteller = person,
