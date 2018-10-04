@@ -44,7 +44,6 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
   implicit val rechnungsPositionStatusBinders: Binders[RechnungsPositionStatus.RechnungsPositionStatus] = toStringBinder(RechnungsPositionStatus.apply)
   implicit val rechnungsPositionTypBinders: Binders[RechnungsPositionTyp.RechnungsPositionTyp] = toStringBinder(RechnungsPositionTyp.apply)
   implicit val optionRechnungIdBinder: Binders[Option[RechnungId]] = optionBaseIdBinders(RechnungId.apply _)
-  implicit val optionAboIdBinder: Binders[Option[AboId]] = optionBaseIdBinders(AboId.apply _)
 
   implicit val zahlungsEingangStatusBinders: Binders[ZahlungsEingangStatus] = toStringBinder(ZahlungsEingangStatus.apply)
 

@@ -36,11 +36,11 @@ object ZusatzAboParser extends EntityParser {
   def parse(kundeIdMapping: Map[Long, KundeId], kunden: List[Kunde], vertriebsartIdMapping: Map[Long, VertriebsartId], vertriebsarten: List[Vertriebsart], vertriebe: List[Vertrieb],
     abotypen: List[ZusatzAbotyp], abos: List[Abo], abwesenheiten: List[Abwesenheit])(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[ZusatzAbo, AboId]("id", Seq("haupt_abo_id", "abotyp_id", "kunde_id", "vertriebsart_id", "start", "ende",
-      "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen") ++ modifyColumns) { id => indexes =>
+      "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen", "anzahl_einsaetze") ++ modifyColumns) { id => indexes =>
       row =>
         //match column indexes
         val Seq(haupAboIdIndex, zusatzAbotypIdIndex, kundeIdIndex, vertriebsartIdIndex, startIndex, endeIndex,
-          guthabenVertraglichIndex, guthabenIndex, guthabenInRechnungIndex, indexLetzteLieferung, indexAnzahlAbwesenheiten, lieferungenIndex) = indexes take (12)
+          guthabenVertraglichIndex, guthabenIndex, guthabenInRechnungIndex, indexLetzteLieferung, indexAnzahlAbwesenheiten, lieferungenIndex, anzahlEinsaetzeIndex) = indexes take (12)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
         val hauptAboIdInt = row.value[Long](haupAboIdIndex)
@@ -55,6 +55,7 @@ object ZusatzAboParser extends EntityParser {
         //calculate count
         val anzahlAbwesenheiten = parseTreeMap(row.value[String](indexAnzahlAbwesenheiten))(identity, _.toInt)
         val anzahlLieferungen = parseTreeMap(row.value[String](lieferungenIndex))(identity, _.toInt)
+        val anzahlEinsaetze = parseTreeMap(row.value[String](anzahlEinsaetzeIndex))(identity, BigDecimal(_))
 
         val erstelldat = row.value[DateTime](indexErstelldat)
         val ersteller = PersonId(row.value[Long](indexErsteller))
@@ -85,6 +86,7 @@ object ZusatzAboParser extends EntityParser {
           //calculated fields
           anzahlAbwesenheiten = anzahlAbwesenheiten,
           anzahlLieferungen = anzahlLieferungen,
+          anzahlEinsaetze = anzahlEinsaetze,
           aktiv = aktiv,
           //modification flags
           erstelldat = erstelldat,

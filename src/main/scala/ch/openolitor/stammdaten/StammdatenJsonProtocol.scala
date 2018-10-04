@@ -107,6 +107,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   }
 
   implicit val waehrungFormat = enumFormat(Waehrung.apply)
+  implicit val einsatzEinheitFormat = enumFormat(EinsatzEinheit.apply)
   implicit val laufzeiteinheitFormat = enumFormat(Laufzeiteinheit.apply)
   implicit val lieferungStatusFormat = enumFormat(LieferungStatus.apply)
   implicit val korbStatusFormat = enumFormat(KorbStatus.apply)

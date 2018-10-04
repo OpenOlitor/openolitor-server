@@ -126,6 +126,7 @@ trait EntityStore extends AggregateRoot
   lazy val moduleCommandHandlers: List[CommandHandler] = List(
     stammdatenCommandHandler,
     buchhaltungCommandHandler,
+    arbeitseinsatzCommandHandler,
     reportsCommandHandler,
     mailTemplateCommandHandler,
     kundenportalCommandHandler,

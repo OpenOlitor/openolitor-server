@@ -39,6 +39,8 @@ import scala.reflect._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.reports.ReportsDBMappings
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import akka.actor.ActorSystem
 import ch.openolitor.core.ActorSystemReference
@@ -55,7 +57,7 @@ case class EvolutionException(msg: String) extends Exception
  * Base evolution class to evolve database from a specific revision to another
  */
 class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMappings with LazyLogging with StammdatenDBMappings
-  with BuchhaltungDBMappings with ReportsDBMappings with MailTemplateDBMappings {
+  with BuchhaltungDBMappings with ReportsDBMappings with ArbeitseinsatzDBMappings with MailTemplateDBMappings {
   import IteratorUtil._
 
   logger.debug(s"Evolution manager consists of:$scripts")
@@ -81,6 +83,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
             maxId[PostlieferungAbo, AboId](postlieferungAboMapping),
             maxId[ZusatzAbo, AboId](zusatzAboMapping)
           ),
+
           adjustSeed[Kunde, KundeId](kundeMapping),
           adjustSeed[CustomKundentyp, CustomKundentypId](customKundentypMapping),
           adjustSeed[Lieferung, LieferungId](lieferungMapping),
@@ -101,6 +104,8 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[Rechnung, RechnungId](rechnungMapping),
           adjustSeed[ZahlungsImport, ZahlungsImportId](zahlungsImportMapping),
           adjustSeed[ZahlungsEingang, ZahlungsEingangId](zahlungsEingangMapping),
+          adjustSeed[Arbeitsangebot, ArbeitsangebotId](arbeitsangebotMapping),
+          adjustSeed[Arbeitseinsatz, ArbeitseinsatzId](arbeitseinsatzMapping),
           adjustSeed[Einladung, EinladungId](einladungMapping),
           adjustSeed[Sammelbestellung, SammelbestellungId](sammelbestellungMapping),
           adjustSeed[MailTemplate, MailTemplateId](mailTemplateMapping),

@@ -60,6 +60,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getKundenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[KundeUebersicht]]
   def getKundeDetail(id: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetail]]
   def getKundeDetailReport(kundeId: KundeId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetailReport]]
+  def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]]
 
   def getCustomKundentypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[CustomKundentyp]]
 
@@ -186,6 +187,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getKundeDetailReport(kundeId: KundeId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetailReport]] = {
     getKundeDetailReportQuery(kundeId, projekt).future
+  }
+
+  def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]] = {
+    getKundeDetailsArbeitseinsatzReportQuery(projekt).future
   }
 
   def getPersonen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Person]] = {

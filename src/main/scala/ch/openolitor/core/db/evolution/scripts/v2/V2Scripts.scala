@@ -36,6 +36,7 @@ import ch.openolitor.core.models.PersistenceEventState
 import ch.openolitor.core.models.PersistenceEventStateId
 import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
 object V2Scripts {
 
@@ -100,6 +101,7 @@ object V2Scripts {
         vertragslaufzeit varchar(50),
         kuendigungsfrist varchar(50),
         anzahl_abwesenheiten int,
+        anzahl_einsaetze DECIMAL(5,2),
         farb_code varchar(20),
         zielpreis DECIMAL(7,2),
         guthaben_mindestbestand int,
@@ -112,7 +114,8 @@ object V2Scripts {
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`))""".execute.apply()
 
       sql"""create table ${zusatzAboMapping.table}  (
         id BIGINT not null,
@@ -133,12 +136,82 @@ object V2Scripts {
         letzte_lieferung datetime,
         anzahl_abwesenheiten varchar(500),
         anzahl_lieferungen varchar(500),
+        anzahl_einsaetze varchar(500),
         aktiv varchar(1),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`))""".execute.apply()
 
+      Success(true)
+    }
+  }
+
+  val arbeitseinsatzDBInitializationScript = new Script with LazyLogging with ArbeitseinsatzDBMappings {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      //drop all tables
+      logger.debug(s"oo-system: cleanupDatabase - drop tables - arbeitseinsatz")
+
+      sql"drop table if exists ${arbeitskategorieMapping.table}".execute.apply()
+      sql"drop table if exists ${arbeitsangebotMapping.table}".execute.apply()
+      sql"drop table if exists ${arbeitseinsatzMapping.table}".execute.apply()
+
+      logger.debug(s"oo-system: cleanupDatabase - create tables - arbeitseinsatz")
+      //create tables
+
+      sql"""create table ${arbeitskategorieMapping.table} (
+        id BIGINT not null,
+        beschreibung varchar(200),
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`))""".execute.apply()
+
+      sql"""create table ${arbeitsangebotMapping.table} (
+        id BIGINT not null,
+        kopie_von BIGINT,
+        titel varchar(200) not null,
+        bezeichnung varchar(200),
+        ort varchar(500),
+        zeit_von datetime not null,
+        zeit_bis datetime,
+        arbeitskategorien varchar(1000),
+        anzahl_eingeschriebene DECIMAL(3,0) not null,
+        anzahl_personen DECIMAL(3,0),
+        mehr_personen_ok varchar(1) not null,
+        einsatz_zeit DECIMAL(5,2),
+        status varchar(20) not null,
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`))""".execute.apply()
+
+      sql"""create table ${arbeitseinsatzMapping.table} (
+        id BIGINT not null,
+        arbeitsangebot_id BIGINT,
+        arbeitsangebot_titel varchar(200) not null,
+        arbeitsangebot_status varchar(20) not null,
+        zeit_von datetime not null,
+        zeit_bis datetime,
+        einsatz_zeit DECIMAL(5,2),
+        kunde_id BIGINT not null,
+        kunde_bezeichnung varchar(50),
+        person_id BIGINT,
+        person_name varchar(50),
+        abo_id BIGINT,
+        abo_bezeichnung varchar(50),
+        anzahl_personen DECIMAL(3,0),
+        bemerkungen varchar(300),
+        erstelldat datetime not null,
+        ersteller BIGINT not null,
+        modifidat datetime not null,
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`))""".execute.apply()
+
+      logger.debug(s"oo-system: cleanupDatabase - end - arbeitseinsatz")
       Success(true)
     }
   }
@@ -155,5 +228,7 @@ object V2Scripts {
     OO900_Guthaben.scripts ++
     OO942_EnlargeFileRef.scripts ++
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
-    OO762_Mail_Templates.scripts
+    OO762_Mail_Templates.scripts ++
+    Seq(arbeitseinsatzDBInitializationScript) ++
+    OO109_Arbeitseinsatz.scripts
 }

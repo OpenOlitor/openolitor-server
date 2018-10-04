@@ -36,6 +36,7 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.buchhaltung.models.Rechnung
 import ch.openolitor.buchhaltung.models.RechnungDetail
+import ch.openolitor.arbeitseinsatz.models._
 
 trait KundenportalReadRepositoryAsync {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
@@ -49,6 +50,9 @@ trait KundenportalReadRepositoryAsync {
 
   def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Rechnung]]
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[RechnungDetail]]
+
+  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[ArbeitseinsatzDetail]]
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Arbeitsangebot]]
 }
 
 class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsync with LazyLogging with KundenportalRepositoryQueries {
@@ -100,5 +104,13 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
 
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[RechnungDetail]] = {
     getRechnungDetailQuery(id).future
+  }
+
+  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[ArbeitseinsatzDetail]] = {
+    getArbeitseinsaetzeQuery.future
+  }
+
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Arbeitsangebot]] = {
+    getArbeitsangeboteQuery.future
   }
 }

@@ -49,6 +49,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val kundeIdBinder: Binders[KundeId] = baseIdBinders(KundeId.apply _)
   implicit val pendenzIdBinder: Binders[PendenzId] = baseIdBinders(PendenzId.apply _)
   implicit val aboIdBinder: Binders[AboId] = baseIdBinders(AboId.apply _)
+  implicit val optionAboIdBinder: Binders[Option[AboId]] = optionBaseIdBinders(AboId.apply _)
   implicit val aboIdSetBinder: Binders[Set[AboId]] = setBaseIdBinders(AboId.apply _)
   implicit val lierferungIdBinder: Binders[LieferungId] = baseIdBinders(LieferungId.apply _)
   implicit val lieferplanungIdBinder: Binders[LieferplanungId] = baseIdBinders(LieferplanungId.apply _)
@@ -90,6 +91,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val liefereinheiBinders: Binders[Liefereinheit] = toStringBinder(Liefereinheit.apply)
   implicit val liefersaisonBinders: Binders[Liefersaison] = toStringBinder(Liefersaison.apply)
   implicit val vorlageTypeBinders: Binders[VorlageTyp] = toStringBinder(VorlageTyp.apply)
+  implicit val einsatzEinheitBinders: Binders[EinsatzEinheit] = toStringBinder(EinsatzEinheit.apply)
   implicit val anredeBinders: Binders[Anrede] = toStringBinder(Anrede.apply(_).getOrElse(null))
   implicit val anredeOptionBinders: Binders[Option[Anrede]] = Binders.option[Anrede]
   implicit val fristBinders: Binders[Option[Frist]] = Binders.string.xmap(_ match {
@@ -129,6 +131,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit def liefereinheitParameterBinderFactory[A <: Liefereinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def liefersaisonParameterBinderFactory[A <: Liefersaison]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def vorlageParameterBinderFactory[A <: VorlageTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit def einsatzEinheitBinderFactory[A <: EinsatzEinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val abotypMapping = new BaseEntitySQLSyntaxSupport[Abotyp] {
     override val tableName = "Abotyp"
@@ -154,6 +157,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.vertragslaufzeit -> abotyp.vertragslaufzeit,
         column.kuendigungsfrist -> abotyp.kuendigungsfrist,
         column.anzahlAbwesenheiten -> abotyp.anzahlAbwesenheiten,
+        column.anzahlEinsaetze -> abotyp.anzahlEinsaetze,
         column.farbCode -> abotyp.farbCode,
         column.zielpreis -> abotyp.zielpreis,
         column.guthabenMindestbestand -> abotyp.guthabenMindestbestand,
@@ -190,6 +194,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.vertragslaufzeit -> zusatzabotyp.vertragslaufzeit,
         column.kuendigungsfrist -> zusatzabotyp.kuendigungsfrist,
         column.anzahlAbwesenheiten -> zusatzabotyp.anzahlAbwesenheiten,
+        column.anzahlEinsaetze -> zusatzabotyp.anzahlEinsaetze,
         column.farbCode -> zusatzabotyp.farbCode,
         column.zielpreis -> zusatzabotyp.zielpreis,
         column.adminProzente -> zusatzabotyp.adminProzente,
@@ -618,6 +623,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.letzteLieferung -> abo.letzteLieferung,
         column.anzahlAbwesenheiten -> abo.anzahlAbwesenheiten,
         column.anzahlLieferungen -> abo.anzahlLieferungen,
+        column.anzahlEinsaetze -> abo.anzahlEinsaetze,
         column.aktiv -> abo.aktiv
       )
     }
@@ -786,6 +792,44 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     def parameterMappings(entity: Projekt): Seq[ParameterBinder] = parameters(Projekt.unapply(entity).get)
 
     override def updateParameters(projekt: Projekt) = {
+      super.updateParameters(projekt) ++ Seq(
+        column.bezeichnung -> projekt.bezeichnung,
+        column.strasse -> projekt.strasse,
+        column.hausNummer -> projekt.hausNummer,
+        column.adressZusatz -> projekt.adressZusatz,
+        column.plz -> projekt.plz,
+        column.ort -> projekt.ort,
+        column.preiseSichtbar -> projekt.preiseSichtbar,
+        column.preiseEditierbar -> projekt.preiseEditierbar,
+        column.emailErforderlich -> projekt.emailErforderlich,
+        column.waehrung -> projekt.waehrung,
+        column.geschaeftsjahrMonat -> projekt.geschaeftsjahrMonat,
+        column.geschaeftsjahrTag -> projekt.geschaeftsjahrTag,
+        column.twoFactorAuthentication -> projekt.twoFactorAuthentication,
+        column.sprache -> projekt.sprache,
+        column.welcomeMessage1 -> projekt.welcomeMessage1,
+        column.welcomeMessage2 -> projekt.welcomeMessage2,
+        column.maintenanceMode -> projekt.maintenanceMode,
+        column.generierteMailsSenden -> projekt.generierteMailsSenden,
+        column.einsatzEinheit -> projekt.einsatzEinheit,
+        column.einsatzAbsageVorlaufTage -> projekt.einsatzAbsageVorlaufTage,
+        column.einsatzShowListeKunde -> projekt.einsatzShowListeKunde
+      )
+    }
+  }
+
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  implicit val projektV1Mapping = new BaseEntitySQLSyntaxSupport[ProjektV1] {
+    override val tableName = "Projekt"
+
+    override lazy val columns = autoColumns[ProjektV1]()
+
+    def apply(rn: ResultName[ProjektV1])(rs: WrappedResultSet): ProjektV1 =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: ProjektV1): Seq[ParameterBinder] = parameters(ProjektV1.unapply(entity).get)
+
+    override def updateParameters(projekt: ProjektV1) = {
       super.updateParameters(projekt) ++ Seq(
         column.bezeichnung -> projekt.bezeichnung,
         column.strasse -> projekt.strasse,

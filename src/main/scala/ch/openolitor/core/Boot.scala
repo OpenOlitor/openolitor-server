@@ -61,6 +61,7 @@ import ch.openolitor.buchhaltung.BuchhaltungReportEventListener
 import ch.openolitor.core.batch.OpenOlitorBatchJobs
 import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
 import ch.openolitor.util.AirbrakeNotifier
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
 import ch.openolitor.core.jobs.JobQueueService
 import ch.openolitor.core.db.evolution.DBEvolutionActor
 import ch.openolitor.core.db.evolution.scripts.Scripts
@@ -209,8 +210,8 @@ object Boot extends App with LazyLogging {
       val buchhaltungDBEventListener = Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       val buchhaltungReportEventListener = Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
+      val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, dbEvolutionActor), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
       val mailTemplateEntityStoreView = Await.result(system ? SystemActor.Child(MailTemplateEntityStoreView.props(dbEvolutionActor), "mailtemplate-entity-store-view"), duration).asInstanceOf[ActorRef]
-
       val reportsEntityStoreView = Await.result(system ? SystemActor.Child(ReportsEntityStoreView.props(dbEvolutionActor), "reports-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportsDBEventListener = Await.result(system ? SystemActor.Child(ReportsDBEventEntityListener.props, "reports-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
 
@@ -227,6 +228,7 @@ object Boot extends App with LazyLogging {
       eventStore ? DefaultMessages.Startup
       stammdatenEntityStoreView ? DefaultMessages.Startup
       buchhaltungEntityStoreView ? DefaultMessages.Startup
+      arbeitseinsatzEntityStoreView ? DefaultMessages.Startup
       reportsEntityStoreView ? DefaultMessages.Startup
 
       // create and start our service actor

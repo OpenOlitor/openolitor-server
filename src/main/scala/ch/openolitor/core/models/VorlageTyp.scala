@@ -41,6 +41,7 @@ object VorlageTyp extends LazyLogging {
     VorlageProduzentenbrief,
     VorlageProduzentenabrechnung,
     VorlageLieferplanung,
+    VorlageArbeitseinsatz,
     VorlageMahnung
   )
 

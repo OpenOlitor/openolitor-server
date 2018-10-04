@@ -26,6 +26,7 @@ import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.scalax.Tuple25
+import ch.openolitor.arbeitseinsatz.models._
 
 case class KundeId(id: Long) extends BaseId
 
@@ -180,6 +181,41 @@ case class KundeDetailReport(
   abos: Seq[Abo],
   pendenzen: Seq[Pendenz],
   projekt: ProjektReport,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[KundeId] with IKundeReport
+
+case class KundeDetailArbeitseinsatzReport(
+  id: KundeId,
+  bezeichnung: String,
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  bemerkungen: Option[String],
+  abweichendeLieferadresse: Boolean,
+  bezeichnungLieferung: Option[String],
+  strasseLieferung: Option[String],
+  hausNummerLieferung: Option[String],
+  adressZusatzLieferung: Option[String],
+  plzLieferung: Option[String],
+  ortLieferung: Option[String],
+  zusatzinfoLieferung: Option[String],
+  typen: Set[KundentypId],
+  //Zusatzinformationen
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  anzahlPendenzen: Int,
+  anzahlPersonen: Int,
+  //Report infos
+  personen: Seq[PersonDetail],
+  anzahlArbeitseinsaetzeSoll: BigDecimal,
+  anzahlArbeitseinsaetzeIst: BigDecimal,
+  arbeitseinsaetze: Seq[Arbeitseinsatz],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,

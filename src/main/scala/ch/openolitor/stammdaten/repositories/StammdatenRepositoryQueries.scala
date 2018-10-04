@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
-import ch.openolitor.core.models._
 import scalikejdbc._
 import sqls.{ distinct, count }
 import ch.openolitor.stammdaten.models._
@@ -34,8 +33,9 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.FilterExpr
 import org.joda.time.LocalDate
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
-trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings {
+trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val zusatzAboTyp = zusatzAbotypMapping.syntax("zatyp")
@@ -64,6 +64,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val produktekategorie = produktekategorieMapping.syntax("produktekategorie")
   lazy val produzent = produzentMapping.syntax("produzent")
   lazy val projekt = projektMapping.syntax("projekt")
+  lazy val projektV1 = projektV1Mapping.syntax("projektV1")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
   lazy val produktProduzent = produktProduzentMapping.syntax("produktProduzent")
   lazy val produktProduktekategorie = produktProduktekategorieMapping.syntax("produktProduktekategorie")
@@ -76,6 +77,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val postAuslieferung = postAuslieferungMapping.syntax("postAuslieferung")
   lazy val projektVorlage = projektVorlageMapping.syntax("projektVorlage")
   lazy val einladung = einladungMapping.syntax("einladung")
+
+  lazy val arbeitseinsatz = arbeitseinsatzMapping.syntax("arbeitseinsatz")
 
   lazy val lieferpositionShort = lieferpositionMapping.syntax
   lazy val korbShort = korbMapping.syntax
@@ -209,6 +212,40 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         copyTo[Kunde, KundeDetailReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
           "personen" -> personenWihoutPwd, "projekt" -> projekt)
       }.single
+  }
+
+  protected def getKundeDetailsArbeitseinsatzReportQuery(projekt: ProjektReport) = {
+    withSQL {
+      select
+        .from(kundeMapping as kunde)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(kunde.id, heimlieferungAbo.kundeId)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
+        .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo.abotypId).or.eq(aboTyp.id, postlieferungAbo.abotypId))
+        .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+        .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
+        .orderBy(person.sort)
+    }.one(kundeMapping(kunde))
+      .toManies(
+        rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
+        rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => abotypMapping.opt(aboTyp)(rs),
+        rs => personMapping.opt(person)(rs),
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
+      )
+      .map { (kunde, pl, hl, dl, abotypen, personen, pendenzen, arbeitseinsaetze) =>
+        val abos = pl ++ hl ++ dl
+        val anzahlArbeitseinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(BigDecimal(0.0))) sum
+        val anzahlArbeitseinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(BigDecimal(0.0))) sum
+        val persL = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
+
+        copyTo[Kunde, KundeDetailArbeitseinsatzReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
+          "personen" -> persL, "projekt" -> projekt, "anzahlArbeitseinsaetzeSoll" -> anzahlArbeitseinsaetzeSoll,
+          "anzahlArbeitseinsaetzeIst" -> anzahlArbeitseinsaetzeIst, "arbeitseinsaetze" -> arbeitseinsaetze)
+      }.list
   }
 
   protected def getPersonenQuery = {
@@ -1033,6 +1070,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(projektMapping as projekt)
     }.map(projektMapping(projekt)).single
+  }
+
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  protected def getProjektV1Query = {
+    withSQL {
+      select
+        .from(projektV1Mapping as projektV1)
+    }.map(projektV1Mapping(projektV1)).single
   }
 
   protected def getKontoDatenQuery = {

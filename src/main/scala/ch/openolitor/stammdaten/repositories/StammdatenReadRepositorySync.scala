@@ -40,8 +40,10 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getHauptAbo(id: AboId)(implicit session: DBSession): Option[HauptAbo]
   def getExistingZusatzAbotypen(lieferungId: LieferungId)(implicit session: DBSession): List[ZusatzAbotyp]
   def getAbotypById(id: AbotypId)(implicit session: DBSession): Option[IAbotyp]
-
   def getProjekt(implicit session: DBSession): Option[Projekt]
+
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  def getProjektV1(implicit session: DBSession): Option[ProjektV1]
   def getKontoDaten(implicit session: DBSession): Option[KontoDaten]
   def getKunden(implicit session: DBSession): List[Kunde]
   def getKundenByKundentyp(kundentyp: KundentypId)(implicit session: DBSession): List[Kunde]
@@ -191,6 +193,11 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getProjekt(implicit session: DBSession): Option[Projekt] = {
     getProjektQuery.apply()
+  }
+
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  def getProjektV1(implicit session: DBSession): Option[ProjektV1] = {
+    getProjektV1Query.apply()
   }
 
   def getKontoDaten(implicit session: DBSession): Option[KontoDaten] = {

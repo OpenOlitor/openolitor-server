@@ -28,6 +28,7 @@ import akka.actor.Actor
 import org.joda.time.DateTime
 import akka.actor.Cancellable
 import akka.actor.ActorRef
+import scala.language.postfixOps
 
 object BatchJobs {
   case object InitializeBatchJob

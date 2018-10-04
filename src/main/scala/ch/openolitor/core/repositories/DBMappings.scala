@@ -109,6 +109,7 @@ trait DBMappings extends BaseParameter
 
   implicit val localeBinder: Binders[Locale] = Binders.string.xmap(l => Locale.forLanguageTag(l), _.toLanguageTag)
   implicit val personIdBinder: Binders[PersonId] = baseIdBinders(PersonId.apply _)
+  implicit val optionPersonIdBinder: Binders[Option[PersonId]] = optionBaseIdBinders(PersonId.apply _)
 
   implicit val charArrayBinder: Binders[Array[Char]] = Binders.string.xmap(_.toCharArray, x => new String(x))
   implicit val optionCharArrayBinder: Binders[Option[Array[Char]]] = Binders.string.xmap(s => Option(s).map(_.toCharArray), _.map(x => new String(x)).getOrElse(null))

@@ -23,7 +23,6 @@
 package ch.openolitor.buchhaltung
 
 import akka.actor._
-import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._

@@ -28,6 +28,21 @@ import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.scalax.Tuple26
+import ch.openolitor.core.scalax.Tuple27
+
+sealed trait EinsatzEinheit extends Product
+
+object EinsatzEinheit {
+  def apply(value: String): EinsatzEinheit = {
+    Vector(Stunden, Halbtage, Tage, Punkte) find (_.toString == value) getOrElse (Stunden)
+  }
+}
+
+case object Stunden extends EinsatzEinheit
+case object Halbtage extends EinsatzEinheit
+case object Tage extends EinsatzEinheit
+case object Punkte extends EinsatzEinheit
 
 case class ProjektId(id: Long) extends BaseId
 
@@ -90,6 +105,10 @@ case class Projekt(
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],
   maintenanceMode: Boolean,
+  generierteMailsSenden: Boolean,
+  einsatzEinheit: EinsatzEinheit,
+  einsatzAbsageVorlaufTage: Int,
+  einsatzShowListeKunde: Boolean,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -100,6 +119,36 @@ case class Projekt(
 }
 
 object Projekt {
+  def unapply(o: Projekt) = {
+    Some(Tuple26(
+      o.id,
+      o.bezeichnung,
+      o.strasse,
+      o.hausNummer,
+      o.adressZusatz,
+      o.plz,
+      o.ort,
+      o.preiseSichtbar,
+      o.preiseEditierbar,
+      o.emailErforderlich,
+      o.waehrung,
+      o.geschaeftsjahrMonat,
+      o.geschaeftsjahrTag,
+      o.twoFactorAuthentication,
+      o.sprache,
+      o.welcomeMessage1,
+      o.welcomeMessage2,
+      o.maintenanceMode,
+      o.generierteMailsSenden,
+      o.einsatzEinheit,
+      o.einsatzAbsageVorlaufTage,
+      o.einsatzShowListeKunde,
+      o.erstelldat,
+      o.ersteller,
+      o.modifidat,
+      o.modifikator
+    ))
+  }
 
   def build(
     id: ProjektId = ProjektId(0),
@@ -119,7 +168,11 @@ object Projekt {
     sprache: Locale = Locale.GERMAN,
     welcomeMessage1: Option[String] = None,
     welcomeMessage2: Option[String] = None,
-    maintenanceMode: Boolean = false
+    maintenanceMode: Boolean = false,
+    generierteMailsSenden: Boolean = false,
+    einsatzEinheit: EinsatzEinheit = Stunden,
+    einsatzAbsageVorlaufTage: Int = 3,
+    einsatzShowListeKunde: Boolean = true
   )(implicit person: PersonId): Projekt = {
     Projekt(
       id,
@@ -140,6 +193,10 @@ object Projekt {
       welcomeMessage1,
       welcomeMessage2,
       maintenanceMode,
+      generierteMailsSenden,
+      einsatzEinheit,
+      einsatzAbsageVorlaufTage,
+      einsatzShowListeKunde,
       erstelldat = DateTime.now,
       ersteller = person,
       modifidat = DateTime.now,
@@ -161,7 +218,10 @@ case class ProjektPublik(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   welcomeMessage1: Option[String],
-  maintenanceMode: Boolean
+  maintenanceMode: Boolean,
+  einsatzEinheit: EinsatzEinheit,
+  einsatzAbsageVorlaufTage: Int,
+  einsatzShowListeKunde: Boolean
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -215,8 +275,42 @@ case class ProjektModify(
   sprache: Locale,
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],
-  maintenanceMode: Boolean
+  maintenanceMode: Boolean,
+
+  generierteMailsSenden: Boolean,
+  einsatzEinheit: EinsatzEinheit,
+  einsatzAbsageVorlaufTage: Int,
+  einsatzShowListeKunde: Boolean
 ) extends JSONSerializable
+
+@deprecated("This class exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+case class ProjektV1(
+  id: ProjektId,
+  bezeichnung: String,
+  strasse: Option[String],
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: Option[String],
+  ort: Option[String],
+  preiseSichtbar: Boolean,
+  preiseEditierbar: Boolean,
+  emailErforderlich: Boolean,
+  waehrung: Waehrung,
+  geschaeftsjahrMonat: Int,
+  geschaeftsjahrTag: Int,
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  sprache: Locale,
+  welcomeMessage1: Option[String],
+  welcomeMessage2: Option[String],
+  maintenanceMode: Boolean,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[ProjektId] {
+  lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
+}
 
 case class KundentypId(id: String) extends BaseStringId
 
