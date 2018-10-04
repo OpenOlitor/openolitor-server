@@ -51,9 +51,6 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
   with ArbeitseinsatzDBMappings {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
-  val ZERO = 0
-  val FALSE = false
-
   val handle: Handle = {
     case EntityInsertedEvent(meta, id: ArbeitskategorieId, arbeitskategorie: ArbeitskategorieModify) =>
       createArbeitskategorie(meta, id, arbeitskategorie)

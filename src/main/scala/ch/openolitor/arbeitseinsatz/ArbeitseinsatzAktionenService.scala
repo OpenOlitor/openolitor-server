@@ -48,8 +48,6 @@ class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, overri
   lazy val config = sysConfig.mandantConfiguration.config
 
   val handle: Handle = {
-    //case LieferplanungAbschliessenEvent(meta, id: LieferplanungId) =>
-    //  lieferplanungAbschliessen(meta, id)
     case e =>
       logger.warn(s"Unknown event:$e")
   }

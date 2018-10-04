@@ -92,9 +92,4 @@ trait BaseBatchJob extends Actor with LazyLogging {
     val untilNextMidnight = new DateTime().withTimeAtStartOfDay.plusDays(1).getMillis - DateTime.now.getMillis
     untilNextMidnight millis
   }
-
-  protected def onceAnHour: FiniteDuration = {
-    val onceAnHour = new DateTime().plusHours(1).getMillis - DateTime.now.getMillis
-    onceAnHour millis
-  }
 }

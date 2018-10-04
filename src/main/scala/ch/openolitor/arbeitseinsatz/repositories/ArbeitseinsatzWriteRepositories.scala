@@ -51,8 +51,4 @@ trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzReadRepositorySync
     }
   }
 
-  //def deleteLieferpositionen(id: LieferungId)(implicit session: DBSession): Int = {
-  //  deleteLieferpositionenQuery(id).update.apply
-  //}
-
 }

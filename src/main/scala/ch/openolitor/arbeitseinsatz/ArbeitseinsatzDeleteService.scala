@@ -50,8 +50,6 @@ class ArbeitseinsatzDeleteService(override val sysConfig: SystemConfig) extends 
   self: ArbeitseinsatzWriteRepositoryComponent =>
   import EntityStore._
 
-  val ZERO = 0
-
   val handle: Handle = {
     case EntityDeletedEvent(meta, id: ArbeitskategorieId) => deleteArbeitskategorie(meta, id)
     case EntityDeletedEvent(meta, id: ArbeitsangebotId) => deleteArbeitsangebot(meta, id)

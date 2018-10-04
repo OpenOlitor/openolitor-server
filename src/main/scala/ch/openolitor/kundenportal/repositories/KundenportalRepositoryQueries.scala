@@ -88,7 +88,6 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
         .where.eq(depotlieferungAbo.kundeId, owner.kundeId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
-        // .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, parameter(Ungeplant)).or.eq(lieferplanung.status, parameter(ch.openolitor.stammdaten.models.Offen)))
         .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
     }
       .one(depotlieferungAboMapping(depotlieferungAbo))
@@ -117,7 +116,6 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(vertriebMapping as vertrieb).on(heimlieferungAbo.vertriebId, vertrieb.id)
         .where.eq(heimlieferungAbo.kundeId, owner.kundeId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
-        //.and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, parameter(Ungeplant)).or.eq(lieferplanung.status, parameter(ch.openolitor.stammdaten.models.Offen)))
         .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
     }
       .one(heimlieferungAboMapping(heimlieferungAbo))
@@ -146,7 +144,6 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(vertriebMapping as vertrieb).on(postlieferungAbo.vertriebId, vertrieb.id)
         .where.eq(postlieferungAbo.kundeId, owner.kundeId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
-        //.and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, parameter(Ungeplant)).or.eq(lieferplanung.status, parameter(ch.openolitor.stammdaten.models.Offen)))
         .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
     }
       .one(postlieferungAboMapping(postlieferungAbo))
