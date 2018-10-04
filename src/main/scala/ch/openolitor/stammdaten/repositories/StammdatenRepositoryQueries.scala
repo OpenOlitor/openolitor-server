@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.repositories
 
-import ch.openolitor.core.models._
 import scalikejdbc._
 import sqls.{ distinct, count }
 import ch.openolitor.stammdaten.models._
@@ -239,12 +238,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       )
       .map { (kunde, pl, hl, dl, abotypen, personen, pendenzen, arbeitseinsaetze) =>
         val abos = pl ++ hl ++ dl
-        val anzahlArbeitseinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(0)) sum
+        val anzahlArbeitseinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(BigDecimal(0.0))) sum
+        val anzahlArbeitseinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(BigDecimal(0.0))) sum
         val persL = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
 
         copyTo[Kunde, KundeDetailArbeitseinsatzReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
           "personen" -> persL, "projekt" -> projekt, "anzahlArbeitseinsaetzeSoll" -> anzahlArbeitseinsaetzeSoll,
-          "anzahlArbeitseinsaetzeIst" -> arbeitseinsaetze.length, "arbeitseinsaetze" -> arbeitseinsaetze)
+          "anzahlArbeitseinsaetzeIst" -> anzahlArbeitseinsaetzeIst, "arbeitseinsaetze" -> arbeitseinsaetze)
       }.list
   }
 

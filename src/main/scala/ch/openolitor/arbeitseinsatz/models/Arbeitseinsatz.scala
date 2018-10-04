@@ -70,7 +70,7 @@ trait IArbeitsangebot extends BaseEntity[ArbeitsangebotId] {
   val anzahlEingeschriebene: Int
   val anzahlPersonen: Option[Int]
   val mehrPersonenOk: Boolean
-  val einsatzZeit: Option[Int]
+  val einsatzZeit: Option[BigDecimal]
   val status: ArbeitseinsatzStatus
 }
 
@@ -86,7 +86,7 @@ case class Arbeitsangebot(
   anzahlEingeschriebene: Int,
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
-  einsatzZeit: Option[Int],
+  einsatzZeit: Option[BigDecimal],
   status: ArbeitseinsatzStatus,
   //modification flags
   erstelldat: DateTime,
@@ -105,7 +105,7 @@ case class ArbeitsangebotModify(
   arbeitskategorien: Set[ArbeitskategorieBez],
   anzahlPersonen: Option[Int],
   mehrPersonenOk: Boolean,
-  einsatzZeit: Option[Int],
+  einsatzZeit: Option[BigDecimal],
   status: ArbeitseinsatzStatus
 ) extends JSONSerializable
 
@@ -133,7 +133,7 @@ case class Arbeitseinsatz(
   arbeitsangebotTitel: String,
   zeitVon: DateTime,
   zeitBis: DateTime,
-  einsatzZeit: Option[Int],
+  einsatzZeit: Option[BigDecimal],
   kundeId: KundeId,
   kundeBezeichnung: String,
   personId: Option[PersonId],
@@ -155,7 +155,7 @@ case class ArbeitseinsatzDetail(
   arbeitsangebotTitel: String,
   zeitVon: DateTime,
   zeitBis: DateTime,
-  einsatzZeit: Option[Int],
+  einsatzZeit: Option[BigDecimal],
   kundeId: KundeId,
   kundeBezeichnung: String,
   aboId: Option[AboId],
@@ -179,7 +179,7 @@ case class ArbeitseinsatzDetailReport(
   arbeitsangebotTitel: String,
   zeitVon: DateTime,
   zeitBis: DateTime,
-  einsatzZeit: Option[Int],
+  einsatzZeit: Option[BigDecimal],
   kundeId: KundeId,
   kundeBezeichnung: String,
   aboId: Option[AboId],
@@ -202,7 +202,7 @@ case class ArbeitseinsatzModify(
   arbeitsangebotId: ArbeitsangebotId,
   zeitVon: DateTime,
   zeitBis: DateTime,
-  einsatzZeit: Option[Int],
+  einsatzZeit: Option[BigDecimal],
   kundeId: KundeId,
   personId: Option[PersonId],
   aboId: Option[AboId],
@@ -221,7 +221,7 @@ case class ArbeitseinsatzCreate(
 case class ArbeitseinsatzAbrechnung(
   kundeId: KundeId,
   kundeBezeichnung: String,
-  summeEinsaetzeSoll: Int,
-  summeEinsaetzeIst: Int,
-  summeEinsaetzeDelta: Int
+  summeEinsaetzeSoll: BigDecimal,
+  summeEinsaetzeIst: BigDecimal,
+  summeEinsaetzeDelta: BigDecimal
 ) extends JSONSerializable

@@ -67,7 +67,7 @@ object ZusatzAbotypParser extends EntityParser {
           case fristeinheitPattern(wert, "M") => Frist(wert.toInt, Monatsfrist)
         },
         anzahlAbwesenheiten = row.value[Option[Int]](indexAnzahlAbwesenheiten),
-        anzahlEinsaetze = row.value[Option[Int]](indexAnzahlEinsaetze),
+        anzahlEinsaetze = row.value[Option[BigDecimal]](indexAnzahlEinsaetze),
         farbCode = row.value[String](indexFarbCode),
         zielpreis = row.value[Option[BigDecimal]](indexZielpreis),
         adminProzente = row.value[BigDecimal](indexAdminProzente),

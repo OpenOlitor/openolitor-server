@@ -363,6 +363,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     logger.debug(s"createAbo id= $id aboMOdify = $create")
     DB localTxPostPublish { implicit session => implicit publisher =>
       val emptyMap: TreeMap[String, Int] = TreeMap()
+      val emptyMapBD: TreeMap[String, BigDecimal] = TreeMap()
       abotypByVertriebartId(create.vertriebsartId) map {
         case (vertriebsart, vertrieb, abotyp) =>
           aboParameters(create)(abotyp) match {
@@ -386,7 +387,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
-                    "anzahlEinsaetze" -> emptyMap,
+                    "anzahlEinsaetze" -> emptyMapBD,
                     "aktiv" -> aktiv,
                     "zusatzAboIds" -> Set.empty[AboId],
                     "zusatzAbotypNames" -> Seq.empty[String],
@@ -413,7 +414,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
-                    "anzahlEinsaetze" -> emptyMap,
+                    "anzahlEinsaetze" -> emptyMapBD,
                     "aktiv" -> aktiv,
                     "zusatzAboIds" -> Set.empty[AboId],
                     "zusatzAbotypNames" -> Seq.empty[String],
@@ -443,7 +444,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
-                    "anzahlEinsaetze" -> emptyMap,
+                    "anzahlEinsaetze" -> emptyMapBD,
                     "aktiv" -> aktiv,
                     "zusatzAboIds" -> Set.empty[AboId],
                     "zusatzAbotypNames" -> Seq.empty[String],

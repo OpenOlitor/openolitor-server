@@ -76,14 +76,23 @@ class ArbeitseinsatzUpdateService(override val sysConfig: SystemConfig) extends 
         val copy = copyFrom(arbeitsangebot, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
         arbeitseinsatzWriteRepository.updateEntityFully[Arbeitsangebot, ArbeitsangebotId](copy)
       }
+      arbeitseinsatzWriteRepository.getArbeitseinsatzDetailByArbeitsangebot(id) map { arbeitseinsatz =>
+        //update the einsatzZeit
+        arbeitseinsatzWriteRepository.updateEntity[Arbeitseinsatz, ArbeitseinsatzId](arbeitseinsatz.id)(
+          arbeitseinsatzMapping.column.einsatzZeit -> update.einsatzZeit,
+          arbeitseinsatzMapping.column.arbeitsangebotTitel -> update.titel,
+          arbeitseinsatzMapping.column.zeitVon -> update.zeitVon,
+          arbeitseinsatzMapping.column.zeitBis -> update.zeitBis
+        )
+      }
     }
   }
 
   def updateArbeitseinsatz(meta: EventMetadata, id: ArbeitseinsatzId, update: ArbeitseinsatzModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      arbeitseinsatzWriteRepository.getById(arbeitseinsatzMapping, id) map { arbeitskategorie =>
+      arbeitseinsatzWriteRepository.getById(arbeitseinsatzMapping, id) map { arbeitseinsatz =>
         //map all updatable fields
-        val copy = copyFrom(arbeitskategorie, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+        val copy = copyFrom(arbeitseinsatz, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
         arbeitseinsatzWriteRepository.updateEntityFully[Arbeitseinsatz, ArbeitseinsatzId](copy)
       }
     }

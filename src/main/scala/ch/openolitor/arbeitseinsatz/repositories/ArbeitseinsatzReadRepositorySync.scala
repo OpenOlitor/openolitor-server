@@ -23,67 +23,68 @@
 package ch.openolitor.arbeitseinsatz.repositories
 
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.db.OOAsyncDB._
-import ch.openolitor.core.db._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models.KundeId
 import com.typesafe.scalalogging.LazyLogging
-import scalikejdbc.async._
-
-import scala.concurrent._
+import scalikejdbc.DBSession
 
 trait ArbeitseinsatzReadRepositorySync extends BaseReadRepositorySync {
-  def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]]
+  def getArbeitskategorien(implicit session: DBSession): List[Arbeitskategorie]
 
-  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
-  def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]]
-  def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
-  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
-  def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitseinsatz]]
-  def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
-  def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
-  def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
-  def getArbeitseinsatzabrechnung(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]]
+  def getArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot]
+  def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
+  def getFutureArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot]
+  def getArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz]
+  def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit session: DBSession): Option[Arbeitseinsatz]
+  def getArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz]
+  def getFutureArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz]
+  def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz]
+  def getArbeitseinsatzabrechnung(implicit session: DBSession): List[ArbeitseinsatzAbrechnung]
+  def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[ArbeitseinsatzDetail]
 }
 
 trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositorySync with LazyLogging with ArbeitseinsatzRepositoryQueries {
-  def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]] = {
-    getArbeitskategorienQuery.future
+  def getArbeitskategorien(implicit session: DBSession): List[Arbeitskategorie] = {
+    getArbeitskategorienQuery.apply()
   }
 
-  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
-    getArbeitsangeboteQuery.future
+  def getArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot] = {
+    getArbeitsangeboteQuery.apply()
   }
 
-  def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]] = {
-    getArbeitsangebotQuery(arbeitsangebotId).future
+  def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
+    getArbeitsangebotQuery(arbeitsangebotId).apply()
   }
 
-  def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
-    getFutureArbeitsangeboteQuery.future
+  def getFutureArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot] = {
+    getFutureArbeitsangeboteQuery.apply()
   }
 
-  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getArbeitseinsaetzeQuery.future
+  def getArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz] = {
+    getArbeitseinsaetzeQuery.apply()
   }
 
-  def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getArbeitseinsaetzeQuery(kundeId).future
+  def getArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz] = {
+    getArbeitseinsaetzeQuery(kundeId).apply()
   }
 
-  def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getFutureArbeitseinsaetzeQuery.future
+  def getFutureArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz] = {
+    getFutureArbeitseinsaetzeQuery.apply()
   }
 
-  def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitseinsatz]] = {
-    getArbeitseinsatzQuery(arbeitseinsatzId).future
+  def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit session: DBSession): Option[Arbeitseinsatz] = {
+    getArbeitseinsatzQuery(arbeitseinsatzId).apply()
   }
 
-  def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getFutureArbeitseinsaetzeQuery(kundeId).future
+  def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz] = {
+    getFutureArbeitseinsaetzeQuery(kundeId).apply()
   }
 
-  def getArbeitseinsatzabrechnung(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]] = {
-    getArbeitseinsatzabrechnungQuery.future
+  def getArbeitseinsatzabrechnung(implicit session: DBSession): List[ArbeitseinsatzAbrechnung] = {
+    getArbeitseinsatzabrechnungQuery.apply()
+  }
+
+  def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[ArbeitseinsatzDetail] = {
+    getArbeitseinsatzDetailByArbeitsangebotQuery(arbeitsangebotId).apply()
   }
 }

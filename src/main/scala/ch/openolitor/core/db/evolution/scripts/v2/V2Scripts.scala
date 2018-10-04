@@ -101,7 +101,7 @@ object V2Scripts {
         vertragslaufzeit varchar(50),
         kuendigungsfrist varchar(50),
         anzahl_abwesenheiten int,
-        anzahl_einsaetze int,
+        anzahl_einsaetze DECIMAL(5,2),
         farb_code varchar(20),
         zielpreis DECIMAL(7,2),
         guthaben_mindestbestand int,
@@ -114,7 +114,8 @@ object V2Scripts {
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`)""".execute.apply()
 
       sql"""create table ${zusatzAboMapping.table}  (
         id BIGINT not null,
@@ -140,7 +141,8 @@ object V2Scripts {
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`)""".execute.apply()
 
       Success(true)
     }
@@ -164,7 +166,8 @@ object V2Scripts {
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`)""".execute.apply()
 
       sql"""create table ${arbeitsangebotMapping.table} (
         id BIGINT not null,
@@ -183,7 +186,8 @@ object V2Scripts {
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`)""".execute.apply()
 
       sql"""create table ${arbeitseinsatzMapping.table} (
         id BIGINT not null,
@@ -203,7 +207,8 @@ object V2Scripts {
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
-        modifikator BIGINT not null)""".execute.apply()
+        modifikator BIGINT not null,
+        KEY `id_index` (`id`)""".execute.apply()
 
       logger.debug(s"oo-system: cleanupDatabase - end - arbeitseinsatz")
       Success(true)
@@ -222,7 +227,7 @@ object V2Scripts {
     OO900_Guthaben.scripts ++
     OO942_EnlargeFileRef.scripts ++
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
+    OO762_Mail_Templates.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
-    OO109_Arbeitseinsatz.scripts ++
-    OO762_Mail_Templates.scripts
+    OO109_Arbeitseinsatz.scripts
 }

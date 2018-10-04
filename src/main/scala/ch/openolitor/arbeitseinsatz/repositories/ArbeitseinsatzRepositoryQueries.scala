@@ -166,8 +166,8 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
       )
       .map { (kunde, pl, hl, dl, abotypen, arbeitseinsaetze) =>
-        val summeEinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(0)) sum
-        val summeEinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(0)) sum
+        val summeEinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(BigDecimal(0.0))) sum
+        val summeEinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(BigDecimal(0.0))) sum
         val summeEinsaetzeDelta = summeEinsaetzeSoll - summeEinsaetzeIst
 
         ArbeitseinsatzAbrechnung(kunde.id, kunde.bezeichnung, summeEinsaetzeSoll, summeEinsaetzeIst, summeEinsaetzeDelta)

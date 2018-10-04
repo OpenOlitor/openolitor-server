@@ -27,7 +27,6 @@ import ch.openolitor.core.models._
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.scalax.Tuple27
-import ch.openolitor.core.scalax.Tuple26
 import ch.openolitor.core.scalax.Tuple25
 
 sealed trait Lieferzeitpunkt extends Product
@@ -148,7 +147,7 @@ case class Abotyp(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
-  anzahlEinsaetze: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,
@@ -215,7 +214,7 @@ case class AbotypModify(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
-  anzahlEinsaetze: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,
@@ -247,7 +246,7 @@ case class ZusatzAbotyp(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
-  anzahlEinsaetze: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   adminProzente: BigDecimal,
@@ -308,7 +307,7 @@ case class ZusatzAbotypModify(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
-  anzahlEinsaetze: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   adminProzente: BigDecimal,

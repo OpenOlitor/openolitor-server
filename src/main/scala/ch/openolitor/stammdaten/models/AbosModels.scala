@@ -28,7 +28,6 @@ import org.joda.time.LocalDate
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.kundenportal.models.BelongsToKunde
 import ch.openolitor.core.scalax.Tuple24
 import ch.openolitor.core.scalax.Tuple26
 
@@ -56,7 +55,7 @@ sealed trait Abo extends BaseEntity[AboId] with JSONSerializable {
   //calculated fields
   val anzahlAbwesenheiten: TreeMap[String, Int]
   val anzahlLieferungen: TreeMap[String, Int]
-  val anzahlEinsaetze: TreeMap[String, Int]
+  val anzahlEinsaetze: TreeMap[String, BigDecimal]
   val aktiv: Boolean
 
   def calculateAktiv: Boolean =
@@ -92,7 +91,7 @@ sealed trait AboDetail extends JSONSerializable {
   //calculated fields
   val anzahlAbwesenheiten: TreeMap[String, Int]
   val anzahlLieferungen: TreeMap[String, Int]
-  val anzahlEinsaetze: TreeMap[String, Int]
+  val anzahlEinsaetze: TreeMap[String, BigDecimal]
   val abwesenheiten: Seq[Abwesenheit]
   val lieferdaten: Seq[Lieferung]
   val aktiv: Boolean
@@ -143,7 +142,7 @@ case class DepotlieferungAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
@@ -208,7 +207,7 @@ case class DepotlieferungAboReport(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   //modification flags
   erstelldat: DateTime,
@@ -237,7 +236,7 @@ case class DepotlieferungAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
@@ -287,7 +286,7 @@ case class HeimlieferungAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
@@ -351,7 +350,7 @@ case class HeimlieferungAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
@@ -399,7 +398,7 @@ case class PostlieferungAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
@@ -459,7 +458,7 @@ case class PostlieferungAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
@@ -630,7 +629,7 @@ case class ZusatzAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   //modification flags
   erstelldat: DateTime,
@@ -656,7 +655,7 @@ case class ZusatzAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, Int],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   //modification flags
   erstelldat: DateTime,

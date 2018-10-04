@@ -39,8 +39,8 @@ object OO109_Arbeitseinsatz {
       alterTableAddColumnIfNotExists(projektMapping, "einsatz_absage_vorlauf_tage", "DECIMAL(2,0)", "einsatz_einheit")
       alterTableAddColumnIfNotExists(projektMapping, "einsatz_show_liste_kunde", "VARCHAR(1)", "einsatz_absage_vorlauf_tage")
 
-      alterTableAddColumnIfNotExists(abotypMapping, "anzahl_einsaetze", "int", "anzahl_abwesenheiten")
-      alterTableAddColumnIfNotExists(zusatzAbotypMapping, "anzahl_einsaetze", "int", "anzahl_abwesenheiten")
+      alterTableAddColumnIfNotExists(abotypMapping, "anzahl_einsaetze", "DECIMAL(5,2)", "anzahl_abwesenheiten")
+      alterTableAddColumnIfNotExists(zusatzAbotypMapping, "anzahl_einsaetze", "DECIMAL(5,2)", "anzahl_abwesenheiten")
       alterTableAddColumnIfNotExists(depotlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
       alterTableAddColumnIfNotExists(heimlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
       alterTableAddColumnIfNotExists(postlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")

@@ -55,7 +55,7 @@ object ZusatzAboParser extends EntityParser {
         //calculate count
         val anzahlAbwesenheiten = parseTreeMap(row.value[String](indexAnzahlAbwesenheiten))(identity, _.toInt)
         val anzahlLieferungen = parseTreeMap(row.value[String](lieferungenIndex))(identity, _.toInt)
-        val anzahlEinsaetze = parseTreeMap(row.value[String](anzahlEinsaetzeIndex))(identity, _.toInt)
+        val anzahlEinsaetze = parseTreeMap(row.value[String](anzahlEinsaetzeIndex))(identity, BigDecimal(_))
 
         val erstelldat = row.value[DateTime](indexErstelldat)
         val ersteller = PersonId(row.value[Long](indexErsteller))

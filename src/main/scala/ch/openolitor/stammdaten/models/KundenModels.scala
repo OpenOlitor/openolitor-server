@@ -213,8 +213,8 @@ case class KundeDetailArbeitseinsatzReport(
   anzahlPersonen: Int,
   //Report infos
   personen: Seq[PersonDetail],
-  anzahlArbeitseinsaetzeSoll: Int,
-  anzahlArbeitseinsaetzeIst: Int,
+  anzahlArbeitseinsaetzeSoll: BigDecimal,
+  anzahlArbeitseinsaetzeIst: BigDecimal,
   arbeitseinsaetze: Seq[Arbeitseinsatz],
   //modification flags
   erstelldat: DateTime,
