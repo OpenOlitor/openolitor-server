@@ -65,11 +65,11 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           delete(remove(id))
       } ~
       path("arbeitsangebote" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitsangebote)) ~
+        get(list(arbeitseinsatzReadRepository.getArbeitsangebote, exportFormat)) ~
           post(create[ArbeitsangebotModify, ArbeitsangebotId](ArbeitsangebotId.apply _))
       } ~
       path("arbeitsangebote" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getFutureArbeitsangebote))
+        get(list(arbeitseinsatzReadRepository.getFutureArbeitsangebote, exportFormat))
       } ~
       path("arbeitsangebote" / arbeitsangebotIdPath) { id =>
         get(detail(arbeitseinsatzReadRepository.getArbeitsangebot(id))) ~
@@ -92,14 +92,14 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           delete(remove(arbeitseinsatzId))
       } ~
       path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze)) ~
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze, exportFormat)) ~
           post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
       } ~
       path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) { (kunedId, exportFormat) =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kunedId)))
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kunedId), exportFormat))
       } ~
       path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze))
+        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze, exportFormat))
       } ~
       path("arbeitseinsaetze" / arbeitseinsatzIdPath) { id =>
         get(detail(arbeitseinsatzReadRepository.getArbeitseinsatz(id))) ~
@@ -113,10 +113,10 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
         }
       } ~
       path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>
-        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId)))
+        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId), exportFormat))
       } ~
       path("arbeitseinsatzabrechnung" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung))
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung, exportFormat))
       }
 }
 

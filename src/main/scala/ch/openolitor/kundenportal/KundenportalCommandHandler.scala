@@ -136,7 +136,7 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
               Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' entfernt werden."))
             }
           } getOrElse {
-            Failure(new InvalidStateException(s"Das Arbeitsangebot doer der Arbeitseinsatz wurden nicht gefunden."))
+            Failure(new InvalidStateException(s"Das Arbeitsangebot oder der Arbeitseinsatz wurden nicht gefunden."))
           }
         } getOrElse {
           Failure(new InvalidStateException(s"Projekt konnte nicht geladen werden."))

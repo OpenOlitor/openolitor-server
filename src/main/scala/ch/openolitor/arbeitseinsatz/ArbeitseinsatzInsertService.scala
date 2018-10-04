@@ -116,6 +116,7 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
             "kundeBezeichnung" -> kunde.bezeichnung,
             "personName" -> personData,
             "arbeitsangebotTitel" -> arbeitsangebot.titel,
+            "arbeitsangebotStatus" -> arbeitsangebot.status,
             "aboId" -> None,
             "aboBezeichnung" -> None,
             "erstelldat" -> meta.timestamp,

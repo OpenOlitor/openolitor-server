@@ -103,6 +103,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
       super.updateParameters(ae) ++ Seq(
         column.arbeitsangebotId -> ae.arbeitsangebotId,
         column.arbeitsangebotTitel -> ae.arbeitsangebotTitel,
+        column.arbeitsangebotStatus -> ae.arbeitsangebotStatus,
         column.zeitVon -> ae.zeitVon,
         column.zeitBis -> ae.zeitBis,
         column.einsatzZeit -> ae.einsatzZeit,

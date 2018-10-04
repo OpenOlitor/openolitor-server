@@ -115,7 +115,7 @@ object V2Scripts {
         ersteller BIGINT not null,
         modifidat datetime not null,
         modifikator BIGINT not null,
-        KEY `id_index` (`id`)""".execute.apply()
+        KEY `id_index` (`id`))""".execute.apply()
 
       sql"""create table ${zusatzAboMapping.table}  (
         id BIGINT not null,
@@ -142,7 +142,7 @@ object V2Scripts {
         ersteller BIGINT not null,
         modifidat datetime not null,
         modifikator BIGINT not null,
-        KEY `id_index` (`id`)""".execute.apply()
+        KEY `id_index` (`id`))""".execute.apply()
 
       Success(true)
     }
@@ -167,7 +167,7 @@ object V2Scripts {
         ersteller BIGINT not null,
         modifidat datetime not null,
         modifikator BIGINT not null,
-        KEY `id_index` (`id`)""".execute.apply()
+        KEY `id_index` (`id`))""".execute.apply()
 
       sql"""create table ${arbeitsangebotMapping.table} (
         id BIGINT not null,
@@ -187,15 +187,16 @@ object V2Scripts {
         ersteller BIGINT not null,
         modifidat datetime not null,
         modifikator BIGINT not null,
-        KEY `id_index` (`id`)""".execute.apply()
+        KEY `id_index` (`id`))""".execute.apply()
 
       sql"""create table ${arbeitseinsatzMapping.table} (
         id BIGINT not null,
         arbeitsangebot_id BIGINT,
         arbeitsangebot_titel varchar(200) not null,
+        arbeitsangebot_status varchar(20) not null,
         zeit_von datetime not null,
         zeit_bis datetime,
-        einsatz_zeit DECIMAL(3,0),
+        einsatz_zeit DECIMAL(5,2),
         kunde_id BIGINT not null,
         kunde_bezeichnung varchar(50),
         person_id BIGINT,
@@ -208,7 +209,7 @@ object V2Scripts {
         ersteller BIGINT not null,
         modifidat datetime not null,
         modifikator BIGINT not null,
-        KEY `id_index` (`id`)""".execute.apply()
+        KEY `id_index` (`id`))""".execute.apply()
 
       logger.debug(s"oo-system: cleanupDatabase - end - arbeitseinsatz")
       Success(true)

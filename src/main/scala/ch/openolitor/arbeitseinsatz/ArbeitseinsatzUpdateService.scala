@@ -81,6 +81,7 @@ class ArbeitseinsatzUpdateService(override val sysConfig: SystemConfig) extends 
         arbeitseinsatzWriteRepository.updateEntity[Arbeitseinsatz, ArbeitseinsatzId](arbeitseinsatz.id)(
           arbeitseinsatzMapping.column.einsatzZeit -> update.einsatzZeit,
           arbeitseinsatzMapping.column.arbeitsangebotTitel -> update.titel,
+          arbeitseinsatzMapping.column.arbeitsangebotStatus -> update.status,
           arbeitseinsatzMapping.column.zeitVon -> update.zeitVon,
           arbeitseinsatzMapping.column.zeitBis -> update.zeitBis
         )

@@ -115,6 +115,7 @@ trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
   val id: ArbeitseinsatzId
   val arbeitsangebotId: ArbeitsangebotId
   val arbeitsangebotTitel: String
+  val arbeitsangebotStatus: ArbeitseinsatzStatus
   val zeitVon: DateTime
   val zeitBis: DateTime
   val kundeId: KundeId
@@ -131,6 +132,7 @@ case class Arbeitseinsatz(
   id: ArbeitseinsatzId,
   arbeitsangebotId: ArbeitsangebotId,
   arbeitsangebotTitel: String,
+  arbeitsangebotStatus: ArbeitseinsatzStatus,
   zeitVon: DateTime,
   zeitBis: DateTime,
   einsatzZeit: Option[BigDecimal],
@@ -153,6 +155,7 @@ case class ArbeitseinsatzDetail(
   id: ArbeitseinsatzId,
   arbeitsangebotId: ArbeitsangebotId,
   arbeitsangebotTitel: String,
+  arbeitsangebotStatus: ArbeitseinsatzStatus,
   zeitVon: DateTime,
   zeitBis: DateTime,
   einsatzZeit: Option[BigDecimal],
@@ -177,6 +180,7 @@ case class ArbeitseinsatzDetailReport(
   id: ArbeitseinsatzId,
   arbeitsangebotId: ArbeitsangebotId,
   arbeitsangebotTitel: String,
+  arbeitsangebotStatus: ArbeitseinsatzStatus,
   zeitVon: DateTime,
   zeitBis: DateTime,
   einsatzZeit: Option[BigDecimal],
