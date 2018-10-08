@@ -369,13 +369,6 @@ trait StammdatenRoutes extends HttpService with ActorReferences
             createAnzahlLieferungenRechnungsPositionen(rechnungCreate)
           }
         }
-      } ~
-      path("zusatzabos" / "aktionen" / "bisguthabenrechnungspositionen") {
-        post {
-          entity(as[AboRechnungsPositionBisGuthabenCreate]) { rechnungCreate =>
-            createBisGuthabenRechnungsPositionen(rechnungCreate)
-          }
-        }
       }
 
   private def pendenzenRoute(implicit subject: Subject): Route =

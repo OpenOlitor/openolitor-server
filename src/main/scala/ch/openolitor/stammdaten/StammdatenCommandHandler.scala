@@ -578,13 +578,20 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   def createAboRechnungsPositionenAnzahlLieferungen(idFactory: IdFactory, meta: EventTransactionMetadata, aboRechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate) = {
     DB readOnly { implicit session =>
+      // HauptAbos
       val abos: List[Abo] = stammdatenReadRepository.getByIds(depotlieferungAboMapping, aboRechnungCreate.ids) :::
         stammdatenReadRepository.getByIds(postlieferungAboMapping, aboRechnungCreate.ids) :::
         stammdatenReadRepository.getByIds(heimlieferungAboMapping, aboRechnungCreate.ids)
 
-      val aboTypen: List[Abotyp] = stammdatenReadRepository.getByIds(abotypMapping, abos.map(_.abotypId))
+      // Zusatzabos
+      val zusatzAbos: List[Abo] = stammdatenReadRepository.getByIds(zusatzAboMapping, aboRechnungCreate.ids)
 
-      val abosWithAboTypen: List[(Abo, Abotyp)] = abos.map { abo =>
+      val allAbos = abos ::: zusatzAbos
+
+      val aboTypen: List[IAbotyp] = stammdatenReadRepository.getByIds(abotypMapping, abos.map(_.abotypId)) :::
+        stammdatenReadRepository.getByIds(zusatzAbotypMapping, zusatzAbos.map(_.abotypId))
+
+      val abosWithAboTypen: List[(Abo, IAbotyp)] = allAbos.map { abo =>
         aboTypen.find(_.id == abo.abotypId).map { abotyp => (abo, abotyp) }
       }.flatten
 
@@ -593,14 +600,19 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
           // TODO check preisEinheit
           if (abotyp.preiseinheit != ProLieferung) {
-            Failure(new InvalidStateException(s"Für den Abotyp dieses Abos (${abo.id}) kann keine Guthabenrechngsposition erstellt werden"))
+            Failure(new InvalidStateException(s"Für den Abotyp dieses Abos (${abo.id}) kann keine Anzahl Lieferungen-Rechnungsposition erstellt werden"))
           } else {
             // has to be refactored as soon as more modes are available
             val anzahlLieferungen = aboRechnungCreate.anzahlLieferungen
             if (anzahlLieferungen > 0) {
               val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abotyp.preis * anzahlLieferungen)
 
-              val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
+              val repoType = abotyp match {
+                case a: ZusatzAbotyp => RechnungsPositionTyp.ZusatzAbo
+                case _               => RechnungsPositionTyp.Abo
+              }
+
+              val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung, None, repoType)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
 
               val zusatzRechnungPositionEventList = createRechnungPositionForZusatzabos(idFactory, abo, aboRechnungCreate.titel, anzahlLieferungen, Some(parentRechnungPositionId), aboRechnungCreate.waehrung)
