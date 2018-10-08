@@ -78,7 +78,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ personenRoute ~
+      kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
         kundentypenRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
         mailingRoute
@@ -350,6 +350,27 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         }
       } ~
       path("abos" / "aktionen" / "bisguthabenrechnungspositionen") {
+        post {
+          entity(as[AboRechnungsPositionBisGuthabenCreate]) { rechnungCreate =>
+            createBisGuthabenRechnungsPositionen(rechnungCreate)
+          }
+        }
+      }
+
+  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+    path("zusatzabos" ~ exportFormatPath.?) { exportFormat =>
+      parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
+        get(list(stammdatenReadRepository.getZusatzAbos(Option(xFlags)), exportFormat))
+      }
+    } ~
+      path("zusatzabos" / "aktionen" / "anzahllieferungenrechnungspositionen") {
+        post {
+          entity(as[AboRechnungsPositionBisAnzahlLieferungenCreate]) { rechnungCreate =>
+            createAnzahlLieferungenRechnungsPositionen(rechnungCreate)
+          }
+        }
+      } ~
+      path("zusatzabos" / "aktionen" / "bisguthabenrechnungspositionen") {
         post {
           entity(as[AboRechnungsPositionBisGuthabenCreate]) { rechnungCreate =>
             createBisGuthabenRechnungsPositionen(rechnungCreate)

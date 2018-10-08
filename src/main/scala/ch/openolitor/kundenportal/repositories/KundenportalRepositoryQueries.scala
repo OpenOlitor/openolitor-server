@@ -161,7 +161,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       }).list
   }
 
-  protected def getZusatzabosQuery(aboId: AboId, filter: Option[FilterExpr])(implicit owner: Subject) = {
+  protected def getZusatzAbosByHauptAboQuery(aboId: AboId, filter: Option[FilterExpr])(implicit owner: Subject) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)

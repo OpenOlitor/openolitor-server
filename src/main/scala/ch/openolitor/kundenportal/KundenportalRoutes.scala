@@ -185,7 +185,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
     } ~
       path("abos" / aboIdPath / "zusatzabos") { aboId =>
         get {
-          list(kundenportalReadRepository.getZusatzabos(aboId))
+          list(kundenportalReadRepository.getZusatzAbosByHauptAbo(aboId))
         }
       } ~
       path("abos" / aboIdPath / "abwesenheiten") { aboId =>

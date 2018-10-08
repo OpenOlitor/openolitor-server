@@ -411,6 +411,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
+  protected def getZusatzAbosQuery(filter: Option[FilterExpr]) = {
+    withSQL {
+      select
+        .from(zusatzAboMapping as zusatzAbo)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo))
+    }.map(zusatzAboMapping(zusatzAbo)).list
+  }
+
   protected def getDepotlieferungQuery(vertriebId: VertriebId) = {
     withSQL {
       select
@@ -2097,7 +2105,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(zusatzAboMapping(zusatzAbo)).single
   }
 
-  protected def getZusatzAbosQuery(hauptaboId: AboId) = {
+  protected def getZusatzAbosByHauptAboQuery(hauptaboId: AboId) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)

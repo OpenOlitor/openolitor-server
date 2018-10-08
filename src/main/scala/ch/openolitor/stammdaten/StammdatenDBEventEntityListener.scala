@@ -363,7 +363,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       }
 
       if (from.start != to.start) {
-        stammdatenUpdateRepository.getZusatzAbos(from.id) map { zusatzabo =>
+        stammdatenUpdateRepository.getZusatzAbosByHauptAbo(from.id) map { zusatzabo =>
           if ((zusatzabo.start compareTo to.start) < 0) {
             stammdatenUpdateRepository.modifyEntity[ZusatzAbo, AboId](zusatzabo.id) { z =>
               log.debug(s"modify the start date of the zusatzabo :${z.id}")
@@ -403,7 +403,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
   }
 
   def handleZusatzAboEndDateModification(toEnde: LocalDate, from: Abo)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
-    stammdatenUpdateRepository.getZusatzAbos(from.id) map { zusatzabo =>
+    stammdatenUpdateRepository.getZusatzAbosByHauptAbo(from.id) map { zusatzabo =>
       zusatzabo.ende match {
         case Some(zusatzaboEnde) => {
           if ((zusatzaboEnde compareTo toEnde) > 0) {

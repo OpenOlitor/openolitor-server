@@ -625,7 +625,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung): Seq[ResultingEvent] = {
     DB readOnly { implicit session =>
-      val zusatzabos = stammdatenReadRepository.getZusatzAbos(hauptAbo.id)
+      val zusatzabos = stammdatenReadRepository.getZusatzAbosByHauptAbo(hauptAbo.id)
       for (zusatzabo <- zusatzabos) yield {
         val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
         val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
