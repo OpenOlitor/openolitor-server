@@ -330,7 +330,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
           adjustGuthabenVorLieferung(copy, update.guthabenNeu)
         }
       }
-      stammdatenWriteRepository.getZusatzAbos(id) map { zusatzAbo =>
+      stammdatenWriteRepository.getZusatzAbosByHauptAbo(id) map { zusatzAbo =>
         adjustGuthabenVorLieferung(zusatzAbo, update.guthabenNeu)
       }
     }
@@ -403,7 +403,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
             }
         }
         stammdatenWriteRepository.getById(vertriebMapping, va.vertriebId) map { vertrieb =>
-          stammdatenWriteRepository.getZusatzAbos(abo.id) map {
+          stammdatenWriteRepository.getZusatzAbosByHauptAbo(abo.id) map {
             zusatzabo =>
               val copy = zusatzabo.copy(vertriebId = va.vertriebId, vertriebBeschrieb = vertrieb.beschrieb, vertriebsartId = update.vertriebsartIdNeu)
               stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)
@@ -444,7 +444,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
             }
         }
         stammdatenWriteRepository.getById(vertriebMapping, va.vertriebId) map { vertrieb =>
-          stammdatenWriteRepository.getZusatzAbos(abo.id) map {
+          stammdatenWriteRepository.getZusatzAbosByHauptAbo(abo.id) map {
             zusatzabo =>
               val copy = zusatzabo.copy(vertriebId = va.vertriebId, vertriebBeschrieb = vertrieb.beschrieb, vertriebsartId = update.vertriebsartIdNeu)
               stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)
@@ -471,7 +471,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
           }
       }
       stammdatenWriteRepository.getById(vertriebMapping, va.vertriebId) map { vertrieb =>
-        stammdatenWriteRepository.getZusatzAbos(abo.id) map {
+        stammdatenWriteRepository.getZusatzAbosByHauptAbo(abo.id) map {
           zusatzabo =>
             val copy = zusatzabo.copy(vertriebId = va.vertriebId, vertriebBeschrieb = vertrieb.beschrieb, vertriebsartId = update.vertriebsartIdNeu)
             stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)

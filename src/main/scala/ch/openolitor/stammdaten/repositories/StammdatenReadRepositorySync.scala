@@ -36,7 +36,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getAboDetailAusstehend(id: AboId)(implicit session: DBSession): Option[AboDetail]
   def getAbosByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Abo]
   def getAbosByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Abo]
-  def getZusatzAbos(hauptAboId: AboId)(implicit session: DBSession): List[ZusatzAbo]
+  def getZusatzAbosByHauptAbo(hauptAboId: AboId)(implicit session: DBSession): List[ZusatzAbo]
   def getHauptAbo(id: AboId)(implicit session: DBSession): Option[HauptAbo]
   def getExistingZusatzAbotypen(lieferungId: LieferungId)(implicit session: DBSession): List[ZusatzAbotyp]
   def getAbotypById(id: AbotypId)(implicit session: DBSession): Option[IAbotyp]
@@ -178,8 +178,8 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getZusatzAbosByVertriebQuery(vertriebId).apply()
   }
 
-  def getZusatzAbos(hauptAboId: AboId)(implicit session: DBSession): List[ZusatzAbo] = {
-    getZusatzAbosQuery(hauptAboId).apply()
+  def getZusatzAbosByHauptAbo(hauptAboId: AboId)(implicit session: DBSession): List[ZusatzAbo] = {
+    getZusatzAbosByHauptAboQuery(hauptAboId).apply()
   }
 
   def getHauptAbo(id: AboId)(implicit session: DBSession): Option[HauptAbo] = {

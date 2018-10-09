@@ -43,7 +43,7 @@ trait KundenportalReadRepositoryAsync {
   def getKontoDaten(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
 
   def getHauptabos(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[AboDetail]]
-  def getZusatzabos(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[ZusatzAboDetail]]
+  def getZusatzAbosByHauptAbo(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[ZusatzAboDetail]]
 
   def getLieferungenDetails(aboId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]]
   def getLieferungenDetail(lieferungId: LieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[LieferungDetail]]
@@ -86,8 +86,8 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
     }
   }
 
-  def getZusatzabos(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[ZusatzAboDetail]] = {
-    getZusatzabosQuery(aboId, filter).future
+  def getZusatzAbosByHauptAbo(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[ZusatzAboDetail]] = {
+    getZusatzAbosByHauptAboQuery(aboId, filter).future
   }
 
   def getLieferungenDetails(abotypId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]] = {
