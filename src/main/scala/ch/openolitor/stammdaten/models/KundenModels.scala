@@ -223,6 +223,7 @@ case class KundeDetailArbeitseinsatzReport(
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
   typen: Set[KundentypId],
+  paymentType: Option[PaymentType],
   //Zusatzinformationen
   anzahlAbos: Int,
   anzahlAbosAktiv: Int,

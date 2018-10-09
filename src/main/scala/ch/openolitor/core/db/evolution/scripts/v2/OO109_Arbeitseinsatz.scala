@@ -41,9 +41,9 @@ object OO109_Arbeitseinsatz {
 
       alterTableAddColumnIfNotExists(abotypMapping, "anzahl_einsaetze", "DECIMAL(5,2)", "anzahl_abwesenheiten")
       alterTableAddColumnIfNotExists(zusatzAbotypMapping, "anzahl_einsaetze", "DECIMAL(5,2)", "anzahl_abwesenheiten")
-      alterTableAddColumnIfNotExists(depotlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
-      alterTableAddColumnIfNotExists(heimlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
-      alterTableAddColumnIfNotExists(postlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
+      alterTableAddColumnIfNotExists(depotlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "zusatz_abotyp_names")
+      alterTableAddColumnIfNotExists(heimlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "zusatz_abotyp_names")
+      alterTableAddColumnIfNotExists(postlieferungAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "zusatz_abotyp_names")
       alterTableAddColumnIfNotExists(zusatzAboMapping, "anzahl_einsaetze", "VARCHAR(500)", "anzahl_lieferungen")
 
       sql"""update Projekt set generierte_mails_senden = 1, einsatz_einheit = 'Halbtage',

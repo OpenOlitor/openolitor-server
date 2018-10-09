@@ -27,8 +27,8 @@ import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple24
-import ch.openolitor.core.scalax.Tuple26
+import ch.openolitor.core.scalax.Tuple25
+import ch.openolitor.core.scalax.Tuple27
 
 case class AboId(id: Long) extends BaseId
 
@@ -55,8 +55,8 @@ sealed trait Abo extends BaseEntity[AboId] with JSONSerializable {
   //calculated fields
   val anzahlAbwesenheiten: TreeMap[String, Int]
   val anzahlLieferungen: TreeMap[String, Int]
-  val anzahlEinsaetze: TreeMap[String, BigDecimal]
   val aktiv: Boolean
+  val anzahlEinsaetze: TreeMap[String, BigDecimal]
 
   def calculateAktiv: Boolean =
     IAbo.calculateAktiv(start, ende)
@@ -92,10 +92,10 @@ sealed trait AboDetail extends JSONSerializable {
   //calculated fields
   val anzahlAbwesenheiten: TreeMap[String, Int]
   val anzahlLieferungen: TreeMap[String, Int]
-  val anzahlEinsaetze: TreeMap[String, BigDecimal]
   val abwesenheiten: Seq[Abwesenheit]
   val lieferdaten: Seq[Lieferung]
   val aktiv: Boolean
+  val anzahlEinsaetze: TreeMap[String, BigDecimal]
 }
 
 sealed trait AboCreate extends JSONSerializable {
@@ -145,10 +145,10 @@ case class DepotlieferungAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -158,7 +158,7 @@ case class DepotlieferungAbo(
 
 object DepotlieferungAbo {
   def unapply(o: DepotlieferungAbo) = {
-    Some(Tuple26(
+    Some(Tuple27(
       o.id,
       o.kundeId,
       o.kunde,
@@ -178,10 +178,10 @@ object DepotlieferungAbo {
       o.letzteLieferung,
       o.anzahlAbwesenheiten,
       o.anzahlLieferungen,
-      o.anzahlEinsaetze,
       o.aktiv,
       o.zusatzAboIds,
       o.zusatzAbotypNames,
+      o.anzahlEinsaetze,
       o.erstelldat,
       o.ersteller,
       o.modifidat,
@@ -212,8 +212,8 @@ case class DepotlieferungAboReport(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -242,8 +242,8 @@ case class DepotlieferungAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
   //modification flags
@@ -295,10 +295,10 @@ case class HeimlieferungAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -308,7 +308,7 @@ case class HeimlieferungAbo(
 
 object HeimlieferungAbo {
   def unapply(o: HeimlieferungAbo) = {
-    Some(Tuple26(
+    Some(Tuple27(
       o.id,
       o.kundeId,
       o.kunde,
@@ -328,10 +328,10 @@ object HeimlieferungAbo {
       o.letzteLieferung,
       o.anzahlAbwesenheiten,
       o.anzahlLieferungen,
-      o.anzahlEinsaetze,
       o.aktiv,
       o.zusatzAboIds,
       o.zusatzAbotypNames,
+      o.anzahlEinsaetze,
       o.erstelldat,
       o.ersteller,
       o.modifidat,
@@ -361,10 +361,10 @@ case class HeimlieferungAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -412,10 +412,10 @@ case class PostlieferungAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -425,7 +425,7 @@ case class PostlieferungAbo(
 
 object PostlieferungAbo {
   def unapply(o: PostlieferungAbo) = {
-    Some(Tuple24(
+    Some(Tuple25(
       o.id,
       o.kundeId,
       o.kunde,
@@ -443,10 +443,10 @@ object PostlieferungAbo {
       o.letzteLieferung,
       o.anzahlAbwesenheiten,
       o.anzahlLieferungen,
-      o.anzahlEinsaetze,
       o.aktiv,
       o.zusatzAboIds,
       o.zusatzAbotypNames,
+      o.anzahlEinsaetze,
       o.erstelldat,
       o.ersteller,
       o.modifidat,
@@ -474,10 +474,10 @@ case class PostlieferungAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
   zusatzAboIds: Set[AboId],
   zusatzAbotypNames: Seq[String],
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -653,8 +653,8 @@ case class ZusatzAbo(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -680,8 +680,8 @@ case class ZusatzAboDetail(
   //calculated fields
   anzahlAbwesenheiten: TreeMap[String, Int],
   anzahlLieferungen: TreeMap[String, Int],
-  anzahlEinsaetze: TreeMap[String, BigDecimal],
   aktiv: Boolean,
+  anzahlEinsaetze: TreeMap[String, BigDecimal],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
