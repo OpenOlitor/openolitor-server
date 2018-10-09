@@ -513,6 +513,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             logger.debug(s"created => Insert entity:$personCreate")
             EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
         }
+
         Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
       }
 

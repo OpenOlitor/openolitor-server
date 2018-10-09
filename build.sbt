@@ -103,6 +103,7 @@ val buildSettings = Seq(
 }
 )
 
+
 lazy val scalaxbSettings = Seq(
    scalaxbXsdSource in (Compile, scalaxb) := baseDirectory.value / "src" / "main" / "resources" / "xsd",
    scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd",
