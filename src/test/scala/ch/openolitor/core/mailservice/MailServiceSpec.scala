@@ -27,9 +27,9 @@ import akka.testkit.TestKit
 import akka.actor.ActorSystem
 import org.specs2.specification.Scope
 import akka.testkit.TestProbe
-import ch.openolitor.core.ConfigLoader
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.MandantConfiguration
+import com.tegonal.CFEnvConfigLoader.ConfigLoader
 
 abstract class ActorTestScope extends TestKit(ActorSystem("test")) with Scope
 
