@@ -59,8 +59,8 @@ class Camt054v04ToZahlungsImportTransformer {
                 case Nil        => ""
                 case structures => (structures map (_.CdtrRefInf flatMap (_.Ref))).flatten.mkString(",")
               }) getOrElse "", // Referenznummer
-              (transactionDetail.AmtDtls flatMap (_.TxAmt map (_.Amt.value))) getOrElse (throw new ZahlungsImportParseException("Missing Betrag")),
-              (transactionDetail.AmtDtls flatMap (_.TxAmt map (txAmt => Waehrung.applyUnsafe(txAmt.Amt.Ccy)))).getOrElse(throw new ZahlungsImportParseException("Missing Waehrung")),
+              (transactionDetail.Amt.value),
+              (Waehrung.applyUnsafe(transactionDetail.Amt.Ccy)),
               Camt054v04Transaktionsart(transactionDetail.CdtDbtInd.toString),
               "",
               ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(groupHeader.CreDtTm.toString),

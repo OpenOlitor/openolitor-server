@@ -68,7 +68,6 @@ import ch.openolitor.stammdaten.models.{ AdministratorZugang, KundenZugang }
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.reporting.ReportSystem._
 import ch.openolitor.util.InputStreamUtil._
-
 import ch.openolitor.core.system.DefaultNonAuthRessourcesRouteService
 import ch.openolitor.kundenportal.KundenportalRoutes
 import ch.openolitor.kundenportal.DefaultKundenportalRoutes
@@ -97,6 +96,7 @@ import ch.openolitor.mailtemplates.{ DefaultMailTemplateRoutes, MailTemplateRout
 
 import scala.concurrent.ExecutionContext
 import ch.openolitor.util.ZipBuilderWithFile
+import com.tegonal.CFEnvConfigLoader.ConfigLoader
 
 sealed trait ResponseType
 case object Download extends ResponseType
