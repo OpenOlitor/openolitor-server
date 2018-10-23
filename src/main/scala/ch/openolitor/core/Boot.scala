@@ -67,6 +67,7 @@ import ch.openolitor.core.db.evolution.DBEvolutionActor
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.core.domain.SystemEvents.SystemStarted
 import ch.openolitor.mailtemplates.MailTemplateEntityStoreView
+import com.tegonal.CFEnvConfigLoader.ConfigLoader
 import org.joda.time.DateTime
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
