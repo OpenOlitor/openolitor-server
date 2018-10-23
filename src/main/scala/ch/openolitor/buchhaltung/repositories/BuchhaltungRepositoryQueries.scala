@@ -38,6 +38,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   lazy val kunde = kundeMapping.syntax("kunde")
   lazy val zahlungsImport = zahlungsImportMapping.syntax("zahlungsImport")
   lazy val zahlungsEingang = zahlungsEingangMapping.syntax("zahlungsEingang")
+  lazy val zahlungsExport = zahlungsExportMapping.syntax("zahlungsExport")
   lazy val depotlieferungAbo = depotlieferungAboMapping.syntax("depotlieferungAbo")
   lazy val heimlieferungAbo = heimlieferungAboMapping.syntax("heimlieferungAbo")
   lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
@@ -149,6 +150,21 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
       }).single
   }
 
+  protected def getZahlungsExportsQuery = {
+    withSQL {
+      select
+        .from(zahlungsExportMapping as zahlungsExport)
+    }.map(zahlungsExportMapping(zahlungsExport)).list
+  }
+
+  protected def getZahlungsExportQuery(id: ZahlungsExportId) = {
+    withSQL {
+      select
+        .from(zahlungsExportMapping as zahlungsExport)
+        .where.eq(zahlungsExport.id, id)
+    }.map(zahlungsExportMapping(zahlungsExport)).single
+  }
+
   protected def getZahlungsEingangByReferenznummerQuery(referenzNummer: String) = {
     withSQL {
       select
@@ -158,10 +174,11 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     }.map(zahlungsEingangMapping(zahlungsEingang)).first
   }
 
-  protected def getKontoDatenQuery = {
+  protected def getKontoDatenProjektQuery = {
     withSQL {
       select
         .from(kontoDatenMapping as kontoDaten)
+        .where.isNull(kontoDaten.kunde)
     }.map(kontoDatenMapping(kontoDaten)).single
   }
 
@@ -172,5 +189,12 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         .leftJoin(rechnungMapping as rechnung).on(rechnung.kundeId, person.kundeId)
         .where.eq(rechnung.id, rechnungId)
     }.map(personMapping(person)).list
+  }
+  protected def getKontoDatenKundeQuery(kundeId: KundeId) = {
+    withSQL {
+      select
+        .from(kontoDatenMapping as kontoDaten)
+        .where.eq(kontoDaten.kunde, kundeId)
+    }.map(kontoDatenMapping(kontoDaten)).single
   }
 }

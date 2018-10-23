@@ -106,6 +106,23 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       }
   }
 
+  implicit val paymentTypeFormat = new JsonFormat[PaymentType] {
+    def write(obj: PaymentType): JsValue =
+      obj match {
+        case Anderer     => JsString("Anderer")
+        case DirectDebit => JsString("DirectDebit")
+        case Transfer    => JsString("Transfer")
+      }
+
+    def read(json: JsValue): PaymentType =
+      json match {
+        case JsString("Anderer")     => Anderer
+        case JsString("DirectDebit") => DirectDebit
+        case JsString("Transfer")    => Transfer
+        case pe                      => sys.error(s"Unknown payment type:$pe")
+      }
+  }
+
   implicit val waehrungFormat = enumFormat(Waehrung.apply)
   implicit val einsatzEinheitFormat = enumFormat(EinsatzEinheit.apply)
   implicit val laufzeiteinheitFormat = enumFormat(Laufzeiteinheit.apply)
@@ -134,6 +151,17 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val sammelbestellungIdFormat = baseIdFormat(SammelbestellungId)
   implicit val bestellpositionIdFormat = baseIdFormat(BestellpositionId)
   implicit val customKundentypIdFormat = baseIdFormat(CustomKundentypId.apply)
+  implicit val personCategoryIdFormat = baseIdFormat(PersonCategoryId.apply)
+  implicit val personCategoryNameIdFormat = new RootJsonFormat[PersonCategoryNameId] {
+    def write(obj: PersonCategoryNameId): JsValue =
+      JsString(obj.id)
+
+    def read(json: JsValue): PersonCategoryNameId =
+      json match {
+        case JsString(id) => PersonCategoryNameId(id)
+        case kt           => sys.error(s"Unknown PersonCategoryNameId:$kt")
+      }
+  }
   implicit val abwesenheitIdFormat = baseIdFormat(AbwesenheitId.apply)
   implicit val projektVorlageIdFormat = baseIdFormat(ProjektVorlageId.apply)
   implicit val kundentypIdFormat = new RootJsonFormat[KundentypId] {

@@ -25,10 +25,23 @@ package ch.openolitor.stammdaten.models
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple25
 import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.scalax.Tuple26
 
 case class KundeId(id: Long) extends BaseId
+
+sealed trait PaymentType
+case object Anderer extends PaymentType
+case object DirectDebit extends PaymentType
+case object Transfer extends PaymentType
+
+object PaymentType {
+  val AllePaymentTypes = Vector(Anderer, DirectDebit, Transfer)
+
+  def apply(value: String): Option[PaymentType] = {
+    AllePaymentTypes.find(_.toString == value)
+  }
+}
 
 trait IKunde extends BaseEntity[KundeId] {
   val id: KundeId
@@ -54,6 +67,7 @@ trait IKunde extends BaseEntity[KundeId] {
   val anzahlAbosAktiv: Int
   val anzahlPendenzen: Int
   val anzahlPersonen: Int
+  val paymentType: Option[PaymentType]
 }
 
 case class Kunde(
@@ -79,6 +93,7 @@ case class Kunde(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -146,6 +161,7 @@ case class KundeReport(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -176,6 +192,7 @@ case class KundeDetailReport(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   //Report infos
   personen: Seq[PersonDetail],
   abos: Seq[Abo],
@@ -206,6 +223,7 @@ case class KundeDetailArbeitseinsatzReport(
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
   typen: Set[KundentypId],
+  paymentType: Option[PaymentType],
   //Zusatzinformationen
   anzahlAbos: Int,
   anzahlAbosAktiv: Int,
@@ -224,7 +242,7 @@ case class KundeDetailArbeitseinsatzReport(
 ) extends BaseEntity[KundeId] with IKundeReport
 
 object Kunde {
-  def unapply(k: Kunde) = Some(Tuple25(
+  def unapply(k: Kunde) = Some(Tuple26(
     k.id: KundeId,
     k.bezeichnung: String,
     k.strasse: String,
@@ -247,6 +265,7 @@ object Kunde {
     k.anzahlAbosAktiv: Int,
     k.anzahlPendenzen: Int,
     k.anzahlPersonen: Int,
+    k.paymentType: Option[PaymentType],
     //modification flags
     k.erstelldat: DateTime,
     k.ersteller: PersonId,
@@ -277,6 +296,8 @@ case class KundeUebersicht(
   anzahlAbos: Int,
   anzahlAbosAktiv: Int,
   ansprechpersonen: Seq[PersonSummary],
+  paymentType: Option[PaymentType],
+  kontoDaten: Option[KontoDaten],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -307,9 +328,11 @@ case class KundeDetail(
   anzahlAbosAktiv: Int,
   anzahlPendenzen: Int,
   anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
   abos: Seq[Abo],
   pendenzen: Seq[Pendenz],
   ansprechpersonen: Seq[PersonDetail],
+  kontoDaten: Option[KontoDaten],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -335,7 +358,9 @@ case class KundeModify(
   zusatzinfoLieferung: Option[String],
   typen: Set[KundentypId],
   pendenzen: Seq[PendenzModify],
-  ansprechpersonen: Seq[PersonModify]
+  ansprechpersonen: Seq[PersonModify],
+  paymentType: Option[PaymentType],
+  kontoDaten: Option[KontoDatenModify]
 ) extends JSONSerializable
 
 case class KundeMailRequest(
@@ -391,6 +416,7 @@ case class Person(
   letzteAnmeldung: Option[DateTime],
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -418,7 +444,8 @@ object Person {
     passwort: Option[Array[Char]] = None,
     letzteAnmeldung: Option[DateTime] = None,
     passwortWechselErforderlich: Boolean = false,
-    rolle: Option[Rolle] = None
+    rolle: Option[Rolle] = None,
+    categories: Set[PersonCategoryNameId] = Set()
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -437,6 +464,7 @@ object Person {
     letzteAnmeldung,
     passwortWechselErforderlich,
     rolle,
+    categories,
     // modification flags
     erstelldat = DateTime.now,
     ersteller = person,
@@ -462,6 +490,7 @@ case class PersonDetail(
   letzteAnmeldung: Option[DateTime],
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -492,6 +521,7 @@ case class PersonUebersicht(
   loginAktiv: Boolean,
   letzteAnmeldung: Option[DateTime],
   rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
   // kundendaten
   strasse: String,
   hausNummer: Option[String],
@@ -509,6 +539,20 @@ case class PersonUebersicht(
 
 case class KundeSummary(id: KundeId, kunde: String) extends Product
 
+case class PersonModifyV1(
+  id: Option[PersonId],
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String]
+) extends JSONSerializable {
+  def fullName = name + ' ' + vorname
+}
+
 case class PersonModify(
   id: Option[PersonId],
   anrede: Option[Anrede],
@@ -518,6 +562,7 @@ case class PersonModify(
   emailAlternative: Option[String],
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
+  categories: Set[PersonCategoryNameId],
   bemerkungen: Option[String]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
@@ -532,6 +577,7 @@ case class PersonCreate(
   emailAlternative: Option[String],
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
+  categories: Set[PersonCategoryNameId],
   bemerkungen: Option[String],
   sort: Int
 ) extends JSONSerializable {
@@ -547,6 +593,20 @@ case class PersonMailRequest(
   subject: String,
   body: String
 ) extends JSONSerializable
+case class PersonCategoryNameId(id: String) extends BaseStringId
+case class PersonCategoryId(id: Long) extends BaseId
+case class PersonCategory(
+  id: PersonCategoryId,
+  name: PersonCategoryNameId,
+  description: Option[String],
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonCategoryId]
+
+case class PersonCategoryModify(id: PersonCategoryId, name: PersonCategoryNameId, description: Option[String]) extends JSONSerializable
+case class PersonCategoryCreate(name: PersonCategoryNameId, description: Option[String]) extends JSONSerializable
 
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus

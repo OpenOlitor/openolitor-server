@@ -39,19 +39,23 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
   implicit val optionRechnungsPositionIdBinder: Binders[Option[RechnungsPositionId]] = optionBaseIdBinders(RechnungsPositionId.apply _)
   implicit val zahlungsImportIdBinder: Binders[ZahlungsImportId] = baseIdBinders(ZahlungsImportId.apply _)
   implicit val zahlungsEingangIdBinder: Binders[ZahlungsEingangId] = baseIdBinders(ZahlungsEingangId.apply _)
+  implicit val zahlungsExportIdBinder: Binders[ZahlungsExportId] = baseIdBinders(ZahlungsExportId.apply _)
 
+  implicit val rechnungIdSetBinder: Binders[Set[RechnungId]] = setBaseIdBinders(RechnungId.apply _)
   implicit val rechnungStatusBinders: Binders[RechnungStatus] = toStringBinder(RechnungStatus.apply)
   implicit val rechnungsPositionStatusBinders: Binders[RechnungsPositionStatus.RechnungsPositionStatus] = toStringBinder(RechnungsPositionStatus.apply)
   implicit val rechnungsPositionTypBinders: Binders[RechnungsPositionTyp.RechnungsPositionTyp] = toStringBinder(RechnungsPositionTyp.apply)
   implicit val optionRechnungIdBinder: Binders[Option[RechnungId]] = optionBaseIdBinders(RechnungId.apply _)
 
   implicit val zahlungsEingangStatusBinders: Binders[ZahlungsEingangStatus] = toStringBinder(ZahlungsEingangStatus.apply)
+  implicit val zahlungsExportStatusBinders: Binders[ZahlungsExportStatus] = toStringBinder(ZahlungsExportStatus.apply)
 
   // declare parameterbinderfactories for enum type to allow dynamic type convertion of enum subtypes
   implicit def rechnungStatusParameterBinderFactory[A <: RechnungStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def rechnungsPositionStatusStatusParameterBinderFactory[A <: RechnungsPositionStatus.RechnungsPositionStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def rechnungsPositionTypStatusParameterBinderFactory[A <: RechnungsPositionTyp.RechnungsPositionTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def zahlungsEingangStatusParameterBinderFactory[A <: ZahlungsEingangStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit def zahlungsExportStatusParameterBinderFactory[A <: ZahlungsExportStatus]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val rechnungMapping = new BaseEntitySQLSyntaxSupport[Rechnung] {
     override val tableName = "Rechnung"
@@ -84,7 +88,8 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
         column.hausNummer -> entity.hausNummer,
         column.adressZusatz -> entity.adressZusatz,
         column.plz -> entity.plz,
-        column.ort -> entity.ort
+        column.ort -> entity.ort,
+        column.paymentType -> entity.paymentType
       )
     }
   }
@@ -133,6 +138,26 @@ trait BuchhaltungDBMappings extends DBMappings with StammdatenDBMappings with Ba
         column.file -> entity.file,
         column.anzahlZahlungsEingaenge -> entity.anzahlZahlungsEingaenge,
         column.anzahlZahlungsEingaengeErledigt -> entity.anzahlZahlungsEingaengeErledigt
+      )
+    }
+  }
+
+  implicit val zahlungsExportMapping = new BaseEntitySQLSyntaxSupport[ZahlungsExport] {
+    override val tableName = "ZahlungsExport"
+
+    override lazy val columns = autoColumns[ZahlungsExport]()
+
+    def apply(rn: ResultName[ZahlungsExport])(rs: WrappedResultSet): ZahlungsExport =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: ZahlungsExport): Seq[ParameterBinder] =
+      parameters(ZahlungsExport.unapply(entity).get)
+
+    override def updateParameters(entity: ZahlungsExport) = {
+      super.updateParameters(entity) ++ Seq(
+        column.fileName -> entity.fileName,
+        column.rechnungen -> entity.rechnungen,
+        column.status -> entity.status
       )
     }
   }

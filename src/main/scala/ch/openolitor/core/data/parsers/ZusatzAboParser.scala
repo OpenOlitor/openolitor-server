@@ -35,12 +35,12 @@ object ZusatzAboParser extends EntityParser {
 
   def parse(kundeIdMapping: Map[Long, KundeId], kunden: List[Kunde], vertriebsartIdMapping: Map[Long, VertriebsartId], vertriebsarten: List[Vertriebsart], vertriebe: List[Vertrieb],
     abotypen: List[ZusatzAbotyp], abos: List[Abo], abwesenheiten: List[Abwesenheit])(implicit loggingAdapter: LoggingAdapter) = {
-    parseEntity[ZusatzAbo, AboId]("id", Seq("haupt_abo_id", "abotyp_id", "kunde_id", "vertriebsart_id", "start", "ende",
+    parseEntity[ZusatzAbo, AboId]("id", Seq("haupt_abo_id", "abotyp_id", "kunde_id", "vertriebsart_id", "start", "ende", "price",
       "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen", "anzahl_einsaetze") ++ modifyColumns) { id => indexes =>
       row =>
         //match column indexes
-        val Seq(haupAboIdIndex, zusatzAbotypIdIndex, kundeIdIndex, vertriebsartIdIndex, startIndex, endeIndex,
-          guthabenVertraglichIndex, guthabenIndex, guthabenInRechnungIndex, indexLetzteLieferung, indexAnzahlAbwesenheiten, lieferungenIndex, anzahlEinsaetzeIndex) = indexes take (12)
+        val Seq(haupAboIdIndex, zusatzAbotypIdIndex, kundeIdIndex, vertriebsartIdIndex, startIndex, endeIndex, priceIndex,
+          guthabenVertraglichIndex, guthabenIndex, guthabenInRechnungIndex, indexLetzteLieferung, indexAnzahlAbwesenheiten, lieferungenIndex, anzahlEinsaetzeIndex) = indexes take (13)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
         val hauptAboIdInt = row.value[Long](haupAboIdIndex)
@@ -49,6 +49,7 @@ object ZusatzAboParser extends EntityParser {
         val vertriebsartIdInt = row.value[Long](vertriebsartIdIndex)
         val start = row.value[LocalDate](startIndex)
         val ende = row.value[Option[LocalDate]](endeIndex)
+        val price = row.value[Option[BigDecimal]](priceIndex)
         val aboId = AboId(id)
 
         val letzteLieferung = row.value[Option[DateTime]](indexLetzteLieferung)
@@ -82,6 +83,7 @@ object ZusatzAboParser extends EntityParser {
           vertriebBeschrieb = hauptAbo.vertriebBeschrieb,
           start = start,
           ende = ende,
+          price = price,
           letzteLieferung = letzteLieferung,
           //calculated fields
           anzahlAbwesenheiten = anzahlAbwesenheiten,

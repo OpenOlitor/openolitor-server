@@ -229,6 +229,16 @@ object V2Scripts {
     OO942_EnlargeFileRef.scripts ++
     OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     OO762_Mail_Templates.scripts ++
+    OO_sunu_7_maintenance_mode_zero.scripts ++
+    OO_sunu_4_person_category.scripts ++
+    OO_sunu_4_2_adding_price_to_abo.scripts ++
+    OO_sunu_9_adding_creditor_identifier.scripts ++
+    OO_sunu_11_adding_payment_parameters_to_kunde.scripts ++
+    OO_sunu_13_adding_payment_type_to_rechnung.scripts ++
+    OO_sunu_14_new_zahlung_export_table.scripts ++
+    OO_sunu_26_adding_payment_types.scripts ++
+    OO_sunu_27_adding_status_to_zahlungs_export.scripts ++
+    OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts
 }

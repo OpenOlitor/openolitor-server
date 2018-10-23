@@ -60,6 +60,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     case EntityDeletedEvent(meta, id: AbotypId) => deleteAbotyp(meta, id)
     case EntityDeletedEvent(meta, id: AbwesenheitId) => deleteAbwesenheit(meta, id)
     case EntityDeletedEvent(meta, id: PersonId) => deletePerson(meta, id)
+    case EntityDeletedEvent(meta, id: PersonCategoryId) => deletePersonCategory(meta, id)
     case EntityDeletedEvent(meta, id: PendenzId) => deletePendenz(meta, id)
     case EntityDeletedEvent(meta, id: KundeId) => deleteKunde(meta, id)
     case EntityDeletedEvent(meta, id: DepotId) => deleteDepot(meta, id)
@@ -108,8 +109,24 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
+  def deletePersonCategory(meta: EventMetadata, id: PersonCategoryId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.deleteEntity[PersonCategory, PersonCategoryId](id)
+    }
+  }
+
   private def noSessionDeletePerson(id: PersonId)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
     stammdatenWriteRepository.deleteEntity[Person, PersonId](id)
+  }
+
+  def deleteKontoDaten(meta: EventMetadata, id: KontoDatenId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.deleteEntity[KontoDaten, KontoDatenId](id)
+    }
+  }
+
+  private def noSessionDeleteKontoDaten(id: KontoDatenId)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
+    stammdatenWriteRepository.deleteEntity[KontoDaten, KontoDatenId](id)
   }
 
   def deleteKunde(meta: EventMetadata, kundeId: KundeId)(implicit personId: PersonId = meta.originator) = {
@@ -118,6 +135,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
         case Some(kunde) =>
           //delete all personen as well
           stammdatenWriteRepository.getPersonen(kundeId).map(person => noSessionDeletePerson(person.id))
+          stammdatenWriteRepository.getKontoDatenKunde(kundeId).map(kontoDaten => noSessionDeleteKontoDaten(kontoDaten.id))
           //delete all pendenzen as well
           stammdatenWriteRepository.getPendenzen(kundeId).map(pendenz => noSessionDeletePendenz(pendenz.id))
         case None =>

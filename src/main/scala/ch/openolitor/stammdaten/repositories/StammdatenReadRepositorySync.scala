@@ -44,7 +44,8 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
 
   @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
   def getProjektV1(implicit session: DBSession): Option[ProjektV1]
-  def getKontoDaten(implicit session: DBSession): Option[KontoDaten]
+  def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten]
+  def getKontoDatenKunde(kundeId: KundeId)(implicit session: DBSession): Option[KontoDaten]
   def getKunden(implicit session: DBSession): List[Kunde]
   def getKundenByKundentyp(kundentyp: KundentypId)(implicit session: DBSession): List[Kunde]
   def getCustomKundentypen(implicit session: DBSession): List[CustomKundentyp]
@@ -54,6 +55,8 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getPersonenForZusatzabotyp(abotypId: AbotypId)(implicit session: DBSession): List[Person]
   def getPersonen(tourId: TourId)(implicit session: DBSession): List[Person]
   def getPersonen(DepotId: DepotId)(implicit session: DBSession): List[Person]
+  def getPersonByCategory(category: PersonCategoryNameId)(implicit session: DBSession): List[Person]
+  def getPersonCategory(implicit session: DBSession): List[PersonCategory]
   def getPendenzen(id: KundeId)(implicit session: DBSession): List[Pendenz]
 
   def getLatestLieferplanung(implicit session: DBSession): Option[Lieferplanung]
@@ -200,8 +203,12 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getProjektV1Query.apply()
   }
 
-  def getKontoDaten(implicit session: DBSession): Option[KontoDaten] = {
-    getKontoDatenQuery.apply()
+  def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten] = {
+    getKontoDatenProjektQuery.apply()
+  }
+
+  def getKontoDatenKunde(kundeId: KundeId)(implicit session: DBSession): Option[KontoDaten] = {
+    getKontoDatenKundeQuery(kundeId).apply()
   }
 
   def getAboDetail(id: AboId)(implicit session: DBSession): Option[AboDetail] = {
@@ -253,6 +260,14 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getPersonen(implicit session: DBSession): List[Person] = {
     getPersonenQuery.apply()
+  }
+
+  def getPersonByCategory(category: PersonCategoryNameId)(implicit session: DBSession): List[Person] = {
+    getPersonByCategoryQuery(category).apply()
+  }
+
+  def getPersonCategory(implicit session: DBSession): List[PersonCategory] = {
+    getPersonCategoryQuery.apply()
   }
 
   def getPersonen(kundeId: KundeId)(implicit session: DBSession): List[Person] = {

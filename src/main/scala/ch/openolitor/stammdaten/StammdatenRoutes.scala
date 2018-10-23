@@ -49,7 +49,6 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAs
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.stammdaten.models.AboGuthabenModify
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.util.parsing.FilterExpr
 
@@ -79,18 +78,18 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
-        kundentypenRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
+        kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
         mailingRoute
     }
 
   private def kontoDatenRoute(implicit subject: Subject): Route =
     path("kontodaten") {
-      get(detail(stammdatenReadRepository.getKontoDaten)) ~
+      get(detail(stammdatenReadRepository.getKontoDatenProjekt)) ~
         post(create[KontoDatenModify, KontoDatenId](KontoDatenId.apply _))
     } ~
       path("kontodaten" / kontoDatenIdPath) { id =>
-        get(detail(stammdatenReadRepository.getKontoDaten)) ~
+        get(detail(stammdatenReadRepository.getKontoDatenProjekt)) ~
           (put | post)(update[KontoDatenModify, KontoDatenId](id))
       }
 
@@ -142,6 +141,9 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "vertriebsartanpassen") { (kundeId, aboId) =>
         (put | post)(update[AboVertriebsartModify, AboId](aboId))
+      } ~
+      path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "priceanpassen") { (kundeId, aboId) =>
+        (put | post)(update[AboPriceModify, AboId](aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "koerbe") { (_, aboId) =>
         get(list(stammdatenReadRepository.getKoerbe(aboId)))
@@ -212,6 +214,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       get(list(stammdatenReadRepository.getPersonenUebersicht, exportFormat))
     }
   }
+
+  private def personCategoryRoute(implicit subject: Subject): Route =
+    path("personCategories") {
+      get(list(stammdatenReadRepository.getPersonCategory)) ~
+        post(create[PersonCategoryCreate, PersonCategoryId](PersonCategoryId.apply _))
+    } ~
+      path("personCategories" / personCategoryIdPath) { (personCategoryId) =>
+        (put | post)(update[PersonCategoryModify, PersonCategoryId](personCategoryId)) ~
+          delete(remove(personCategoryId))
+      }
 
   private def kundentypenRoute(implicit subject: Subject): Route =
     path("kundentypen") {

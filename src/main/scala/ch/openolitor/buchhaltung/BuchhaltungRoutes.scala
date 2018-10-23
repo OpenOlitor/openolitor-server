@@ -26,7 +26,6 @@ import spray.routing._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
-
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
@@ -37,6 +36,7 @@ import akka.pattern.ask
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import stamina.Persister
 import ch.openolitor.buchhaltung.models._
+import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
 import akka.actor._
@@ -52,6 +52,13 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAs
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
 import java.io._
+import java.io.ByteArrayInputStream
+
+import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.Duration
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
+
+import scala.concurrent.{ Await, Future }
 
 trait BuchhaltungRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -66,6 +73,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   implicit val rechnungsPositionIdPath = long2BaseIdPathMatcher(RechnungsPositionId.apply)
   implicit val zahlungsImportIdPath = long2BaseIdPathMatcher(ZahlungsImportId.apply)
   implicit val zahlungsEingangIdPath = long2BaseIdPathMatcher(ZahlungsEingangId.apply)
+  implicit val zahlungsExportIdPath = long2BaseIdPathMatcher(ZahlungsExportId.apply)
 
   import EntityStore._
 
@@ -74,7 +82,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute
+      rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
   def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
@@ -103,6 +111,28 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
                 val fileStoreIds = rechnungen.map(_.mahnungFileStoreIds.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download mahnungen with filestoreRefs:$fileStoreIds")
                 downloadAll("Mahnungen_" + System.currentTimeMillis + ".zip", GeneriertMahnung, fileStoreIds)
+              }
+            }
+          }
+        }
+      } ~
+      path("rechnungen" / "aktionen" / "pain_008_001_07") {
+        post {
+          requestInstance { request =>
+            entity(as[RechnungenContainer]) { cont =>
+              onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
+                generatePain008(rechnungen) match {
+                  case Right(xmlData) => {
+                    val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                    storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_07") { (fileId, meta) =>
+                      createZahlungExport(fileId, rechnungen, xmlData)
+                    }
+                  }
+                  case Left(errorMessage) => {
+                    logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
+                    complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
+                  }
+                }
               }
             }
           }
@@ -221,6 +251,24 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         }
       }
     }
+  def zahlungsExportsRoute(implicit subect: Subject) =
+    path("zahlungsexports") {
+      get(list(buchhaltungReadRepository.getZahlungsExports))
+    } ~
+      path("zahlungsexports" / zahlungsExportIdPath) { id =>
+        get(detail(buchhaltungReadRepository.getZahlungsExportDetail(id))) ~
+          (put | post)(update[ZahlungsExportCreate, ZahlungsExportId](id))
+      } ~
+      path("zahlungsexports" / zahlungsExportIdPath / "download") { id =>
+        get {
+          onSuccess(buchhaltungReadRepository.getZahlungsExportDetail(id)) {
+            case Some(zahlungExport) =>
+              download(ZahlungsExportDaten, zahlungExport.fileName)
+            case None =>
+              complete(StatusCodes.NotFound, s"zahlung export nicht gefunden: $id")
+          }
+        }
+      }
 
   def verschicken(id: RechnungId)(implicit idPersister: Persister[RechnungId, _], subject: Subject) = {
     onSuccess(entityStore ? BuchhaltungCommandHandler.RechnungVerschickenCommand(subject.personId, id)) {
@@ -323,6 +371,14 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+  def createZahlungExport(file: String, rechnungen: List[Rechnung], fileContent: String)(implicit subject: Subject) = {
+    onSuccess(entityStore ? BuchhaltungCommandHandler.ZahlungsExportCreateCommand(subject.personId, rechnungen, file)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"The file could not be exported. Make sure all the invoices have an Iban and a account holder name. The CSA needs also to have a valid Iban and Creditor Identifier")
+      case _ => complete(fileContent)
+    }
+  }
+
   def deleteRechnung(rechnungId: RechnungId)(implicit subject: Subject) = {
     onSuccess((entityStore ? BuchhaltungCommandHandler.DeleteRechnungCommand(subject.personId, rechnungId))) {
       case UserCommandFailed =>
@@ -365,6 +421,53 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
         complete("")
+    }
+  }
+
+  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): Either[String, String] = {
+    val NbOfTxs = ids.size.toString
+
+    val rechnungenWithFutures: Future[List[(Rechnung, KontoDaten)]] = Future.sequence(ids.map { rechnung =>
+      stammdatenReadRepository.getKontoDatenKunde(rechnung.kundeId).map { k => (rechnung, k.get) }
+    })
+    val d = Duration(1, SECONDS)
+
+    val rechnungen: List[(Rechnung, KontoDaten)] = Await.result(rechnungenWithFutures, d)
+    val kontoDatenProjekt: KontoDaten = Await.result(stammdatenReadRepository.getKontoDatenProjekt, d).get
+    val projekt: Projekt = Await.result(stammdatenReadRepository.getProjekt, d).get
+
+    (kontoDatenProjekt.iban, kontoDatenProjekt.creditorIdentifier) match {
+      case (Some(""), Some(_)) => { Left(s"The iban is not defined for the project") }
+      case (Some(_), Some("")) => { Left("The creditorIdentifier is not defined for the project ") }
+      case (Some(iban), Some(creditorIdentifier)) => {
+        val emptyIbanList = checkEmptyIban(rechnungen)
+        if (emptyIbanList.isEmpty) {
+          val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
+          Right(xmlText)
+        } else {
+          val decoratedEmptyList = emptyIbanList.mkString(" ")
+          Left(s"The iban or name account holder is not defined for the user: $decoratedEmptyList")
+        }
+      }
+      case (None, Some(creditorIdentifier)) => {
+        Left(s"The iban is not defined for the project")
+      }
+      case (Some(iban), None) => {
+        Left("The creditorIdentifier is not defined for the project ")
+      }
+      case (None, None) => {
+        Left("Neither the creditorIdentifier nor the iban is defined for the project")
+      }
+    }
+  }
+
+  def checkEmptyIban(rechnungen: List[(Rechnung, KontoDaten)])(implicit subect: Subject): List[KundeId] = {
+    rechnungen flatMap { rechnung =>
+      (rechnung._2.iban, rechnung._2.nameAccountHolder) match {
+        case (None, _)          => Some(rechnung._1.kundeId)
+        case (_, None)          => Some(rechnung._1.kundeId)
+        case (Some(_), Some(_)) => None
+      }
     }
   }
 }

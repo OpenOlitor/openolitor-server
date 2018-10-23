@@ -438,6 +438,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[PendenzModify, PendenzId](idFactory, meta, entity, PendenzId.apply)
     case e @ InsertEntityCommand(personId, entity: PersonCreate) => idFactory => meta =>
       handleEntityInsert[PersonCreate, PersonId](idFactory, meta, entity, PersonId.apply)
+    case e @ InsertEntityCommand(personId, entity: PersonCategoryCreate) => idFactory => meta =>
+      handleEntityInsert[PersonCategoryCreate, PersonCategoryId](idFactory, meta, entity, PersonCategoryId.apply)
     case e @ InsertEntityCommand(personId, entity: ProduzentModify) => idFactory => meta =>
       handleEntityInsert[ProduzentModify, ProduzentId](idFactory, meta, entity, ProduzentId.apply)
     case e @ InsertEntityCommand(personId, entity: ProduktModify) => idFactory => meta =>
@@ -493,9 +495,17 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         Failure(new InvalidStateException(s"Zum Erstellen eines Kunden muss mindestens ein Ansprechpartner angegeben werden"))
       } else {
         logger.debug(s"created => Insert entity:$entity")
-        val kundeEvent = EntityInsertEvent(idFactory.newId(KundeId.apply), entity)
+        val kundeId = idFactory.newId(KundeId.apply)
+        val kundeEvent = EntityInsertEvent(kundeId, entity)
 
-        val kundeId = kundeEvent.id
+        //Konto daten creation
+        val kontoDaten = entity.kontoDaten match {
+          case Some(kd) => KontoDatenModify(kd.iban, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
+          case None     => KontoDatenModify(None, None, None, None, None, None, Some(kundeId), None)
+        }
+        logger.debug(s"created => Insert entity:$kontoDaten")
+        val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)
+
         val apartnerEvents = entity.ansprechpersonen.zipWithIndex.map {
           case (newPerson, index) =>
             val sort = index + 1
@@ -504,7 +514,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
         }
 
-        Success(kundeEvent +: apartnerEvents)
+        Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
       }
 
     /*
@@ -605,7 +615,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             // has to be refactored as soon as more modes are available
             val anzahlLieferungen = aboRechnungCreate.anzahlLieferungen
             if (anzahlLieferungen > 0) {
-              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abotyp.preis * anzahlLieferungen)
+              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abo.price.getOrElse(abotyp.preis) * anzahlLieferungen)
 
               val repoType = abotyp match {
                 case a: ZusatzAbotyp => RechnungsPositionTyp.ZusatzAbo
@@ -641,7 +651,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       for (zusatzabo <- zusatzabos) yield {
         val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
         val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
-        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabosTyp.get.preis, waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
+        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabo.price.getOrElse(zusatzabosTyp.get.preis), waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
         EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
       }
     }
@@ -690,7 +700,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - guthaben), 0)
 
             if (anzahlLieferungen > 0) {
-              val hauptAboBetrag = abotyp.preis * anzahlLieferungen
+              val hauptAboBetrag = abo.price.getOrElse(abotyp.preis) * anzahlLieferungen
 
               val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)

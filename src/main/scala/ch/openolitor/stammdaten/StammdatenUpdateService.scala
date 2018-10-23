@@ -76,10 +76,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: VertriebsartId, entity: PostlieferungAbotypModify)    => updatePostlieferungVertriebsart(meta, id, entity)
     case EntityUpdatedEvent(meta, id: KundeId, entity: KundeModify)                         => updateKunde(meta, id, entity)
     case EntityUpdatedEvent(meta, id: PendenzId, entity: PendenzModify)                     => updatePendenz(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: PersonCategoryId, entity: PersonCategoryModify)       => updatePersonCategory(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: HeimlieferungAboModify)                => updateHeimlieferungAbo(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: PostlieferungAboModify)                => updatePostlieferungAbo(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: DepotlieferungAboModify)               => updateDepotlieferungAbo(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: ZusatzAboModify)                       => updateZusatzAboModify(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboGuthabenModify)                     => updateAboGuthaben(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AboId, entity: AboPriceModify)                        => updateAboPrice(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AboId, entity: AboVertriebsartModify)                 => updateAboVertriebsart(meta, id, entity)
     case EntityUpdatedEvent(meta, id: DepotId, entity: DepotModify)                         => updateDepot(meta, id, entity)
     case EntityUpdatedEvent(meta, id: CustomKundentypId, entity: CustomKundentypModify)     => updateKundentyp(meta, id, entity)
@@ -89,7 +92,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: TourId, entity: TourModify)                           => updateTour(meta, id, entity)
     case EntityUpdatedEvent(meta, id: AuslieferungId, entity: TourAuslieferungModify)       => updateAuslieferung(meta, id, entity)
     case EntityUpdatedEvent(meta, id: ProjektId, entity: ProjektModify)                     => updateProjekt(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: KontoDatenId, entity: KontoDatenModify)               => updateKontoDaten(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: KontoDatenId, entity: KontoDatenModify)               => updateKontoDatenProjekt(meta, id, entity)
     case EntityUpdatedEvent(meta, id: LieferungId, entity: Lieferung)                       => updateLieferung(meta, id, entity)
     case EntityUpdatedEvent(meta, id: LieferungId, entity: LieferungAbgeschlossenModify)    => updateLieferungAbgeschlossen(meta, id, entity)
     case EntityUpdatedEvent(meta, id: LieferplanungId, entity: LieferplanungModify)         => updateLieferplanung(meta, id, entity)
@@ -211,6 +214,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       DB localTxPostPublish { implicit session => implicit publisher =>
         updateKundendaten(meta, kundeId, update)
         updatePersonen(meta, kundeId, update)
+        updateKontoDatenKunde(meta, kundeId, update)
         updatePendenzen(meta, kundeId, update)
         updateAbos(meta, kundeId, update)
       }
@@ -235,10 +239,44 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
           personen.filter(_.id == id).headOption.map { person =>
             logger.debug(s"Update person with at index:$index, data -> $updatePerson")
             val copy = copyFrom(person, updatePerson, "id" -> person.id, "modifidat" -> meta.timestamp, "modifikator" -> personId)
-
             stammdatenWriteRepository.updateEntityFully[Person, PersonId](copy)
           }
         }
+    }
+  }
+
+  private def updateKontoDatenKunde(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+    val kontoDaten = stammdatenWriteRepository.getKontoDatenKunde(kundeId)
+    kontoDaten match {
+      case None => logger.debug(s"No konto daten to update")
+      case Some(kd) => {
+        logger.debug("Update data from the bank account for the customer : " + kd.kunde + " with the data ->" + update.kontoDaten)
+        update.kontoDaten map { updatedKontoDaten =>
+          val copy = copyFrom(kd, updatedKontoDaten, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+          stammdatenWriteRepository.updateEntityFully[KontoDaten, KontoDatenId](copy)
+        }
+      }
+    }
+  }
+
+  private def updatePersonCategory(meta: EventMetadata, id: PersonCategoryId, update: PersonCategoryModify)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(personCategoryMapping, id) map { personCategory =>
+
+        val copy = copyFrom(personCategory, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+        stammdatenWriteRepository.updateEntityFully[PersonCategory, PersonCategoryId](copy)
+
+        // update category in Person
+        stammdatenWriteRepository.getPersonByCategory(personCategory.name) map { personen =>
+          val newPersonCategories = personen.categories - personCategory.name + update.name
+          val newPerson = personen.copy(
+            categories = newPersonCategories,
+            modifidat = meta.timestamp,
+            modifikator = personId
+          )
+          stammdatenWriteRepository.updateEntityFully[Person, PersonId](newPerson)
+        }
+      }
     }
   }
 
@@ -332,6 +370,23 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       }
       stammdatenWriteRepository.getZusatzAbosByHauptAbo(id) map { zusatzAbo =>
         adjustGuthabenVorLieferung(zusatzAbo, update.guthabenNeu)
+      }
+    }
+  }
+
+  private def updateAboPrice(meta: EventMetadata, id: AboId, update: AboPriceModify)(implicit personId: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+      }
+      stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+      }
+      stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
+        val copy = abo.copy(price = update.newPrice)
+        stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
       }
     }
   }
@@ -721,7 +776,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKontoDaten(meta: EventMetadata, id: KontoDatenId, update: KontoDatenModify)(implicit personId: PersonId = meta.originator): Unit = {
+  private def updateKontoDatenProjekt(meta: EventMetadata, id: KontoDatenId, update: KontoDatenModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(kontoDatenMapping, id) map { kontoDaten =>
         //map all updatable fields

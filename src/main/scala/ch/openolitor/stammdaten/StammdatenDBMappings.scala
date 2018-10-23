@@ -47,6 +47,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val vertriebsartIdSetBinder: Binders[Set[VertriebsartId]] = setBaseIdBinders(VertriebsartId.apply _)
   implicit val vertriebsartIdSeqBinder: Binders[Seq[VertriebsartId]] = seqBaseIdBinders(VertriebsartId.apply _)
   implicit val kundeIdBinder: Binders[KundeId] = baseIdBinders(KundeId.apply _)
+  implicit val optionKundeIdBinder: Binders[Option[KundeId]] = optionBaseIdBinders(KundeId.apply _)
   implicit val pendenzIdBinder: Binders[PendenzId] = baseIdBinders(PendenzId.apply _)
   implicit val aboIdBinder: Binders[AboId] = baseIdBinders(AboId.apply _)
   implicit val optionAboIdBinder: Binders[Option[AboId]] = optionBaseIdBinders(AboId.apply _)
@@ -58,6 +59,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val bestellungIdBinder: Binders[BestellungId] = baseIdBinders(BestellungId.apply _)
   implicit val sammelbestellungIdBinder: Binders[SammelbestellungId] = baseIdBinders(SammelbestellungId.apply _)
   implicit val bestellpositionIdBinder: Binders[BestellpositionId] = baseIdBinders(BestellpositionId.apply _)
+  implicit val personCategoryNameIdBinder: Binders[PersonCategoryNameId] = baseStringIdBinders(PersonCategoryNameId.apply)
+  implicit val personCategoryIdBinder: Binders[PersonCategoryId] = baseIdBinders(PersonCategoryId.apply)
   implicit val customKundentypIdBinder: Binders[CustomKundentypId] = baseIdBinders(CustomKundentypId.apply _)
   implicit val kundentypIdBinder: Binders[KundentypId] = baseStringIdBinders(KundentypId.apply)
   implicit val produktekategorieIdBinder: Binders[ProduktekategorieId] = baseIdBinders(ProduktekategorieId.apply _)
@@ -87,6 +90,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val lieferzeitpunktBinders: Binders[Lieferzeitpunkt] = toStringBinder(Lieferzeitpunkt.apply)
   implicit val lieferzeitpunktSetBinders: Binders[Set[Lieferzeitpunkt]] = setSqlBinder(Lieferzeitpunkt.apply, _.toString)
   implicit val kundenTypIdSetBinder: Binders[Set[KundentypId]] = setSqlBinder(KundentypId.apply, _.id)
+  implicit val PersonCategoryNameIdSetBinder: Binders[Set[PersonCategoryNameId]] = setSqlBinder(PersonCategoryNameId.apply, _.id)
   implicit val laufzeiteinheitBinders: Binders[Laufzeiteinheit] = toStringBinder(Laufzeiteinheit.apply)
   implicit val liefereinheiBinders: Binders[Liefereinheit] = toStringBinder(Liefereinheit.apply)
   implicit val liefersaisonBinders: Binders[Liefersaison] = toStringBinder(Liefersaison.apply)
@@ -94,6 +98,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val einsatzEinheitBinders: Binders[EinsatzEinheit] = toStringBinder(EinsatzEinheit.apply)
   implicit val anredeBinders: Binders[Anrede] = toStringBinder(Anrede.apply(_).getOrElse(null))
   implicit val anredeOptionBinders: Binders[Option[Anrede]] = Binders.option[Anrede]
+  implicit val paymentTypeBinders: Binders[PaymentType] = toStringBinder(PaymentType.apply(_).getOrElse(null))
+  implicit val paymentTypeOptionBinders: Binders[Option[PaymentType]] = Binders.option[PaymentType]
   implicit val fristBinders: Binders[Option[Frist]] = Binders.string.xmap(_ match {
     case fristeinheitPattern(wert, "W") => Some(Frist(wert.toInt, Wochenfrist))
     case fristeinheitPattern(wert, "M") => Some(Frist(wert.toInt, Monatsfrist))
@@ -230,7 +236,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val kundeMapping = new BaseEntitySQLSyntaxSupport[Kunde] {
     override val tableName = "Kunde"
 
-    override lazy val columns = autoColumns[Kunde]()
+    override lazy val columns: Seq[String] = autoColumns[Kunde]()
 
     def apply(rn: ResultName[Kunde])(rs: WrappedResultSet): Kunde =
       autoConstruct(rs, rn)
@@ -259,7 +265,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.anzahlAbos -> kunde.anzahlAbos,
         column.anzahlAbosAktiv -> kunde.anzahlAbosAktiv,
         column.anzahlPendenzen -> kunde.anzahlPendenzen,
-        column.anzahlPersonen -> kunde.anzahlPersonen
+        column.paymentType -> kunde.paymentType
       )
     }
   }
@@ -291,7 +297,27 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.passwort -> person.passwort,
         column.passwortWechselErforderlich -> person.passwortWechselErforderlich,
         column.rolle -> person.rolle,
+        column.categories -> person.categories,
         column.letzteAnmeldung -> person.letzteAnmeldung
+      )
+    }
+  }
+
+  implicit val personCategoryMapping = new BaseEntitySQLSyntaxSupport[PersonCategory] {
+    override val tableName = "PersonCategory"
+
+    override lazy val columns = autoColumns[PersonCategory]()
+
+    def apply(rn: ResultName[PersonCategory])(rs: WrappedResultSet): PersonCategory =
+      autoConstruct(rs, rn)
+
+    def parameterMappings(entity: PersonCategory): Seq[ParameterBinder] =
+      parameters(PersonCategory.unapply(entity).get)
+
+    override def updateParameters(personCategory: PersonCategory) = {
+      super.updateParameters(personCategory) ++ Seq(
+        column.name -> personCategory.name,
+        column.description -> personCategory.description
       )
     }
   }
@@ -620,11 +646,12 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.abotypName -> abo.abotypName,
         column.start -> abo.start,
         column.ende -> abo.ende,
+        column.price -> abo.price,
         column.letzteLieferung -> abo.letzteLieferung,
         column.anzahlAbwesenheiten -> abo.anzahlAbwesenheiten,
         column.anzahlLieferungen -> abo.anzahlLieferungen,
-        column.anzahlEinsaetze -> abo.anzahlEinsaetze,
-        column.aktiv -> abo.aktiv
+        column.aktiv -> abo.aktiv,
+        column.anzahlEinsaetze -> abo.anzahlEinsaetze
       )
     }
   }
@@ -1069,8 +1096,13 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(entity: KontoDaten) = {
       super.updateParameters(entity) ++ Seq(
         column.iban -> entity.iban,
+        column.referenzNummerPrefix -> entity.referenzNummerPrefix,
         column.teilnehmerNummer -> entity.teilnehmerNummer,
-        column.referenzNummerPrefix -> entity.referenzNummerPrefix
+        column.bankName -> entity.bankName,
+        column.nameAccountHolder -> entity.nameAccountHolder,
+        column.addressAccountHolder -> entity.addressAccountHolder,
+        column.kunde -> entity.kunde,
+        column.creditorIdentifier -> entity.creditorIdentifier
       )
     }
   }

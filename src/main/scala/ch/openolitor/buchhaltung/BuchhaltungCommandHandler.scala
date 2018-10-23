@@ -28,6 +28,7 @@ import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models.KundeId
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 
+import ch.openolitor.core.RouteServiceActor._
 import scala.util._
 import scalikejdbc.DB
 import scalikejdbc.DBSession
@@ -37,9 +38,11 @@ import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecord
+import ch.openolitor.core.filestore._
+
+import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, ZahlungsImportRecordResult }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
+
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
 
@@ -75,6 +78,9 @@ object BuchhaltungCommandHandler {
 
   case class ZahlungsImportCreatedEvent(meta: EventMetadata, entity: ZahlungsImportCreate) extends PersistentEvent with JSONSerializable
   case class ZahlungsEingangErledigtEvent(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt) extends PersistentEvent with JSONSerializable
+
+  case class ZahlungsExportCreateCommand(originator: PersonId, rechnungen: List[Rechnung], file: String) extends UserCommand
+  case class ZahlungsExportCreatedEvent(meta: EventMetadata, entity: ZahlungsExportCreate) extends PersistentEvent with JSONSerializable
 
   case class RechnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
   case class MahnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
@@ -195,6 +201,19 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 
       Success(Seq(DefaultResultingEvent(factory => ZahlungsImportCreatedEvent(factory.newMetadata(), ZahlungsImportCreate(id, file, zahlungsEingaenge)))))
 
+    case ZahlungsExportCreateCommand(personId, rechnungen, file) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        val NbOfTxs = rechnungen.size.toString
+
+        val id = idFactory.newId(ZahlungsExportId.apply)
+        val rechnungIdList = rechnungen.map { rechnung =>
+          rechnung.id
+        }
+        val zahlungsExportEvent = DefaultResultingEvent(factory => ZahlungsExportCreatedEvent(factory.newMetadata(), ZahlungsExportCreate(id, file, rechnungIdList.toSet, Created)))
+        val verschicktEvents = rechnungIdList.map(r => DefaultResultingEvent(factory => RechnungVerschicktEvent(factory.newMetadata(), r)))
+        Success(zahlungsExportEvent :: verschicktEvents)
+      }
+
     case ZahlungsEingangErledigenCommand(personId, entity) => idFactory => meta =>
       DB readOnly { implicit session =>
         buchhaltungReadRepository.getById(zahlungsEingangMapping, entity.id) map { eingang =>
@@ -266,7 +285,8 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
                 kunde.hausNummer,
                 kunde.adressZusatz,
                 kunde.plz,
-                kunde.ort
+                kunde.ort,
+                kunde.paymentType
               )
             )
 
