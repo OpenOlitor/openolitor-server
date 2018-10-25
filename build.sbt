@@ -98,7 +98,7 @@ val buildSettings = Seq(
     "net.codecrete.qrbill"         % "qrbill-generator"                       % "1.0.0",
     "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
     "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
-    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.1"
+    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
   )
 }
 )
