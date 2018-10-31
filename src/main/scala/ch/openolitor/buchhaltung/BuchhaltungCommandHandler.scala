@@ -257,8 +257,21 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
               case (sort, aboId) =>
                 (sort, aboId) +: (Range(sort + 1, Int.MaxValue) zip (zusatzabosByAbo getOrElse (aboId, List())))
             }
+            val zusatzaboOrphansByAbo = zusatzabosByAbo.filterNot { case (p, c) => aboIds.contains(p.id) }
+            val latestUntilNow = {
+              if (abosWithSort isEmpty) {
+                100
+              } else {
+                abosWithSort.last._1
+              }
+            }
+            val allAbosAlsoOrphansWithSort: Iterable[(Int, RechnungsPositionId)] = {
+              Range(latestUntilNow + 100, Int.MaxValue, 100) zip (zusatzaboOrphansByAbo) flatMap {
+                case (sort, (_, children)) => (Range(sort + 1, Int.MaxValue) zip (children))
+              }
+            } ++ allAbosWithSort
 
-            val assignRechnungsPositionen = allAbosWithSort.map {
+            val assignRechnungsPositionen = allAbosAlsoOrphansWithSort.map {
               case (sort, aboId) =>
                 rechnungsPositionAssignmentUpdateEvent(rechnungCreate.id, aboId, sort)
             }
