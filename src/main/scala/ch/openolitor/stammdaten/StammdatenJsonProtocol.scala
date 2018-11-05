@@ -390,6 +390,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         case d: DepotlieferungAbo => d.toJson
         case h: HeimlieferungAbo  => h.toJson
         case p: PostlieferungAbo  => p.toJson
+        case z: ZusatzAbo         => z.toJson
         case _                    => JsObject()
       }
 
@@ -398,6 +399,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         json.convertTo[DepotlieferungAbo]
       } else if (!json.asJsObject.getFields("tourId").isEmpty) {
         json.convertTo[HeimlieferungAbo]
+      } else if (!json.asJsObject.getFields("hauptAboId").isEmpty) {
+        json.convertTo[ZusatzAbo]
       } else {
         json.convertTo[PostlieferungAbo]
       }
