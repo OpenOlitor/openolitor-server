@@ -295,10 +295,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.sort -> person.sort,
         column.loginAktiv -> person.loginAktiv,
         column.passwort -> person.passwort,
+        column.letzteAnmeldung -> person.letzteAnmeldung,
         column.passwortWechselErforderlich -> person.passwortWechselErforderlich,
         column.rolle -> person.rolle,
-        column.categories -> person.categories,
-        column.letzteAnmeldung -> person.letzteAnmeldung
+        column.categories -> person.categories
       )
     }
   }

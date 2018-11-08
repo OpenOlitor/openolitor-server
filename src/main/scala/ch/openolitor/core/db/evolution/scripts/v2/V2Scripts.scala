@@ -238,7 +238,6 @@ object V2Scripts {
     OO_sunu_14_new_zahlung_export_table.scripts ++
     OO_sunu_26_adding_payment_types.scripts ++
     OO_sunu_27_adding_status_to_zahlungs_export.scripts ++
-    OOBetrieb2_recalculate_aktive_inaktive_accounts.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts
 }
