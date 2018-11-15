@@ -992,12 +992,14 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
 
   def selectedZusatzAbo(lieferungen: List[Lieferung])(implicit session: DBSession): List[Lieferung] = {
     lieferungen flatMap { lieferung =>
-      stammdatenUpdateRepository.getAbotypById(lieferung.abotypId).get match {
-        case z: ZusatzAbotyp => (lieferung.anzahlKoerbeZuLiefern, lieferung.anzahlAbwesenheiten, lieferung.anzahlSaldoZuTief) match {
-          case (0, 0, 0) => None
-          case (_, _, _) => Some(lieferung)
+      stammdatenUpdateRepository.getAbotypById(lieferung.abotypId) flatMap { abotyp =>
+        abotyp match {
+          case z: ZusatzAbotyp => (lieferung.anzahlKoerbeZuLiefern, lieferung.anzahlAbwesenheiten, lieferung.anzahlSaldoZuTief) match {
+            case (0, 0, 0) => None
+            case (_, _, _) => Some(lieferung)
+          }
+          case a: Abotyp => Some(lieferung)
         }
-        case a: Abotyp => Some(lieferung)
       }
     }
   }
