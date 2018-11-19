@@ -413,7 +413,7 @@ trait KorbHandler extends KorbStatusHandler
     // only modify koerbe if the start or end of this abo has changed or we're creating them for a new abo
     if (!isExistingAbo || abo.start != orig.get.start || abo.ende != orig.get.ende) {
       stammdatenWriteRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
-        stammdatenWriteRepository.getLieferungenOffenByAbotyp(abo.abotypId) map { lieferung =>
+        stammdatenWriteRepository.getLieferungenOffenByVertrieb(abo.vertriebId) map { lieferung =>
           if (isExistingAbo && (abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
             deleteKorb(lieferung, abo)
           } else if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
