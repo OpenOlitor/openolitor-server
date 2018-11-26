@@ -82,10 +82,13 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(depotlieferungAbo.id, abwesenheit.aboId)
-        .leftJoin(lieferungMapping as lieferung).on(depotlieferungAbo.abotypId, lieferung.abotypId)
+        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
+        .leftJoin(lieferungMapping as lieferung).on(
+          sqls.eq(vertrieb.id, lieferung.vertriebId)
+            .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
         .where.eq(depotlieferungAbo.kundeId, owner.kundeId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
         .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
@@ -110,10 +113,13 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(heimlieferungAbo.id, abwesenheit.aboId)
-        .leftJoin(lieferungMapping as lieferung).on(heimlieferungAbo.abotypId, lieferung.abotypId)
+        .leftJoin(vertriebMapping as vertrieb).on(heimlieferungAbo.vertriebId, vertrieb.id)
+        .leftJoin(lieferungMapping as lieferung).on(
+          sqls.eq(vertrieb.id, lieferung.vertriebId)
+            .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(heimlieferungAbo.vertriebId, vertrieb.id)
         .where.eq(heimlieferungAbo.kundeId, owner.kundeId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
         .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
@@ -138,10 +144,13 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(postlieferungAbo.id, abwesenheit.aboId)
-        .leftJoin(lieferungMapping as lieferung).on(postlieferungAbo.abotypId, lieferung.abotypId)
+        .leftJoin(vertriebMapping as vertrieb).on(postlieferungAbo.vertriebId, vertrieb.id)
+        .leftJoin(lieferungMapping as lieferung).on(
+          sqls.eq(vertrieb.id, lieferung.vertriebId)
+            .and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(postlieferungAbo.vertriebId, vertrieb.id)
         .where.eq(postlieferungAbo.kundeId, owner.kundeId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
         .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
@@ -199,6 +208,33 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferplanung.id, lieferung.lieferplanungId)
         .where.eq(lieferung.abotypId, id)
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, lieferung))
+        .and.withRoundBracket { _.eq(lieferung.status, Abgeschlossen).or.eq(lieferung.status, Verrechnet) }
+        .orderBy(lieferung.datum).desc
+    }
+      .one(lieferungMapping(lieferung))
+      .toManies(
+        rs => abotypMapping.opt(aboTyp)(rs),
+        rs => lieferpositionMapping.opt(lieferposition)(rs),
+        rs => lieferplanungMapping.opt(lieferplanung)(rs)
+      )
+      .map((lieferung, abotyp, lieferposition, lieferplanung) => {
+        val bemerkung = lieferplanung match {
+          case Nil => None
+          case x   => x.head.bemerkungen
+        }
+        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
+      })
+  }
+
+  protected def getLieferungenDetailsQuery(abotypId: AbotypId, vertriebId: VertriebId, filter: Option[FilterExpr]) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
+        .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
+        .leftJoin(lieferplanungMapping as lieferplanung).on(lieferplanung.id, lieferung.lieferplanungId)
+        .where.eq(lieferung.abotypId, abotypId).and.eq(lieferung.vertriebId, vertriebId).and.isNotNull(lieferung.lieferplanungId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, lieferung))
         .and.withRoundBracket { _.eq(lieferung.status, Abgeschlossen).or.eq(lieferung.status, Verrechnet) }
         .orderBy(lieferung.datum).desc

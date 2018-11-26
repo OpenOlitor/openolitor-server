@@ -61,6 +61,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   implicit val projektIdPath = long2BaseIdPathMatcher(ProjektId.apply)
   implicit val aboIdPath = long2BaseIdPathMatcher(AboId.apply)
   implicit val abotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
+  implicit val vertriebIdPath = long2BaseIdPathMatcher(VertriebId.apply)
   implicit val zusatzabotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val abwesenheitIdPath = long2BaseIdPathMatcher(AbwesenheitId.apply)
   implicit val lieferungIdPath = long2BaseIdPathMatcher(LieferungId.apply)
@@ -210,19 +211,14 @@ trait KundenportalRoutes extends HttpService with ActorReferences
             complete("")
         }
       } ~
-      path("abos" / abotypIdPath / "lieferungen") { abotypId =>
+      path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen") { (abotypId, vertriebId) =>
         get {
-          list(kundenportalReadRepository.getLieferungenDetails(abotypId))
+          list(kundenportalReadRepository.getLieferungenDetails(abotypId, vertriebId))
         }
       } ~
-      path("abos" / abotypIdPath / "lieferungen" / lieferungIdPath) { (abotypId, lieferungId) =>
+      path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / lieferungIdPath) { (abotypId, vertriebId, lieferungId) =>
         get {
           get(detail(kundenportalReadRepository.getLieferungenDetail(lieferungId)))
-        }
-      } ~
-      path("abos" / abotypIdPath / "zusatzabos" / zusatzabotypIdPath / "lieferungen") { (abotypId, zusatzabotypId) =>
-        get {
-          list(kundenportalReadRepository.getLieferungenDetails(zusatzabotypId))
         }
       }
   }
