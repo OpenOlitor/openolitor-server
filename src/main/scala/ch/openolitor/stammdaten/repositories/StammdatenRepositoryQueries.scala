@@ -1318,7 +1318,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(lieferplanungMapping as lieferplanung)
         .join(lieferungMapping as lieferung).on(lieferplanung.id, lieferung.lieferplanungId)
-        .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
+        .join(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
         .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(lieferung.abotypId, zusatzAboTyp.id)
         .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
         .where.eq(lieferung.lieferplanungId, id)
