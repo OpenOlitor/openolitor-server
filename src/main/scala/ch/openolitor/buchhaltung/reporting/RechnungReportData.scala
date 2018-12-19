@@ -37,16 +37,16 @@ import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import net.codecrete.qrbill.generator.Address
-import net.codecrete.qrbill.generator.Bill
-import net.codecrete.qrbill.generator.QRBill
+import net.codecrete.qrbill.generator.{ Address, Bill, QRBill, QRBillValidationError }
 import java.time.LocalDate
+import com.typesafe.scalalogging.LazyLogging
 import java.util.Locale
+import scala.collection.JavaConversions._
 
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 
-trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol {
+trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
 
   def rechungenById(rechnungIds: Seq[RechnungId]): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
@@ -137,8 +137,19 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           debtor.setCountryCode("CH");
           bill.setDebtor(debtor);
 
-          val svg = QRBill.generate(bill, QRBill.BillFormat.A6_LANDSCAPE_SHEET, QRBill.GraphicsFormat.SVG)
-          new String(svg)
+          try {
+            val svg = QRBill.generate(bill, QRBill.BillFormat.A6_LANDSCAPE_SHEET, QRBill.GraphicsFormat.SVG)
+            new String(svg)
+          } catch {
+            case e: QRBillValidationError => {
+              val listValidation = e.getValidationResult.getValidationMessages
+              val message = listValidation.map { m =>
+                m.getField
+              }
+              logger.warn(s"the qr code validation detected errors while generation at the following fields: $message}")
+              new String("")
+            }
+          }
         }
         Await.result(result, 5.seconds)
       case None => ""
