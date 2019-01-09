@@ -32,10 +32,10 @@ import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import akka.actor.ActorRef
 
 object ReportsEntityStoreView {
-  def props(dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultReportsEntityStoreView], dbEvolutionActor, sysConfig, system)
+  def props(dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultReportsEntityStoreView], dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultReportsEntityStoreView(override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem) extends ReportsEntityStoreView
+class DefaultReportsEntityStoreView(override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends ReportsEntityStoreView
   with DefaultReportsWriteRepositoryComponent
 
 /**
