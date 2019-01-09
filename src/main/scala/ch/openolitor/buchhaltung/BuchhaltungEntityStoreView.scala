@@ -32,10 +32,10 @@ import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponen
 import akka.actor.ActorRef
 
 object BuchhaltungEntityStoreView {
-  def props(mailService: ActorRef, dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultBuchhaltungEntityStoreView], mailService, dbEvolutionActor, sysConfig, system)
+  def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultBuchhaltungEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultBuchhaltungEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem) extends BuchhaltungEntityStoreView
+class DefaultBuchhaltungEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends BuchhaltungEntityStoreView
   with DefaultBuchhaltungWriteRepositoryComponent
 
 /**

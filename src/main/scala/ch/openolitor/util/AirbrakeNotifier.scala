@@ -37,6 +37,7 @@ object AirbrakeNotifier {
   def props(implicit system: ActorSystem, systemConfig: SystemConfig): Props = Props(classOf[AirbrakeNotifier], system, systemConfig)
 
   case class AirbrakeNotification(th: Throwable, request: Option[HttpRequest] = None)
+  case object AirbrakeNotificationTermination
 }
 
 class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends Actor with ActorLogging {
@@ -61,10 +62,18 @@ class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends 
     case AirbrakeNotification(th, request) =>
       notify(th, request)
 
+    case AirbrakeNotificationTermination =>
+      notify(new UnknownError("The system was not able to recover. A forced termination is called"), None)
+      context become waitingForTermination
+
     case th: Throwable =>
       notify(th, None)
 
     case _ => // do nothing
+  }
+
+  def waitingForTermination: Receive = {
+    case _ => // ignoring all messages
   }
 
   protected def notify(th: Throwable, request: Option[HttpRequest]): Unit = {

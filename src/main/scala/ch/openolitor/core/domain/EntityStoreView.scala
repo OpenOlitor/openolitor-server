@@ -22,17 +22,20 @@
 \*                                                                           */
 package ch.openolitor.core.domain
 
+import java.util.concurrent.TimeUnit
+
 import akka.persistence.PersistentView
-import akka.actor._
-import scala.concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
 import DefaultMessages._
+
 import scala.concurrent.duration._
 import akka.actor._
+
 import scala.util._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.DBEvolutionReference
+import ch.openolitor.core.{ AirbrakeNotifierReference, DBEvolutionReference }
 import ch.openolitor.core.models.BaseId
+import ch.openolitor.util.AirbrakeNotifier.{ AirbrakeNotificationTermination }
 
 trait EventService[E <: PersistentEvent] {
   type Handle = PartialFunction[E, Unit]
@@ -55,25 +58,47 @@ trait EntityStoreViewComponent extends Actor {
   }
 }
 
-object EntityStoreView {
-}
+object EntityStoreView
 
 /**
  * Diese generische EntityStoreView delelegiert die Events an die jeweilige modulspezifische ActorRef
  */
-trait EntityStoreView extends PersistentView with DBEvolutionReference with LazyLogging with PersistenceEventStateSupport {
+trait EntityStoreView extends PersistentView with DBEvolutionReference with LazyLogging with PersistenceEventStateSupport with AirbrakeNotifierReference {
   self: EntityStoreViewComponent =>
 
   import EntityStore._
 
+  final case object PrepareTerminate
+  final case object Terminate
+  var failures = 0
+
+  override protected def onReplayError(cause: Throwable): Unit = {
+    super.onReplayError(cause)
+    failures = failures + 1
+    if (failures == 1) {
+      context.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.HOURS), context.self, PrepareTerminate)
+    }
+  }
+
+  def prepareTerminate(): Unit = {
+    if (failures > 200) {
+      airbrakeNotifier ! AirbrakeNotificationTermination
+      log.error("The system was not able to recover. A forced termination is called")
+      context.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.MINUTES), context.self, Terminate)
+    } else {
+      log.warning("The system recovered from errors on reaching the db")
+      failures = 0
+    }
+  }
+
   val module: String
 
   override val persistenceId = EntityStore.persistenceId
-  override def viewId = s"$module-entity-store"
+  override def viewId: String = s"$module-entity-store"
 
-  override def persistenceStateStoreId = viewId
+  override def persistenceStateStoreId: String = viewId
 
-  override def autoUpdateInterval = 100 millis
+  override def autoUpdateInterval: FiniteDuration = 100 millis
 
   /**
    * Delegate to
@@ -83,6 +108,12 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
       log.debug("Received Startup command")
       startup()
       sender ! Started
+    case PrepareTerminate =>
+      log.debug("The prepareTerminate was called")
+      prepareTerminate()
+    case Terminate =>
+      log.debug("The Terminate was called")
+      System.exit('R')
     case e: PersistentEvent if e.meta.transactionNr < lastProcessedTransactionNr =>
     // ignore already processed event
 

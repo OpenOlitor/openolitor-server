@@ -7,11 +7,11 @@ import ch.openolitor.core.domain._
 import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateWriteRepositoryComponent, MailTemplateWriteRepositoryComponent }
 
 object MailTemplateEntityStoreView {
-  def props(dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props =
-    Props(classOf[DefaultMailTemplateEntityStoreView], dbEvolutionActor, sysConfig, system)
+  def props(dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props =
+    Props(classOf[DefaultMailTemplateEntityStoreView], dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultMailTemplateEntityStoreView(override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem)
+class DefaultMailTemplateEntityStoreView(override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef)
   extends MailTemplateEntityStoreView with DefaultMailTemplateWriteRepositoryComponent
 
 trait MailTemplateEntityStoreView

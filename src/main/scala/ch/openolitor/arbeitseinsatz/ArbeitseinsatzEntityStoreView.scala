@@ -29,10 +29,10 @@ import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._
 
 object ArbeitseinsatzEntityStoreView {
-  def props(mailService: ActorRef, dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultArbeitseinsatzEntityStoreView], mailService, dbEvolutionActor, sysConfig, system)
+  def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultArbeitseinsatzEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultArbeitseinsatzEntityStoreView(override val mailService: ActorRef, val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem) extends ArbeitseinsatzEntityStoreView
+class DefaultArbeitseinsatzEntityStoreView(override val mailService: ActorRef, val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends ArbeitseinsatzEntityStoreView
   with DefaultArbeitseinsatzWriteRepositoryComponent
 
 /**

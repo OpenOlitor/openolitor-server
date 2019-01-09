@@ -31,10 +31,10 @@ import ch.openolitor.core.filestore.FileStoreReference
 import ch.openolitor.core.filestore.FileStore
 
 object StammdatenEntityStoreView {
-  def props(mailService: ActorRef, dbEvolutionActor: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenEntityStoreView], mailService, dbEvolutionActor, sysConfig, system)
+  def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultStammdatenEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem) extends StammdatenEntityStoreView
+class DefaultStammdatenEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends StammdatenEntityStoreView
   with DefaultStammdatenWriteRepositoryComponent
 
 /**
