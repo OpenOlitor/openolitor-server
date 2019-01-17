@@ -415,28 +415,28 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         }
       }
     case UpdateEntityCommand(personId, id: AboId, entity: AboVertriebsartModify) => idFactory => meta =>
-      //TODO: assemble text using gettext
-      val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
-      val pendenzEvent = addKundenPendenz(idFactory, meta, id, text)
-      Success(Seq(Some(EntityUpdateEvent(id, entity)), pendenzEvent).flatten)
+      DB readOnly { implicit session =>
+        //TODO: assemble text using gettext
+        val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
+        val pendenzEvent = addKundenPendenz(idFactory, meta, id, text)
+        Success(Seq(Some(EntityUpdateEvent(id, entity)), pendenzEvent).flatten)
+      }
   }
 
-  def addKundenPendenz(idFactory: IdFactory, meta: EventTransactionMetadata, id: AboId, bemerkung: String): Option[ResultingEvent] = {
-    DB readOnly { implicit session =>
-      // zusätzlich eine pendenz erstellen
-      ((stammdatenReadRepository.getById(depotlieferungAboMapping, id) map { abo =>
-        DepotlieferungAboModify
-        abo.kundeId
-      }) orElse (stammdatenReadRepository.getById(heimlieferungAboMapping, id) map { abo =>
-        abo.kundeId
-      }) orElse (stammdatenReadRepository.getById(postlieferungAboMapping, id) map { abo =>
-        abo.kundeId
-      })) map { kundeId =>
-        //TODO: assemble text using gettext
-        val title = "Guthaben angepasst: "
-        val pendenzCreate = PendenzCreate(kundeId, meta.timestamp, Some(bemerkung), Erledigt, true)
-        EntityInsertEvent[PendenzId, PendenzCreate](idFactory.newId(PendenzId.apply), pendenzCreate)
-      }
+  def addKundenPendenz(idFactory: IdFactory, meta: EventTransactionMetadata, id: AboId, bemerkung: String)(implicit session: DBSession): Option[ResultingEvent] = {
+    // zusätzlich eine pendenz erstellen
+    ((stammdatenReadRepository.getById(depotlieferungAboMapping, id) map { abo =>
+      DepotlieferungAboModify
+      abo.kundeId
+    }) orElse (stammdatenReadRepository.getById(heimlieferungAboMapping, id) map { abo =>
+      abo.kundeId
+    }) orElse (stammdatenReadRepository.getById(postlieferungAboMapping, id) map { abo =>
+      abo.kundeId
+    })) map { kundeId =>
+      //TODO: assemble text using gettext
+      val title = "Guthaben angepasst: "
+      val pendenzCreate = PendenzCreate(kundeId, meta.timestamp, Some(bemerkung), Erledigt, true)
+      EntityInsertEvent[PendenzId, PendenzCreate](idFactory.newId(PendenzId.apply), pendenzCreate)
     }
   }
 
@@ -487,15 +487,13 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     }
   }
 
-  private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung): Seq[ResultingEvent] = {
-    DB readOnly { implicit session =>
-      val zusatzabos = stammdatenReadRepository.getZusatzAbos(hauptAbo.id)
-      for (zusatzabo <- zusatzabos) yield {
-        val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
-        val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
-        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabosTyp.get.preis, waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
-        EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
-      }
+  private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung)(implicit session: DBSession): Seq[ResultingEvent] = {
+    val zusatzabos = stammdatenReadRepository.getZusatzAbos(hauptAbo.id)
+    for (zusatzabo <- zusatzabos) yield {
+      val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
+      val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
+      val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabosTyp.get.preis, waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
+      EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
     }
   }
 
