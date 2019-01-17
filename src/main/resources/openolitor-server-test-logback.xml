@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="5 seconds" debug="true">
+<configuration debug="true">
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
         <encoder>
@@ -17,24 +17,23 @@
         </encoder>
     </appender>
 
-    <logger name="proc" level="INFO">
+    <logger name="proc" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <logger name="akka.actor" level="INFO">
+    <logger name="akka.actor" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
-    <logger name="a.p.j.s.MySQLAsyncWriteJournal" level="ERROR">
+
+    <logger name="a.p.j.s.MySQLAsyncWriteJournal" level="ERROR" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
-    <logger name="s.async" level="ERROR">
+
+    <logger name="s.async" level="ERROR" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    
-    
-    <logger name="ch.openolitor" level="INFO">
+
+    <logger name="ch.openolitor" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 

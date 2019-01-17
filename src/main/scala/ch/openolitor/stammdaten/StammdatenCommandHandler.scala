@@ -25,6 +25,7 @@ package ch.openolitor.stammdaten
 import ch.openolitor.buchhaltung.models.{ RechnungsPositionStatus, RechnungsPositionTyp }
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
+
 import scala.util._
 import scalikejdbc.DB
 import ch.openolitor.stammdaten.models._
@@ -34,10 +35,12 @@ import akka.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.Macros._
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.buchhaltung.models.RechnungsPositionCreate
 import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import org.joda.time.DateTime
 import java.util.UUID
+import scala.concurrent.ExecutionContext.Implicits.global
 import scalikejdbc.DBSession
 
 object StammdatenCommandHandler {
@@ -62,6 +65,13 @@ object StammdatenCommandHandler {
   case class AboDeaktivierenCommand(aboId: AboId, originator: PersonId = PersonId(100)) extends UserCommand
 
   case class DeleteAbwesenheitCommand(originator: PersonId, id: AbwesenheitId) extends UserCommand
+  case class SendEmailToKundenCommand(originator: PersonId, subject: String, body: String, ids: Seq[KundeId]) extends UserCommand
+  case class SendEmailToPersonenCommand(originator: PersonId, subject: String, body: String, ids: Seq[PersonId]) extends UserCommand
+  case class SendEmailToAbosSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[AboId]) extends UserCommand
+  case class SendEmailToAbotypSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[AbotypId]) extends UserCommand
+  case class SendEmailToZusatzabotypSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[AbotypId]) extends UserCommand
+  case class SendEmailToTourSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[TourId]) extends UserCommand
+  case class SendEmailToDepotSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[DepotId]) extends UserCommand
 
   case class LieferplanungAbschliessenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
   case class LieferplanungAbrechnenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
@@ -83,10 +93,17 @@ object StammdatenCommandHandler {
 
   case class AboAktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
   case class AboDeaktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToPersonEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: PersonMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToKundeEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: KundeMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToAboSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: AboMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToAbotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: AbotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToZusatzabotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: ZusatzabotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToTourSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: TourMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToDepotSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: DepotMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
 trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
-  with LieferungDurchschnittspreisHandler {
+  with LieferungDurchschnittspreisHandler with MailTemplateService {
 
   self: StammdatenReadRepositorySyncComponent =>
   import StammdatenCommandHandler._
@@ -104,6 +121,125 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
               Failure(new InvalidStateException("Die der Abwesenheit zugeordnete Lieferung muss Offen oder Ungeplant sein."))
           }
         } getOrElse Failure(new InvalidStateException(s"Keine Lieferung zu Abwesenheit Nr. $id gefunden"))
+      }
+
+    case SendEmailToKundenCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateKunden(body, subject, ids)) {
+          val events = ids flatMap { kundeId =>
+            stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
+              stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
+                val mailContext = KundeMailContext(person, kunde)
+                DefaultResultingEvent(factory => SendEmailToKundeEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToPersonenCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplatePersonen(body, subject, ids)) {
+          val events = ids flatMap { id =>
+            stammdatenReadRepository.getById(personMapping, id) map { person =>
+              val mailContext = PersonMailContext(person)
+              DefaultResultingEvent(factory => SendEmailToPersonEvent(factory.newMetadata(), subject, body, person, mailContext))
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToAbotypSubscribersCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateAbotyp(body, subject, ids)) {
+          val events = ids flatMap { abotypId =>
+            stammdatenReadRepository.getPersonenForAbotyp(abotypId) flatMap { person =>
+              stammdatenReadRepository.getAbotypById(abotypId) map { abotypId =>
+                val mailContext = AbotypMailContext(person, abotypId)
+                DefaultResultingEvent(factory => SendEmailToAbotypSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToZusatzabotypSubscribersCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateAbotyp(body, subject, ids)) {
+          val events = ids flatMap { abotypId =>
+            stammdatenReadRepository.getPersonenForZusatzabotyp(abotypId) flatMap { person =>
+              stammdatenReadRepository.getAbotypById(abotypId) map { abotypId =>
+                val mailContext = AbotypMailContext(person, abotypId)
+                DefaultResultingEvent(factory => SendEmailToAbotypSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToTourSubscribersCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateTour(body, subject, ids)) {
+          val events = ids flatMap { tourId =>
+            stammdatenReadRepository.getPersonen(tourId) flatMap { person =>
+              stammdatenReadRepository.getById(tourMapping, tourId) map { tour =>
+                val mailContext = TourMailContext(person, tour)
+                DefaultResultingEvent(factory => SendEmailToTourSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToDepotSubscribersCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateDepot(body, subject, ids)) {
+          val events = ids flatMap { depotId =>
+            stammdatenReadRepository.getPersonen(depotId) flatMap { person =>
+              stammdatenReadRepository.getById(depotMapping, depotId) map { depot =>
+                val mailContext = DepotMailContext(person, depot)
+                DefaultResultingEvent(factory => SendEmailToDepotSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case SendEmailToAbosSubscribersCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateAbosSubscribers(body, subject, ids)) {
+          val events = ids flatMap { aboId: AboId =>
+            stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
+              stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
+              stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
+                stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
+                  val mailContext = AboMailContext(person, abo)
+                  DefaultResultingEvent(factory => SendEmailToAboSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                }
+              }
+          }
+          Success(events.flatten)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
       }
 
     case LieferplanungAbschliessenCommand(personId, id) => idFactory => meta =>
@@ -302,6 +438,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[PendenzModify, PendenzId](idFactory, meta, entity, PendenzId.apply)
     case e @ InsertEntityCommand(personId, entity: PersonCreate) => idFactory => meta =>
       handleEntityInsert[PersonCreate, PersonId](idFactory, meta, entity, PersonId.apply)
+    case e @ InsertEntityCommand(personId, entity: PersonCategoryCreate) => idFactory => meta =>
+      handleEntityInsert[PersonCategoryCreate, PersonCategoryId](idFactory, meta, entity, PersonCategoryId.apply)
     case e @ InsertEntityCommand(personId, entity: ProduzentModify) => idFactory => meta =>
       handleEntityInsert[ProduzentModify, ProduzentId](idFactory, meta, entity, ProduzentId.apply)
     case e @ InsertEntityCommand(personId, entity: ProduktModify) => idFactory => meta =>
@@ -357,9 +495,17 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         Failure(new InvalidStateException(s"Zum Erstellen eines Kunden muss mindestens ein Ansprechpartner angegeben werden"))
       } else {
         logger.debug(s"created => Insert entity:$entity")
-        val kundeEvent = EntityInsertEvent(idFactory.newId(KundeId.apply), entity)
+        val kundeId = idFactory.newId(KundeId.apply)
+        val kundeEvent = EntityInsertEvent(kundeId, entity)
 
-        val kundeId = kundeEvent.id
+        //Konto daten creation
+        val kontoDaten = entity.kontoDaten match {
+          case Some(kd) => KontoDatenModify(kd.iban, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
+          case None     => KontoDatenModify(None, None, None, None, None, None, Some(kundeId), None)
+        }
+        logger.debug(s"created => Insert entity:$kontoDaten")
+        val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)
+
         val apartnerEvents = entity.ansprechpersonen.zipWithIndex.map {
           case (newPerson, index) =>
             val sort = index + 1
@@ -368,7 +514,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
         }
 
-        Success(kundeEvent +: apartnerEvents)
+        Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
       }
 
     /*
@@ -442,13 +588,20 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   def createAboRechnungsPositionenAnzahlLieferungen(idFactory: IdFactory, meta: EventTransactionMetadata, aboRechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate) = {
     DB readOnly { implicit session =>
+      // HauptAbos
       val abos: List[Abo] = stammdatenReadRepository.getByIds(depotlieferungAboMapping, aboRechnungCreate.ids) :::
         stammdatenReadRepository.getByIds(postlieferungAboMapping, aboRechnungCreate.ids) :::
         stammdatenReadRepository.getByIds(heimlieferungAboMapping, aboRechnungCreate.ids)
 
-      val aboTypen: List[Abotyp] = stammdatenReadRepository.getByIds(abotypMapping, abos.map(_.abotypId))
+      // Zusatzabos
+      val zusatzAbos: List[Abo] = stammdatenReadRepository.getByIds(zusatzAboMapping, aboRechnungCreate.ids)
 
-      val abosWithAboTypen: List[(Abo, Abotyp)] = abos.map { abo =>
+      val allAbos = abos ::: zusatzAbos
+
+      val aboTypen: List[IAbotyp] = stammdatenReadRepository.getByIds(abotypMapping, abos.map(_.abotypId)) :::
+        stammdatenReadRepository.getByIds(zusatzAbotypMapping, zusatzAbos.map(_.abotypId))
+
+      val abosWithAboTypen: List[(Abo, IAbotyp)] = allAbos.map { abo =>
         aboTypen.find(_.id == abo.abotypId).map { abotyp => (abo, abotyp) }
       }.flatten
 
@@ -457,14 +610,19 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
           // TODO check preisEinheit
           if (abotyp.preiseinheit != ProLieferung) {
-            Failure(new InvalidStateException(s"Für den Abotyp dieses Abos (${abo.id}) kann keine Guthabenrechngsposition erstellt werden"))
+            Failure(new InvalidStateException(s"Für den Abotyp dieses Abos (${abo.id}) kann keine Anzahl Lieferungen-Rechnungsposition erstellt werden"))
           } else {
             // has to be refactored as soon as more modes are available
             val anzahlLieferungen = aboRechnungCreate.anzahlLieferungen
             if (anzahlLieferungen > 0) {
-              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abotyp.preis * anzahlLieferungen)
+              val hauptAboBetrag = aboRechnungCreate.betrag.getOrElse(abo.price.getOrElse(abotyp.preis) * anzahlLieferungen)
 
-              val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
+              val repoType = abotyp match {
+                case a: ZusatzAbotyp => RechnungsPositionTyp.ZusatzAbo
+                case _               => RechnungsPositionTyp.Abo
+              }
+
+              val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung, None, repoType)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
 
               val zusatzRechnungPositionEventList = createRechnungPositionForZusatzabos(idFactory, abo, aboRechnungCreate.titel, anzahlLieferungen, Some(parentRechnungPositionId), aboRechnungCreate.waehrung)
@@ -486,6 +644,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       }
     }
   }
+
 
   private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung)(implicit session: DBSession): Seq[ResultingEvent] = {
     val zusatzabos = stammdatenReadRepository.getZusatzAbos(hauptAbo.id)
@@ -540,7 +699,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - guthaben), 0)
 
             if (anzahlLieferungen > 0) {
-              val hauptAboBetrag = abotyp.preis * anzahlLieferungen
+              val hauptAboBetrag = abo.price.getOrElse(abotyp.preis) * anzahlLieferungen
 
               val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
@@ -870,6 +1029,111 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         SammelbestellungModify(lieferposition.produzentId, lieferplanungId, lieferung.datum)
       }
     }.flatten.toSet
+  }
+
+  private def checkTemplateAbosSubscribers(body: String, subject: String, ids: Seq[AboId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { aboId: AboId =>
+      stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
+        stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
+        stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
+          stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
+            val mailContext = AboMailContext(person, abo)
+            generateMail(subject, body, mailContext) match {
+              case Success(mailPayload) => true
+              case Failure(e)           => false
+            }
+          }
+        }
+    }
+    templateCorrect.flatten.forall(x => x == true)
+  }
+
+  private def checkTemplateKunden(body: String, subject: String, ids: Seq[KundeId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { kundeId: KundeId =>
+      stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
+        stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
+          val mailContext = KundeMailContext(person, kunde)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
+  }
+
+  private def checkTemplateAbotyp(body: String, subject: String, ids: Seq[AbotypId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { abotypId: AbotypId =>
+      stammdatenReadRepository.getPersonenForAbotyp(abotypId) flatMap { person =>
+        stammdatenReadRepository.getAbotypById(abotypId) map { abotyp =>
+          val mailContext = AbotypMailContext(person, abotyp)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
+  }
+
+  private def checkTemplateZusatzabotyp(body: String, subject: String, ids: Seq[AbotypId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { abotypId: AbotypId =>
+      stammdatenReadRepository.getPersonenForZusatzabotyp(abotypId) flatMap { person =>
+        stammdatenReadRepository.getAbotypById(abotypId) map { abotyp =>
+          val mailContext = AbotypMailContext(person, abotyp)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
+  }
+
+  private def checkTemplateTour(body: String, subject: String, ids: Seq[TourId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { tourId: TourId =>
+      stammdatenReadRepository.getPersonen(tourId) flatMap { person =>
+        stammdatenReadRepository.getById(tourMapping, tourId) map { tour =>
+          val mailContext = TourMailContext(person, tour)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
+  }
+
+  private def checkTemplateDepot(body: String, subject: String, ids: Seq[DepotId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { depotId: DepotId =>
+      stammdatenReadRepository.getPersonen(depotId) flatMap { person =>
+        stammdatenReadRepository.getById(depotMapping, depotId) map { depot =>
+          val mailContext = DepotMailContext(person, depot)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
+  }
+
+  private def checkTemplatePersonen(body: String, subject: String, ids: Seq[PersonId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { personId: PersonId =>
+      stammdatenReadRepository.getById(personMapping, personId) map { person =>
+        val mailContext = PersonMailContext(person)
+        generateMail(subject, body, mailContext) match {
+          case Success(mailPayload) => true
+          case Failure(e)           => false
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
   }
 }
 

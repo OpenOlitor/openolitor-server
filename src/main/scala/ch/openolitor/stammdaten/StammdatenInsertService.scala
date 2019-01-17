@@ -38,6 +38,7 @@ import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
 }
@@ -48,7 +49,7 @@ class DefaultStammdatenInsertService(sysConfig: SystemConfig, override val syste
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Stammdaten Modul
  */
-class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]]
+class StammdatenInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
@@ -57,12 +58,15 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   with LieferungHandler {
   self: StammdatenWriteRepositoryComponent =>
 
+  // implicitly expose the eventStream
+  implicit lazy val stammdatenRepositoryImplicit = stammdatenWriteRepository
+
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
 
   val ZERO = 0
   val FALSE = false
 
-  val handle: Handle = {
+  val stammdatenInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: AbotypId, abotyp: AbotypModify) =>
       createAbotyp(meta, id, abotyp)
     case EntityInsertedEvent(meta, id: AbotypId, zusatzabotyp: ZusatzAbotypModify) =>
@@ -71,6 +75,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createKunde(meta, id, kunde)
     case EntityInsertedEvent(meta, id: PersonId, person: PersonCreate) =>
       createPerson(meta, id, person)
+    case EntityInsertedEvent(meta, id: PersonCategoryId, personCategory: PersonCategoryCreate) =>
+      createPersonCategory(meta, id, personCategory)
     case EntityInsertedEvent(meta, id: PendenzId, pendenz: PendenzCreate) =>
       createPendenz(meta, id, pendenz)
     case EntityInsertedEvent(meta, id: DepotId, depot: DepotModify) =>
@@ -121,6 +127,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       createPostAuslieferung(meta, id, postAuslieferung)
     case e =>
   }
+
+  val handle: Handle = stammdatenInsertHandle
 
   def createAbotyp(meta: EventMetadata, id: AbotypId, abotyp: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     val typ = copyTo[AbotypModify, Abotyp](
@@ -271,6 +279,21 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
+  def createPersonCategory(meta: EventMetadata, id: PersonCategoryId, create: PersonCategoryCreate)(implicit personId: PersonId = meta.originator) = {
+    val personCategory = copyTo[PersonCategoryCreate, PersonCategory](
+      create,
+      "id" -> id,
+      "erstelldat" -> meta.timestamp,
+      "ersteller" -> meta.originator,
+      "modifidat" -> meta.timestamp,
+      "modifikator" -> meta.originator
+    )
+
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.insertEntity[PersonCategory, PersonCategoryId](personCategory)
+    }
+  }
+
   def createPendenz(meta: EventMetadata, id: PendenzId, create: PendenzCreate)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(kundeMapping, create.kundeId) map { kunde =>
@@ -357,6 +380,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     logger.debug(s"createAbo id= $id aboMOdify = $create")
     DB localTxPostPublish { implicit session => implicit publisher =>
       val emptyMap: TreeMap[String, Int] = TreeMap()
+      val emptyMapBD: TreeMap[String, BigDecimal] = TreeMap()
       abotypByVertriebartId(create.vertriebsartId) map {
         case (vertriebsart, vertrieb, abotyp) =>
           aboParameters(create)(abotyp) match {
@@ -380,6 +404,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
+                    "anzahlEinsaetze" -> emptyMapBD,
                     "aktiv" -> aktiv,
                     "zusatzAboIds" -> Set.empty[AboId],
                     "zusatzAbotypNames" -> Seq.empty[String],
@@ -406,6 +431,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "letzteLieferung" -> None,
                     "anzahlAbwesenheiten" -> emptyMap,
                     "anzahlLieferungen" -> emptyMap,
+                    "anzahlEinsaetze" -> emptyMapBD,
                     "aktiv" -> aktiv,
                     "zusatzAboIds" -> Set.empty[AboId],
                     "zusatzAbotypNames" -> Seq.empty[String],
@@ -438,21 +464,16 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "aktiv" -> aktiv,
                     "zusatzAboIds" -> Set.empty[AboId],
                     "zusatzAbotypNames" -> Seq.empty[String],
+                    "anzahlEinsaetze" -> emptyMapBD,
                     "erstelldat" -> meta.timestamp,
                     "ersteller" -> meta.originator,
                     "modifidat" -> meta.timestamp,
                     "modifikator" -> meta.originator
                   ))
               }
-              // create required Koerbe for abo
-              //              maybeAbo map (abo => modifyKoerbeForAboDatumChange(abo, None))
               maybeAbo map (abo => modifyKoerbeForAbo(abo, None))
           }
       }
-
-      //stammdatenWriteRepository.getAbo(id) map { abo =>
-      //  modifyKoerbeForAbo(abo, None)
-      //}
     }
   }
 
@@ -480,9 +501,11 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                   "abotypName" -> z.name,
                   "start" -> startDate,
                   "ende" -> endDate,
+                  "price" -> None,
                   "letzteLieferung" -> None,
                   "anzahlAbwesenheiten" -> emptyMap,
                   "anzahlLieferungen" -> emptyMap,
+                  "anzahlEinsaetze" -> h.anzahlEinsaetze,
                   "aktiv" -> h.aktiv,
                   "erstelldat" -> meta.timestamp,
                   "ersteller" -> meta.originator,

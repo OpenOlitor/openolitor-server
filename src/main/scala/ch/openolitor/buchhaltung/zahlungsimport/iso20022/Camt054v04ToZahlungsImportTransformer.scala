@@ -25,7 +25,7 @@ package ch.openolitor.buchhaltung.zahlungsimport.iso20022
 import scala.util.Try
 
 import ch.openolitor.buchhaltung.zahlungsimport.{ Gutschrift, Transaktionsart, ZahlungsImportParseException, ZahlungsImportResult }
-import ch.openolitor.generated.xsd.{ BankToCustomerDebitCreditNotificationV04, DocumentType }
+import ch.openolitor.generated.xsd.camt054_001_04.{ BankToCustomerDebitCreditNotificationV04, Document }
 import ch.openolitor.stammdaten.models.Waehrung
 
 import org.joda.time.format.ISODateTimeFormat
@@ -40,7 +40,7 @@ object Camt054v04Transaktionsart {
 }
 
 class Camt054v04ToZahlungsImportTransformer {
-  def transform(input: DocumentType): Try[ZahlungsImportResult] = {
+  def transform(input: Document): Try[ZahlungsImportResult] = {
     transform(input.BkToCstmrDbtCdtNtfctn)
   }
 
@@ -53,19 +53,19 @@ class Camt054v04ToZahlungsImportTransformer {
           entryDetail.TxDtls map { transactionDetail => // Level D.2
             Camt054Record(
               entry.NtryRef,
-              Some(notification.Acct.Id.accountidentification4choicetypeoption.as[String]),
+              Some(notification.Acct.Id.accountidentification4choiceoption.as[String]),
               (transactionDetail.RltdPties flatMap (_.Dbtr flatMap (_.Nm))),
               transactionDetail.RmtInf map (_.Strd match {
                 case Nil        => ""
                 case structures => (structures map (_.CdtrRefInf flatMap (_.Ref))).flatten.mkString(",")
               }) getOrElse "", // Referenznummer
-              (transactionDetail.AmtDtls flatMap (_.TxAmt map (_.Amt.value))) getOrElse (throw new ZahlungsImportParseException("Missing Betrag")),
-              (transactionDetail.AmtDtls flatMap (_.TxAmt map (txAmt => Waehrung.applyUnsafe(txAmt.Amt.Ccy)))).getOrElse(throw new ZahlungsImportParseException("Missing Waehrung")),
+              (transactionDetail.Amt.value),
+              (Waehrung.applyUnsafe(transactionDetail.Amt.Ccy)),
               Camt054v04Transaktionsart(transactionDetail.CdtDbtInd.toString),
               "",
               ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(groupHeader.CreDtTm.toString),
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.BookgDt.get.dateanddatetimechoicetypeoption.as[XMLGregorianCalendar].toString),
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.ValDt.get.dateanddatetimechoicetypeoption.as[XMLGregorianCalendar].toString),
+              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.BookgDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar].toString),
+              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.ValDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar].toString),
               "",
               0.0
             )

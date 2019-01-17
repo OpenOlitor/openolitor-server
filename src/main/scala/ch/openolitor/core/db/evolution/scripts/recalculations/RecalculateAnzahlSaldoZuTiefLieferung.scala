@@ -45,7 +45,7 @@ object RecalculateAnzahlSaldoZuTiefLieferung {
       val korb = korbMapping.syntax("korb")
       implicit val personId = Boot.systemPersonId
 
-      getProjekt map { projekt =>
+      getProjektV1 map { projekt =>
         withSQL {
           select.from(korbMapping as korb).where.eq(korb.status, FaelltAusSaldoZuTief)
         }.map(korbMapping(korb)).list.apply().groupBy(_.lieferungId) map {

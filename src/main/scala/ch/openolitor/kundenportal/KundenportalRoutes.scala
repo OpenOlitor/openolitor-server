@@ -45,12 +45,15 @@ import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.kundenportal.repositories.KundenportalReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
 import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryAsyncComponent
 
 trait KundenportalRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
   with StammdatenEventStoreSerializer
   with BuchhaltungJsonProtocol
+  with ArbeitseinsatzJsonProtocol
   with StammdatenDBMappings {
   self: KundenportalReadRepositoryAsyncComponent with FileStoreComponent =>
 
@@ -62,6 +65,8 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   implicit val zusatzabotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val abwesenheitIdPath = long2BaseIdPathMatcher(AbwesenheitId.apply)
   implicit val lieferungIdPath = long2BaseIdPathMatcher(LieferungId.apply)
+  implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
+  implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
 
   import EntityStore._
 
@@ -71,7 +76,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       pathPrefix("kundenportal") {
-        abosRoute ~ rechnungenRoute ~ projektRoute ~ kontoDatenRoute
+        abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute ~ kontoDatenRoute
       }
     }
 
@@ -125,6 +130,54 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       }
   }
 
+  def arbeitRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
+    path("arbeitsangebote") {
+      get {
+        list(kundenportalReadRepository.getArbeitsangebote)
+      } ~
+        post {
+          requestInstance { request =>
+            entity(as[ArbeitseinsatzCreate]) { arbein =>
+              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzErstellenCommand(subject.personId, subject, arbein)) {
+                case UserCommandFailed =>
+                  complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht erstellt werden.")
+                case _ =>
+                  complete("")
+              }
+            }
+          }
+        }
+    } ~
+      path("arbeitseinsaetze") {
+        get {
+          list(kundenportalReadRepository.getArbeitseinsaetze)
+        }
+      } ~
+      path("arbeitseinsaetze" / arbeitseinsatzIdPath) { arbeitseinsatzId =>
+        post {
+          requestInstance { request =>
+            entity(as[ArbeitseinsatzCreate]) { arbein =>
+              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzModifizierenCommand(subject.personId, subject, arbeitseinsatzId, arbein)) {
+                case UserCommandFailed =>
+                  complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht modifiziert werden.")
+                case _ =>
+                  complete("")
+              }
+            }
+          }
+        } ~
+          delete {
+            onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzLoeschenCommand(subject.personId, subject, arbeitseinsatzId)) {
+              case UserCommandFailed =>
+                complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht gelöscht werden.")
+              case _ =>
+                complete("")
+            }
+          }
+      }
+
+  }
+
   def abosRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
     path("abos") {
       get {
@@ -133,7 +186,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
     } ~
       path("abos" / aboIdPath / "zusatzabos") { aboId =>
         get {
-          list(kundenportalReadRepository.getZusatzabos(aboId))
+          list(kundenportalReadRepository.getZusatzAbosByHauptAbo(aboId))
         }
       } ~
       path("abos" / aboIdPath / "abwesenheiten") { aboId =>

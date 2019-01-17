@@ -43,10 +43,10 @@ object UriQueryParamFilterParser extends RegexParsers with LazyLogging {
     parseAll(filterExpression, input) match {
       case Success(result, _) => Some(result)
       case Failure(message, _) =>
-        logger.error("Could not parse input: $message")
+        logger.error(s"Could not parse input: $message")
         None
       case Error(message, _) =>
-        logger.error("Could not parse input: $message")
+        logger.error(s"Could not parse input: $message")
         None
     }
   }

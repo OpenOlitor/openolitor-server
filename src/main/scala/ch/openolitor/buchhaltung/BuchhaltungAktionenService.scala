@@ -25,37 +25,55 @@ package ch.openolitor.buchhaltung
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import ch.openolitor.core.models._
 import ch.openolitor.buchhaltung.models._
+import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import akka.actor.ActorSystem
-import ch.openolitor.core.Macros._
+import akka.actor.{ ActorRef, ActorSystem }
+import akka.pattern.ask
+import akka.util.Timeout
+import ch.openolitor.util.ConfigUtil._
+import ch.openolitor.core.mailservice.MailService._
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.core.Macros._
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
+import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import ch.openolitor.buchhaltung.models.RechnungModifyBezahlt
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 
+import scala.util.{ Failure, Success }
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
 object BuchhaltungAktionenService {
-  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system)
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system, mailService)
 }
 
-class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends BuchhaltungAktionenService(sysConfig) with DefaultBuchhaltungWriteRepositoryComponent {
+class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
+  extends BuchhaltungAktionenService(sysConfig, mailService) with DefaultBuchhaltungWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Buchhaltung Modul
  */
-class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-  with BuchhaltungDBMappings {
+class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
+  with LazyLogging
+  with AsyncConnectionPoolContextAware
+  with BuchhaltungDBMappings
+  with MailServiceReference
+  with BuchhaltungEventStoreSerializer
+  with MailTemplateService
+  with SystemConfigReference {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val False = false
   val Zero = 0
+
+  implicit val timeout = Timeout(config.getStringOption("openolitor.emailTimeOut").getOrElse("15").toInt.seconds)
 
   val handle: Handle = {
     case RechnungVerschicktEvent(meta, id: RechnungId) =>
@@ -72,10 +90,14 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
       createZahlungsImport(meta, entity)
     case ZahlungsEingangErledigtEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
       zahlungsEingangErledigen(meta, entity)
+    case ZahlungsExportCreatedEvent(meta, entity: ZahlungsExportCreate) =>
+      createZahlungsExport(meta, entity)
     case RechnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
       rechnungPDFStored(meta, rechnungId, fileStoreId)
     case MahnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
       mahnungPDFStored(meta, rechnungId, fileStoreId)
+    case SendEmailToInvoiceSubscribersEvent(meta, subject, body, person, invoice, context) =>
+      sendEmail(meta, subject, body, person, invoice, context)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -93,6 +115,25 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.modifyEntity[Rechnung, RechnungId](id) { rechnung =>
         Map(rechnungMapping.column.mahnungFileStoreIds -> ((rechnung.mahnungFileStoreIds filterNot (_ == "")) + fileStoreId))
+      }
+    }
+  }
+
+  private def sendEmail(meta: EventMetadata, emailSubject: String, body: String, person: Person, invoiceReference: Option[String], mailContext: Product)(implicit originator: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      generateMail(emailSubject, body, mailContext) match {
+        case Success(mailPayload) =>
+          person.email map { email =>
+            val mail = mailPayload.toMail(1, email, None, None, invoiceReference)
+            mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
+              case _: SendMailEvent =>
+              //ok
+              case other =>
+                logger.debug(s"Sending Mail failed resulting in $other")
+            }
+          }
+        case Failure(e) =>
+          logger.warn(s"Failed preparing mail", e)
       }
     }
   }
@@ -218,6 +259,20 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig) extends E
         }
       }
       buchhaltungWriteRepository.insertEntity[ZahlungsImport, ZahlungsImportId](zahlungsImport)
+    }
+  }
+
+  private def createZahlungsExport(meta: EventMetadata, entity: ZahlungsExportCreate)(implicit PersonId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      val zahlungsExport = copyTo[ZahlungsExportCreate, ZahlungsExport](
+        entity,
+        "erstelldat" -> meta.timestamp,
+        "ersteller" -> meta.originator,
+        "modifidat" -> meta.timestamp,
+        "modifikator" -> meta.originator
+      )
+
+      buchhaltungWriteRepository.insertEntity[ZahlungsExport, ZahlungsExportId](zahlungsExport)
     }
   }
 

@@ -22,33 +22,41 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.reporting
 
-import ch.openolitor.buchhaltung.models.RechnungId
-import scala.concurrent.Future
 import ch.openolitor.buchhaltung.models._
+
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models.Projekt
+import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.stammdaten.models.ProjektReport
-import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
-import scala.Left
-import scala.Right
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
+import net.codecrete.qrbill.generator.{ Address, Bill, QRBill, QRBillValidationError }
+import java.time.LocalDate
+import com.typesafe.scalalogging.LazyLogging
+import java.util.Locale
+import scala.collection.JavaConversions._
 
-trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol {
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+
+trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
 
   def rechungenById(rechnungIds: Seq[RechnungId]): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
     stammdatenReadRepository.getProjekt flatMap { maybeProjekt =>
-      stammdatenReadRepository.getKontoDaten flatMap { maybeKontoDaten =>
+      stammdatenReadRepository.getKontoDatenProjekt flatMap { maybeKontoDaten =>
         maybeProjekt flatMap { projekt =>
           maybeKontoDaten map { kontoDaten =>
             val results = Future.sequence(rechnungIds.map { rechnungId =>
               buchhaltungReadRepository.getRechnungDetail(rechnungId).map(_.map { rechnung =>
+                val qrCode = Some(createQrCode(rechnung, kontoDaten, projekt))
                 rechnung.status match {
                   case Storniert =>
                     Left(ValidationError[RechnungId](rechnungId, s"Für stornierte Rechnungen können keine Berichte mehr erzeugt werden"))
@@ -56,7 +64,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                     Left(ValidationError[RechnungId](rechnungId, s"Für bezahlte Rechnungen können keine Berichte mehr erzeugt werden"))
                   case _ =>
                     val projektReport = copyTo[Projekt, ProjektReport](projekt)
-                    Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
+                    Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
                 }
 
               }.getOrElse(Left(ValidationError[RechnungId](rechnungId, s"Rechnung konnte nicht gefunden werden"))))
@@ -68,5 +76,88 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
         } getOrElse Future { (Seq(ValidationError[RechnungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
       }
     }
+  }
+
+  def createQrCode(rechnung: RechnungDetail, kontoDaten: KontoDaten, projekt: Projekt): String = {
+    /* the iban is mandatory in order to get a valid qrCode. In case the system does not have one iban setup
+    * the qrcode will be empty*/
+    kontoDaten.iban match {
+      case Some("") => ""
+      case Some(iban) =>
+        val result = stammdatenReadRepository.getPersonen(rechnung.kunde.id) map { personen =>
+          var bill = new Bill();
+          val language = projekt.sprache match {
+            case Locale.FRENCH  => Bill.Language.FR;
+            case Locale.GERMAN  => Bill.Language.DE;
+            case Locale.ITALIAN => Bill.Language.IT;
+            case Locale.ENGLISH => Bill.Language.EN;
+            case _              => Bill.Language.DE;
+          }
+          bill.setLanguage(language)
+          //this value is mandatory for the qrCode. In case of generating qrCode
+          bill.setAccount(iban)
+          bill.setAmount(rechnung.betrag.toDouble);
+          bill.setCurrency(projekt.waehrung.toString);
+
+          // Set creditor
+          val creditor = new Address();
+          creditor.setName(projekt.bezeichnung)
+          creditor.setStreet(projekt.strasse.getOrElse(""));
+          creditor.setHouseNo(projekt.hausNummer.getOrElse(""));
+          creditor.setPostalCode(projekt.plz.getOrElse(""));
+          creditor.setTown(projekt.ort.getOrElse(""));
+          creditor.setCountryCode("CH");
+          bill.setCreditor(creditor);
+
+          // Set final creditor
+          val finalCreditor = new Address();
+          finalCreditor.setName(projekt.bezeichnung);
+          finalCreditor.setStreet(projekt.strasse.getOrElse(""));
+          finalCreditor.setHouseNo(projekt.hausNummer.getOrElse(""));
+          finalCreditor.setPostalCode(projekt.plz.getOrElse(""));
+          finalCreditor.setTown(projekt.ort.getOrElse(""));
+          finalCreditor.setCountryCode("CH");
+          bill.setFinalCreditor(finalCreditor);
+
+          // more bill data
+          bill.setDueDate(toLocalDate(rechnung.faelligkeitsDatum));
+          bill.setReferenceNo(rechnung.referenzNummer);
+          bill.setAdditionalInfo(null);
+
+          // Set debtor
+          val debtor = new Address();
+          val p = personen map { person =>
+            person.fullName
+          }
+          debtor.setName(p.mkString(","));
+          debtor.setStreet(rechnung.kunde.strasse);
+          debtor.setHouseNo(rechnung.kunde.hausNummer.getOrElse(""));
+          debtor.setPostalCode(rechnung.kunde.plz);
+          debtor.setTown(rechnung.kunde.ort);
+          debtor.setCountryCode("CH");
+          bill.setDebtor(debtor);
+
+          try {
+            val svg = QRBill.generate(bill, QRBill.BillFormat.A6_LANDSCAPE_SHEET, QRBill.GraphicsFormat.SVG)
+            new String(svg)
+          } catch {
+            case e: QRBillValidationError => {
+              val listValidation = e.getValidationResult.getValidationMessages
+              val message = listValidation.map { m =>
+                m.getField
+              }
+              logger.warn(s"the qr code validation detected errors while generation at the following fields: $message}")
+              new String("")
+            }
+          }
+        }
+        Await.result(result, 5.seconds)
+      case None => ""
+    }
+  }
+
+  def toLocalDate(dateTime: DateTime) = {
+    val dateTimeUtc = dateTime.withZone(DateTimeZone.UTC);
+    LocalDate.of(dateTimeUtc.getYear(), dateTimeUtc.getMonthOfYear(), dateTimeUtc.getDayOfMonth());
   }
 }

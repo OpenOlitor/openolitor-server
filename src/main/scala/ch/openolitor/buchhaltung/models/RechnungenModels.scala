@@ -25,7 +25,7 @@ package ch.openolitor.buchhaltung.models
 import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.scalax.Tuple24
+import ch.openolitor.core.scalax.Tuple25
 import ch.openolitor.core.JSONSerializable
 
 /**
@@ -132,6 +132,7 @@ case class Rechnung(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  paymentType: Option[PaymentType],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -141,7 +142,7 @@ case class Rechnung(
 
 object Rechnung {
   def unapply(entity: Rechnung) = {
-    Some(Tuple24(
+    Some(Tuple25(
       entity.id,
       entity.kundeId,
       entity.titel,
@@ -162,6 +163,7 @@ object Rechnung {
       entity.adressZusatz,
       entity.plz,
       entity.ort,
+      entity.paymentType,
       entity.erstelldat,
       entity.ersteller,
       entity.modifidat,
@@ -211,6 +213,7 @@ case class RechnungDetail(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  paymentType: Option[PaymentType],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -240,6 +243,8 @@ case class RechnungDetailReport(
   adressZusatz: Option[String],
   plz: String,
   ort: String,
+  paymentType: Option[PaymentType],
+  qrCode: Option[String],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -263,7 +268,8 @@ case class RechnungCreateFromRechnungsPositionen(
   hausNummer: Option[String],
   adressZusatz: Option[String],
   plz: String,
-  ort: String
+  ort: String,
+  paymentType: Option[PaymentType]
 ) extends JSONSerializable
 
 case class RechnungModify(
@@ -278,7 +284,20 @@ case class RechnungModify(
   hausNummer: Option[String],
   adressZusatz: Option[String],
   plz: String,
-  ort: String
+  ort: String,
+  paymentType: Option[PaymentType]
+) extends JSONSerializable
+
+case class RechnungMailRequest(
+  ids: Seq[RechnungId],
+  attachInvoice: Boolean,
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class RechnungMailContext(
+  person: Person,
+  rechnung: Rechnung
 ) extends JSONSerializable
 
 case class RechnungsPositionCreate(

@@ -41,7 +41,7 @@ import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 object RecalculateAnzahlAbwesenheiten {
   val scripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with StammdatenWriteRepositoryImpl with NoPublishEventStream {
 
-    def buildAbwesenheitMap(projekt: Projekt, abwesenheiten: Seq[Abwesenheit]): TreeMap[String, Int] = {
+    def buildAbwesenheitMap(projekt: ProjektV1, abwesenheiten: Seq[Abwesenheit]): TreeMap[String, Int] = {
       TreeMap(abwesenheiten.groupBy(a => projekt.geschaftsjahr.key(a.datum)).map {
         case (key, set) => (key, set.length)
       }.toSeq: _*)
@@ -53,7 +53,7 @@ object RecalculateAnzahlAbwesenheiten {
       val abw = abwesenheitMapping.syntax("abw")
       implicit val personId = Boot.systemPersonId
 
-      getProjekt map { projekt =>
+      getProjektV1 map { projekt =>
         withSQL {
           select.from(abwesenheitMapping as abw)
         }.map(abwesenheitMapping(abw)).list.apply().groupBy(_.aboId) map {

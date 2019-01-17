@@ -35,14 +35,14 @@ object AbotypParser extends EntityParser {
 
   def parse(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[Abotyp, AbotypId]("id", Seq("name", "beschreibung", "lieferrhythmus", "preis", "preiseinheit", "aktiv_von", "aktiv_bis", "laufzeit",
-      "laufzeit_einheit", "farb_code", "zielpreis", "anzahl_abwesenheiten", "guthaben_mindestbestand", "admin_prozente", "wird_geplant",
+      "laufzeit_einheit", "farb_code", "zielpreis", "anzahl_abwesenheiten", "anzahl_einsaetze", "guthaben_mindestbestand", "admin_prozente", "wird_geplant",
       "kuendigungsfrist", "vertragslaufzeit", "anzahl_abonnenten", "anzahl_abonnenten_aktiv", "letzte_lieferung", "waehrung") ++ modifyColumns) { id => indexes => row =>
 
       //match column indexes
       val Seq(indexName, indexBeschreibung, indexlieferrhytmus, indexPreis, indexPreiseinheit, indexAktivVon,
-        indexAktivBis, indexLaufzeit, indexLaufzeiteinheit, indexFarbCode, indexZielpreis, indexAnzahlAbwesenheiten,
+        indexAktivBis, indexLaufzeit, indexLaufzeiteinheit, indexFarbCode, indexZielpreis, indexAnzahlAbwesenheiten, indexAnzahlEinsaetze,
         indexGuthabenMindestbestand, indexAdminProzente, indexWirdGeplant, indexKuendigungsfrist, indexVertrag,
-        indexAnzahlAbonnenten, indexAnzahlAbonnentenAktiv, indexLetzteLieferung, indexWaehrung) = indexes take (21)
+        indexAnzahlAbonnenten, indexAnzahlAbonnentenAktiv, indexLetzteLieferung, indexWaehrung) = indexes take (22)
       val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
       val fristeinheitPattern = """(\d+)(M|W)""".r
@@ -66,6 +66,7 @@ object AbotypParser extends EntityParser {
           case fristeinheitPattern(wert, "M") => Frist(wert.toInt, Monatsfrist)
         },
         anzahlAbwesenheiten = row.value[Option[Int]](indexAnzahlAbwesenheiten),
+        anzahlEinsaetze = row.value[Option[BigDecimal]](indexAnzahlEinsaetze),
         farbCode = row.value[String](indexFarbCode),
         zielpreis = row.value[Option[BigDecimal]](indexZielpreis),
         guthabenMindestbestand = row.value[Int](indexGuthabenMindestbestand),

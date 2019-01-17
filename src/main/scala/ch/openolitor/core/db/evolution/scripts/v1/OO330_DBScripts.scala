@@ -35,6 +35,7 @@ import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.core.db.evolution.scripts.recalculations.RecalulateLieferungCounter
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.mailtemplates.repositories._
 
 object OO330_DBScripts {
 
@@ -43,8 +44,13 @@ object OO330_DBScripts {
     override val stammdatenWriteRepository: StammdatenWriteRepository = new StammdatenWriteRepositoryImpl with NoPublishEventStream
   }
 
+  trait ScriptMailTemplateWriteRepositoryComponent extends MailTemplateWriteRepositoryComponent {
+
+    override val mailTemplateWriteRepository: MailTemplateWriteRepository = new MailTemplateWriteRepositoryImpl with NoPublishEventStream
+  }
+
   class ScriptStammdatenInsertService(sysConfig: SystemConfig)
-    extends StammdatenInsertService(sysConfig) with ScriptStammdatenWriteRepositoryComponent
+    extends StammdatenInsertService(sysConfig) with ScriptStammdatenWriteRepositoryComponent with ScriptMailTemplateWriteRepositoryComponent
 
   val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with NoPublishEventStream {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {

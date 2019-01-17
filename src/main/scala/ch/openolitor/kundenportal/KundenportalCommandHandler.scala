@@ -30,19 +30,28 @@ import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolCo
 import ch.openolitor.core.exceptions.InvalidStateException
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.security.Subject
+import ch.openolitor.kundenportal.repositories._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, UserCommand, IdFactory }
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
 import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId }
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.Macros._
 
 import akka.actor.ActorSystem
 import scalikejdbc.DB
+import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
 
 object KundenportalCommandHandler {
   case class AbwesenheitErstellenCommand(originator: PersonId, subject: Subject, entity: AbwesenheitCreate) extends UserCommand
   case class AbwesenheitLoeschenCommand(originator: PersonId, subject: Subject, aboId: AboId, abwesenheitId: AbwesenheitId) extends UserCommand
+  case class ArbeitseinsatzErstellenCommand(originator: PersonId, subject: Subject, entity: ArbeitseinsatzCreate) extends UserCommand
+  case class ArbeitseinsatzModifizierenCommand(originator: PersonId, subject: Subject, id: ArbeitseinsatzId, entity: ArbeitseinsatzCreate) extends UserCommand
+  case class ArbeitseinsatzLoeschenCommand(originator: PersonId, subject: Subject, arbeitseinsatzId: ArbeitseinsatzId) extends UserCommand
 }
 
-trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware {
+trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappings with ArbeitseinsatzDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware with LazyLogging {
   self: KundenportalReadRepositorySyncComponent =>
   import KundenportalCommandHandler._
   import EntityStore._
@@ -69,6 +78,71 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
           }
         } getOrElse (Failure(new InvalidStateException(s"Das Abo dieser Abwesenheit wurden nicht gefunden.")))
       }
+
+    case ArbeitseinsatzErstellenCommand(personId, subject, entity: ArbeitseinsatzCreate) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        kundenportalReadRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
+          //TODO check if kunde may subscribe
+          if (arbeitsangebot.status == Bereit) {
+            val entityToInsert = new ArbeitseinsatzModify(
+              entity.arbeitsangebotId,
+              arbeitsangebot.zeitVon,
+              arbeitsangebot.zeitBis,
+              arbeitsangebot.einsatzZeit,
+              entity.kundeId,
+              entity.personId,
+              None,
+              entity.anzahlPersonen,
+              entity.bemerkungen
+            )
+            handleEntityInsert[ArbeitseinsatzModify, ArbeitseinsatzId](idFactory, meta, entityToInsert, ArbeitseinsatzId.apply)
+          } else {
+            Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' erstellt werden."))
+          }
+        } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot wurde nicht gefunden.")))
+      }
+
+    case ArbeitseinsatzModifizierenCommand(personId, subject, id: ArbeitseinsatzId, entity: ArbeitseinsatzCreate) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        kundenportalReadRepository.getProjekt map { projekt =>
+          kundenportalReadRepository.getById(arbeitseinsatzMapping, id) map { arbeitseinsatz =>
+            kundenportalReadRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
+              if (arbeitsangebot.status == Bereit) {
+                if (arbeitsangebot.zeitVon isAfter DateTime.now.plusDays(projekt.einsatzAbsageVorlaufTage)) {
+                  val entityToSave = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](arbeitseinsatz, "anzahlPersonen" -> entity.anzahlPersonen, "bemerkungen" -> entity.bemerkungen)
+                  Success(Seq(EntityUpdateEvent(id, entityToSave)))
+                } else {
+                  Failure(new InvalidStateException(s"Arbeitseinsätze können nur bis ${projekt.einsatzAbsageVorlaufTage} Tage vor Start modifiziert werden."))
+                }
+              } else {
+                Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' modifiziert werden."))
+              }
+            } getOrElse (Failure(new InvalidStateException(s"Das Arbeitsangebot wurde nicht gefunden.")))
+          } getOrElse (Failure(new InvalidStateException(s"Der zu modifizierende Arbeitseinsatz wurde nicht gefunden.")))
+        } getOrElse (Failure(new InvalidStateException(s"Projekt konnte nicht geladen werden.")))
+      }
+
+    case ArbeitseinsatzLoeschenCommand(personId, subject, arbeitseinsatzId) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        kundenportalReadRepository.getProjekt map { projekt =>
+          kundenportalReadRepository.getArbeitseinsatzDetail(arbeitseinsatzId) map { arbeitseinsatz =>
+            if (arbeitseinsatz.arbeitsangebot.status == Bereit) {
+              if (arbeitseinsatz.arbeitsangebot.zeitVon isAfter DateTime.now.plusDays(projekt.einsatzAbsageVorlaufTage)) {
+                Success(Seq(EntityDeleteEvent(arbeitseinsatzId)))
+              } else {
+                Failure(new InvalidStateException(s"Arbeitseinsätze können nur bis ${projekt.einsatzAbsageVorlaufTage} Tage vor Start gelöscht werden."))
+              }
+            } else {
+              Failure(new InvalidStateException("Es können nur Arbeitseinsätze in Arbeitsangeboten im Status 'Bereit' entfernt werden."))
+            }
+          } getOrElse {
+            Failure(new InvalidStateException(s"Das Arbeitsangebot oder der Arbeitseinsatz wurden nicht gefunden."))
+          }
+        } getOrElse {
+          Failure(new InvalidStateException(s"Projekt konnte nicht geladen werden."))
+        }
+      }
+
   }
 }
 
