@@ -94,6 +94,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[Bestellposition, BestellpositionId](bestellpositionMapping),
           adjustSeed[Abwesenheit, AbwesenheitId](abwesenheitMapping),
           adjustSeed[Rechnung, RechnungId](rechnungMapping),
+          adjustSeed[RechnungsPosition, RechnungsPositionId](rechnungsPositionMapping),
           adjustSeed[ZahlungsImport, ZahlungsImportId](zahlungsImportMapping),
           adjustSeed[ZahlungsEingang, ZahlungsEingangId](zahlungsEingangMapping),
           adjustSeed[Einladung, EinladungId](einladungMapping),
