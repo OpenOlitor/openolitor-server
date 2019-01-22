@@ -414,16 +414,18 @@ trait KorbHandler extends KorbStatusHandler
     if (!isExistingAbo || abo.start != orig.get.start || abo.ende != orig.get.ende) {
       stammdatenWriteRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
         stammdatenWriteRepository.getLieferungenOffenByVertrieb(abo.vertriebId) map { lieferung =>
-          if (isExistingAbo && (abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
-            deleteKorb(lieferung, abo)
-          } else if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
-            upsertKorb(lieferung, abo, abotyp) match {
-              case (Some(created), None) =>
-                // nur im created Fall muss eins dazu gezählt werden
-                // bei Statuswechsel des Korbs wird handleKorbStatusChanged die Counts justieren
-                recalculateNumbersLieferung(lieferung)
-              case _ =>
-              // counts werden andersweitig angepasst
+          if (abo.abotypId == lieferung.abotypId) {
+            if (isExistingAbo && (abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
+              deleteKorb(lieferung, abo)
+            } else if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
+              upsertKorb(lieferung, abo, abotyp) match {
+                case (Some(created), None) =>
+                  // nur im created Fall muss eins dazu gezählt werden
+                  // bei Statuswechsel des Korbs wird handleKorbStatusChanged die Counts justieren
+                  recalculateNumbersLieferung(lieferung)
+                case _ =>
+                // counts werden andersweitig angepasst
+              }
             }
           }
         }

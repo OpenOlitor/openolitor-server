@@ -471,6 +471,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                     "modifikator" -> meta.originator
                   ))
               }
+              // create required Koerbe for abo
               maybeAbo map (abo => modifyKoerbeForAbo(abo, None))
           }
       }
