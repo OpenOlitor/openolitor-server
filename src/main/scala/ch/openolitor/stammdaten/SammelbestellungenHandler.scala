@@ -65,7 +65,8 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
           stammdatenWriteRepository.deleteEntity[Bestellposition, BestellpositionId](position.id)
       }
 
-      val groupedLieferungen = stammdatenWriteRepository.getLieferungenDetails(create.lieferplanungId) groupBy (_.abotyp.get.adminProzente)
+      val lieferungen = stammdatenWriteRepository.getLieferungenDetails(create.lieferplanungId) filterNot (_.abotyp == None)
+      val groupedLieferungen = lieferungen groupBy (_.abotyp.get.adminProzente)
 
       val totalsToAggregate = groupedLieferungen map {
         case (adminProzente, lieferungen) =>
