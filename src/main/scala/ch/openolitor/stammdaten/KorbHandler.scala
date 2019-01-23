@@ -406,17 +406,11 @@ trait KorbHandler extends KorbStatusHandler
     )
   }
 
-  def modifyKoerbeForAbo(abo: Abo, orig: Option[Abo])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
-    logger.debug(s"modifyKoerbeForAbo abo: $abo orig: $orig")
-    // koerbe erstellen, modifizieren, loeschen falls noetig
-    val isExistingAbo = orig.isDefined
-    // only modify koerbe if the start or end of this abo has changed or we're creating them for a new abo
-    if (!isExistingAbo || abo.start != orig.get.start || abo.ende != orig.get.ende) {
-      stammdatenWriteRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
-        stammdatenWriteRepository.getLieferungenOffenByVertrieb(abo.vertriebId) map { lieferung =>
-          if (isExistingAbo && (abo.start > lieferung.datum.toLocalDate || (abo.ende map (_ <= (lieferung.datum.toLocalDate - 1.day)) getOrElse false))) {
-            deleteKorb(lieferung, abo)
-          } else if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
+  def createKoerbeForNewAbo(abo: Abo)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
+    stammdatenWriteRepository.getById(abotypMapping, abo.abotypId) map { abotyp =>
+      stammdatenWriteRepository.getLieferungenOffenByVertrieb(abo.vertriebId) map { lieferung =>
+        if (abo.abotypId == lieferung.abotypId) {
+          if (abo.start <= lieferung.datum.toLocalDate && (abo.ende map (_ >= lieferung.datum.toLocalDate) getOrElse true)) {
             upsertKorb(lieferung, abo, abotyp) match {
               case (Some(created), None) =>
                 // nur im created Fall muss eins dazu gezählt werden

@@ -445,14 +445,9 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
                   ))
               }
               // create required Koerbe for abo
-              //              maybeAbo map (abo => modifyKoerbeForAboDatumChange(abo, None))
-              maybeAbo map (abo => modifyKoerbeForAbo(abo, None))
+              maybeAbo map (abo => createKoerbeForNewAbo(abo))
           }
       }
-
-      //stammdatenWriteRepository.getAbo(id) map { abo =>
-      //  modifyKoerbeForAbo(abo, None)
-      //}
     }
   }
 
