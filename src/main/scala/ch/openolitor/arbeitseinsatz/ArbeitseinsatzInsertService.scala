@@ -34,6 +34,7 @@ import ch.openolitor.core.models._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc.DB
+import org.joda.time.Duration
 
 object ArbeitseinsatzInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzInsertService = new DefaultArbeitseinsatzInsertService(sysConfig, system)
@@ -51,6 +52,8 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
   with ArbeitseinsatzDBMappings {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
+  val ZERO = 0
+
   val handle: Handle = {
     case EntityInsertedEvent(meta, id: ArbeitskategorieId, arbeitskategorie: ArbeitskategorieModify) =>
       createArbeitskategorie(meta, id, arbeitskategorie)
@@ -58,6 +61,8 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
       createArbeitsangebot(meta, id, arbeitsangebot)
     case EntityInsertedEvent(meta, id: ArbeitseinsatzId, arbeitseinsatz: ArbeitseinsatzModify) =>
       createArbeitseinsatz(meta, id, arbeitseinsatz)
+    case EntityInsertedEvent(meta, id: ArbeitsangebotId, arbeitsangebot: ArbeitsangebotDuplicate) =>
+      createDuplicateArbeitsangebot(meta, id, arbeitsangebot)
     case e =>
   }
 
@@ -132,6 +137,35 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
             case None =>
           }
         }
+      }
+    }
+  }
+
+  def createDuplicateArbeitsangebot(meta: EventMetadata, id: ArbeitsangebotId, arbeitsangebotDupl: ArbeitsangebotDuplicate)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, arbeitsangebotDupl.arbeitsangebotId) map { arbeitsangebot =>
+        val status = arbeitsangebot.status match {
+          case Archiviert | Abgesagt => InVorbereitung
+          case s                     => s
+        }
+        val duration = new Duration(arbeitsangebot.zeitVon, arbeitsangebot.zeitBis)
+        val zeitBis = arbeitsangebotDupl.zeitVon.plus(duration)
+        val copyId = Some(arbeitsangebotDupl.arbeitsangebotId)
+        val aa = copyTo[Arbeitsangebot, Arbeitsangebot](
+          arbeitsangebot,
+          "id" -> id,
+          "kopieVon" -> copyId,
+          "anzahlEingeschriebene" -> ZERO,
+          "zeitVon" -> arbeitsangebotDupl.zeitVon,
+          "zeitBis" -> zeitBis,
+          "status" -> status,
+          "erstelldat" -> meta.timestamp,
+          "ersteller" -> meta.originator,
+          "modifidat" -> meta.timestamp,
+          "modifikator" -> meta.originator
+        )
+
+        arbeitseinsatzWriteRepository.insertEntity[Arbeitsangebot, ArbeitsangebotId](aa)
       }
     }
   }

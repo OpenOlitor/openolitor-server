@@ -39,12 +39,17 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
   implicit val arbeitsangebotModifyPersister = persister[ArbeitsangebotModify]("arbeitsangebot-modify")
   implicit val arbeitsangebotIdPersister = persister[ArbeitsangebotId]("arbeitsangebot-id")
 
+  implicit val arbeitsangeboteDuplicatePersister = persister[ArbeitsangeboteDuplicate]("arbeitsangebote-duplicate")
+  implicit val arbeitsangeboteDuplicatPersister = persister[ArbeitsangebotDuplicate]("arbeitsangebot-duplicate")
+
   val arbeitseinsatzPersisters = List(
     arbeitskategorieModifyPersister,
     arbeitskategorieIdPersister,
     arbeitseinsatzModifyPersister,
     arbeitseinsatzIdPersister,
     arbeitsangebotModifyPersister,
-    arbeitsangebotIdPersister
+    arbeitsangebotIdPersister,
+    arbeitsangeboteDuplicatePersister,
+    arbeitsangeboteDuplicatPersister
   )
 }

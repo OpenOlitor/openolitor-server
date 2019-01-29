@@ -24,6 +24,7 @@ package ch.openolitor.arbeitseinsatz
 
 import akka.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.Macros._
 import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
 import ch.openolitor.core.exceptions.InvalidStateException
@@ -70,7 +71,12 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
       handleEntityInsert[ArbeitsangebotModify, ArbeitsangebotId](idFactory, meta, entity, ArbeitsangebotId.apply)
     case e @ InsertEntityCommand(personId, entity: ArbeitseinsatzModify) => idFactory => meta =>
       handleEntityInsert[ArbeitseinsatzModify, ArbeitseinsatzId](idFactory, meta, entity, ArbeitseinsatzId.apply)
-
+    case e @ InsertEntityCommand(personId, entity: ArbeitsangeboteDuplicate) => idFactory => meta =>
+      val events = entity.daten.map { datum =>
+        val arbeitsangebotDuplicate = copyTo[ArbeitsangeboteDuplicate, ArbeitsangebotDuplicate](entity, "zeitVon" -> datum)
+        insertEntityEvent[ArbeitsangebotDuplicate, ArbeitsangebotId](idFactory, meta, arbeitsangebotDuplicate, ArbeitsangebotId.apply)
+      }
+      Success(events)
   }
 }
 
