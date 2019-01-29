@@ -76,7 +76,16 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
           delete(remove(id))
       } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath / "berichte/arbeitseinsatzbrief") { id =>
+      path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "duplizieren") { id =>
+        post {
+          requestInstance { request =>
+            entity(as[ArbeitsangeboteDuplicate]) { entity =>
+              created(request)(entity)
+            }
+          }
+        }
+      } ~
+      path("arbeitsangebote" / arbeitsangebotIdPath / "berichte" / "arbeitseinsatzbrief") { id =>
         (post) {
           implicit val personId = subject.personId
           generateReport[ArbeitsangebotId](Some(id), generateArbeitsangebotReports _)(ArbeitsangebotId.apply)
@@ -106,7 +115,7 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](id)) ~
           delete(remove(id))
       } ~
-      path("arbeitseinsaetze" / arbeitseinsatzIdPath / "berichte/arbeitseinsatzbrief") { id =>
+      path("arbeitseinsaetze" / arbeitseinsatzIdPath / "berichte" / "arbeitseinsatzbrief") { id =>
         (post) {
           implicit val personId = subject.personId
           generateReport[ArbeitseinsatzId](Some(id), generateArbeitseinsatzReports _)(ArbeitseinsatzId.apply)

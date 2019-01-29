@@ -646,12 +646,12 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   }
 
   private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung)(implicit session: DBSession): Seq[ResultingEvent] = {
-      val zusatzabos = stammdatenReadRepository.getZusatzAbosByHauptAbo(hauptAbo.id)
-      for (zusatzabo <- zusatzabos) yield {
-        val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
-        val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
-        val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabo.price.getOrElse(zusatzabosTyp.get.preis), waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
-        EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
+    val zusatzabos = stammdatenReadRepository.getZusatzAbosByHauptAbo(hauptAbo.id)
+    for (zusatzabo <- zusatzabos) yield {
+      val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
+      val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
+      val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabo.price.getOrElse(zusatzabosTyp.get.preis), waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
+      EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
     }
   }
 

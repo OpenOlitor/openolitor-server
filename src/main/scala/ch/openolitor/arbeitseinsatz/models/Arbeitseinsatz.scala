@@ -229,3 +229,13 @@ case class ArbeitseinsatzAbrechnung(
   summeEinsaetzeIst: BigDecimal,
   summeEinsaetzeDelta: BigDecimal
 ) extends JSONSerializable
+
+case class ArbeitsangeboteDuplicate(
+  arbeitsangebotId: ArbeitsangebotId,
+  daten: Seq[DateTime]
+) extends JSONSerializable
+
+case class ArbeitsangebotDuplicate(
+  arbeitsangebotId: ArbeitsangebotId,
+  zeitVon: DateTime
+) extends JSONSerializable

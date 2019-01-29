@@ -80,6 +80,7 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
         column.ort -> aa.ort,
         column.zeitVon -> aa.zeitVon,
         column.zeitBis -> aa.zeitBis,
+        column.arbeitskategorien -> aa.arbeitskategorien,
         column.anzahlEingeschriebene -> aa.anzahlEingeschriebene,
         column.anzahlPersonen -> aa.anzahlPersonen,
         column.mehrPersonenOk -> aa.mehrPersonenOk,

@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
+import spray.json._
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.{ BaseJsonProtocol, JSONSerializable }
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
@@ -41,8 +42,18 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
   implicit val arbeitsangebotIdFormat = baseIdFormat(ArbeitsangebotId)
   implicit val arbeitseinsatzIdFormat = baseIdFormat(ArbeitseinsatzId)
 
+  implicit val arbeitskategorieBezIdFormat = new RootJsonFormat[ArbeitskategorieBez] {
+    def write(obj: ArbeitskategorieBez): JsValue =
+      JsString(obj.id)
+
+    def read(json: JsValue): ArbeitskategorieBez =
+      json match {
+        case JsString(id) => ArbeitskategorieBez(id)
+        case kt           => sys.error(s"Unknown ArbeitskategorieBez:$kt")
+      }
+  }
+
   implicit val arbeitskategorieFormat = autoProductFormat[Arbeitskategorie]
-  implicit val arbeitskategorieBezFormat = autoProductFormat[ArbeitskategorieBez]
   implicit val arbeitsangebotFormat = autoProductFormat[Arbeitsangebot]
   implicit val arbeitseinsatzFormat = autoProductFormat[Arbeitseinsatz]
   implicit val arbeitseinsatzDetailFormat = autoProductFormat[ArbeitseinsatzDetail]
@@ -53,5 +64,7 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
   implicit val arbeitseinsatzModifyFormat = autoProductFormat[ArbeitseinsatzModify]
 
   implicit val arbeitseinsatzAbrechnungFormat = autoProductFormat[ArbeitseinsatzAbrechnung]
+
+  implicit val arbeitsangebotDuplicateFormat = autoProductFormat[ArbeitsangebotDuplicate]
 
 }

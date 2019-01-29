@@ -65,7 +65,7 @@ class ArbeitseinsatzDeleteService(override val sysConfig: SystemConfig) extends 
 
   def deleteArbeitsangebot(meta: EventMetadata, id: ArbeitsangebotId)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      arbeitseinsatzWriteRepository.deleteEntity[Arbeitsangebot, ArbeitsangebotId](id, { arbeitsangebot: Arbeitsangebot => arbeitsangebot.status == ArbeitseinsatzStatus })
+      arbeitseinsatzWriteRepository.deleteEntity[Arbeitsangebot, ArbeitsangebotId](id, { arbeitsangebot: Arbeitsangebot => arbeitsangebot.status == InVorbereitung })
     }
   }
 
