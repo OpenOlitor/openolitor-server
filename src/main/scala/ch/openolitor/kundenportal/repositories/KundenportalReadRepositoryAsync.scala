@@ -37,9 +37,11 @@ import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.buchhaltung.models.Rechnung
 import ch.openolitor.buchhaltung.models.RechnungDetail
 import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.models.PersonId
 
 trait KundenportalReadRepositoryAsync {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
+  def getPerson(personId: PersonId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Person]]
   def getKontoDaten(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
 
   def getHauptabos(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[AboDetail]]
@@ -117,5 +119,9 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
 
   def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Arbeitsangebot]] = {
     getArbeitsangeboteQuery.future
+  }
+
+  def getPerson(personId: PersonId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Person]] = {
+    getPersonQuery(personId).future
   }
 }

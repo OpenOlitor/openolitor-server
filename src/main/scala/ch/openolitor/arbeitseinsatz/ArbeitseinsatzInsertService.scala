@@ -105,22 +105,24 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
   def createArbeitseinsatz(meta: EventMetadata, id: ArbeitseinsatzId, arbeitseinsatz: ArbeitseinsatzModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.getById(kundeMapping, arbeitseinsatz.kundeId) map { kunde =>
-        val personData: Option[String] = arbeitseinsatz.personId match {
+        val personData: Tuple3[Option[String], Option[String], Option[String]] = arbeitseinsatz.personId match {
           case Some(id) => arbeitseinsatzWriteRepository.getById(personMapping, id) map {
-            person => person.vorname + ' ' + person.name
-          }
-          case None => None
+            person => (Some(person.vorname + ' ' + person.name), person.email, person.telefonMobil)
+          } getOrElse ((None, None, None))
+          case None => (None, None, None)
         }
         arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, arbeitseinsatz.arbeitsangebotId) map { arbeitsangebot =>
           val ae = copyTo[ArbeitseinsatzModify, Arbeitseinsatz](
             arbeitseinsatz,
             "id" -> id,
             "kundeBezeichnung" -> kunde.bezeichnung,
-            "personName" -> personData,
+            "personName" -> personData._1,
             "arbeitsangebotTitel" -> arbeitsangebot.titel,
             "arbeitsangebotStatus" -> arbeitsangebot.status,
             "aboId" -> None,
             "aboBezeichnung" -> None,
+            "email" -> personData._2,
+            "telefonMobil" -> personData._3,
             "erstelldat" -> meta.timestamp,
             "ersteller" -> meta.originator,
             "modifidat" -> meta.timestamp,

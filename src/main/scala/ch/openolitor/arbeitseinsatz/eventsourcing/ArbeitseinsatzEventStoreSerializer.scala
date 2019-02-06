@@ -23,6 +23,7 @@
 package ch.openolitor.arbeitseinsatz.eventsourcing
 
 import ch.openolitor.arbeitseinsatz._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenEvent
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
@@ -42,6 +43,8 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
   implicit val arbeitsangeboteDuplicatePersister = persister[ArbeitsangeboteDuplicate]("arbeitsangebote-duplicate")
   implicit val arbeitsangeboteDuplicatPersister = persister[ArbeitsangebotDuplicate]("arbeitsangebot-duplicate")
 
+  implicit val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
+
   val arbeitseinsatzPersisters = List(
     arbeitskategorieModifyPersister,
     arbeitskategorieIdPersister,
@@ -50,6 +53,7 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
     arbeitsangebotModifyPersister,
     arbeitsangebotIdPersister,
     arbeitsangeboteDuplicatePersister,
-    arbeitsangeboteDuplicatPersister
+    arbeitsangeboteDuplicatPersister,
+    sendEmailToArbeitsangebotPersonenEventPersister
   )
 }

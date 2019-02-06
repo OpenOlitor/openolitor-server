@@ -22,24 +22,29 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import akka.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
 import ch.openolitor.core.exceptions.InvalidStateException
-import scalikejdbc.DB
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models.PersonId
+import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 
+import akka.actor.ActorSystem
+import scalikejdbc._
+import scala.concurrent.ExecutionContext.Implicits._
 import scala.util._
 
 object ArbeitseinsatzCommandHandler {
   case class ArbeitsangebotArchivedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
+  case class SendEmailToArbeitsangebotPersonenCommand(originator: PersonId, subject: String, body: String, ids: Seq[ArbeitsangebotId]) extends UserCommand
+  case class SendEmailToArbeitsangebotPersonenEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: ArbeitsangebotMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
-trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware {
+trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware with MailTemplateService {
   self: ArbeitseinsatzReadRepositorySyncComponent =>
   import ArbeitseinsatzCommandHandler._
   import EntityStore._
@@ -62,6 +67,23 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
         } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
       }
 
+    case SendEmailToArbeitsangebotPersonenCommand(personId, subject, body, ids) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        if (checkTemplateArbeitsangebot(body, subject, ids)) {
+          val events = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
+            arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitsangebotId) map { arbeitsangebot =>
+              arbeitseinsatzReadRepository.getPersonenByArbeitsangebot(arbeitsangebotId) map { person =>
+                val mailContext = ArbeitsangebotMailContext(person, arbeitsangebot)
+                DefaultResultingEvent(factory => SendEmailToArbeitsangebotPersonenEvent(factory.newMetadata(), subject, body, person, mailContext))
+              }
+            }
+          }
+          Success(events.flatten)
+        } else {
+          Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
     /*
      * Insert command handling
      */
@@ -78,8 +100,24 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
       }
       Success(events)
   }
+
+  private def checkTemplateArbeitsangebot(body: String, subject: String, ids: Seq[ArbeitsangebotId])(implicit session: DBSession): Boolean = {
+    val templateCorrect = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
+      arbeitseinsatzReadRepository.getPersonenByArbeitsangebot(arbeitsangebotId) flatMap { person =>
+        arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitsangebotId) map { arbeitsangebot =>
+          val mailContext = ArbeitsangebotMailContext(person, arbeitsangebot)
+          generateMail(subject, body, mailContext) match {
+            case Success(mailPayload) => true
+            case Failure(e)           => false
+          }
+        }
+      }
+    }
+    templateCorrect.forall(x => x == true)
+  }
 }
 
 class DefaultArbeitseinsatzCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends ArbeitseinsatzCommandHandler
   with DefaultArbeitseinsatzReadRepositorySyncComponent {
+
 }

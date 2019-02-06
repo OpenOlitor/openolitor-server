@@ -20,41 +20,45 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.kundenportal.repositories
+package ch.openolitor.stammdaten
 
-import scalikejdbc._
-import ch.openolitor.core.repositories._
+import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.domain.EventMetadata
+import ch.openolitor.mailtemplates.engine.MailTemplateService
+import ch.openolitor.core.mailservice.MailService._
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
+import ch.openolitor.core.EventStream
+
+import akka.actor.ActorRef
+import akka.pattern.ask
+import akka.util.Timeout
+import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.models.PersonId
+import scala.util._
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
-/**
- * Synchronous Repository
- */
-trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
-  def getProjekt(implicit session: DBSession): Option[Projekt]
-  def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person]
-  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
-  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
-  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
-}
+trait EmailHandler extends MailTemplateService with AsyncConnectionPoolContextAware with StammdatenEventStoreSerializer with LazyLogging {
 
-trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync with LazyLogging with KundenportalRepositoryQueries {
-  def getProjekt(implicit session: DBSession): Option[Projekt] = {
-    getProjektQuery.apply()
-  }
-  def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person] = {
-    getById(personMapping, personId)
-  }
-
-  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
-    getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
-  }
-  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
-    getById(arbeitsangebotMapping, id)
-  }
-  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail] = {
-    getArbeitseinsatzDetailQuery(id).apply()
+  def sendEmail(meta: EventMetadata, emailSubject: String, body: String, person: Person, mailContext: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator, timeout: Timeout, executionContext: ExecutionContext, eventStream: EventStream): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      generateMail(emailSubject, body, mailContext) match {
+        case Success(mailPayload) =>
+          person.email map { email =>
+            val mail = mailPayload.toMail(1, email, None, None, None)
+            mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
+              case _: SendMailEvent =>
+              //ok
+              case other =>
+                logger.debug(s"Sending Mail failed resulting in $other")
+            }
+          }
+        case Failure(e) =>
+          logger.warn(s"Failed preparing mail", e)
+      }
+    }
   }
 }

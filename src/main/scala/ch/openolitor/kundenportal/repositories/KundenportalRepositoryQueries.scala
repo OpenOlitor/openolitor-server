@@ -35,6 +35,7 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+import ch.openolitor.core.models.PersonId
 
 trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings with ArbeitseinsatzDBMappings {
 
@@ -362,4 +363,13 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
       }.list
   }
+
+  protected def getPersonQuery(personId: PersonId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .where.eq(person.id, personId)
+    }.map(personMapping(person)).single
+  }
+
 }

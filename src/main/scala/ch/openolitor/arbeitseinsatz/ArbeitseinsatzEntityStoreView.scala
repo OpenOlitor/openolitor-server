@@ -52,7 +52,6 @@ trait ArbeitseinsatzEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait ArbeitseinsatzEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with MailServiceReference with SystemConfigReference {
-  import EntityStore._
 
   override val insertService = ArbeitseinsatzInsertService(sysConfig, system)
   override val updateService = ArbeitseinsatzUpdateService(sysConfig, system)

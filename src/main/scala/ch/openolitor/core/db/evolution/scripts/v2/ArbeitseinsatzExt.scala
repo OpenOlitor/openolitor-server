@@ -20,41 +20,26 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.kundenportal.repositories
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import scalikejdbc._
-import ch.openolitor.core.repositories._
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.models.PersonId
+import scalikejdbc._
+import scala.util.{ Success, Try }
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import scala.collection.Seq
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
-/**
- * Synchronous Repository
- */
-trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
-  def getProjekt(implicit session: DBSession): Option[Projekt]
-  def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person]
-  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
-  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
-  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
-}
+object ArbeitseinsatzExt {
+  val arbeitseinsatzScripts = new Script with LazyLogging with ArbeitseinsatzDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      alterTableAddColumnIfNotExists(arbeitseinsatzMapping, "email", "VARCHAR(100)", "bemerkungen")
+      alterTableAddColumnIfNotExists(arbeitseinsatzMapping, "telefon_mobil", "VARCHAR(50)", "email")
 
-trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync with LazyLogging with KundenportalRepositoryQueries {
-  def getProjekt(implicit session: DBSession): Option[Projekt] = {
-    getProjektQuery.apply()
-  }
-  def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person] = {
-    getById(personMapping, personId)
-  }
+      Success(true)
 
-  def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
-    getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
+    }
   }
-  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
-    getById(arbeitsangebotMapping, id)
-  }
-  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail] = {
-    getArbeitseinsatzDetailQuery(id).apply()
-  }
+  val scripts = Seq(arbeitseinsatzScripts)
 }
