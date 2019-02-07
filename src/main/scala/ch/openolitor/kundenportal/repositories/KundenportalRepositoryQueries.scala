@@ -364,12 +364,4 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       }.list
   }
 
-  protected def getPersonQuery(personId: PersonId) = {
-    withSQL {
-      select
-        .from(personMapping as person)
-        .where.eq(person.id, personId)
-    }.map(personMapping(person)).single
-  }
-
 }
