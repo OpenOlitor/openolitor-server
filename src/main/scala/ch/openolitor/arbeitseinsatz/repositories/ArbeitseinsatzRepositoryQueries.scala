@@ -41,6 +41,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val kunde = kundeMapping.syntax("kunde")
+  lazy val person = personMapping.syntax("person")
   lazy val depotlieferungAbo = depotlieferungAboMapping.syntax("depotlieferungAbo")
   lazy val heimlieferungAbo = heimlieferungAboMapping.syntax("heimlieferungAbo")
   lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
@@ -200,5 +201,14 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
 
         copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
       }).list
+  }
+
+  protected def getPersonenByArbeitsangebotQuery(arbeitsangebotId: ArbeitsangebotId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(arbeitseinsatz.personId, person.id)
+        .where.eq(arbeitseinsatz.arbeitsangebotId, arbeitsangebotId)
+    }.map(personMapping(person)).list
   }
 }

@@ -90,7 +90,7 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
               arbeitsangebot.zeitBis,
               arbeitsangebot.einsatzZeit,
               entity.kundeId,
-              entity.personId,
+              Some(subject.personId),
               None,
               entity.anzahlPersonen,
               entity.bemerkungen

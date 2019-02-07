@@ -109,6 +109,17 @@ case class ArbeitsangebotModify(
   status: ArbeitseinsatzStatus
 ) extends JSONSerializable
 
+case class ArbeitsangebotMailRequest(
+  ids: Seq[ArbeitsangebotId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class ArbeitsangebotMailContext(
+  person: Person,
+  arbeitsangebot: Arbeitsangebot
+) extends JSONSerializable
+
 case class ArbeitseinsatzId(id: Long) extends BaseId
 
 trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
@@ -126,6 +137,8 @@ trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
   val aboBezeichnung: Option[String]
   val anzahlPersonen: Int
   val bemerkungen: Option[String]
+  val email: Option[String]
+  val telefonMobil: Option[String]
 }
 
 case class Arbeitseinsatz(
@@ -144,6 +157,8 @@ case class Arbeitseinsatz(
   aboBezeichnung: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String],
+  email: Option[String],
+  telefonMobil: Option[String],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -167,6 +182,8 @@ case class ArbeitseinsatzDetail(
   personName: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String],
+  email: Option[String],
+  telefonMobil: Option[String],
   //additional Detail fields
   arbeitsangebot: Arbeitsangebot,
   //modification flags
@@ -192,6 +209,8 @@ case class ArbeitseinsatzDetailReport(
   personName: Option[String],
   anzahlPersonen: Int,
   bemerkungen: Option[String],
+  email: Option[String],
+  telefonMobil: Option[String],
   //additional Detail fields
   arbeitsangebot: Arbeitsangebot,
   projekt: ProjektReport,

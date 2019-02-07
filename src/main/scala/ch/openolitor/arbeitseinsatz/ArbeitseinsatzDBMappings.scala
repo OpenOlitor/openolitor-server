@@ -115,7 +115,9 @@ trait ArbeitseinsatzDBMappings extends DBMappings with StammdatenDBMappings with
         column.aboId -> ae.aboId,
         column.aboBezeichnung -> ae.aboBezeichnung,
         column.anzahlPersonen -> ae.anzahlPersonen,
-        column.bemerkungen -> ae.bemerkungen
+        column.bemerkungen -> ae.bemerkungen,
+        column.email -> ae.email,
+        column.telefonMobil -> ae.telefonMobil
       )
     }
   }

@@ -31,7 +31,6 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.mailtemplates.model._
 import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
@@ -45,9 +44,9 @@ import ch.openolitor.util.ConfigUtil._
 import scalikejdbc.DBSession
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import scala.concurrent.ExecutionContext.Implicits._
 import scalikejdbc.DB
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
@@ -70,8 +69,8 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
   with StammdatenEventStoreSerializer
   with SammelbestellungenHandler
   with LieferungHandler
-  with MailTemplateService
-  with SystemConfigReference {
+  with SystemConfigReference
+  with EmailHandler {
   self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
 
   // implicitly expose the eventStream
@@ -108,19 +107,19 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     case RolleGewechseltEvent(meta, _, personId, rolle) =>
       changeRolle(meta, personId, rolle)
     case SendEmailToPersonEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToKundeEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToAbotypSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToZusatzabotypSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToTourSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToDepotSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToAboSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context)
+      sendEmail(meta, subject, body, person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -252,25 +251,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
   def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
     sendEinladung(meta, einladungCreate, BaseZugangLink, InvitationMailTemplateType)
-  }
-
-  private def sendEmail(meta: EventMetadata, emailSubject: String, body: String, person: Person, mailContext: Product)(implicit originator: PersonId = meta.originator): Unit = {
-    DB localTxPostPublish { implicit session => implicit publisher =>
-      generateMail(emailSubject, body, mailContext) match {
-        case Success(mailPayload) =>
-          person.email map { email =>
-            val mail = mailPayload.toMail(1, email, None, None, None)
-            mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
-              case _: SendMailEvent =>
-              //ok
-              case other =>
-                logger.debug(s"Sending Mail failed resulting in $other")
-            }
-          }
-        case Failure(e) =>
-          logger.warn(s"Failed preparing mail", e)
-      }
-    }
   }
 
   private def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseLink: String, mailTemplateType: TemplateType)(implicit originator: PersonId): Unit = {

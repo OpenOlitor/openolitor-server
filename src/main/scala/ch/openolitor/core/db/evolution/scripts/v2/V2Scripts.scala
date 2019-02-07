@@ -239,5 +239,6 @@ object V2Scripts {
     OO_sunu_26_adding_payment_types.scripts ++
     OO_sunu_27_adding_status_to_zahlungs_export.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
-    OO109_Arbeitseinsatz.scripts
+    OO109_Arbeitseinsatz.scripts ++
+    ArbeitseinsatzExt.scripts
 }

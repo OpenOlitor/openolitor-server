@@ -25,6 +25,7 @@ package ch.openolitor.arbeitseinsatz.repositories
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models.KundeId
+import ch.openolitor.stammdaten.models.Person
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc.DBSession
 
@@ -41,6 +42,7 @@ trait ArbeitseinsatzReadRepositorySync extends BaseReadRepositorySync {
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz]
   def getArbeitseinsatzabrechnung(implicit session: DBSession): List[ArbeitseinsatzAbrechnung]
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[ArbeitseinsatzDetail]
+  def getPersonenByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[Person]
 }
 
 trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositorySync with LazyLogging with ArbeitseinsatzRepositoryQueries {
@@ -86,5 +88,9 @@ trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositoryS
 
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[ArbeitseinsatzDetail] = {
     getArbeitseinsatzDetailByArbeitsangebotQuery(arbeitsangebotId).apply()
+  }
+
+  def getPersonenByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[Person] = {
+    getPersonenByArbeitsangebotQuery(arbeitsangebotId).apply()
   }
 }

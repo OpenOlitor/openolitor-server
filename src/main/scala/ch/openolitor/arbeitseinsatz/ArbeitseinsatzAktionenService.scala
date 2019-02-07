@@ -22,13 +22,19 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import akka.actor.{ ActorRef, ActorSystem }
 import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
 import ch.openolitor.arbeitseinsatz.repositories._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
+import ch.openolitor.stammdaten.EmailHandler
+
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
+import akka.actor.{ ActorRef, ActorSystem }
 
 object ArbeitseinsatzAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): ArbeitseinsatzAktionenService = new DefaultArbeitseinsatzAktionenService(sysConfig, system, mailService)
@@ -41,13 +47,15 @@ class DefaultArbeitseinsatzAktionenService(sysConfig: SystemConfig, override val
 /**
  * Actor zum Verarbeiten der Aktionen für das Arbeitseinsatz Modul
  */
-class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
+class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware with EmailHandler
   with ArbeitseinsatzDBMappings with MailServiceReference with ArbeitseinsatzEventStoreSerializer {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
-  lazy val config = sysConfig.mandantConfiguration.config
+  implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
   val handle: Handle = {
+    case SendEmailToArbeitsangebotPersonenEvent(meta, subject, body, person, context) =>
+      sendEmail(meta, subject, body, person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }

@@ -23,6 +23,7 @@
 package ch.openolitor.arbeitseinsatz
 
 import akka.actor._
+import akka.pattern.ask
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
@@ -39,6 +40,10 @@ import com.typesafe.scalalogging.LazyLogging
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
 import spray.routing._
+import spray.http._
+import spray.httpx.marshalling.ToResponseMarshallable._
+import spray.httpx.SprayJsonSupport._
+import ch.openolitor.core.domain.EntityStore._
 
 trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -126,7 +131,26 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
       } ~
       path("arbeitseinsatzabrechnung" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung, exportFormat))
+      } ~
+      path("mailing" / "sendEmailToArbeitsangebotPersonen") {
+        post {
+          requestInstance { request =>
+            entity(as[ArbeitsangebotMailRequest]) { arbeitsangebotMailRequest =>
+              sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.ids)
+            }
+          }
+        }
       }
+
+  private def sendEmailToArbeitsangebotPersonen(emailSubject: String, body: String, ids: Seq[ArbeitsangebotId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenCommand(subject.personId, emailSubject, body, ids))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
+      case _ =>
+        complete("")
+    }
+  }
+
 }
 
 class DefaultArbeitseinsatzRoutes(
