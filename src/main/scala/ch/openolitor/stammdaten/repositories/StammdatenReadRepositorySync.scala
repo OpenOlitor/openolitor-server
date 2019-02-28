@@ -99,6 +99,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getVertriebe(abotypId: AbotypId)(implicit session: DBSession): List[VertriebVertriebsarten]
   def getVertriebByDate(datum: DateTime)(implicit session: DBSession): List[Vertrieb]
   def getKundeDetail(kundeId: KundeId)(implicit session: DBSession): Option[KundeDetail]
+  def getLieferungenOffenOrAbgeschlossenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung]
   def getLieferungenOffenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung]
   def getLieferungenOffenByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Lieferung]
 
@@ -513,6 +514,10 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
     getSingleDepotlieferungAboQuery(id)() orElse getSingleHeimlieferungAboQuery(id)() orElse getSinglePostlieferungAboQuery(id)() orElse getSingleZusatzAboQuery(id)()
+  }
+
+  def getLieferungenOffenOrAbgeschlossenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung] = {
+    getLieferungenOffenOrAbgeschlossenByAbotypQuery(abotypId)()
   }
 
   def getLieferungenOffenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung] = {
