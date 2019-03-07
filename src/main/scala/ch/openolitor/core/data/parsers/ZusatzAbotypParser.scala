@@ -36,12 +36,12 @@ object ZusatzAbotypParser extends EntityParser {
 
   def parse(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[ZusatzAbotyp, AbotypId]("id", Seq("name", "beschreibung", "preis", "preiseinheit", "aktiv_von", "aktiv_bis", "laufzeit",
-      "laufzeit_einheit", "farb_code", "zielpreis", "anzahl_abwesenheiten", "admin_prozente", "wird_geplant",
+      "laufzeit_einheit", "farb_code", "zielpreis", "anzahl_abwesenheiten", "anzahl_einsaetze", "admin_prozente", "wird_geplant",
       "kuendigungsfrist", "vertragslaufzeit", "anzahl_abonnenten", "anzahl_abonnenten_aktiv", "letzte_lieferung", "waehrung") ++ modifyColumns) { id => indexes => row =>
 
       //match column indexes
       val Seq(indexName, indexBeschreibung, indexPreis, indexPreiseinheit, indexAktivVon,
-        indexAktivBis, indexLaufzeit, indexLaufzeiteinheit, indexFarbCode, indexZielpreis, indexAnzahlAbwesenheiten,
+        indexAktivBis, indexLaufzeit, indexLaufzeiteinheit, indexFarbCode, indexZielpreis, indexAnzahlAbwesenheiten, indexAnzahlEinsaetze,
         indexAdminProzente, indexWirdGeplant, indexKuendigungsfrist, indexVertrag,
         indexAnzahlAbonnenten, indexAnzahlAbonnentenAktiv, indexLetzteLieferung, indexWaehrung) = indexes take (20)
       val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
@@ -67,6 +67,7 @@ object ZusatzAbotypParser extends EntityParser {
           case fristeinheitPattern(wert, "M") => Frist(wert.toInt, Monatsfrist)
         },
         anzahlAbwesenheiten = row.value[Option[Int]](indexAnzahlAbwesenheiten),
+        anzahlEinsaetze = row.value[Option[BigDecimal]](indexAnzahlEinsaetze),
         farbCode = row.value[String](indexFarbCode),
         zielpreis = row.value[Option[BigDecimal]](indexZielpreis),
         adminProzente = row.value[BigDecimal](indexAdminProzente),

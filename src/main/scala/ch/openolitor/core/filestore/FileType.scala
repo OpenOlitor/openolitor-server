@@ -43,6 +43,7 @@ case object VorlageBestellung extends FileType with VorlageTyp { val bucket = Vo
 case object VorlageProduzentenabrechnung extends FileType with VorlageTyp { val bucket = VorlagenBucket }
 case object VorlageLieferplanung extends FileType with VorlageTyp { val bucket = VorlagenBucket }
 case object VorlageKorbUebersicht extends VorlageTyp { val bucket = VorlagenBucket }
+case object VorlageArbeitseinsatz extends VorlageTyp { val bucket = VorlagenBucket }
 case object GeneriertRechnung extends FileType { val bucket = GeneriertBucket }
 case object GeneriertAuslieferung extends FileType { val bucket = GeneriertBucket }
 case object GeneriertMahnung extends FileType { val bucket = GeneriertBucket }
@@ -54,6 +55,8 @@ case object GeneriertProduzentenabrechnung extends FileType { val bucket = Gener
 case object GeneriertLieferplanung extends FileType { val bucket = GeneriertBucket }
 case object ProjektStammdaten extends FileType { val bucket = StammdatenBucket }
 case object ZahlungsImportDaten extends FileType { val bucket = ZahlungsImportBucket }
+case object RechnungExportDaten extends FileType { val bucket = RechnungExportBucket }
+case object ZahlungsExportDaten extends FileType { val bucket = ZahlungsExportBucket }
 case object TemporaryData extends FileType { val bucket = TemporaryDataBucket }
 case object UnknownFileType extends VorlageTyp { lazy val bucket = sys.error("This FileType has no bucket") }
 
@@ -69,6 +72,8 @@ object FileType {
     GeneriertProduzentenabrechnung,
     ProjektStammdaten,
     ZahlungsImportDaten,
+    RechnungExportDaten,
+    ZahlungsExportDaten,
     TemporaryData
   )
 

@@ -35,11 +35,15 @@ object ProjektParser extends EntityParser {
 
   def parse(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[Projekt, ProjektId]("id", Seq("bezeichnung", "strasse", "haus_nummer", "adress_zusatz", "plz", "ort",
-      "preise_sichtbar", "preise_editierbar", "email_erforderlich", "waehrung", "geschaeftsjahr_monat", "geschaeftsjahr_tag", "two_factor_auth", "sprache", "welcome_message_1", "welcome_message_2", "maintenance_mode") ++ modifyColumns) { id => indexes =>
+      "preise_sichtbar", "preise_editierbar", "email_erforderlich", "waehrung", "geschaeftsjahr_monat", "geschaeftsjahr_tag",
+      "two_factor_auth", "sprache", "welcome_message_1", "welcome_message_2", "maintenance_mode",
+      "generierte_mails_senden", "einsatz_einheit", "einsatz_absage_vorlauf_tage", "einsatz_show_liste_kunde") ++ modifyColumns) { id => indexes =>
       row =>
         //match column indexes
         val Seq(indexBezeichnung, indexStrasse, indexHausNummer, indexAdressZusatz, indexPlz, indexOrt, indexPreiseSichtbar,
-          indexPreiseEditierbar, indexEmailErforderlich, indexWaehrung, indexGeschaeftsjahrMonat, indexGeschaeftsjahrTag, indexTwoFactorAuth, indexSprache, indexWelcomeMessage1, indexWelcomeMessage2, indexMaintenanceMode) = indexes take (17)
+          indexPreiseEditierbar, indexEmailErforderlich, indexWaehrung, indexGeschaeftsjahrMonat, indexGeschaeftsjahrTag, indexTwoFactorAuth,
+          indexSprache, indexWelcomeMessage1, indexWelcomeMessage2, indexMaintenanceMode,
+          indexGenerierteMailsSenden, indexEinsatzEinheit, indexEinsatzAbsageVorlaufTage, indexEinsatzShowListeKunde) = indexes take (21)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
         val twoFactorAuth = parseMap(row.value[String](indexTwoFactorAuth))(r => Rolle(r).getOrElse(throw ParseException(s"Unknown Rolle $r while parsing Projekt")), _.toBoolean)
 
@@ -62,6 +66,10 @@ object ProjektParser extends EntityParser {
           welcomeMessage1 = row.value[Option[String]](indexWelcomeMessage1),
           welcomeMessage2 = row.value[Option[String]](indexWelcomeMessage2),
           maintenanceMode = row.value[Boolean](indexMaintenanceMode),
+          generierteMailsSenden = row.value[Boolean](indexGenerierteMailsSenden),
+          einsatzEinheit = EinsatzEinheit(row.value[String](indexEinsatzEinheit)),
+          einsatzAbsageVorlaufTage = row.value[Int](indexEinsatzAbsageVorlaufTage),
+          einsatzShowListeKunde = row.value[Boolean](indexEinsatzShowListeKunde),
           //modification flags
           erstelldat = row.value[DateTime](indexErstelldat),
           ersteller = PersonId(row.value[Long](indexErsteller)),

@@ -33,12 +33,14 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.FilterExpr
 import org.joda.time.LocalDate
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
-trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings {
+trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val zusatzAboTyp = zusatzAbotypMapping.syntax("zatyp")
   lazy val person = personMapping.syntax("pers")
+  lazy val personCategory = personCategoryMapping.syntax("persCat")
   lazy val lieferplanung = lieferplanungMapping.syntax("lieferplanung")
   lazy val lieferung = lieferungMapping.syntax("lieferung")
   lazy val hauptLieferung = lieferungMapping.syntax("lieferung")
@@ -63,6 +65,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val produktekategorie = produktekategorieMapping.syntax("produktekategorie")
   lazy val produzent = produzentMapping.syntax("produzent")
   lazy val projekt = projektMapping.syntax("projekt")
+  lazy val projektV1 = projektV1Mapping.syntax("projektV1")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
   lazy val produktProduzent = produktProduzentMapping.syntax("produktProduzent")
   lazy val produktProduktekategorie = produktProduktekategorieMapping.syntax("produktProduktekategorie")
@@ -75,6 +78,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val postAuslieferung = postAuslieferungMapping.syntax("postAuslieferung")
   lazy val projektVorlage = projektVorlageMapping.syntax("projektVorlage")
   lazy val einladung = einladungMapping.syntax("einladung")
+
+  lazy val arbeitseinsatz = arbeitseinsatzMapping.syntax("arbeitseinsatz")
 
   lazy val lieferpositionShort = lieferpositionMapping.syntax
   lazy val korbShort = korbMapping.syntax
@@ -133,16 +138,25 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(kundeMapping as kunde)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
-      .toMany(
-        rs => personMapping.opt(person)(rs)
+      .toManies(
+        rs => personMapping.opt(person)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map((kunde, personen) => {
+      .map((kunde, personen, kontoDaten) => {
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonSummary](p)).toSeq
-
-        copyTo[Kunde, KundeUebersicht](kunde, "ansprechpersonen" -> personenWihoutPwd)
+        val kd = kontoDaten.length match {
+          case 0 => None
+          case 1 => Some(kontoDaten(0))
+          case _ => {
+            logger.error(s"The kunde $kunde.id cannot have more than an account")
+            None
+          }
+        }
+        copyTo[Kunde, KundeUebersicht](kunde, "ansprechpersonen" -> personenWihoutPwd, "kontoDaten" -> kd)
       }).list
   }
 
@@ -163,6 +177,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
         .where.eq(kunde.id, id)
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
@@ -171,13 +186,21 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => pendenzMapping.opt(pendenz)(rs)
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map((kunde, pl, hl, dl, personen, pendenzen) => {
+      .map((kunde, pl, hl, dl, personen, pendenzen, kontoDaten) => {
         val abos = pl ++ hl ++ dl
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
-
-        copyTo[Kunde, KundeDetail](kunde, "abos" -> abos, "pendenzen" -> pendenzen, "ansprechpersonen" -> personenWihoutPwd)
+        val kd = kontoDaten.length match {
+          case 0 => None
+          case 1 => Some(kontoDaten(0))
+          case _ => {
+            logger.error(s"The kunde $kunde.id cannot have more than an account")
+            None
+          }
+        }
+        copyTo[Kunde, KundeDetail](kunde, "abos" -> abos, "pendenzen" -> pendenzen, "ansprechpersonen" -> personenWihoutPwd, "kontoDaten" -> kd)
       }).single
   }
 
@@ -191,6 +214,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
         .where.eq(kunde.id, kundeId)
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
@@ -199,15 +223,58 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
         rs => personMapping.opt(person)(rs),
-        rs => pendenzMapping.opt(pendenz)(rs)
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map { (kunde, pl, hl, dl, personen, pendenzen) =>
+      .map { (kunde, pl, hl, dl, personen, pendenzen, kontoDaten) =>
         val abos = pl ++ hl ++ dl
         val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
+        val kd = kontoDaten.length match {
+          case 0 => None
+          case 1 => Some(kontoDaten(0))
+          case _ => {
+            logger.error(s"The kunde $kunde.id cannot have more than an account")
+            None
+          }
+        }
 
         copyTo[Kunde, KundeDetailReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
-          "personen" -> personenWihoutPwd, "projekt" -> projekt)
+          "personen" -> personenWihoutPwd, "projekt" -> projekt, "kontoDaten" -> kd)
       }.single
+  }
+
+  protected def getKundeDetailsArbeitseinsatzReportQuery(projekt: ProjektReport) = {
+    withSQL {
+      select
+        .from(kundeMapping as kunde)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(kunde.id, heimlieferungAbo.kundeId)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
+        .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo.abotypId).or.eq(aboTyp.id, postlieferungAbo.abotypId))
+        .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+        .leftJoin(pendenzMapping as pendenz).on(kunde.id, pendenz.kundeId)
+        .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
+        .orderBy(person.sort)
+    }.one(kundeMapping(kunde))
+      .toManies(
+        rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
+        rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => abotypMapping.opt(aboTyp)(rs),
+        rs => personMapping.opt(person)(rs),
+        rs => pendenzMapping.opt(pendenz)(rs),
+        rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
+      )
+      .map { (kunde, pl, hl, dl, abotypen, personen, pendenzen, arbeitseinsaetze) =>
+        val abos = pl ++ hl ++ dl
+        val anzahlArbeitseinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(BigDecimal(0.0))) sum
+        val anzahlArbeitseinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(BigDecimal(0.0))) sum
+        val persL = personen.toSet[Person].map(p => copyTo[Person, PersonDetail](p)).toSeq
+
+        copyTo[Kunde, KundeDetailArbeitseinsatzReport](kunde, "abos" -> abos, "pendenzen" -> pendenzen,
+          "personen" -> persL, "projekt" -> projekt, "anzahlArbeitseinsaetzeSoll" -> anzahlArbeitseinsaetzeSoll,
+          "anzahlArbeitseinsaetzeIst" -> anzahlArbeitseinsaetzeIst, "arbeitseinsaetze" -> arbeitseinsaetze)
+      }.list
   }
 
   protected def getPersonenQuery = {
@@ -218,12 +285,70 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(personMapping(person)).list
   }
 
+  protected def getPersonByCategoryQuery(category: PersonCategoryNameId) = {
+    val personCategoryRegex: String = SQLSyntax.createUnsafely(s"""([ ,]|^)${category.id}([ ,]|$$)+""")
+    sql"""
+      SELECT ${person.result.*} FROM ${personMapping as person}
+      WHERE categories REGEXP ${personCategoryRegex}
+    """.map(personMapping(person)).list
+  }
+
   protected def getPersonenQuery(kundeId: KundeId) = {
     withSQL {
       select
         .from(personMapping as person)
         .where.eq(person.kundeId, kundeId)
         .orderBy(person.sort)
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenForAbotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(depotlieferungAbo.kundeId, kunde.id)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(heimlieferungAbo.kundeId, kunde.id)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(postlieferungAbo.kundeId, kunde.id)
+        .where.withRoundBracket {
+          _.eq(depotlieferungAbo.aktiv, true).and.eq(depotlieferungAbo.abotypId, abotypId)
+        }.or.withRoundBracket {
+          _.eq(heimlieferungAbo.aktiv, true).and.eq(heimlieferungAbo.abotypId, abotypId)
+        }.or.withRoundBracket {
+          _.eq(postlieferungAbo.aktiv, true).and.eq(postlieferungAbo.abotypId, abotypId)
+        }
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenForZusatzabotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .leftJoin(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.kundeId, kunde.id)
+        .where.eq(zusatzAbo.abotypId, abotypId).and.eq(zusatzAbo.aktiv, true)
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenQuery(tourId: TourId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .join(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .join(heimlieferungAboMapping as heimlieferungAbo).on(heimlieferungAbo.kundeId, kunde.id)
+        .join(tourMapping as tour).on(tour.id, heimlieferungAbo.tourId)
+        .where.eq(tour.id, tourId).and.eq(heimlieferungAbo.aktiv, true)
+    }.map(personMapping(person)).list
+  }
+
+  protected def getPersonenQuery(depotId: DepotId) = {
+    withSQL {
+      select
+        .from(personMapping as person)
+        .join(kundeMapping as kunde).on(kunde.id, person.kundeId)
+        .join(depotlieferungAboMapping as depotlieferungAbo).on(depotlieferungAbo.kundeId, kunde.id)
+        .join(depotMapping as depot).on(depot.id, depotlieferungAbo.depotId)
+        .where.eq(depot.id, depotId).and.eq(depotlieferungAbo.aktiv, true)
     }.map(personMapping(person)).list
   }
 
@@ -249,6 +374,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             "kundenBemerkungen" -> kunde.bemerkungen
           )
         }.list
+  }
+
+  protected def getPersonCategoryQuery = {
+    withSQL {
+      select
+        .from(personCategoryMapping as personCategory)
+        .orderBy(personCategory.id)
+    }.map(personCategoryMapping(personCategory)).list
   }
 
   protected def getAbotypDetailQuery(id: AbotypId) = {
@@ -320,6 +453,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(zusatzAboMapping as zusatzAbo)
         .where.eq(zusatzAbo.vertriebId, vertriebId)
+    }.map(zusatzAboMapping(zusatzAbo)).list
+  }
+
+  protected def getZusatzAbosQuery(filter: Option[FilterExpr]) = {
+    withSQL {
+      select
+        .from(zusatzAboMapping as zusatzAbo)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo))
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
@@ -984,10 +1125,27 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(projektMapping(projekt)).single
   }
 
-  protected def getKontoDatenQuery = {
+  @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
+  protected def getProjektV1Query = {
+    withSQL {
+      select
+        .from(projektV1Mapping as projektV1)
+    }.map(projektV1Mapping(projektV1)).single
+  }
+
+  protected def getKontoDatenProjektQuery = {
     withSQL {
       select
         .from(kontoDatenMapping as kontoDaten)
+        .where.isNull(kontoDaten.kunde)
+    }.map(kontoDatenMapping(kontoDaten)).single
+  }
+
+  protected def getKontoDatenKundeQuery(kundeId: KundeId) = {
+    withSQL {
+      select
+        .from(kontoDatenMapping as kontoDaten)
+        .where.eq(kontoDaten.kunde, kundeId)
     }.map(kontoDatenMapping(kontoDaten)).single
   }
 
@@ -2001,7 +2159,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(zusatzAboMapping(zusatzAbo)).single
   }
 
-  protected def getZusatzAbosQuery(hauptaboId: AboId) = {
+  protected def getZusatzAbosByHauptAboQuery(hauptaboId: AboId) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)

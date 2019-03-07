@@ -27,9 +27,9 @@ import akka.testkit.TestKit
 import akka.actor.ActorSystem
 import org.specs2.specification.Scope
 import akka.testkit.TestProbe
-import ch.openolitor.core.ConfigLoader
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.MandantConfiguration
+import com.tegonal.CFEnvConfigLoader.ConfigLoader
 
 abstract class ActorTestScope extends TestKit(ActorSystem("test")) with Scope
 
@@ -44,7 +44,7 @@ class MailServiceSpec extends Specification {
   "MailService" should {
     "react to SendMailCommand" in new ActorTestScope {
       val probe = TestProbe()
-      val mailService = system.actorOf(MailService.props(null))
+      val mailService = system.actorOf(MailService.props(null, null))
 
       1 === 1
     }

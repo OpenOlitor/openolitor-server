@@ -30,9 +30,10 @@ import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import zangelo.spray.json.AutoProductFormats
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.core.JSONSerializable
 
-trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
   import ch.openolitor.core.eventsourcing.events._
 
   object MigrationToEmpty extends DefaultJsonProtocol {
@@ -66,8 +67,13 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
   implicit val zahlungsEingangIdPersister = persister[ZahlungsEingangId]("zahlungs-eingang-id")
   implicit val zahlungsEingangErledigtEventPersister = persister[ZahlungsEingangErledigtEvent, V2]("zahlungs-eingang-erledigt-event", V1toV2metaDataMigration)
 
+  implicit val zahlungsExportCreatePersister = persister[ZahlungsExportCreate]("zahlungs-export-create")
+  implicit val zahlungsExportIdPersister = persister[ZahlungsExportId]("zahlungs-export-id")
+  implicit val zahlungsExportCreatedEventPersister = persister[ZahlungsExportCreatedEvent]("zahlungs-export-created-event")
+
   implicit val rechnungPDFStoreEventPersister = persister[RechnungPDFStoredEvent, V2]("rechnung-pdf-stored-event", V1toV2metaDataMigration)
   implicit val mahnungPDFStoreEventPersister = persister[MahnungPDFStoredEvent, V2]("mahnung-pdf-stored-event", V1toV2metaDataMigration)
+  implicit val SendEmailToInvoiceSubscribersEventPersister = persister[SendEmailToInvoiceSubscribersEvent]("send-email-to-invoice-subscribers")
 
   val buchhaltungPersisters = List(
     rechnungCreatePersisterV1,
@@ -87,7 +93,11 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
     zahlungsImportCreatedEventPersister,
     zahlungsEingangIdPersister,
     zahlungsEingangErledigtEventPersister,
+    zahlungsExportCreatePersister,
+    zahlungsExportIdPersister,
+    zahlungsExportCreatedEventPersister,
     rechnungPDFStoreEventPersister,
-    mahnungPDFStoreEventPersister
+    mahnungPDFStoreEventPersister,
+    SendEmailToInvoiceSubscribersEventPersister
   )
 }

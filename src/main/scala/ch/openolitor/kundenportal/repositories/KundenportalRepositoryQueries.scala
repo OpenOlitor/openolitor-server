@@ -33,8 +33,11 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+import ch.openolitor.core.models.PersonId
 
-trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings {
+trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings with ArbeitseinsatzDBMappings {
 
   //Stammdaten
   lazy val projekt = projektMapping.syntax("projekt")
@@ -54,6 +57,8 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   lazy val zusatzAboTyp = zusatzAbotypMapping.syntax("zatyp")
   lazy val vertrieb = vertriebMapping.syntax("vertrieb")
   lazy val lieferposition = lieferpositionMapping.syntax("lieferposition")
+  lazy val arbeitsangebot = arbeitsangebotMapping.syntax("arbeitsangebot")
+  lazy val arbeitseinsatz = arbeitseinsatzMapping.syntax("arbeitseinsatz")
 
   //Buchhaltung
   lazy val rechnung = rechnungMapping.syntax("rechnung")
@@ -166,7 +171,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       }).list
   }
 
-  protected def getZusatzabosQuery(aboId: AboId, filter: Option[FilterExpr])(implicit owner: Subject) = {
+  protected def getZusatzAbosByHauptAboQuery(aboId: AboId, filter: Option[FilterExpr])(implicit owner: Subject) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
@@ -273,6 +278,21 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       }.single
   }
 
+  protected def getArbeitseinsatzDetailQuery(id: ArbeitseinsatzId) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
+        .where.eq(arbeitseinsatz.id, id)
+    }.one(arbeitseinsatzMapping(arbeitseinsatz))
+      .toOne(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
+      )
+      .map { (arbeitseinsatz, arbeitsangebot) =>
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+      }.single
+  }
+
   protected def getRechnungenQuery(implicit owner: Subject) = {
     withSQL {
       select
@@ -317,4 +337,31 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "rechnungsPositionen" -> rechnungsPositionenDetail)
       }).single
   }
+
+  protected def getArbeitsangeboteQuery(implicit owner: Subject) = {
+    withSQL {
+      select
+        .from(arbeitsangebotMapping as arbeitsangebot)
+        .where.eq(arbeitsangebot.status, ch.openolitor.arbeitseinsatz.models.Bereit)
+        .orderBy(arbeitsangebot.zeitVon)
+    }.map(arbeitsangebotMapping(arbeitsangebot)).list
+  }
+
+  protected def getArbeitseinsaetzeQuery(implicit owner: Subject) = {
+    withSQL {
+      select
+        .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
+        .where.eq(arbeitseinsatz.kundeId, owner.kundeId)
+        .orderBy(arbeitseinsatz.zeitVon)
+    }.one(arbeitseinsatzMapping(arbeitseinsatz))
+      .toOne(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
+      )
+      .map { (arbeitseinsatz, arbeitsangebote) =>
+        val arbeitsangebot = arbeitsangebote.filter(_.id == arbeitseinsatz.arbeitsangebotId)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+      }.list
+  }
+
 }

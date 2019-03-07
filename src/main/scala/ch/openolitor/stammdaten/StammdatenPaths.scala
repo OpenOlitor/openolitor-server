@@ -33,6 +33,7 @@ trait StammdatenPaths extends SprayDeserializers with StammdatenJsonProtocol {
   implicit val kundeIdPath = long2BaseIdPathMatcher(KundeId.apply)
   implicit val pendenzIdPath = long2BaseIdPathMatcher(PendenzId.apply)
   implicit val personIdPath = long2BaseIdPathMatcher(PersonId.apply)
+  implicit val personCategoryIdPath = long2BaseIdPathMatcher(PersonCategoryId.apply)
   implicit val kundentypIdPath = long2BaseIdPathMatcher(CustomKundentypId.apply)
   implicit val depotIdPath = long2BaseIdPathMatcher(DepotId.apply)
   implicit val aboIdPath = long2BaseIdPathMatcher(AboId.apply)

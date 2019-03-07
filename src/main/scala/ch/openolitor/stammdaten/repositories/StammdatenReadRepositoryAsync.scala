@@ -60,12 +60,14 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getKundenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[KundeUebersicht]]
   def getKundeDetail(id: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetail]]
   def getKundeDetailReport(kundeId: KundeId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetailReport]]
+  def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]]
 
   def getCustomKundentypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[CustomKundentyp]]
 
   def getPersonen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Person]]
   def getPersonByEmail(email: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Person]]
   def getPerson(id: PersonId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Person]]
+  def getPersonCategory(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[PersonCategory]]
   def getPersonenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonUebersicht]]
   def getPersonenByDepots(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]]
   def getPersonenAboAktivByDepots(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]]
@@ -80,6 +82,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getDepotDetailReport(id: DepotId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotDetailReport]]
 
   def getAbos(xFlags: Option[AbosComplexFlags])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Abo]]
+  def getZusatzAbos(xFlags: Option[AbosComplexFlags])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[ZusatzAbo]]
   def getAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AboDetail]]
   def getZusatzAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZusatzAbo]]
   def getZusatzaboPerAbo(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZusatzAbo]]
@@ -111,7 +114,8 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]]
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
 
-  def getKontoDaten(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
+  def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
+  def getKontoDatenKunde(kundeId: KundeId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
 
   def getLieferplanungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferplanung]]
   def getLieferplanung(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferplanung]]
@@ -188,6 +192,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     getKundeDetailReportQuery(kundeId, projekt).future
   }
 
+  def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]] = {
+    getKundeDetailsArbeitseinsatzReportQuery(projekt).future
+  }
+
   def getPersonen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Person]] = {
     getPersonenQuery(kundeId).future
   }
@@ -238,6 +246,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getPersonenZusatzAboAktivByZusatzAbotypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
     getPersonenZusatzAboAktivByZusatzAbotypenQuery(filter).future
+  }
+
+  def getPersonCategory(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[PersonCategory]] = {
+    getPersonCategoryQuery.future
   }
 
   override def getAbotypDetail(id: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Abotyp]] = {
@@ -360,6 +372,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     }
   }
 
+  def getZusatzAbos(xFlags: Option[AbosComplexFlags])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[ZusatzAbo]] = {
+    getZusatzAbosQuery(filter).future
+  }
+
   def getDepotlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotlieferungAboDetail]] = {
     getDepotlieferungAboAusstehendQuery(id).future
   }
@@ -436,8 +452,12 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     getProjektQuery.future map (_ map (projekt => copyTo[Projekt, ProjektPublik](projekt)))
   }
 
-  def getKontoDaten(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
-    getKontoDatenQuery.future
+  def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
+    getKontoDatenProjektQuery.future
+  }
+
+  def getKontoDatenKunde(kundeId: KundeId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
+    getKontoDatenKundeQuery(kundeId).future
   }
 
   def getProduktProduzenten(id: ProduktId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduktProduzent]] = {

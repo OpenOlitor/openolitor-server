@@ -25,17 +25,36 @@ package ch.openolitor.kundenportal.repositories
 import scalikejdbc._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.arbeitseinsatz.models._
 import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.core.models.PersonId
 
 /**
  * Synchronous Repository
  */
 trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
+  def getProjekt(implicit session: DBSession): Option[Projekt]
+  def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person]
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
+  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
+  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
 }
 
 trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync with LazyLogging with KundenportalRepositoryQueries {
+  def getProjekt(implicit session: DBSession): Option[Projekt] = {
+    getProjektQuery.apply()
+  }
+  def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person] = {
+    getById(personMapping, personId)
+  }
+
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
     getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
+  }
+  def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
+    getById(arbeitsangebotMapping, id)
+  }
+  def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail] = {
+    getArbeitseinsatzDetailQuery(id).apply()
   }
 }

@@ -245,6 +245,17 @@ case class DepotSummary(
   kurzzeichen: String
 ) extends JSONSerializable
 
+case class DepotMailRequest(
+  ids: Seq[DepotId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class DepotMailContext(
+  person: Person,
+  depot: Depot
+) extends JSONSerializable
+
 case class TourId(id: Long) extends BaseId
 
 case class Tour(
@@ -284,4 +295,15 @@ case class TourModify(
   name: String,
   beschreibung: Option[String],
   tourlieferungen: Seq[Tourlieferung]
+) extends JSONSerializable
+
+case class TourMailRequest(
+  ids: Seq[TourId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class TourMailContext(
+  person: Person,
+  tour: Tour
 ) extends JSONSerializable

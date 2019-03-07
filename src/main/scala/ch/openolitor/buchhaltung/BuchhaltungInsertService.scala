@@ -52,7 +52,7 @@ class DefaultBuchhaltungInsertService(sysConfig: SystemConfig, override val syst
 /**
  * Actor zum Verarbeiten der Insert Anweisungen für das Buchhaltung Modul
  */
-class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_, _]] with LazyLogging with AsyncConnectionPoolContextAware
+class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends EventService[EntityInsertedEvent[_ <: BaseId, _ <: AnyRef]] with LazyLogging with AsyncConnectionPoolContextAware
   with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
 
@@ -98,26 +98,29 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
 
   def createRechnung(meta: EventMetadata, id: RechnungId, entity: RechnungCreateFromRechnungsPositionen)(implicit personId: PersonId = meta.originator): Option[Rechnung] = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      buchhaltungWriteRepository.getKontoDaten flatMap { kontoDaten =>
+      buchhaltungWriteRepository.getKontoDatenProjekt flatMap { kontoDaten =>
         val referenzNummer = generateReferenzNummer(kontoDaten, entity.kundeId, id)
         val esrNummer = generateEsrNummer(kontoDaten, entity.betrag, entity.waehrung, referenzNummer)
-
-        val typ = copyTo[RechnungCreateFromRechnungsPositionen, Rechnung](
-          entity,
-          "id" -> id,
-          "einbezahlterBetrag" -> None,
-          "status" -> Erstellt,
-          "referenzNummer" -> referenzNummer,
-          "fileStoreId" -> None,
-          "anzahlMahnungen" -> 0.toInt,
-          "mahnungFileStoreIds" -> Set.empty[String],
-          "esrNummer" -> esrNummer,
-          "erstelldat" -> meta.timestamp,
-          "ersteller" -> meta.originator,
-          "modifidat" -> meta.timestamp,
-          "modifikator" -> meta.originator
-        )
-        buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
+        val ret = buchhaltungWriteRepository.getById(kundeMapping, entity.kundeId) map { kunde =>
+          val typ = copyTo[RechnungCreateFromRechnungsPositionen, Rechnung](
+            entity,
+            "id" -> id,
+            "einbezahlterBetrag" -> None,
+            "status" -> Erstellt,
+            "referenzNummer" -> referenzNummer,
+            "fileStoreId" -> None,
+            "anzahlMahnungen" -> 0.toInt,
+            "mahnungFileStoreIds" -> Set.empty[String],
+            "esrNummer" -> esrNummer,
+            "paymentType" -> kunde.paymentType,
+            "erstelldat" -> meta.timestamp,
+            "ersteller" -> meta.originator,
+            "modifidat" -> meta.timestamp,
+            "modifikator" -> meta.originator
+          )
+          buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
+        }
+        ret.get
       }
     }
   }

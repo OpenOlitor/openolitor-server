@@ -23,7 +23,6 @@
 package ch.openolitor.buchhaltung
 
 import akka.actor._
-import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
@@ -35,6 +34,8 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.core.models.BaseId
 
 object BuchhaltungDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungDeleteService = new DefaultBuchhaltungDeleteService(sysConfig, system)
@@ -47,7 +48,7 @@ class DefaultBuchhaltungDeleteService(sysConfig: SystemConfig, override val syst
 /**
  * Actor zum Verarbeiten der Delete Anweisungen für das Buchhaltung Modul
  */
-class BuchhaltungDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_]]
+class BuchhaltungDeleteService(override val sysConfig: SystemConfig) extends EventService[EntityDeletedEvent[_ <: BaseId]]
   with LazyLogging with AsyncConnectionPoolContextAware with BuchhaltungDBMappings {
   self: BuchhaltungWriteRepositoryComponent =>
   import EntityStore._

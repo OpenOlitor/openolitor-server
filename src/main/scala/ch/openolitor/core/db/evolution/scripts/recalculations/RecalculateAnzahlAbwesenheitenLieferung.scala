@@ -45,7 +45,7 @@ object RecalculateAnzahlAbwesenheitenLieferung {
       val abw = abwesenheitMapping.syntax("abw")
       implicit val personId = Boot.systemPersonId
 
-      getProjekt map { projekt =>
+      getProjektV1 map { projekt =>
         withSQL {
           select.from(abwesenheitMapping as abw)
         }.map(abwesenheitMapping(abw)).list.apply().groupBy(_.lieferungId) map {

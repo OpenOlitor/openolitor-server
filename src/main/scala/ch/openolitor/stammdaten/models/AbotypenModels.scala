@@ -26,8 +26,8 @@ import org.joda.time.DateTime
 import ch.openolitor.core.models._
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple26
-import ch.openolitor.core.scalax.Tuple24
+import ch.openolitor.core.scalax.Tuple27
+import ch.openolitor.core.scalax.Tuple25
 
 sealed trait Lieferzeitpunkt extends Product
 sealed trait Wochentag extends Lieferzeitpunkt
@@ -147,6 +147,7 @@ case class Abotyp(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,
@@ -166,7 +167,7 @@ case class Abotyp(
 
 object Abotyp {
   def unapply(a: Abotyp) = {
-    Some(Tuple26(
+    Some(Tuple27(
       a.id,
       a.name,
       a.beschreibung,
@@ -180,6 +181,7 @@ object Abotyp {
       a.vertragslaufzeit,
       a.kuendigungsfrist,
       a.anzahlAbwesenheiten,
+      a.anzahlEinsaetze,
       a.farbCode,
       a.zielpreis,
       a.guthabenMindestbestand,
@@ -212,12 +214,24 @@ case class AbotypModify(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   guthabenMindestbestand: Int,
   adminProzente: BigDecimal,
   wirdGeplant: Boolean
 ) extends AktivRange with JSONSerializable
+
+case class AbotypMailRequest(
+  ids: Seq[AbotypId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class AbotypMailContext(
+  person: Person,
+  abotyp: IAbotyp
+) extends JSONSerializable
 
 case class ZusatzAbotyp(
   id: AbotypId,
@@ -232,6 +246,7 @@ case class ZusatzAbotyp(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   adminProzente: BigDecimal,
@@ -250,7 +265,7 @@ case class ZusatzAbotyp(
 
 object ZusatzAbotyp {
   def unapply(a: ZusatzAbotyp) = {
-    Some(Tuple24(
+    Some(Tuple25(
       a.id,
       a.name,
       a.beschreibung,
@@ -263,6 +278,7 @@ object ZusatzAbotyp {
       a.vertragslaufzeit,
       a.kuendigungsfrist,
       a.anzahlAbwesenheiten,
+      a.anzahlEinsaetze,
       a.farbCode,
       a.zielpreis,
       a.adminProzente,
@@ -291,9 +307,21 @@ case class ZusatzAbotypModify(
   vertragslaufzeit: Option[Frist],
   kuendigungsfrist: Option[Frist],
   anzahlAbwesenheiten: Option[Int],
+  anzahlEinsaetze: Option[BigDecimal],
   farbCode: String,
   zielpreis: Option[BigDecimal],
   adminProzente: BigDecimal,
   wirdGeplant: Boolean,
   waehrung: Waehrung
 ) extends AktivRange with JSONSerializable
+
+case class ZusatzabotypMailRequest(
+  ids: Seq[AbotypId],
+  subject: String,
+  body: String
+) extends JSONSerializable
+
+case class ZusatzabotypMailContext(
+  person: Person,
+  zusatzabotyp: ZusatzAbotyp
+) extends JSONSerializable

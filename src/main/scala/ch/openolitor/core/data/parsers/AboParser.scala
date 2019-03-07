@@ -36,20 +36,21 @@ object AboParser extends EntityParser {
   def parse(kundeIdMapping: Map[Long, KundeId], kunden: List[Kunde], vertriebsartIdMapping: Map[Long, VertriebsartId], vertriebsarten: List[Vertriebsart], vertriebe: List[Vertrieb],
     abotypen: List[Abotyp], depotIdMapping: Map[Long, DepotId], depots: List[Depot],
     tourIdMapping: Map[Long, TourId], tours: List[Tour], abwesenheiten: List[Abwesenheit])(implicit loggingAdapter: LoggingAdapter) = {
-    parseEntity[Abo, AboId]("id", Seq("kunde_id", "vertriebsart_id", "start", "ende",
-      "guthaben_vertraglich", "guthaben", "guthaben_in_rechnung", "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen",
+    parseEntity[Abo, AboId]("id", Seq("kunde_id", "vertriebsart_id", "start", "ende", "price",
+      "guthaben_vertraglich", "guthaben", "guthaben_in_rechnung", "letzte_lieferung", "anzahl_abwesenheiten", "anzahl_lieferungen", "anzahl_einsaetze",
       "depot_id", "tour_id", "zusatz_abo_ids", "zusatz_abotyp_names") ++ modifyColumns) { id => indexes =>
       row =>
         //match column indexes
-        val Seq(kundeIdIndex, vertriebsartIdIndex, startIndex, endeIndex,
+        val Seq(kundeIdIndex, vertriebsartIdIndex, startIndex, endeIndex, priceIndex,
           guthabenVertraglichIndex, guthabenIndex, guthabenInRechnungIndex, indexLetzteLieferung, indexAnzahlAbwesenheiten, lieferungenIndex,
-          depotIdIndex, tourIdIndex, zusatzAboIdsIndex, zusatzAbotypNamesIndex) = indexes take (14)
+          einsaetzeIndex, depotIdIndex, tourIdIndex, zusatzAboIdsIndex, zusatzAbotypNamesIndex) = indexes take (16)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
         val kundeIdInt = row.value[Long](kundeIdIndex)
         val vertriebsartIdInt = row.value[Long](vertriebsartIdIndex)
         val start = row.value[LocalDate](startIndex)
         val ende = row.value[Option[LocalDate]](endeIndex)
+        val price = row.value[Option[BigDecimal]](priceIndex)
         val aboId = AboId(id)
 
         val guthabenVertraglich = row.value[Option[Int]](guthabenVertraglichIndex)
@@ -60,6 +61,7 @@ object AboParser extends EntityParser {
         //calculate count
         val anzahlAbwesenheiten = parseTreeMap(row.value[String](indexAnzahlAbwesenheiten))(identity, _.toInt)
         val anzahlLieferungen = parseTreeMap(row.value[String](lieferungenIndex))(identity, _.toInt)
+        val anzahlEinsaetze = parseTreeMap(row.value[String](einsaetzeIndex))(identity, BigDecimal(_))
 
         val erstelldat = row.value[DateTime](indexErstelldat)
         val ersteller = PersonId(row.value[Long](indexErsteller))
@@ -86,19 +88,19 @@ object AboParser extends EntityParser {
           val depotId = depotIdMapping getOrElse (depotIdInt, throw ParseException(s"Depot id $depotIdInt referenced from abo not found"))
           val depotName = (depots filter (_.id == depotId)).headOption map (_.name) getOrElse (s"Depot not found with id:$depotId")
           DepotlieferungAbo(aboId, kundeId, kunde, vertriebsartId, vertriebId, vertriebBeschrieb, abotypId, abotypName, depotId, depotName,
-            start, ende, guthabenVertraglich, guthaben, guthabenInRechnung, letzteLieferung, anzahlAbwesenheiten,
-            anzahlLieferungen, aktiv, zusatzAboIds, zusatzAbotypNames, erstelldat, ersteller, modifidat, modifikator)
+            start, ende, price, guthabenVertraglich, guthaben, guthabenInRechnung, letzteLieferung, anzahlAbwesenheiten,
+            anzahlLieferungen, aktiv, zusatzAboIds, zusatzAbotypNames, anzahlEinsaetze, erstelldat, ersteller, modifidat, modifikator)
         } getOrElse {
           tourIdOpt map { tourIdInt =>
             val tourId = tourIdMapping getOrElse (tourIdInt, throw ParseException(s"Tour id tourIdInt referenced from abo not found"))
             val tourName = (tours filter (_.id == tourId)).headOption map (_.name) getOrElse (s"Tour not found with id:$tourId")
             HeimlieferungAbo(aboId, kundeId, kunde, vertriebsartId, vertriebId, vertriebBeschrieb, abotypId, abotypName, tourId, tourName,
-              start, ende, guthabenVertraglich, guthaben, guthabenInRechnung, letzteLieferung, anzahlAbwesenheiten,
-              anzahlLieferungen, aktiv, zusatzAboIds, zusatzAbotypNames, erstelldat, ersteller, modifidat, modifikator)
+              start, ende, price, guthabenVertraglich, guthaben, guthabenInRechnung, letzteLieferung, anzahlAbwesenheiten,
+              anzahlLieferungen, aktiv, zusatzAboIds, zusatzAbotypNames, anzahlEinsaetze, erstelldat, ersteller, modifidat, modifikator)
           } getOrElse {
             PostlieferungAbo(aboId, kundeId, kunde, vertriebsartId, vertriebId, vertriebBeschrieb, abotypId, abotypName,
-              start, ende, guthabenVertraglich, guthaben, guthabenInRechnung, letzteLieferung, anzahlAbwesenheiten,
-              anzahlLieferungen, aktiv, zusatzAboIds, zusatzAbotypNames, erstelldat, ersteller, modifidat, modifikator)
+              start, ende, price, guthabenVertraglich, guthaben, guthabenInRechnung, letzteLieferung, anzahlAbwesenheiten,
+              anzahlLieferungen, aktiv, zusatzAboIds, zusatzAbotypNames, anzahlEinsaetze, erstelldat, ersteller, modifidat, modifikator)
           }
         }
     }

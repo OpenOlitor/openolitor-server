@@ -292,7 +292,7 @@ trait KorbHandler extends KorbStatusHandler
       case _: ZusatzAbo =>
       case _ => {
         lieferung.lieferplanungId map { lieferplanungId =>
-          stammdatenWriteRepository.getZusatzAbos(abo.id) flatMap { zusatzabo =>
+          stammdatenWriteRepository.getZusatzAbosByHauptAbo(abo.id) flatMap { zusatzabo =>
             stammdatenWriteRepository.getExistingZusatzaboLieferung(zusatzabo.abotypId, lieferplanungId, lieferung.datum) map { zusatzAboLieferung =>
               stammdatenWriteRepository.getKorb(zusatzAboLieferung.id, zusatzabo.id) flatMap { korb =>
                 stammdatenWriteRepository.deleteEntity[Korb, KorbId](korb.id)
@@ -327,7 +327,7 @@ trait KorbHandler extends KorbStatusHandler
       }
 
       /* create or delete basket for the zusatzabo*/
-      stammdatenWriteRepository.getZusatzAbos(abo.id).filter(z => z.aktiv) map { zusatzabo =>
+      stammdatenWriteRepository.getZusatzAbosByHauptAbo(abo.id).filter(z => z.aktiv) map { zusatzabo =>
         stammdatenWriteRepository.getZusatzAbotypDetail(zusatzabo.abotypId) map {
           zusatzabotyp =>
             val offenLieferungenForZusatzabo = stammdatenWriteRepository.getLieferungenOffenByAbotyp(zusatzabo.abotypId)
@@ -373,7 +373,7 @@ trait KorbHandler extends KorbStatusHandler
             deleteKorb(lieferung, originalAbo)
           } else {
             upsertKorb(lieferung, abo, abotyp)
-            stammdatenWriteRepository.getZusatzAbos(abo.id) map { zusatzabo =>
+            stammdatenWriteRepository.getZusatzAbosByHauptAbo(abo.id) map { zusatzabo =>
               adjustOpenLieferplanung(zusatzabo.id)
             }
           }

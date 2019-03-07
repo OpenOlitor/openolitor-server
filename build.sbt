@@ -34,7 +34,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.1.5",
+  version := "2.2.0-SNAPSHOT",
   scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -42,7 +42,9 @@ val buildSettings = Seq(
   resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven",
   resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature"),
+  resolvers += "zalando-maven" at "https://dl.bintray.com/zalando/maven",
+  // add -Xcheckinit to scalac options to check for null val's during initialization see also: https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-Ywarn-unused-import", "-feature", "-language:_"),
   mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
   libraryDependencies ++= {
@@ -78,7 +80,7 @@ val buildSettings = Seq(
     "org.scalikejdbc"              %%  "scalikejdbc-test"                     % scalalikeV   % "test",
     "com.h2database"               %   "h2"                                   % "1.4.191"    % "test",
     "org.scalikejdbc" 	           %%  "scalikejdbc-syntax-support-macro"     % scalalikeV,
-    "ch.qos.logback"  	           %   "logback-classic"    		  		        % "1.1.3",
+    "ch.qos.logback"  	           %   "logback-classic"    		  		        % "1.1.7",
     "org.mariadb.jdbc"	           %   "mariadb-java-client"                  % "1.3.2",
     // Libreoffice document API
     "org.apache.odftoolkit"        %   "simple-odf"					          % "0.8.2-incubating" withSources(),
@@ -91,16 +93,24 @@ val buildSettings = Seq(
     "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
     "me.lessis"                    %%  "courier"                              % "0.1.3",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
-    "com.github.blemale"           %% "scaffeine"                             % "2.2.0"
+    "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
+    "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic"),
+    "net.codecrete.qrbill"         % "qrbill-generator"                       % "1.0.0",
+    "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
+    "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
+    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
   )
 }
 )
 
 
 lazy val scalaxbSettings = Seq(
-    scalaxbXsdSource in (Compile, scalaxb) := baseDirectory.value / "src" / "main" / "resources" / "xsd",
-    scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd"
-  )
+   scalaxbXsdSource in (Compile, scalaxb) := baseDirectory.value / "src" / "main" / "resources" / "xsd",
+   scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd",
+   scalaxbPackageNames in (Compile, scalaxb) := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",
+                                                    uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.04") -> "ch.openolitor.generated.xsd.camt054_001_04",
+                                                    uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07")
+)
 
 lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version")
 lazy val akkaPersistenceSqlAsync = ProjectRef(akkaPersistenceSqlAsyncUri, "core")
