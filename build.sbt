@@ -112,7 +112,7 @@ lazy val scalaxbSettings = Seq(
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07")
 )
 
-lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version")
+lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version_with_timeout")
 lazy val akkaPersistenceSqlAsync = ProjectRef(akkaPersistenceSqlAsyncUri, "core")
 
 lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/support_up_to_9_joins")
