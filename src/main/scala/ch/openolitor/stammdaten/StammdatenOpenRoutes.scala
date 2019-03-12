@@ -28,7 +28,6 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import spray.http._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.stammdaten.reporting._

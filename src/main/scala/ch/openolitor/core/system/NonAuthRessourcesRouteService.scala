@@ -31,7 +31,6 @@ import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.filestore.FileStoreComponent
 import ch.openolitor.core.filestore.ProjektStammdaten
-import spray.routing.Directive.pimpApply
 import spray.routing.HttpService
 import spray.routing.Route
 import akka.actor.ActorRefFactory

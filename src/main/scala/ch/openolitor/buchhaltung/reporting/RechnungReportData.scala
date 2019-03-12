@@ -24,12 +24,10 @@ package ch.openolitor.buchhaltung.reporting
 
 import ch.openolitor.buchhaltung.models._
 
-import scala.concurrent.Future
-import scala.concurrent.Await
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.Macros._
@@ -39,17 +37,18 @@ import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComp
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import net.codecrete.qrbill.generator.{ Address, Bill, QRBill, QRBillValidationError }
 import java.time.LocalDate
+
 import com.typesafe.scalalogging.LazyLogging
 import java.util.Locale
-import scala.collection.JavaConversions._
 
+import scala.collection.JavaConversions._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 
 trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
 
-  def rechungenById(rechnungIds: Seq[RechnungId]): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
+  def rechungenById(rechnungIds: Seq[RechnungId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
     stammdatenReadRepository.getProjekt flatMap { maybeProjekt =>
       stammdatenReadRepository.getKontoDatenProjekt flatMap { maybeKontoDaten =>
         maybeProjekt flatMap { projekt =>
@@ -78,7 +77,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
     }
   }
 
-  def createQrCode(rechnung: RechnungDetail, kontoDaten: KontoDaten, projekt: Projekt): String = {
+  def createQrCode(rechnung: RechnungDetail, kontoDaten: KontoDaten, projekt: Projekt)(implicit executionContext: ExecutionContext): String = {
     /* the iban is mandatory in order to get a valid qrCode. In case the system does not have one iban setup
     * the qrcode will be empty*/
     kontoDaten.iban match {

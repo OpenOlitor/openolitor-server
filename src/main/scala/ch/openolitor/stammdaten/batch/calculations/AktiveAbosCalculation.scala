@@ -26,10 +26,11 @@ import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
 import akka.actor.Props
 import ch.openolitor.core.batch.BaseBatchJob
+
 import scala.concurrent.duration._
 import ch.openolitor.core.batch.BatchJobs._
 import ch.openolitor.stammdaten.StammdatenCommandHandler
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
 import scalikejdbc._
@@ -37,6 +38,8 @@ import org.joda.time.LocalDate
 import ch.openolitor.stammdaten.repositories.StammdatenRepositoryQueries
 import akka.actor.ActorRef
 import akka.actor.actorRef2Scala
+
+import scala.concurrent.ExecutionContext
 
 object AktiveAbosCalculation {
   def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[AktiveAbosCalculation], sysConfig, system, entityStore)
@@ -46,6 +49,8 @@ class AktiveAbosCalculation(override val sysConfig: SystemConfig, override val s
   with AsyncConnectionPoolContextAware
   with DefaultStammdatenWriteRepositoryComponent
   with StammdatenRepositoryQueries {
+
+  implicit lazy val executionContext: ExecutionContext = system.dispatcher
 
   override def process(): Unit = {
     DB autoCommit { implicit session =>

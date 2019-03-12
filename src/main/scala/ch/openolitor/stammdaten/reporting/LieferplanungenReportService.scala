@@ -28,17 +28,17 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.core.filestore._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait LieferplanungReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
-  def generateLieferplanungReports(fileType: FileType)(config: ReportConfig[LieferplanungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[LieferplanungId]]] = {
+
+  def generateLieferplanungReports(fileType: FileType)(config: ReportConfig[LieferplanungId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[LieferplanungId]]] = {
     generateReports[LieferplanungId, LieferplanungReport](
       config,
       lieferplanungenByIds,
@@ -55,7 +55,7 @@ trait LieferplanungReportService extends AsyncConnectionPoolContextAware with Re
 
   private def name(fileType: FileType)(r: LieferplanungReport) = s"lp_${r.id}_${filenameDateFormat.print(System.currentTimeMillis())}"
 
-  private def lieferplanungenByIds(ids: Seq[LieferplanungId]): Future[(Seq[ValidationError[LieferplanungId]], Seq[LieferplanungReport])] = {
+  private def lieferplanungenByIds(ids: Seq[LieferplanungId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[LieferplanungId]], Seq[LieferplanungReport])] = {
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)

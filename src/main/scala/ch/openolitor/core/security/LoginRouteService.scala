@@ -39,7 +39,6 @@ import ch.openolitor.stammdaten.models.Person
 import org.mindrot.jbcrypt.BCrypt
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.models.PersonId
 import java.util.UUID

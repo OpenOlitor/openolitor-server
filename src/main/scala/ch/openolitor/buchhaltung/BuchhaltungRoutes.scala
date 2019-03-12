@@ -30,7 +30,6 @@ import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
@@ -51,7 +50,6 @@ import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
-import java.io._
 import java.io.ByteArrayInputStream
 
 import scala.concurrent.duration.SECONDS

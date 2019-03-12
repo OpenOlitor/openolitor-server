@@ -29,16 +29,17 @@ import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncCompon
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait AuslieferungLieferscheinReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
-  def generateAuslieferungLieferscheinReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
+  def generateAuslieferungLieferscheinReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
     generateReports[AuslieferungId, AuslieferungReport](
       config,
       auslieferungById,
@@ -63,7 +64,7 @@ trait AuslieferungLieferscheinReportService extends AsyncConnectionPoolContextAw
     }
   }
 
-  def auslieferungById(auslieferungIds: Seq[AuslieferungId]): Future[(Seq[ValidationError[AuslieferungId]], Seq[AuslieferungReport])] = {
+  def auslieferungById(auslieferungIds: Seq[AuslieferungId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[AuslieferungId]], Seq[AuslieferungReport])] = {
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)

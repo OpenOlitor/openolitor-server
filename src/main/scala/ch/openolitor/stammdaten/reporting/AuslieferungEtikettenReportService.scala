@@ -30,9 +30,10 @@ import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncCompon
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
 import org.joda.time.DateTime
@@ -40,7 +41,7 @@ import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait AuslieferungEtikettenReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
-  def generateAuslieferungEtikettenReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
+  def generateAuslieferungEtikettenReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
     generateReports[AuslieferungId, MultiReport[AuslieferungReportEntry]](
       config,
       auslieferungenByIds,
@@ -60,7 +61,7 @@ trait AuslieferungEtikettenReportService extends AsyncConnectionPoolContextAware
     s"lieferetiketten_${now}"
   }
 
-  private def auslieferungenByIds(auslieferungIds: Seq[AuslieferungId]): Future[(Seq[ValidationError[AuslieferungId]], Seq[MultiReport[AuslieferungReportEntry]])] = {
+  private def auslieferungenByIds(auslieferungIds: Seq[AuslieferungId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[AuslieferungId]], Seq[MultiReport[AuslieferungReportEntry]])] = {
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)

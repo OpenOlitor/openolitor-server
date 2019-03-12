@@ -23,7 +23,8 @@
 package ch.openolitor.buchhaltung.reporting
 
 import ch.openolitor.buchhaltung.models.RechnungId
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
@@ -38,7 +39,7 @@ import ch.openolitor.core.jobs.JobQueueService.JobId
 trait RechnungReportService extends AsyncConnectionPoolContextAware with ReportService with BuchhaltungJsonProtocol with RechnungReportData {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
-  def generateRechnungReports(config: ReportConfig[RechnungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[RechnungId]]] = {
+  def generateRechnungReports(config: ReportConfig[RechnungId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[RechnungId]]] = {
     generateReports[RechnungId, RechnungDetailReport](
       config,
       rechungenById,

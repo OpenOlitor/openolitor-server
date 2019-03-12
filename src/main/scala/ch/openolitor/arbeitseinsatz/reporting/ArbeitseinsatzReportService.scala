@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz.reporting
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
@@ -37,7 +37,7 @@ import ch.openolitor.core.jobs.JobQueueService.JobId
 trait ArbeitseinsatzReportService extends AsyncConnectionPoolContextAware with ReportService with ArbeitseinsatzJsonProtocol with ArbeitsangebotReportData {
   self: ArbeitseinsatzReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
-  def generateArbeitseinsatzReports(config: ReportConfig[ArbeitseinsatzId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ArbeitseinsatzId]]] = {
+  def generateArbeitseinsatzReports(config: ReportConfig[ArbeitseinsatzId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[ArbeitseinsatzId]]] = {
     generateReports[ArbeitseinsatzId, ArbeitseinsatzDetailReport](
       config,
       arbeitsangebotByIds,

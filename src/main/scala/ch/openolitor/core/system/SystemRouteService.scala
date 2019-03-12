@@ -43,7 +43,6 @@ import ch.openolitor.core.data.DataImportService.ImportData
 import akka.pattern.ask
 import ch.openolitor.core.data.DataImportService.ImportResult
 import spray.json._
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.security.Subject
 import ch.openolitor.core.repositories._

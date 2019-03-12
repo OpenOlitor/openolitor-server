@@ -30,7 +30,6 @@ import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
-import scala.concurrent.ExecutionContext.Implicits.global
 import akka.pattern.ask
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Macros._

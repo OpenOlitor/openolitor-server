@@ -37,8 +37,6 @@ import ch.openolitor.core.models._
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.models.KundeId
 import com.typesafe.scalalogging.LazyLogging
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
 import spray.routing._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._

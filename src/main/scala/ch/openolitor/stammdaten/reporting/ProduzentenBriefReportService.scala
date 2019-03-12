@@ -29,16 +29,17 @@ import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncCompon
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
-  def generateProduzentenBriefReports(fileType: FileType)(config: ReportConfig[ProduzentId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ProduzentId]]] = {
+  def generateProduzentenBriefReports(fileType: FileType)(config: ReportConfig[ProduzentId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[ProduzentId]]] = {
     generateReports[ProduzentId, ProduzentDetailReport](
       config,
       produzentById,
@@ -55,7 +56,7 @@ trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with
 
   def name(fileType: FileType)(Produzent: ProduzentDetailReport) = s"Produzent_nr_${Produzent.id.id}_${filenameDateFormat.print(System.currentTimeMillis())}"
 
-  def produzentById(ids: Seq[ProduzentId]): Future[(Seq[ValidationError[ProduzentId]], Seq[ProduzentDetailReport])] = {
+  def produzentById(ids: Seq[ProduzentId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[ProduzentId]], Seq[ProduzentDetailReport])] = {
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)

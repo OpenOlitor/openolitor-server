@@ -29,17 +29,16 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.core.filestore._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait ProduzentenabrechnungReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
-  def generateProduzentenabrechnungReports(fileType: FileType)(config: ReportConfig[SammelbestellungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[SammelbestellungId]]] = {
+  def generateProduzentenabrechnungReports(fileType: FileType)(config: ReportConfig[SammelbestellungId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[SammelbestellungId]]] = {
     generateReports[SammelbestellungId, MultiReport[ProduzentenabrechnungReport]](
       config,
       bestellungById,
@@ -56,7 +55,7 @@ trait ProduzentenabrechnungReportService extends AsyncConnectionPoolContextAware
 
   private def name(fileType: FileType)(la: MultiReport[ProduzentenabrechnungReport]) = s"la_${la.id}_${filenameDateFormat.print(System.currentTimeMillis())}"
 
-  private def bestellungById(ids: Seq[SammelbestellungId]): Future[(Seq[ValidationError[SammelbestellungId]], Seq[MultiReport[ProduzentenabrechnungReport]])] = {
+  private def bestellungById(ids: Seq[SammelbestellungId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[SammelbestellungId]], Seq[MultiReport[ProduzentenabrechnungReport]])] = {
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)

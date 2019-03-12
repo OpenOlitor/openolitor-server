@@ -28,17 +28,16 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.core.filestore._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
 trait DepotBriefReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
-  def generateDepotBriefReports(fileType: FileType)(config: ReportConfig[DepotId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[DepotId]]] = {
+  def generateDepotBriefReports(fileType: FileType)(config: ReportConfig[DepotId])(implicit personId: PersonId, executionContext: ExecutionContext): Future[Either[ServiceFailed, ReportServiceResult[DepotId]]] = {
     generateReports[DepotId, DepotDetailReport](
       config,
       depotById,
@@ -55,7 +54,7 @@ trait DepotBriefReportService extends AsyncConnectionPoolContextAware with Repor
 
   def name(fileType: FileType)(depot: DepotDetailReport) = s"depot_nr_${depot.id.id}_${filenameDateFormat.print(System.currentTimeMillis())}"
 
-  def depotById(ids: Seq[DepotId]): Future[(Seq[ValidationError[DepotId]], Seq[DepotDetailReport])] = {
+  def depotById(ids: Seq[DepotId])(implicit executionContext: ExecutionContext): Future[(Seq[ValidationError[DepotId]], Seq[DepotDetailReport])] = {
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)

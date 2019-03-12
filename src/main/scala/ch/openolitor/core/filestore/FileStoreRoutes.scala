@@ -28,7 +28,6 @@ import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
 import ch.openolitor.core._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import spray.httpx.marshalling._
 import ch.openolitor.core.filestore.FileType

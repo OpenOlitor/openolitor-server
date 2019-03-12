@@ -11,7 +11,6 @@ import org.joda.time.DateTime
 import scala.util.Random
 import ch.openolitor.core.models.PersonId
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success }
 import ch.openolitor.core.mailservice.MailPayload
 import ch.openolitor.core.SystemConfig

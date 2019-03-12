@@ -30,7 +30,6 @@ import spray.httpx.SprayJsonSupport._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
 import scala.concurrent.duration._
