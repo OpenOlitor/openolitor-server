@@ -98,6 +98,9 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
         post(create[KundeModify, KundeId](KundeId.apply _))
     } ~
+      path("kunden" / "isEmailUnique" / Segment) { email =>
+        (detail(stammdatenReadRepository.getPersonByEmail(email)))
+      } ~
       path("kunden" / kundeIdPath) { id =>
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
           (put | post)(update[KundeModify, KundeId](id)) ~
