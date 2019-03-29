@@ -96,14 +96,30 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
     path("kunden" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
-        post(create[KundeModify, KundeId](KundeId.apply _))
+        post {
+          entity(as[KundeModify]) { kunde =>
+            val allEmailAddresses = kunde.ansprechpersonen.map(_.email)
+            val distinctEmails = allEmailAddresses.distinct
+            if (distinctEmails.length == allEmailAddresses.length) {
+              create[KundeModify, KundeId](KundeId.apply _)
+            } else {
+              complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+            }
+          }
+        }
     } ~
-      path("kunden" / "isEmailUnique" / Segment) { email =>
-        (detail(stammdatenReadRepository.getPersonByEmail(email)))
-      } ~
       path("kunden" / kundeIdPath) { id =>
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
-          (put | post)(update[KundeModify, KundeId](id)) ~
+          (put | post)(
+            entity(as[KundeModify]) { kunde =>
+            val allEmailAddresses = kunde.ansprechpersonen.map(_.email)
+            val distinctEmails = allEmailAddresses.distinct
+            if (distinctEmails.length == allEmailAddresses.length) {
+              updateKunde(id, kunde)
+            } else {
+              complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+            }
+          }~
           delete(remove(id))
       } ~
       path("kunden" / "berichte" / "kundenbrief") {
@@ -575,6 +591,14 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
+  private def updateKunde(id: KundeId, kunde:KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.UpdateKundeCommand(subject.personId, id, kunde)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Could not modify kunde")
+      case _ =>
+        complete("")
+    }
+  }
   private def abwesenheitCreate(abw: AbwesenheitCreate)(implicit idPersister: Persister[AbwesenheitId, _], subject: Subject): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.AbwesenheitCreateCommand(subject.personId, abw)) {
       case UserCommandFailed =>

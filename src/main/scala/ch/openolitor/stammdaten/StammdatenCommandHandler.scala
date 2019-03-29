@@ -59,6 +59,7 @@ object StammdatenCommandHandler {
   case class SammelbestellungenAlsAbgerechnetMarkierenCommand(originator: PersonId, datum: DateTime, ids: Seq[SammelbestellungId]) extends UserCommand
   case class PasswortResetCommand(originator: PersonId, personId: PersonId) extends UserCommand
   case class RolleWechselnCommand(originator: PersonId, kundeId: KundeId, personId: PersonId, rolle: Rolle) extends UserCommand
+  case class UpdateKundeCommand(originator: PersonId, kundeId: KundeId, kunde: KundeModify) extends UserCommand
 
   // TODO person id for calculations
   case class AboAktivierenCommand(aboId: AboId, originator: PersonId = PersonId(100)) extends UserCommand
@@ -100,6 +101,7 @@ object StammdatenCommandHandler {
   case class SendEmailToZusatzabotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: ZusatzabotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
   case class SendEmailToTourSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: TourMailContext) extends PersistentGeneratedEvent with JSONSerializable
   case class SendEmailToDepotSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: DepotMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class UpdateKundeEvent(meta: EventMetadata, kundeId: KundeId, kunde: KundeModify) extends PersistentGeneratedEvent with JSONSerializable
 }
 
 trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
@@ -415,6 +417,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     case AboDeaktivierenCommand(aboId, originator) => idFactory => meta =>
       Success(Seq(DefaultResultingEvent(factory => AboDeaktiviertEvent(factory.newMetadata(), aboId))))
 
+    case UpdateKundeCommand(originator, kundeId, kunde) => idFactory => meta =>
+      updateKunde(idFactory, meta, kundeId, kunde)
     /*
        * Insert command handling
        */
@@ -777,6 +781,26 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       } getOrElse {
         Failure(new InvalidStateException(s"Person wurde nicht gefunden."))
       }
+    }
+  }
+
+  def updateKunde(idFactory: IdFactory, meta: EventTransactionMetadata, kundeId: KundeId, kunde: KundeModify) = {
+    DB readOnly { implicit session =>
+      val personen = kunde.ansprechpersonen.map { k =>
+        stammdatenReadRepository.getPersonByEmail(k.email.getOrElse("none"))
+      }.flatten.map(_.kundeId).distinct
+
+      if (personen.length == 1){
+        if(personen(0).equals(kundeId)){
+          UpdateKundeEvent(meta, kundeId, kunde))
+        }
+        else {
+          Failure(new InvalidStateException(s"Person wurde nicht gefunden."))
+        }
+      } else {
+        Failure(new InvalidStateException(s"One of the email addresses are already used."))
+      }
+
     }
   }
 
