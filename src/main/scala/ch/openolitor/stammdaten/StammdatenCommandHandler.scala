@@ -786,21 +786,25 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   def updateKunde(idFactory: IdFactory, meta: EventTransactionMetadata, kundeId: KundeId, kunde: KundeModify) = {
     DB readOnly { implicit session =>
-      val personen = kunde.ansprechpersonen.map { k =>
-        stammdatenReadRepository.getPersonByEmail(k.email.getOrElse("none"))
-      }.flatten.map(_.kundeId).distinct
+      val personen = kunde.ansprechpersonen.map { person =>
+        person.email match {
+          case Some(email) => stammdatenReadRepository.getPersonByEmail(email) match {
+            case Some(p) => if (p.kundeId != kundeId) {
+              Some(p)
+            } else {
+              None
+            }
+            case _ => None
+          }
+          case _ => None
+        }
+      }.flatten
 
-      if (personen.length == 1){
-        if(personen(0).equals(kundeId)){
-          UpdateKundeEvent(meta, kundeId, kunde))
-        }
-        else {
-          Failure(new InvalidStateException(s"Person wurde nicht gefunden."))
-        }
+      if (personen.isEmpty) {
+        Success(Seq(DefaultResultingEvent(factory => EntityUpdatedEvent(factory.newMetadata(), kundeId, kunde))))
       } else {
-        Failure(new InvalidStateException(s"One of the email addresses are already used."))
+        Failure(new InvalidStateException(s"The submited email addresses are already used by another user"))
       }
-
     }
   }
 

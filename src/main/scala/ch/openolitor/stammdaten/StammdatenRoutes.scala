@@ -112,14 +112,15 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
           (put | post)(
             entity(as[KundeModify]) { kunde =>
-            val allEmailAddresses = kunde.ansprechpersonen.map(_.email)
-            val distinctEmails = allEmailAddresses.distinct
-            if (distinctEmails.length == allEmailAddresses.length) {
-              updateKunde(id, kunde)
-            } else {
-              complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+              val allEmailAddresses = kunde.ansprechpersonen.map(_.email)
+              val distinctEmails = allEmailAddresses.distinct
+              if (distinctEmails.length == allEmailAddresses.length) {
+                updateKunde(id, kunde)
+              } else {
+                complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+              }
             }
-          }~
+          )~
           delete(remove(id))
       } ~
       path("kunden" / "berichte" / "kundenbrief") {
@@ -591,10 +592,10 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def updateKunde(id: KundeId, kunde:KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+  private def updateKunde(id: KundeId, kunde: KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.UpdateKundeCommand(subject.personId, id, kunde)) {
       case UserCommandFailed =>
-        complete(StatusCodes.BadRequest, s"Could not modify kunde")
+        complete(StatusCodes.BadRequest, s"Could not modify kunde. Are email addresses unique?")
       case _ =>
         complete("")
     }

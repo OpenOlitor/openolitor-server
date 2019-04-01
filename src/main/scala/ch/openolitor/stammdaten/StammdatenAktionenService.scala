@@ -120,8 +120,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
       sendEmail(meta, subject, body, person, context, mailService)
     case SendEmailToAboSubscriberEvent(meta, subject, body, person, context) =>
       sendEmail(meta, subject, body, person, context, mailService)
-    case UpdateKundeEvent(meta, kundeId, kunde) =>
-      updateKunde(meta, kundeId, kunde)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -303,12 +301,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
   def changeRolle(meta: EventMetadata, personId: PersonId, rolle: Rolle)(implicit originator: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Person, PersonId](personId)(personMapping.column.rolle -> Option(rolle))
-    }
-  }
-
-  def updateKunde(meta: EventMetadata, kundeId : KundeId, kunde: KundeModify)(implicit originator: PersonId = meta.originator) = {
-    DB localTxPostPublish { implicit session => implicit publisher =>
-      stammdatenWriteRepository.updateEntity[Kunde, KundeId](kundeId)(updateKunde())
     }
   }
 
