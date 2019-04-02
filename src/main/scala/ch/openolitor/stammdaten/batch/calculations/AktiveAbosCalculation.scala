@@ -33,7 +33,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
 import scalikejdbc._
-import org.joda.time.LocalDate
 import ch.openolitor.stammdaten.repositories.StammdatenRepositoryQueries
 import akka.actor.ActorRef
 import akka.actor.actorRef2Scala
@@ -49,9 +48,6 @@ class AktiveAbosCalculation(override val sysConfig: SystemConfig, override val s
 
   override def process(): Unit = {
     DB autoCommit { implicit session =>
-      val yesterday = LocalDate.now.minusDays(1).toDateTimeAtStartOfDay
-      val today = LocalDate.now.toDateTimeAtStartOfDay
-
       val aktiviert = getAktivierteAbosQuery()
 
       logger.debug(s"Found ${aktiviert.size} activated abos for ${sysConfig.mandantConfiguration.name}")
@@ -71,6 +67,6 @@ class AktiveAbosCalculation(override val sysConfig: SystemConfig, override val s
   }
 
   protected def handleInitialization(): Unit = {
-    batchJob = Some(context.system.scheduler.schedule(untilNextMidnight, 24 hours)(self ! StartBatchJob))
+    batchJob = Some(context.system.scheduler.schedule(untilNextMidnight.plus(2 hours), 24 hours)(self ! StartBatchJob))
   }
 }
