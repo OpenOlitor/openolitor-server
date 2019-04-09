@@ -45,7 +45,7 @@ trait ArbeitseinsatzReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]]
-  def getArbeitseinsatzabrechnung(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]]
+  def getArbeitseinsatzabrechnung(xFlags: Option[ArbeitsComplexFlags])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]]
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzDetail]]
 }
 
@@ -94,8 +94,13 @@ class ArbeitseinsatzReadRepositoryAsyncImpl extends ArbeitseinsatzReadRepository
     getFutureArbeitseinsaetzeQuery(kundeId).future
   }
 
-  def getArbeitseinsatzabrechnung(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]] = {
-    getArbeitseinsatzabrechnungQuery.future
+  def getArbeitseinsatzabrechnung(xFlags: Option[ArbeitsComplexFlags])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzAbrechnung]] = {
+    xFlags match {
+      case Some(acf) if acf.kundeAktiv =>
+        getArbeitseinsatzabrechnungOnlyAktivKundenQuery.future
+      case _ =>
+        getArbeitseinsatzabrechnungQuery.future
+    }
   }
 
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzDetail]] = {
