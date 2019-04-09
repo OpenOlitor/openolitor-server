@@ -176,6 +176,35 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
 
   }
 
+  protected def getArbeitseinsatzabrechnungOnlyAktivKundenQuery = {
+    withSQL {
+      select
+        .from(kundeMapping as kunde)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(kunde.id, heimlieferungAbo.kundeId)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
+        .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo.abotypId).or.eq(aboTyp.id, postlieferungAbo.abotypId))
+        .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
+        .where((depotlieferungAbo.aktiv).or(heimlieferungAbo.aktiv).or(postlieferungAbo.aktiv))
+        .orderBy(kunde.bezeichnung)
+    }.one(kundeMapping(kunde))
+      .toManies(
+        rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
+        rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => abotypMapping.opt(aboTyp)(rs),
+        rs => arbeitseinsatzMapping.opt(arbeitseinsatz)(rs)
+      )
+      .map { (kunde, pl, hl, dl, abotypen, arbeitseinsaetze) =>
+        val summeEinsaetzeSoll = abotypen map (at => at.anzahlEinsaetze.getOrElse(BigDecimal(0.0))) sum
+        val summeEinsaetzeIst = arbeitseinsaetze map (ae => ae.einsatzZeit.getOrElse(BigDecimal(0.0))) sum
+        val summeEinsaetzeDelta = summeEinsaetzeSoll - summeEinsaetzeIst
+
+        ArbeitseinsatzAbrechnung(kunde.id, kunde.bezeichnung, summeEinsaetzeSoll, summeEinsaetzeIst, summeEinsaetzeDelta)
+      }.list
+
+  }
+
   protected def getArbeitsangebotArchivedQuery = {
     withSQL {
       select
