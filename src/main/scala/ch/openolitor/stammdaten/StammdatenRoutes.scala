@@ -61,6 +61,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   with AuslieferungLieferscheinReportService
   with AuslieferungEtikettenReportService
   with AuslieferungKorbUebersichtReportService
+  with AuslieferungKorbDetailReportService
   with KundenBriefReportService
   with DepotBriefReportService
   with ProduzentenBriefReportService
@@ -120,7 +121,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
                 complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
               }
             }
-          )~
+          ) ~
           delete(remove(id))
       } ~
       path("kunden" / "berichte" / "kundenbrief") {
@@ -689,9 +690,17 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         implicit val personId = subject.personId
         generateReport[AuslieferungId](None, generateAuslieferungKorbUebersichtReports(VorlageKorbUebersicht) _)(AuslieferungId.apply)
       } ~
+      path("(depot|tour|post)auslieferungen".r / "berichte" / "korbdetails") { _ =>
+        implicit val personId = subject.personId
+        generateReport[AuslieferungId](None, generateAuslieferungKorbDetailReports(VorlageKorbDetails) _)(AuslieferungId.apply)
+      } ~
       path("(depot|tour|post)auslieferungen".r / auslieferungIdPath / "berichte" / "korbuebersicht") { (_, auslieferungId) =>
         implicit val personId = subject.personId
         generateReport[AuslieferungId](Some(auslieferungId), generateAuslieferungKorbUebersichtReports(VorlageKorbUebersicht) _)(AuslieferungId.apply)
+      } ~
+      path("(depot|tour|post)auslieferungen".r / auslieferungIdPath / "berichte" / "korbdetails") { (_, auslieferungId) =>
+        implicit val personId = subject.personId
+        generateReport[AuslieferungId](Some(auslieferungId), generateAuslieferungKorbDetailReports(VorlageKorbDetails) _)(AuslieferungId.apply)
       } ~
       path("depotauslieferungen" / "berichte" / "lieferschein") {
         implicit val personId = subject.personId

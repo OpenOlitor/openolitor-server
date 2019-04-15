@@ -25,22 +25,28 @@ package ch.openolitor.stammdaten.models
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 
-case class KorbUebersichtReportProDepotTour(
+case class KorbDetailsReportProDepotTour(
   name: String,
   anzahlKoerbe: Int
 ) extends JSONSerializable
 
-case class KorbUebersichtReportProAbotyp(
+case class KorbDetailsReportProAbotyp(
   name: String,
   anzahlKoerbe: Int,
-  koerbe: Seq[KorbUebersichtReportProDepotTour]
+  koerbe: Seq[KorbDetailsReportProDepotTour],
+  lieferpositionen: Seq[KorbTotalComposition]
 ) extends JSONSerializable
 
-case class AuslieferungKorbUebersichtReport(
+case class AuslieferungKorbDetailsReport(
   projekt: ProjektReport,
   datum: DateTime,
   anzahlKoerbe: Int,
-  koerbeHauptabo: Seq[KorbUebersichtReportProAbotyp],
-  koerbe: Seq[KorbUebersichtReportProAbotyp]
+  koerbe: Seq[KorbDetailsReportProAbotyp]
 ) extends JSONSerializable
 
+case class KorbTotalComposition(
+  id: String,
+  name: String,
+  quantity: Double,
+  unit: String
+) extends JSONSerializable
