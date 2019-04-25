@@ -2019,7 +2019,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.flatten
   }
 
-  private def getKorbReports(koerbe: Seq[Korb], abos: Seq[Abo], abotypen: Seq[Abotyp], kunden: Seq[Kunde], personen: Seq[PersonDetail], zusatzAbos: Seq[ZusatzAbo]): Seq[KorbReport] = {
+  private def getKorbReports(koerbe: Seq[Korb], abos: Seq[HauptAbo], abotypen: Seq[Abotyp], kunden: Seq[Kunde], personen: Seq[PersonDetail], zusatzAbos: Seq[ZusatzAbo]): Seq[KorbReport] = {
     koerbe.map { korb =>
       for {
         korbAbo <- abos.filter(_.id == korb.aboId).headOption

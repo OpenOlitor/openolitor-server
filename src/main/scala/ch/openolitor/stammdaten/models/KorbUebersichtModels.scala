@@ -36,10 +36,16 @@ case class KorbUebersichtReportProAbotyp(
   koerbe: Seq[KorbUebersichtReportProDepotTour]
 ) extends JSONSerializable
 
+case class KorbUebersichtReportProZusatzabotyp(
+  name: String,
+  anzahlKoerbe: Int
+) extends JSONSerializable
+
 case class AuslieferungKorbUebersichtReport(
   projekt: ProjektReport,
   datum: DateTime,
   anzahlKoerbe: Int,
   koerbeHauptabo: Seq[KorbUebersichtReportProAbotyp],
+  koerbeZusatzabo: Seq[KorbUebersichtReportProZusatzabotyp],
   koerbe: Seq[KorbUebersichtReportProAbotyp]
 ) extends JSONSerializable

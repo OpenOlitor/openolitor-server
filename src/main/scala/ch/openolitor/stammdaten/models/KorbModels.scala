@@ -110,7 +110,7 @@ case class ZusatzKorbDetail(
 case class KorbReport(
   id: KorbId,
   lieferungId: LieferungId,
-  abo: Abo,
+  abo: HauptAbo,
   status: KorbStatus,
   guthabenVorLieferung: Int,
   auslieferungId: Option[AuslieferungId],
