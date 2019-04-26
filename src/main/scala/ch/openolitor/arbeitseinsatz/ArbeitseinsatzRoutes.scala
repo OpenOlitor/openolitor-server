@@ -51,6 +51,7 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   with ArbeitseinsatzEventStoreSerializer
   with ArbeitsangebotReportService
   with ArbeitseinsatzReportService
+  with ArbeitseinsatzPaths
   with Defaults {
   self: ArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
@@ -130,7 +131,9 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId), exportFormat))
       } ~
       path("arbeitseinsatzabrechnung" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung, exportFormat))
+        parameter('x.?.as[ArbeitsComplexFlags]) { xFlags: ArbeitsComplexFlags =>
+          get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung(Option(xFlags)), exportFormat))
+        }
       } ~
       path("mailing" / "sendEmailToArbeitsangebotPersonen") {
         post {

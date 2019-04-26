@@ -258,3 +258,9 @@ case class ArbeitsangebotDuplicate(
   arbeitsangebotId: ArbeitsangebotId,
   zeitVon: DateTime
 ) extends JSONSerializable
+
+/* Used to trigger more complex filtering on overview searches */
+
+case class ArbeitsComplexFlags(
+  kundeAktiv: Boolean
+) extends JSONSerializable
