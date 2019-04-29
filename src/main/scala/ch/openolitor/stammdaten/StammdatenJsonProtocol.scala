@@ -413,6 +413,26 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
     }
   }
 
+  implicit val hauptAboFormat = new RootJsonFormat[HauptAbo] {
+    def write(obj: HauptAbo): JsValue =
+      obj match {
+        case d: DepotlieferungAbo => d.toJson
+        case h: HeimlieferungAbo  => h.toJson
+        case p: PostlieferungAbo  => p.toJson
+        case _                    => JsObject()
+      }
+
+    def read(json: JsValue): HauptAbo = {
+      if (!json.asJsObject.getFields("depotId").isEmpty) {
+        json.convertTo[DepotlieferungAbo]
+      } else if (!json.asJsObject.getFields("tourId").isEmpty) {
+        json.convertTo[HeimlieferungAbo]
+      } else {
+        json.convertTo[PostlieferungAbo]
+      }
+    }
+  }
+
   implicit val aboFormat = new RootJsonFormat[Abo] {
     def write(obj: Abo): JsValue =
       obj match {
