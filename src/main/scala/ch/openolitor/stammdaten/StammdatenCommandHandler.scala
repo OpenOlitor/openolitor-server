@@ -525,31 +525,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     * Custom update command handling
     */
     case UpdateEntityCommand(personId, id: KundeId, entity: KundeModify) => idFactory => meta =>
-      val partitions = entity.ansprechpersonen.partition(_.id.isDefined)
-      val newPersons = partitions._2.zipWithIndex.map {
-        case (newPerson, index) =>
-          //generate persistent id for new person
-          val sort = partitions._1.length + index + 1
-          val personCreate = copyTo[PersonModify, PersonCreate](newPerson, "kundeId" -> id, "sort" -> sort)
-          val event = EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
-          (event, newPerson.copy(id = Some(event.id)))
-      }
-      val newPersonsEvents = newPersons.map(_._1)
-      val updatePersons = (partitions._1 ++ newPersons.map(_._2))
-
-      val pendenzenPartitions = entity.pendenzen.partition(_.id.isDefined)
-      val newPendenzen = pendenzenPartitions._2.map {
-        case newPendenz =>
-          val pendenzCreate = copyTo[PendenzModify, PendenzCreate](newPendenz, "kundeId" -> id, "generiert" -> FALSE)
-          val event = EntityInsertEvent(idFactory.newId(PendenzId.apply), pendenzCreate)
-          (event, newPendenz.copy(id = Some(event.id)))
-      }
-      val newPendenzenEvents = newPendenzen.map(_._1)
-      val updatePendenzen = (pendenzenPartitions._1 ++ newPendenzen.map(_._2))
-
-      val updateEntity = entity.copy(ansprechpersonen = updatePersons, pendenzen = updatePendenzen)
-      val updateEvent = EntityUpdateEvent(id, updateEntity)
-      Success(updateEvent +: (newPersonsEvents ++ newPendenzenEvents))
+      updateKundeEntity(idFactory, personId, id, entity)
 
     case UpdateEntityCommand(personId, id: AboId, entity: AboGuthabenModify) => idFactory => meta =>
       DB readOnly { implicit session =>
@@ -647,6 +623,34 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         Success(events flatMap (_.get))
       }
     }
+  }
+
+  private def updateKundeEntity(idFactory: IdFactory, personId: PersonId, id: KundeId, entity: KundeModify) = {
+    val partitions = entity.ansprechpersonen.partition(_.id.isDefined)
+    val newPersons = partitions._2.zipWithIndex.map {
+      case (newPerson, index) =>
+        //generate persistent id for new person
+        val sort = partitions._1.length + index + 1
+        val personCreate = copyTo[PersonModify, PersonCreate](newPerson, "kundeId" -> id, "sort" -> sort)
+        val event = EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
+        (event, newPerson.copy(id = Some(event.id)))
+    }
+    val newPersonsEvents = newPersons.map(_._1)
+    val updatePersons = (partitions._1 ++ newPersons.map(_._2))
+
+    val pendenzenPartitions = entity.pendenzen.partition(_.id.isDefined)
+    val newPendenzen = pendenzenPartitions._2.map {
+      case newPendenz =>
+        val pendenzCreate = copyTo[PendenzModify, PendenzCreate](newPendenz, "kundeId" -> id, "generiert" -> FALSE)
+        val event = EntityInsertEvent(idFactory.newId(PendenzId.apply), pendenzCreate)
+        (event, newPendenz.copy(id = Some(event.id)))
+    }
+    val newPendenzenEvents = newPendenzen.map(_._1)
+    val updatePendenzen = (pendenzenPartitions._1 ++ newPendenzen.map(_._2))
+
+    val updateEntity = entity.copy(ansprechpersonen = updatePersons, pendenzen = updatePendenzen)
+    val updateEvent = EntityUpdateEvent(id, updateEntity)
+    Success(updateEvent +: (newPersonsEvents ++ newPendenzenEvents))
   }
 
   private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung)(implicit session: DBSession): Seq[ResultingEvent] = {
@@ -801,9 +805,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       }.flatten
 
       if (personen.isEmpty) {
-        Success(Seq(DefaultResultingEvent(factory => EntityUpdatedEvent(factory.newMetadata(), kundeId, kunde))))
+        updateKundeEntity(idFactory, meta.originator, kundeId, kunde)
       } else {
-        Failure(new InvalidStateException(s"The submited email addresses are already used by another user"))
+        Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
       }
     }
   }
