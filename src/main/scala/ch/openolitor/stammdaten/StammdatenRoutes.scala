@@ -596,7 +596,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   private def updateKunde(id: KundeId, kunde: KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.UpdateKundeCommand(subject.personId, id, kunde)) {
       case UserCommandFailed =>
-        complete(StatusCodes.BadRequest, s"Could not modify kunde. Are email addresses unique?")
+        complete(StatusCodes.BadRequest, s"Kunde konnte nicht verändert werden. Werden alle E-Mail Adressen nur für eine Person verwendet?")
       case _ =>
         complete("")
     }
