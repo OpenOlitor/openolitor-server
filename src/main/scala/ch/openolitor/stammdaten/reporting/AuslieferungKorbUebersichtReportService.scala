@@ -61,46 +61,49 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
     s"auslieferung_korbuebersicht_${now}"
   }
 
-  private def auslieferungenByIds(auslieferungIds: Seq[AuslieferungId]): Future[(Seq[ValidationError[AuslieferungId]], Seq[MultiReport[AuslieferungKorbUebersichtReport]])] = {
-    stammdatenReadRepository.getProjekt flatMap {
-      _ map { projekt =>
-        val projektReport = copyTo[Projekt, ProjektReport](projekt)
-        stammdatenReadRepository.getMultiAuslieferungReport(auslieferungIds, projektReport) map { auslieferungReport =>
+  private def auslieferungenByIds(auslieferungIds: Seq[AuslieferungId]): Future[(Seq[ValidationError[AuslieferungId]], Seq[MultiReport[AuslieferungKorbUebersichtReport]])] = stammdatenReadRepository.getProjekt flatMap {
+    _ map { projekt =>
+      val projektReport = copyTo[Projekt, ProjektReport](projekt)
+      stammdatenReadRepository.getMultiAuslieferungReport(auslieferungIds, projektReport) map { auslieferungReport =>
 
-          val proAbotypZusatzabos = (auslieferungReport.entries groupBy (groupIdentifierZusatzabos) map {
-            case (abotypName, auslieferungen) =>
-              (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size))
-          }) map {
-            case (abotypName, proDepotTour) =>
-              KorbUebersichtReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, p._2))).toSeq)
-          }
-
-          val proAbotyp = (auslieferungReport.entries groupBy (groupIdentifierHauptabo) map {
-            case (abotypName, auslieferungen) =>
-              (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size))
-          }) map {
-            case (abotypName, proDepotTour) =>
-              KorbUebersichtReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, p._2))).toSeq)
-          }
-
-          val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()
-
-          (Seq(), List(MultiReport(MultiReportId(IdUtil.positiveRandomId), Seq(
-            AuslieferungKorbUebersichtReport(
-              projektReport,
-              datum,
-              auslieferungReport.entries.size,
-              proAbotyp.toSeq,
-              proAbotypZusatzabos.toSeq
-            )
-          ), projektReport)))
+        val proAbotypZusatzabos = (auslieferungReport.entries groupBy (groupIdentifierZusatzabos) map {
+          case (abotypName, auslieferungen) =>
+            (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size))
+        }) map {
+          case (abotypName, proDepotTour) =>
+            KorbUebersichtReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, p._2))).toSeq)
         }
-      } getOrElse Future { (Seq(ValidationError[AuslieferungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
-    }
+
+        val proAbotyp = (auslieferungReport.entries groupBy (groupIdentifierHauptabo) map {
+          case (abotypName, auslieferungen) =>
+            (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size))
+        }) map {
+          case (abotypName, proDepotTour) =>
+            KorbUebersichtReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, p._2))).toSeq)
+        }
+
+        val allZusatzabotypNames = auslieferungReport.entries flatMap { obj => obj.korb.abo.zusatzAbotypNames }
+
+        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, x._2))
+
+        val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()
+
+        (Seq(), List(MultiReport(MultiReportId(IdUtil.positiveRandomId), Seq(
+          AuslieferungKorbUebersichtReport(
+            projektReport,
+            datum,
+            auslieferungReport.entries.size,
+            proAbotyp.toSeq,
+            proZusatzabotyp.toSeq,
+            proAbotypZusatzabos.toSeq
+          )
+        ), projektReport)))
+      }
+    } getOrElse Future { (Seq(ValidationError[AuslieferungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
   }
 
   /**
-   * This will result in titles containing Abotyp +Z1, Z2
+   * This will result in titles containing "Abotyp +Z1, Z2"
    */
   private def groupIdentifierZusatzabos(reportEntry: AuslieferungReportEntry) = {
     val zusatzAbos = if (!reportEntry.korb.zusatzAbosString.isEmpty()) s" +${reportEntry.korb.zusatzAbosString}" else ""
@@ -108,7 +111,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
   }
 
   /**
-   * This will result in titles containing Abotyp +Z1, Z2
+   * This will result in titles containing "Abotyp"
    */
   private def groupIdentifierHauptabo(reportEntry: AuslieferungReportEntry) = {
     s"${reportEntry.korb.abotyp.name}"

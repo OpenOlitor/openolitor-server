@@ -20,33 +20,11 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten.models
+package ch.openolitor.arbeitseinsatz
 
-import org.joda.time.DateTime
-import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.SprayDeserializers
+import ch.openolitor.arbeitseinsatz.models._
 
-case class KorbUebersichtReportProDepotTour(
-  name: String,
-  anzahlKoerbe: Int
-) extends JSONSerializable
-
-case class KorbUebersichtReportProAbotyp(
-  name: String,
-  anzahlKoerbe: Int,
-  koerbe: Seq[KorbUebersichtReportProDepotTour]
-) extends JSONSerializable
-
-case class KorbUebersichtReportProZusatzabotyp(
-  name: String,
-  anzahlKoerbe: Int
-) extends JSONSerializable
-
-case class AuslieferungKorbUebersichtReport(
-  projekt: ProjektReport,
-  datum: DateTime,
-  anzahlKoerbe: Int,
-  koerbeHauptabo: Seq[KorbUebersichtReportProAbotyp],
-  koerbeZusatzabo: Seq[KorbUebersichtReportProZusatzabotyp],
-  koerbe: Seq[KorbUebersichtReportProAbotyp]
-) extends JSONSerializable
-
+trait ArbeitseinsatzPaths extends SprayDeserializers with ArbeitseinsatzJsonProtocol {
+  implicit val ArbeitsComplexFlagsParameter = jsonDeserializer[ArbeitsComplexFlags]
+}
