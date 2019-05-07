@@ -1883,7 +1883,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 
   protected def getDepotAuslieferungReportQuery(auslieferungId: AuslieferungId, projekt: ProjektReport) = {
     getDepotAuslieferungQuery(auslieferungId) { (auslieferung, depot, koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos) =>
-      val korbReports = getKorbReports(koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos).sortBy(_.abotyp.name)
+      val korbReports = getKorbReports(koerbe, lieferpositionen, abos, abotypen, kunden, personen.distinct, zusatzAbos).sortBy(_.abotyp.name)
 
       val depotReport = copyTo[Depot, DepotReport](depot)
       copyTo[DepotAuslieferung, DepotAuslieferungReport](auslieferung, "depot" -> depotReport, "koerbe" -> korbReports, "projekt" -> projekt)
@@ -1931,7 +1931,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 
   protected def getTourAuslieferungReportQuery(auslieferungId: AuslieferungId, projekt: ProjektReport) = {
     getTourAuslieferungQuery(auslieferungId) { (auslieferung, tour, koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos) =>
-      val korbReports = getKorbReports(koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos).sortBy(_.sort)
+      val korbReports = getKorbReports(koerbe, lieferpositionen, abos, abotypen, kunden, personen.distinct, zusatzAbos).sortBy(_.sort)
 
       copyTo[TourAuslieferung, TourAuslieferungReport](auslieferung, "tour" -> tour, "koerbe" -> korbReports, "projekt" -> projekt)
     }
@@ -1979,7 +1979,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 
   protected def getPostAuslieferungReportQuery(auslieferungId: AuslieferungId, projekt: ProjektReport) = {
     getPostAuslieferungQuery(auslieferungId) { (auslieferung, koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos) =>
-      val korbReports = getKorbReports(koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos).sortBy(_.abotyp.name)
+      val korbReports = getKorbReports(koerbe, lieferpositionen, abos, abotypen, kunden, personen.distinct, zusatzAbos).sortBy(_.abotyp.name)
 
       copyTo[PostAuslieferung, PostAuslieferungReport](auslieferung, "koerbe" -> korbReports, "projekt" -> projekt)
     }
