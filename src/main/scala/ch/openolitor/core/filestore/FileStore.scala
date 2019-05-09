@@ -353,7 +353,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
   protected def transform(metadata: FileStoreFileMetadata): ObjectMetadata = {
     val result = new ObjectMetadata()
     result.addUserMetadata("name", metadata.name)
-    result.addUserMetadata("fileType", metadata.fileType.getClass.getSimpleName)
+    result.addUserMetadata("fileType", metadata.fileType.toString.toLowerCase)
     result
   }
 
