@@ -792,14 +792,17 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     DB readOnly { implicit session =>
       val personen = kunde.ansprechpersonen.map { person =>
         person.email match {
-          case Some(email) => stammdatenReadRepository.getPersonByEmail(email) match {
-            case Some(p) => if (p.kundeId != kundeId) {
-              Some(p)
-            } else {
-              None
-            }
-            case _ => None
-          }
+          case Some(email) =>
+            if (!email.isEmpty) {
+              stammdatenReadRepository.getPersonByEmail(email) match {
+                case Some(p) => if (p.kundeId != kundeId) {
+                  Some(p)
+                } else {
+                  None
+                }
+                case _ => None
+              }
+            } else { None }
           case _ => None
         }
       }.flatten
