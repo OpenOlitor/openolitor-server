@@ -58,7 +58,7 @@ trait PDFGeneratorService {
     Try {
       val uri = Uri(endpointUri)
       val formFile = FormFile(Some(name + ".odt"), HttpEntity(HttpData(input)).asInstanceOf[HttpEntity.NonEmpty])
-      val formData = MultipartFormData(Seq(BodyPart(formFile, "upload"), BodyPart(HttpEntity(name + ".odt"), "name")))
+      val formData = MultipartFormData(Seq(BodyPart(formFile, "data"), BodyPart(HttpEntity(name + ".odt"), "name")))
 
       val result = pipeline(Post(uri, formData)) map {
         case HttpResponse(StatusCodes.OK, entity, headers, _) =>
