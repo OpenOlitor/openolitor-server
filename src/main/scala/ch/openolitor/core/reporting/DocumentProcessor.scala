@@ -116,6 +116,8 @@ trait DocumentProcessor extends LazyLogging {
     "JAUNE" -> Color.YELLOW
   )
 
+  val r = scala.util.Random
+
   def processDocument(doc: TextDocument, data: JsValue, locale: Locale = Locale.getDefault): Try[Boolean] = {
     logger.debug(s"processDocument with data: ${data.prettyPrint}")
     doc.setLocale(locale)
@@ -325,7 +327,8 @@ trait DocumentProcessor extends LazyLogging {
       processTables(section, props, locale, Seq(sectionKey), true)
       processLists(section, props, locale, Seq(sectionKey))
       //append section
-      doc.appendSection(section, false)
+      val newSection = doc.appendSection(section, false)
+      newSection.setName(s"noFill-copiedSection${r.nextInt(1000000)}")
     }
 
     //remove template section
@@ -356,13 +359,14 @@ trait DocumentProcessor extends LazyLogging {
     val (name, _) = parseFormats(frame.getName)
     for (index <- values) {
       val key = s"${name}.${index._2}"
-      logger.debug(s"processFrame:$key")
+      logger.error(s"---------------------------processFrame:$key")
       // process textboxes starting below first child which has to be a <text-box>
       val firstTextBox = OdfElement.findFirstChildNode(classOf[DrawTextBoxElement], frame.getOdfElement())
       val container = new GenericParagraphContainerImpl(firstTextBox)
       processTextboxes(container, props, locale, Seq(key))
       //append section
-      p.appendFrame(frame)
+      val newFrame = p.appendFrame(frame)
+      newFrame.setName(s"noFill-copiedFrame${r.nextInt(1000000)}")
     }
     //remove template
     frame.remove()
@@ -380,7 +384,7 @@ trait DocumentProcessor extends LazyLogging {
     } {
       val (name, formats) = parseFormats(t.getName)
       val propertyKey = parsePropertyKey(name, pathPrefixes)
-      logger.debug(s"processImage: ${propertyKey} | formats:$formats")
+      logger.error(s"--------------------processImage: ${propertyKey} | formats:$formats")
 
       // resolve textbox content from properties, otherwise only apply formats to current content
       props.get(propertyKey) map {
@@ -438,17 +442,19 @@ trait DocumentProcessor extends LazyLogging {
       t <- new NestedTextboxIterator(p.getFrameContainerElement)
     } {
       val (name, formats) = parseFormats(t.getName)
-      val propertyKey = parsePropertyKey(name, pathPrefixes)
-      logger.debug(s"processTextbox: ${propertyKey} | formats:$formats")
+      if (!name.startsWith("noFill-")) {
+        val propertyKey = parsePropertyKey(name, pathPrefixes)
+        logger.error(s"-----------------processTextbox: ${propertyKey} | formats:$formats | name:$name | t.name:${t.getName}")
 
-      // resolve textbox content from properties, otherwise only apply formats to current content
-      t.removeCommonStyle()
-      props.get(propertyKey) map {
-        case Value(_, value) =>
-          applyFormats(t, formats, value, props, locale, pathPrefixes)
-      } getOrElse {
-        if (!pathPrefixes.isEmpty) {
-          applyFormats(t, formats, t.getTextContent, props, locale, pathPrefixes)
+        // resolve textbox content from properties, otherwise only apply formats to current content
+        t.removeCommonStyle()
+        props.get(propertyKey) map {
+          case Value(_, value) =>
+            applyFormats(t, formats, value, props, locale, pathPrefixes)
+        } getOrElse {
+          if (!pathPrefixes.isEmpty) {
+            applyFormats(t, formats, t.getTextContent, props, locale, pathPrefixes)
+          }
         }
       }
     }
@@ -457,8 +463,11 @@ trait DocumentProcessor extends LazyLogging {
   @tailrec
   private def applyFormats(textbox: Textbox, formats: Seq[String], value: String, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]): String = {
     formats match {
-      case Nil                               => applyFormat(textbox, "", value, props, locale, pathPrefixes)
-      case s :: _ if (s.contains("orderBy")) => applyFormat(textbox, "", value, props, locale, pathPrefixes)
+      case Nil => applyFormat(textbox, "", value, props, locale, pathPrefixes)
+      case s :: _ if (s.contains("orderBy")) => {
+        logger.info(s"---------------------------------------------")
+        applyFormat(textbox, "", value, props, locale, pathPrefixes)
+      }
       case format :: tail =>
         val formattedValue = applyFormat(textbox, format, value, props, locale, pathPrefixes)
         applyFormats(textbox, tail, formattedValue, props, locale, pathPrefixes)
