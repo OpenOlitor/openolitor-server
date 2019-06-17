@@ -1903,6 +1903,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(depotlieferungAbo.id, zusatzAbo.hauptAboId)
         .where.eq(depotAuslieferung.id, auslieferungId)
+        .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, depotAuslieferung.datum) }
     }.one(depotAuslieferungMapping(depotAuslieferung))
       .toManies(
         rs => depotMapping.opt(depot)(rs),
@@ -1950,6 +1951,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(heimlieferungAbo.id, zusatzAbo.hauptAboId)
         .where.eq(tourAuslieferung.id, auslieferungId)
+        .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, tourAuslieferung.datum) }
         .orderBy(korb.sort)
     }.one(tourAuslieferungMapping(tourAuslieferung))
       .toManies(
@@ -1997,6 +1999,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(postlieferungAbo.id, zusatzAbo.hauptAboId)
         .where.eq(postAuslieferung.id, auslieferungId)
+        .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, postAuslieferung.datum) }
     }.one(postAuslieferungMapping(postAuslieferung))
       .toManies(
         rs => korbMapping.opt(korb)(rs),
