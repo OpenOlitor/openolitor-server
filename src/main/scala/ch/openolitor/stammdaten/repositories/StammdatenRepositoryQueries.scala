@@ -1901,7 +1901,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(depotlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(depotlieferungAbo.id, zusatzAbo.hauptAboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${depotAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${depotAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .where.eq(depotAuslieferung.id, auslieferungId)
     }.one(depotAuslieferungMapping(depotAuslieferung))
       .toManies(
@@ -1948,7 +1948,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(heimlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(heimlieferungAbo.id, zusatzAbo.hauptAboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${tourAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${tourAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .where.eq(tourAuslieferung.id, auslieferungId)
         .orderBy(korb.sort)
     }.one(tourAuslieferungMapping(tourAuslieferung))
@@ -1995,7 +1995,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(postlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(postlieferungAbo.id, zusatzAbo.hauptAboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${postAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${postAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .where.eq(postAuslieferung.id, auslieferungId)
     }.one(postAuslieferungMapping(postAuslieferung))
       .toManies(
@@ -2013,15 +2013,22 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).single
   }
 
-  private def getKorbDetails(koerbe: Seq[Korb], abos: Seq[Abo], abotypen: Seq[Abotyp], kunden: Seq[Kunde], zusatzAbos: Seq[ZusatzAbo]): Seq[KorbDetail] = {
+  private def getKorbDetails(koerbe: Seq[Korb], abos: Seq[HauptAbo], abotypen: Seq[Abotyp], kunden: Seq[Kunde], zusatzAbos: Seq[ZusatzAbo]): Seq[KorbDetail] = {
     koerbe.map { korb =>
       for {
         korbAbo <- abos.filter(_.id == korb.aboId).headOption
         abotyp <- abotypen.filter(_.id == korbAbo.abotypId).headOption
         kunde <- kunden.filter(_.id == korbAbo.kundeId).headOption
         zs = (zusatzAbos filter (_.hauptAboId == korbAbo.id))
+        zusatzAbotypNames = zs.map(_.abotypName)
+        zusatzAbotypIds = zs.map(_.id).toSet
+        korbAboZ = korbAbo match {
+          case abo: DepotlieferungAbo => copyTo[DepotlieferungAbo, DepotlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames, "zusatzAboIds" -> zusatzAbotypIds)
+          case abo: HeimlieferungAbo  => copyTo[HeimlieferungAbo, HeimlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames, "zusatzAboIds" -> zusatzAbotypIds)
+          case abo: PostlieferungAbo  => copyTo[PostlieferungAbo, PostlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames, "zusatzAboIds" -> zusatzAbotypIds)
+        }
         zusatzKoerbe = koerbe filter (k => zs.contains(k.aboId)) map (zk => copyTo[Korb, ZusatzKorbDetail](zk, "abo" -> korbAbo, "abotyp" -> abotyp, "kunde" -> kunde, "zusatzKoerbe" -> Nil))
-      } yield copyTo[Korb, KorbDetail](korb, "abo" -> korbAbo, "abotyp" -> abotyp, "kunde" -> kunde, "zusatzKoerbe" -> zusatzKoerbe)
+      } yield copyTo[Korb, KorbDetail](korb, "abo" -> korbAboZ, "abotyp" -> abotyp, "kunde" -> kunde, "zusatzKoerbe" -> zusatzKoerbe)
     }.flatten
   }
 
@@ -2033,8 +2040,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         kunde <- kunden.filter(_.id == korbAbo.kundeId).headOption
       } yield {
         val ansprechpersonen = personen.filter(_.kundeId == kunde.id)
-        val zusatzAbosString = (zusatzAbos filter (_.hauptAboId == korbAbo.id) map (_.abotypName)).mkString(", ")
-        val zusatzAbosList = (zusatzAbos filter (_.hauptAboId == korbAbo.id))
+        val zs = (zusatzAbos filter (_.hauptAboId == korbAbo.id))
+        val zusatzAbosString = (zs filter (_.hauptAboId == korbAbo.id) map (_.abotypName)).mkString(", ")
+        val zusatzAbosList = (zs filter (_.hauptAboId == korbAbo.id))
         val kundeReport = copyTo[Kunde, KundeReport](kunde, "personen" -> ansprechpersonen)
         val lp = lieferpositionen flatMap {
           lieferposition =>
@@ -2050,8 +2058,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
               } else None
             }
         }
-
-        copyTo[Korb, KorbReport](korb, "abo" -> korbAbo, "abotyp" -> abotyp, "kunde" -> kundeReport, "zusatzAbosString" -> zusatzAbosString, "lieferpositionen" -> lp)
+        val zusatzAbotypNames = zusatzAbos.map(_.abotypName)
+        val korbAboZ = korbAbo match {
+          case abo: DepotlieferungAbo => copyTo[DepotlieferungAbo, DepotlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
+          case abo: HeimlieferungAbo  => copyTo[HeimlieferungAbo, HeimlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
+          case abo: PostlieferungAbo  => copyTo[PostlieferungAbo, PostlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
+        }
+        copyTo[Korb, KorbReport](korb, "abo" -> korbAboZ, "abotyp" -> abotyp, "kunde" -> kundeReport, "zusatzAbosString" -> zusatzAbosString, "lieferpositionen" -> lp)
       }
     }.flatten
   }
