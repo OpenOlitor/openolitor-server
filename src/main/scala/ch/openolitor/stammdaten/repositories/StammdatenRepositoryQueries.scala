@@ -1948,7 +1948,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(heimlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${tourAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${tourAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${heimlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${tourAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${tourAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .where.eq(tourAuslieferung.id, auslieferungId)
         .orderBy(korb.sort)
     }.one(tourAuslieferungMapping(tourAuslieferung))
@@ -1995,7 +1995,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
         .leftJoin(kundeMapping as kunde).on(postlieferungAbo.kundeId, kunde.id)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${postAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${postAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${postlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${postAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${postAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .where.eq(postAuslieferung.id, auslieferungId)
     }.one(postAuslieferungMapping(postAuslieferung))
       .toManies(
