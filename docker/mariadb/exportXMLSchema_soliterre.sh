@@ -1,0 +1,1 @@
+mysqldump --skip-add-locks --skip-lock-tables --no-autocommit --xml --no-data -u Z1wcVAZf2KCa9rnP -ple7IeXpsRi2ZD65m -P 13000 -h 127.0.0.1 CF_CF1C33DE_0774_4406_B0A4_0F73C6432915 > oo_schema_soliterre.xml

@@ -36,3 +36,9 @@ tags
 
 # Intellij Idea specifics 
 .idea/*
+
+# Metalic (atom)
+.bloop/
+.metals/
+project/.bloop/
+

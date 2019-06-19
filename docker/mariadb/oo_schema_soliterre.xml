@@ -1,0 +1,1007 @@
+<?xml version="1.0"?>
+<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<database name="CF_CF1C33DE_0774_4406_B0A4_0F73C6432915">
+	<table_structure name="Abotyp">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(256)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="lieferrhythmus" Type="varchar(256)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv_von" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv_bis" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preis" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="preiseinheit" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="laufzeit" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="laufzeiteinheit" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="vertragslaufzeit" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="kuendigungsfrist" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_einsaetze" Type="decimal(5,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="farb_code" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zielpreis" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben_mindestbestand" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="admin_prozente" Type="decimal(5,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="wird_geplant" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="letzte_lieferung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="waehrung" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Abotyp" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="6" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Abotyp" Engine="InnoDB" Version="10" Row_format="Compact" Rows="6" Avg_row_length="2730" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Abwesenheit">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abo_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="lieferung_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="bemerkung" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Abwesenheit" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="3592" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Abwesenheit" Non_unique="1" Key_name="abo_id_index" Seq_in_index="1" Column_name="abo_id" Collation="A" Cardinality="1197" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Abwesenheit" Non_unique="1" Key_name="lieferung_id_index" Seq_in_index="1" Column_name="lieferung_id" Collation="A" Cardinality="718" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Abwesenheit" Engine="InnoDB" Version="10" Row_format="Compact" Rows="3378" Avg_row_length="97" Data_length="327680" Max_data_length="0" Index_length="344064" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Arbeitsangebot">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kopie_von" Type="bigint(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="titel" Type="varchar(200)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="bezeichnung" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zeit_von" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zeit_bis" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="arbeitskategorien" Type="varchar(1000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_eingeschriebene" Type="decimal(3,0)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_personen" Type="decimal(3,0)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="mehr_personen_ok" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="einsatz_zeit" Type="decimal(5,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Arbeitsangebot" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="4" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Arbeitsangebot" Engine="InnoDB" Version="10" Row_format="Compact" Rows="4" Avg_row_length="4096" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Arbeitseinsatz">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="arbeitsangebot_id" Type="bigint(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="arbeitsangebot_titel" Type="varchar(200)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="arbeitsangebot_status" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zeit_von" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zeit_bis" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einsatz_zeit" Type="decimal(5,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="kunde_bezeichnung" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="person_id" Type="bigint(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="person_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abo_id" Type="bigint(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abo_bezeichnung" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_personen" Type="decimal(3,0)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bemerkungen" Type="varchar(300)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="email" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="telefon_mobil" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Arbeitseinsatz" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Arbeitseinsatz" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Arbeitskategorie">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Arbeitskategorie" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Arbeitskategorie" Engine="InnoDB" Version="10" Row_format="Compact" Rows="1" Avg_row_length="16384" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Bestellposition">
+		<field Field="id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="bestellung_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produkt_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="produkt_beschrieb" Type="varchar(140)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preis_einheit" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einheit" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="menge" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preis" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Bestellposition" Non_unique="1" Key_name="bestellung_id_index" Seq_in_index="1" Column_name="bestellung_id" Collation="A" Cardinality="3288" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Bestellposition" Non_unique="1" Key_name="produkt_id_index" Seq_in_index="1" Column_name="produkt_id" Collation="A" Cardinality="657" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Bestellposition" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="3288" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Bestellposition" Engine="InnoDB" Version="10" Row_format="Compact" Rows="3328" Avg_row_length="137" Data_length="458752" Max_data_length="0" Index_length="344064" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Bestellung">
+		<field Field="id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="sammelbestellung_id" Type="bigint(20)" Null="NO" Key="MUL" Default="0" Extra="" Comment="" />
+		<field Field="preis_total" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="steuer_satz" Type="decimal(4,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="steuer" Type="decimal(7,2)" Null="NO" Key="" Default="0.00" Extra="" Comment="" />
+		<field Field="total_steuer" Type="decimal(7,2)" Null="NO" Key="" Default="0.00" Extra="" Comment="" />
+		<field Field="admin_prozente" Type="decimal(4,2)" Null="NO" Key="" Default="0.00" Extra="" Comment="" />
+		<field Field="admin_prozente_abzug" Type="decimal(7,2)" Null="NO" Key="" Default="0.00" Extra="" Comment="" />
+		<field Field="total_nach_abzug_admin_prozente" Type="decimal(7,2)" Null="NO" Key="" Default="0.00" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Bestellung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="796" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Bestellung" Non_unique="1" Key_name="sammelbestellung_id_index" Seq_in_index="1" Column_name="sammelbestellung_id" Collation="A" Cardinality="796" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Bestellung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="942" Avg_row_length="121" Data_length="114688" Max_data_length="0" Index_length="32768" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="DBSchema">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="revision" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="DBSchema" Non_unique="0" Key_name="PRIMARY" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="95" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="DBSchema" Engine="InnoDB" Version="10" Row_format="Compact" Rows="95" Avg_row_length="172" Data_length="16384" Max_data_length="0" Index_length="0" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Depot">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="kurzzeichen" Type="varchar(6)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ap_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="ap_vorname" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="ap_telefon" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="ap_email" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="v_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="v_vorname" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="v_telefon" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="v_email" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="strasse" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="aktiv" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="oeffnungszeiten" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="farb_code" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="iban" Type="varchar(34)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bank" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten_max" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Depot" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="14" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Depot" Engine="InnoDB" Version="10" Row_format="Compact" Rows="14" Avg_row_length="1170" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="DepotAuslieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="depot_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="depot_name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_koerbe" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="DepotAuslieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1457" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="DepotAuslieferung" Non_unique="1" Key_name="depot_id_index" Seq_in_index="1" Column_name="depot_id" Collation="A" Cardinality="29" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="DepotAuslieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="1843" Avg_row_length="124" Data_length="229376" Max_data_length="0" Index_length="147456" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Depotlieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="depot_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="anzahl_abos" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abos_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Depotlieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="84" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Depotlieferung" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="12" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Depotlieferung" Non_unique="1" Key_name="depot_id_index" Seq_in_index="1" Column_name="depot_id" Collation="A" Cardinality="28" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Depotlieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="84" Avg_row_length="195" Data_length="16384" Max_data_length="0" Index_length="49152" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="DepotlieferungAbo">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="vertriebsart_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_beschrieb" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="depot_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="depot_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="start" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ende" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="price" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben_vertraglich" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="guthaben_in_rechnung" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="letzte_lieferung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zusatz_abo_ids" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zusatz_abotyp_names" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_einsaetze" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="DepotlieferungAbo" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="671" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="DepotlieferungAbo" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="671" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="DepotlieferungAbo" Non_unique="1" Key_name="vertriebsart_id_index" Seq_in_index="1" Column_name="vertriebsart_id" Collation="A" Cardinality="134" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="DepotlieferungAbo" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="11" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="DepotlieferungAbo" Non_unique="1" Key_name="abotyp_id_index" Seq_in_index="1" Column_name="abotyp_id" Collation="A" Cardinality="11" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="DepotlieferungAbo" Non_unique="1" Key_name="depot_id_index" Seq_in_index="1" Column_name="depot_id" Collation="A" Cardinality="25" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="DepotlieferungAbo" Engine="InnoDB" Version="10" Row_format="Compact" Rows="667" Avg_row_length="270" Data_length="180224" Max_data_length="0" Index_length="98304" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Einladung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="person_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="uid" Type="varchar(36)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="expires" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum_versendet" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Einladung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1288" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Einladung" Non_unique="1" Key_name="person_id_index" Seq_in_index="1" Column_name="person_id" Collation="A" Cardinality="1288" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Einladung" Non_unique="1" Key_name="uid_index" Seq_in_index="1" Column_name="uid" Collation="A" Cardinality="1288" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Einladung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="1487" Avg_row_length="143" Data_length="212992" Max_data_length="0" Index_length="278528" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Heimlieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="tour_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="anzahl_abos" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abos_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Heimlieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Heimlieferung" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Heimlieferung" Non_unique="1" Key_name="tour_id_index" Seq_in_index="1" Column_name="tour_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Heimlieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="49152" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="HeimlieferungAbo">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="vertriebsart_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_beschrieb" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="tour_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="tour_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="start" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ende" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="price" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben_vertraglich" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="guthaben_in_rechnung" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="letzte_lieferung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zusatz_abo_ids" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zusatz_abotyp_names" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_einsaetze" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="HeimlieferungAbo" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="HeimlieferungAbo" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="HeimlieferungAbo" Non_unique="1" Key_name="vertriebsart_id_index" Seq_in_index="1" Column_name="vertriebsart_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="HeimlieferungAbo" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="HeimlieferungAbo" Non_unique="1" Key_name="abotyp_id_index" Seq_in_index="1" Column_name="abotyp_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="HeimlieferungAbo" Non_unique="1" Key_name="tour_id_index" Seq_in_index="1" Column_name="tour_id" Collation="A" Cardinality="0" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="HeimlieferungAbo" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="98304" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="KontoDaten">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="iban" Type="varchar(34)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="referenz_nummer_prefix" Type="varchar(27)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="teilnehmer_nummer" Type="varchar(9)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bank_name" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="name_account_holder" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="address_account_holder" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="kunde" Type="bigint(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="creditor_identifier" Type="varchar(35)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="KontoDaten" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="821" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="KontoDaten" Engine="InnoDB" Version="10" Row_format="Compact" Rows="450" Avg_row_length="182" Data_length="81920" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Korb">
+		<field Field="id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="lieferung_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abo_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="guthaben_vor_lieferung" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="auslieferung_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="sort" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Korb" Non_unique="1" Key_name="lieferung_id_index" Seq_in_index="1" Column_name="lieferung_id" Collation="A" Cardinality="1420" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Korb" Non_unique="1" Key_name="abo_id_index" Seq_in_index="1" Column_name="abo_id" Collation="A" Cardinality="1142" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Korb" Non_unique="1" Key_name="status_index" Seq_in_index="1" Column_name="status" Collation="A" Cardinality="4" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Korb" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="52574" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Korb" Non_unique="1" Key_name="auslieferung_id_index" Seq_in_index="1" Column_name="auslieferung_id" Collation="A" Cardinality="4381" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Korb" Engine="InnoDB" Version="10" Row_format="Compact" Rows="49059" Avg_row_length="160" Data_length="7880704" Max_data_length="0" Index_length="12124160" Data_free="4194304" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Kunde">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="bezeichnung" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="strasse" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="adress_zusatz" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="bemerkungen" Type="varchar(1000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abweichende_lieferadresse" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bezeichnung_lieferung" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="strasse_lieferung" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer_lieferung" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="adress_zusatz_lieferung" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz_lieferung" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="ort_lieferung" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zusatzinfo_lieferung" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="typen" Type="varchar(200)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abos" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abos_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="anzahl_pendenzen" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_personen" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="payment_type" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Kunde" Non_unique="0" Key_name="idx_id" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="559" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Kunde" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="559" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Kunde" Engine="InnoDB" Version="10" Row_format="Compact" Rows="586" Avg_row_length="335" Data_length="196608" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Kundentyp">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kundentyp" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(250)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_verknuepfungen" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Kundentyp" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="17" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Kundentyp" Engine="InnoDB" Version="10" Row_format="Compact" Rows="17" Avg_row_length="963" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Lieferplanung">
+		<field Field="id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="bemerkungen" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abotyp_depot_tour" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Lieferplanung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="171" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Lieferplanung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="157" Avg_row_length="626" Data_length="98304" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Lieferposition">
+		<field Field="id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="lieferung_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produkt_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="produkt_beschrieb" Type="varchar(140)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="produzent_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produzent_kurzzeichen" Type="varchar(6)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="preis_einheit" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einheit" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="menge" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="preis" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Lieferposition" Non_unique="1" Key_name="lieferung_id_index" Seq_in_index="1" Column_name="lieferung_id" Collation="A" Cardinality="3515" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Lieferposition" Non_unique="1" Key_name="produkt_id_index" Seq_in_index="1" Column_name="produkt_id" Collation="A" Cardinality="351" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Lieferposition" Non_unique="1" Key_name="produzent_id_index" Seq_in_index="1" Column_name="produzent_id" Collation="A" Cardinality="15" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Lieferposition" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="7030" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Lieferposition" Engine="InnoDB" Version="10" Row_format="Compact" Rows="6604" Avg_row_length="240" Data_length="1589248" Max_data_length="0" Index_length="917504" Data_free="4194304" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Lieferung">
+		<field Field="id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_beschrieb" Type="varchar(100)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_beschrieb" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="durchschnittspreis" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_koerbe_zu_liefern" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_saldo_zu_tief" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zielpreis" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preis_total" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="lieferplanung_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Lieferung" Non_unique="1" Key_name="abotyp_id_index" Seq_in_index="1" Column_name="abotyp_id" Collation="A" Cardinality="17" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Lieferung" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="14" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Lieferung" Non_unique="1" Key_name="lieferplanung_id_index" Seq_in_index="1" Column_name="lieferplanung_id" Collation="A" Cardinality="743" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Lieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1486" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Lieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="1540" Avg_row_length="170" Data_length="262144" Max_data_length="0" Index_length="262144" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="MailTemplate">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="template_type" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="template_name" Type="varchar(200)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="description" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="subject" Type="varchar(500)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="body" Type="mediumtext" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="MailTemplate" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="4" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="MailTemplate" Engine="InnoDB" Version="10" Row_format="Compact" Rows="4" Avg_row_length="4096" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Pendenz">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_bezeichnung" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bemerkung" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="generiert" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Pendenz" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="321" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Pendenz" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="321" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Pendenz" Engine="InnoDB" Version="10" Row_format="Compact" Rows="261" Avg_row_length="376" Data_length="98304" Max_data_length="0" Index_length="32768" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="PersistenceEventState">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="persistence_id" Type="varchar(100)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="last_transaction_nr" Type="bigint(20)" Null="YES" Key="" Default="0" Extra="" Comment="" />
+		<field Field="last_sequence_nr" Type="bigint(20)" Null="YES" Key="" Default="0" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="PersistenceEventState" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="8" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="PersistenceEventState" Engine="InnoDB" Version="10" Row_format="Compact" Rows="8" Avg_row_length="2048" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Person">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="anrede" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="vorname" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="email" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="email_alternative" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="telefon_mobil" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="telefon_festnetz" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bemerkungen" Type="varchar(512)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="sort" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="login_aktiv" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="passwort" Type="varchar(300)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="letzte_anmeldung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="passwort_wechsel_erforderlich" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="rolle" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="categories" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Person" Non_unique="0" Key_name="idx_id" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1089" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Person" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="1089" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Person" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1089" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Person" Engine="InnoDB" Version="10" Row_format="Compact" Rows="880" Avg_row_length="260" Data_length="229376" Max_data_length="0" Index_length="65536" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="PersonCategory">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="description" Type="varchar(250)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<options Name="PersonCategory" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="0" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="PostAuslieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_koerbe" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="PostAuslieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="PostAuslieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Postlieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="anzahl_abos" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abos_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Postlieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Postlieferung" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Postlieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="32768" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="PostlieferungAbo">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="vertriebsart_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_beschrieb" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="start" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ende" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="price" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben_vertraglich" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="guthaben" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="guthaben_in_rechnung" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="letzte_lieferung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="zusatz_abo_ids" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zusatz_abotyp_names" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_einsaetze" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="PostlieferungAbo" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="PostlieferungAbo" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="PostlieferungAbo" Non_unique="1" Key_name="vertriebsart_id_index" Seq_in_index="1" Column_name="vertriebsart_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="PostlieferungAbo" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="PostlieferungAbo" Non_unique="1" Key_name="abotyp_id_index" Seq_in_index="1" Column_name="abotyp_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="PostlieferungAbo" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="81920" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Produkt">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="name" Type="varchar(140)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="verfuegbar_von" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="verfuegbar_bis" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="kategorien" Type="varchar(300)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="standardmenge" Type="decimal(7,3)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einheit" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="preis" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="produzenten" Type="varchar(300)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Produkt" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="217" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Produkt" Engine="InnoDB" Version="10" Row_format="Compact" Rows="221" Avg_row_length="296" Data_length="65536" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ProduktProduktekategorie">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produkt_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produktekategorie_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="ProduktProduktekategorie" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="457" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ProduktProduktekategorie" Non_unique="1" Key_name="produkt_id_index" Seq_in_index="1" Column_name="produkt_id" Collation="A" Cardinality="457" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ProduktProduktekategorie" Non_unique="1" Key_name="produktekategorie_id_index" Seq_in_index="1" Column_name="produktekategorie_id" Collation="A" Cardinality="19" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="ProduktProduktekategorie" Engine="InnoDB" Version="10" Row_format="Compact" Rows="430" Avg_row_length="152" Data_length="65536" Max_data_length="0" Index_length="49152" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ProduktProduzent">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produkt_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produzent_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="ProduktProduzent" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="415" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ProduktProduzent" Non_unique="1" Key_name="produkt_id_index" Seq_in_index="1" Column_name="produkt_id" Collation="A" Cardinality="415" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ProduktProduzent" Non_unique="1" Key_name="produzent_id_index" Seq_in_index="1" Column_name="produzent_id" Collation="A" Cardinality="18" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="ProduktProduzent" Engine="InnoDB" Version="10" Row_format="Compact" Rows="418" Avg_row_length="156" Data_length="65536" Max_data_length="0" Index_length="49152" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Produktekategorie">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Produktekategorie" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="9" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Produktekategorie" Engine="InnoDB" Version="10" Row_format="Compact" Rows="9" Avg_row_length="1820" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Produzent">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="vorname" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="kurzzeichen" Type="varchar(6)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="strasse" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="adress_zusatz" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="bemerkungen" Type="varchar(1000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="email" Type="varchar(100)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="telefon_mobil" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="telefon_festnetz" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="iban" Type="varchar(34)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="bank" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="mwst" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="mwst_satz" Type="decimal(4,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="mwst_nr" Type="varchar(30)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Produzent" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="11" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Produzent" Engine="InnoDB" Version="10" Row_format="Compact" Rows="11" Avg_row_length="1489" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Projekt">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="bezeichnung" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="strasse" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="adress_zusatz" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preise_sichtbar" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="preise_editierbar" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="email_erforderlich" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="waehrung" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="geschaeftsjahr_monat" Type="decimal(2,0)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="geschaeftsjahr_tag" Type="decimal(2,0)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="two_factor_authentication" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="sprache" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="welcome_message1" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="welcome_message2" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="maintenance_mode" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="generierte_mails_senden" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einsatz_einheit" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einsatz_absage_vorlauf_tage" Type="decimal(2,0)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="einsatz_show_liste_kunde" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Projekt" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="1" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Projekt" Engine="InnoDB" Version="10" Row_format="Compact" Rows="1" Avg_row_length="16384" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ProjektVorlage">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="typ" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(256)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="file_store_id" Type="varchar(200)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="ProjektVorlage" Non_unique="1" Key_name="file_store_id_index" Seq_in_index="1" Column_name="file_store_id" Collation="A" Cardinality="8" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ProjektVorlage" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="8" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="ProjektVorlage" Engine="InnoDB" Version="10" Row_format="Compact" Rows="8" Avg_row_length="2048" Data_length="16384" Max_data_length="0" Index_length="32768" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Rechnung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="titel" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="waehrung" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="betrag" Type="decimal(8,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="einbezahlter_betrag" Type="decimal(8,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="rechnungs_datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="faelligkeits_datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="eingangs_datum" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="referenz_nummer" Type="varchar(27)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="esr_nummer" Type="varchar(54)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="file_store_id" Type="varchar(200)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="anzahl_mahnungen" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="mahnung_file_store_ids" Type="varchar(1000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="strasse" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="adress_zusatz" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="payment_type" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Rechnung" Non_unique="1" Key_name="file_store_id_index" Seq_in_index="1" Column_name="file_store_id" Collation="A" Cardinality="4" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Rechnung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="3633" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Rechnung" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="1816" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Rechnung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="3394" Avg_row_length="468" Data_length="1589248" Max_data_length="0" Index_length="327680" Data_free="4194304" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="RechnungsPosition">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="rechnung_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="parent_rechnungs_position_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="abo_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="betrag" Type="decimal(8,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="waehrung" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="beschrieb" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="typ" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="sort" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="RechnungsPosition" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="3529" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="RechnungsPosition" Non_unique="1" Key_name="rechnung_id_index" Seq_in_index="1" Column_name="rechnung_id" Collation="A" Cardinality="3529" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="RechnungsPosition" Non_unique="1" Key_name="parent_rechnungs_position_id_index" Seq_in_index="1" Column_name="parent_rechnungs_position_id" Collation="A" Cardinality="294" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="RechnungsPosition" Non_unique="1" Key_name="abo_id_index" Seq_in_index="1" Column_name="abo_id" Collation="A" Cardinality="1176" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="RechnungsPosition" Engine="InnoDB" Version="10" Row_format="Compact" Rows="4091" Avg_row_length="384" Data_length="1572864" Max_data_length="0" Index_length="458752" Data_free="4194304" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Report">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="name" Type="varchar(200)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="query" Type="varchar(5000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Report" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="16" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Report" Engine="InnoDB" Version="10" Row_format="Compact" Rows="16" Avg_row_length="1024" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Sammelbestellung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produzent_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="produzent_kurzzeichen" Type="varchar(6)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="lieferplanung_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum_abrechnung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="datum_versendet" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preis_total" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="steuer_satz" Type="decimal(4,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="steuer" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="total_steuer" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Sammelbestellung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="669" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Sammelbestellung" Non_unique="1" Key_name="produzent_id_index" Seq_in_index="1" Column_name="produzent_id" Collation="A" Cardinality="22" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Sammelbestellung" Non_unique="1" Key_name="lieferplanung_id_index" Seq_in_index="1" Column_name="lieferplanung_id" Collation="A" Cardinality="334" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Sammelbestellung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="673" Avg_row_length="194" Data_length="131072" Max_data_length="0" Index_length="49152" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Tour">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(256)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten_aktiv" Type="int(11)" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Tour" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Tour" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="TourAuslieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="tour_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="tour_name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="datum" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_koerbe" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="TourAuslieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="TourAuslieferung" Non_unique="1" Key_name="tour_id_index" Seq_in_index="1" Column_name="tour_id" Collation="A" Cardinality="0" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="TourAuslieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="32768" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Tourlieferung">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="tour_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertriebsart_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="kunde_bezeichnung" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="strasse" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="haus_nummer" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="adress_zusatz" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="plz" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ort" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="abotyp_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="sort" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Tourlieferung" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Tourlieferung" Non_unique="1" Key_name="tour_id_index" Seq_in_index="1" Column_name="tour_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Tourlieferung" Non_unique="1" Key_name="abotyp_id_index" Seq_in_index="1" Column_name="abotyp_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Tourlieferung" Non_unique="1" Key_name="kunde_id_index" Seq_in_index="1" Column_name="kunde_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Tourlieferung" Non_unique="1" Key_name="vertriebsart_id_index" Seq_in_index="1" Column_name="vertriebsart_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Tourlieferung" Non_unique="1" Key_name="vertrieb_id_index" Seq_in_index="1" Column_name="vertrieb_id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Tourlieferung" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="98304" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="Vertrieb">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="liefertag" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="beschrieb" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abos" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="durchschnittspreis" Type="varchar(1000)" Null="NO" Key="" Default="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="varchar(1000)" Null="NO" Key="" Default="" Extra="" Comment="" />
+		<field Field="anzahl_abos_aktiv" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="Vertrieb" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="6" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="Vertrieb" Non_unique="1" Key_name="abotyp_id_index" Seq_in_index="1" Column_name="abotyp_id" Collation="A" Cardinality="6" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="Vertrieb" Engine="InnoDB" Version="10" Row_format="Compact" Rows="6" Avg_row_length="2730" Data_length="16384" Max_data_length="0" Index_length="32768" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ZahlungsEingang">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="zahlungs_import_id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="rechnung_id" Type="bigint(20)" Null="YES" Key="MUL" Extra="" Comment="" />
+		<field Field="transaktionsart" Type="varchar(100)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="teilnehmer_nummer" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="iban" Type="varchar(34)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="referenz_nummer" Type="varchar(27)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="waehrung" Type="varchar(10)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="betrag" Type="decimal(8,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="aufgabe_datum" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="verarbeitungs_datum" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="gutschrifts_datum" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="debitor" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erledigt" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="bemerkung" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="ZahlungsEingang" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="3214" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ZahlungsEingang" Non_unique="1" Key_name="zahlungs_import_id_index" Seq_in_index="1" Column_name="zahlungs_import_id" Collation="A" Cardinality="103" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="ZahlungsEingang" Non_unique="1" Key_name="rechnung_id_index" Seq_in_index="1" Column_name="rechnung_id" Collation="A" Cardinality="3214" Null="YES" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="ZahlungsEingang" Engine="InnoDB" Version="10" Row_format="Compact" Rows="3255" Avg_row_length="488" Data_length="1589248" Max_data_length="0" Index_length="327680" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ZahlungsExport">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="file_name" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="rechnungen" Type="varchar(10000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="status" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="ZahlungsExport" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="ZahlungsExport" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ZahlungsImport">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="MUL" Extra="" Comment="" />
+		<field Field="file" Type="varchar(255)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_zahlungs_eingaenge" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_zahlungs_eingaenge_erledigt" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="ZahlungsImport" Non_unique="1" Key_name="id_index" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="45" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="ZahlungsImport" Engine="InnoDB" Version="10" Row_format="Compact" Rows="45" Avg_row_length="364" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ZusatzAbo">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="haupt_abo_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="haupt_abotyp_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="abotyp_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="abotyp_name" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="kunde_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="kunde" Type="varchar(100)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="vertriebsart_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="vertrieb_id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="vertrieb_beschrieb" Type="varchar(2000)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="start" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ende" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="price" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="letzte_lieferung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_lieferungen" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_einsaetze" Type="varchar(500)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv" Type="varchar(1)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<options Name="ZusatzAbo" Engine="InnoDB" Version="10" Row_format="Compact" Rows="201" Avg_row_length="244" Data_length="49152" Max_data_length="0" Index_length="0" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="ZusatzAbotyp">
+		<field Field="id" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="beschreibung" Type="varchar(256)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv_von" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="aktiv_bis" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="preis" Type="decimal(7,2)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="preiseinheit" Type="varchar(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="laufzeit" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="laufzeiteinheit" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="vertragslaufzeit" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="kuendigungsfrist" Type="varchar(50)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abwesenheiten" Type="int(11)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="anzahl_einsaetze" Type="decimal(5,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="farb_code" Type="varchar(20)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="zielpreis" Type="decimal(7,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="admin_prozente" Type="decimal(5,2)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="wird_geplant" Type="varchar(1)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="anzahl_abonnenten_aktiv" Type="int(11)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="letzte_lieferung" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="waehrung" Type="varchar(10)" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="erstelldat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="ersteller" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifidat" Type="datetime" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="modifikator" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<options Name="ZusatzAbotyp" Engine="InnoDB" Version="10" Row_format="Compact" Rows="5" Avg_row_length="3276" Data_length="16384" Max_data_length="0" Index_length="0" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="persistence_journal">
+		<field Field="persistence_key" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="sequence_nr" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="message" Type="mediumblob" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="persistence_journal" Non_unique="0" Key_name="PRIMARY" Seq_in_index="1" Column_name="persistence_key" Collation="A" Cardinality="18" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="persistence_journal" Non_unique="0" Key_name="PRIMARY" Seq_in_index="2" Column_name="sequence_nr" Collation="A" Cardinality="65204" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="persistence_journal" Engine="InnoDB" Version="10" Row_format="Compact" Rows="76412" Avg_row_length="955" Data_length="73007104" Max_data_length="0" Index_length="0" Data_free="7340032" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="persistence_metadata">
+		<field Field="persistence_key" Type="bigint(20)" Null="NO" Key="PRI" Extra="auto_increment" Comment="" />
+		<field Field="persistence_id" Type="varchar(255)" Null="NO" Key="UNI" Extra="" Comment="" />
+		<field Field="sequence_nr" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="persistence_metadata" Non_unique="0" Key_name="PRIMARY" Seq_in_index="1" Column_name="persistence_key" Collation="A" Cardinality="9" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="persistence_metadata" Non_unique="0" Key_name="persistence_id" Seq_in_index="1" Column_name="persistence_id" Collation="A" Cardinality="9" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="persistence_metadata" Engine="InnoDB" Version="10" Row_format="Compact" Rows="9" Avg_row_length="1820" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="0" Auto_increment="53" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_structure name="persistence_snapshot">
+		<field Field="persistence_key" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="sequence_nr" Type="bigint(20)" Null="NO" Key="PRI" Extra="" Comment="" />
+		<field Field="created_at" Type="bigint(20)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="snapshot" Type="mediumblob" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="persistence_snapshot" Non_unique="0" Key_name="PRIMARY" Seq_in_index="1" Column_name="persistence_key" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<key Table="persistence_snapshot" Non_unique="0" Key_name="PRIMARY" Seq_in_index="2" Column_name="sequence_nr" Collation="A" Cardinality="0" Null="" Index_type="BTREE" Comment="" Index_comment="" />
+		<options Name="persistence_snapshot" Engine="InnoDB" Version="10" Row_format="Compact" Rows="0" Avg_row_length="0" Data_length="16384" Max_data_length="0" Index_length="0" Data_free="0" Create_time="2019-04-10 10:42:49" Collation="utf8_unicode_ci" Create_options="" Comment="" />
+	</table_structure>
+</database>
+</mysqldump>
