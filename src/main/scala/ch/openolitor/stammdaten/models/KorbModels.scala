@@ -118,6 +118,7 @@ case class KorbReport(
   kunde: KundeReport,
   abotyp: Abotyp,
   zusatzAbosString: String,
+  zusatzAbosAggregatedString: String,
   lieferpositionen: Seq[Lieferposition],
   //modification flags
   erstelldat: DateTime,

@@ -2042,6 +2042,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         val ansprechpersonen = personen.filter(_.kundeId == kunde.id)
         val zs = (zusatzAbos filter (_.hauptAboId == korbAbo.id))
         val zusatzAbosString = (zs filter (_.hauptAboId == korbAbo.id) map (_.abotypName)).mkString(", ")
+        val zusatzAbosAggregatedString = zs.groupBy(_.abotypName).mapValues(_.size).map(a => a._2 + "x " + a._1).mkString(", ")
         val zusatzAbosList = (zs filter (_.hauptAboId == korbAbo.id))
         val kundeReport = copyTo[Kunde, KundeReport](kunde, "personen" -> ansprechpersonen)
         val lp = lieferpositionen flatMap {
@@ -2058,13 +2059,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
               } else None
             }
         }
-        val zusatzAbotypNames = zusatzAbos.map(_.abotypName)
+        val zusatzAbotypNames = zs.map(_.abotypName)
         val korbAboZ = korbAbo match {
           case abo: DepotlieferungAbo => copyTo[DepotlieferungAbo, DepotlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
           case abo: HeimlieferungAbo  => copyTo[HeimlieferungAbo, HeimlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
           case abo: PostlieferungAbo  => copyTo[PostlieferungAbo, PostlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
         }
-        copyTo[Korb, KorbReport](korb, "abo" -> korbAboZ, "abotyp" -> abotyp, "kunde" -> kundeReport, "zusatzAbosString" -> zusatzAbosString, "lieferpositionen" -> lp)
+        copyTo[Korb, KorbReport](korb, "abo" -> korbAboZ, "abotyp" -> abotyp, "kunde" -> kundeReport, "zusatzAbosString" -> zusatzAbosString, "zusatzAbosAggregatedString" -> zusatzAbosAggregatedString, "lieferpositionen" -> lp)
       }
     }.flatten
   }
