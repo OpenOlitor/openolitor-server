@@ -117,7 +117,7 @@ case class KorbReport(
   sort: Option[Int],
   kunde: KundeReport,
   abotyp: Abotyp,
-  zusatzAbotypen: Seq[ZusatzAbotyp],
+  zusatzAbos: Seq[ZusatzAboReport],
   zusatzAbosString: String,
   zusatzAbosAggregatedString: String,
   lieferpositionen: Seq[Lieferposition],

@@ -318,6 +318,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val zusatzabotypFormat = enhanceWithBooleanFlag[ZusatzAbotyp]("aktiv")
   implicit val zusatzaboCreateFormat = autoProductFormat[ZusatzAboCreate]
   implicit val zusatzaboModifyFormat = autoProductFormat[ZusatzAboModify]
+  implicit val zusatzAboReportFormat = autoProductFormat[ZusatzAboReport]
 
   implicit val treeMapIntFormat = new JsonFormat[TreeMap[String, Int]] {
     def write(obj: TreeMap[String, Int]): JsValue = {

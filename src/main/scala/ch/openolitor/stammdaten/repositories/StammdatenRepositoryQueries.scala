@@ -2039,7 +2039,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   private def getKorbReports(koerbe: Seq[Korb], lieferpositionen: Seq[Lieferposition], abos: Seq[HauptAbo], abotypen: Seq[Abotyp], zusatzAbotypen: Seq[ZusatzAbotyp], kunden: Seq[Kunde], personen: Seq[PersonDetail], zusatzAbos: Seq[ZusatzAbo]): Seq[KorbReport] = {
-    koerbe.map { korb =>
+    koerbe.flatMap { korb =>
       for {
         korbAbo <- abos.filter(_.id == korb.aboId).headOption
         abotyp <- abotypen.filter(_.id == korbAbo.abotypId).headOption
@@ -2047,7 +2047,10 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       } yield {
         val ansprechpersonen = personen.filter(_.kundeId == kunde.id)
         val zs = (zusatzAbos filter (_.hauptAboId == korbAbo.id))
-        val zsat = zs flatMap (z => zusatzAbotypen.filter(_.id == z.abotypId))
+        val zusatzAboReports = zs map (z => {
+          val zat = zusatzAbotypen.find(_.id == z.abotypId).get
+          copyTo[ZusatzAbo, ZusatzAboReport](z, "abotyp" -> zat)
+        })
         val zusatzAbosString = (zs filter (_.hauptAboId == korbAbo.id) map (_.abotypName)).mkString(", ")
         val zusatzAbosAggregatedString = zs.groupBy(_.abotypName).mapValues(_.size).map(a => a._2 + "x " + a._1).mkString(", ")
         val zusatzAbosList = (zs filter (_.hauptAboId == korbAbo.id))
@@ -2072,9 +2075,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           case abo: HeimlieferungAbo  => copyTo[HeimlieferungAbo, HeimlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
           case abo: PostlieferungAbo  => copyTo[PostlieferungAbo, PostlieferungAbo](abo, "zusatzAbotypNames" -> zusatzAbotypNames)
         }
-        copyTo[Korb, KorbReport](korb, "abo" -> korbAboZ, "abotyp" -> abotyp, "kunde" -> kundeReport, "zusatzAbotypen" -> zsat, "zusatzAbosString" -> zusatzAbosString, "zusatzAbosAggregatedString" -> zusatzAbosAggregatedString, "lieferpositionen" -> lp)
+        copyTo[Korb, KorbReport](korb, "abo" -> korbAboZ, "abotyp" -> abotyp, "kunde" -> kundeReport, "zusatzAbos" -> zusatzAboReports, "zusatzAbosString" -> zusatzAbosString, "zusatzAbosAggregatedString" -> zusatzAbosAggregatedString, "lieferpositionen" -> lp)
       }
-    }.flatten
+    }
   }
 
   protected def getDepotAuslieferungQuery(depotId: DepotId, datum: DateTime) = {

@@ -689,6 +689,30 @@ case class ZusatzAboDetail(
   modifikator: PersonId
 ) extends JSONSerializable
 
+case class ZusatzAboReport(
+  id: AboId,
+  hauptAboId: AboId,
+  hauptAbotypId: AbotypId,
+  abotypId: AbotypId,
+  abotypName: String,
+  kundeId: KundeId,
+  kunde: String,
+  vertriebsartId: VertriebsartId,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  start: LocalDate,
+  ende: Option[LocalDate],
+  price: Option[BigDecimal],
+  letzteLieferung: Option[DateTime],
+  //extended fields
+  abotyp: ZusatzAbotyp,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
+
 case class ZusatzAboModify(
   id: AboId,
   hauptAboId: AboId,

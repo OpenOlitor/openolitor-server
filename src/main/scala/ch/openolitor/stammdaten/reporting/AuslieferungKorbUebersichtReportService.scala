@@ -67,7 +67,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
       stammdatenReadRepository.getMultiAuslieferungReport(auslieferungIds, projektReport) map { auslieferungReport =>
 
         val hauptAboFarbCodes = (auslieferungReport.entries map { obj: AuslieferungReportEntry => (obj.korb.abotyp.name -> obj.korb.abotyp.farbCode) }).toMap
-        val zusatzAboFarbCodes = (auslieferungReport.entries flatMap { obj: AuslieferungReportEntry => (obj.korb.zusatzAbotypen map { za => (za.name -> za.farbCode) }) }).toMap
+        val zusatzAboFarbCodes = (auslieferungReport.entries flatMap { obj: AuslieferungReportEntry => (obj.korb.zusatzAbos map { za => (za.abotyp.name -> za.abotyp.farbCode) }) }).toMap
         val depotTourFarbCodes = (auslieferungReport.entries flatMap { obj: AuslieferungReportEntry => (obj.depot.map(d => (d.name -> d.farbCode.getOrElse("")))) }).toMap
 
         val proAbotypZusatzabos = (auslieferungReport.entries groupBy (groupIdentifierZusatzabos) map {
