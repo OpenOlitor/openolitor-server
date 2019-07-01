@@ -27,17 +27,20 @@ import ch.openolitor.core.JSONSerializable
 
 case class KorbUebersichtReportProDepotTour(
   name: String,
+  farbCode: String,
   anzahlKoerbe: Int
 ) extends JSONSerializable
 
 case class KorbUebersichtReportProAbotyp(
   name: String,
+  farbCode: String,
   anzahlKoerbe: Int,
   koerbe: Seq[KorbUebersichtReportProDepotTour]
 ) extends JSONSerializable
 
 case class KorbUebersichtReportProZusatzabotyp(
   name: String,
+  farbCode: String,
   anzahlKoerbe: Int
 ) extends JSONSerializable
 
@@ -49,4 +52,3 @@ case class AuslieferungKorbUebersichtReport(
   koerbeZusatzabo: Seq[KorbUebersichtReportProZusatzabotyp],
   koerbe: Seq[KorbUebersichtReportProAbotyp]
 ) extends JSONSerializable
-
