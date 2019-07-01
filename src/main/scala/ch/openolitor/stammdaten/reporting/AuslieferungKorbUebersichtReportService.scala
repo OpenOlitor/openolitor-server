@@ -66,12 +66,16 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
       val projektReport = copyTo[Projekt, ProjektReport](projekt)
       stammdatenReadRepository.getMultiAuslieferungReport(auslieferungIds, projektReport) map { auslieferungReport =>
 
+        val hauptAboFarbCodes = (auslieferungReport.entries map { obj: AuslieferungReportEntry => (obj.korb.abotyp.name -> obj.korb.abotyp.farbCode) }).toMap
+        val zusatzAboFarbCodes = (auslieferungReport.entries flatMap { obj: AuslieferungReportEntry => (obj.korb.zusatzAbos map { za => (za.abotyp.name -> za.abotyp.farbCode) }) }).toMap
+        val depotTourFarbCodes = (auslieferungReport.entries flatMap { obj: AuslieferungReportEntry => (obj.depot.map(d => (d.name -> d.farbCode.getOrElse("")))) }).toMap
+
         val proAbotypZusatzabos = (auslieferungReport.entries groupBy (groupIdentifierZusatzabos) map {
           case (abotypName, auslieferungen) =>
             (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size))
         }) map {
           case (abotypName, proDepotTour) =>
-            KorbUebersichtReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, p._2))).toSeq)
+            KorbUebersichtReportProAbotyp(abotypName, hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse(""), proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, depotTourFarbCodes(p._1), p._2))).toSeq)
         }
 
         val proAbotyp = (auslieferungReport.entries groupBy (groupIdentifierHauptabo) map {
@@ -79,12 +83,12 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
             (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size))
         }) map {
           case (abotypName, proDepotTour) =>
-            KorbUebersichtReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, p._2))).toSeq)
+            KorbUebersichtReportProAbotyp(abotypName, hauptAboFarbCodes(abotypName), proDepotTour.values.sum, (proDepotTour map (p => KorbUebersichtReportProDepotTour(p._1, depotTourFarbCodes(p._1), p._2))).toSeq)
         }
 
         val allZusatzabotypNames = auslieferungReport.entries flatMap { obj => obj.korb.abo.zusatzAbotypNames }
 
-        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, x._2))
+        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, zusatzAboFarbCodes(x._1), x._2))
 
         val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()
 
