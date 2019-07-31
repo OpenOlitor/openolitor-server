@@ -50,6 +50,7 @@ import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import java.nio.file.Paths;
+import java.util.UUID.randomUUID;
 
 import org.odftoolkit.odfdom.pkg.manifest.OdfFileEntry
 
@@ -115,8 +116,6 @@ trait DocumentProcessor extends LazyLogging {
     "BLANC" -> Color.WHITE,
     "JAUNE" -> Color.YELLOW
   )
-
-  val r = scala.util.Random
 
   def processDocument(doc: TextDocument, data: JsValue, locale: Locale = Locale.getDefault): Try[Boolean] = {
     logger.debug(s"processDocument with data: ${data.prettyPrint}")
@@ -328,7 +327,7 @@ trait DocumentProcessor extends LazyLogging {
       processLists(section, props, locale, Seq(sectionKey))
       //append section
       val newSection = doc.appendSection(section, false)
-      newSection.setName(s"noFill-copiedSection${r.nextInt(1000000)}")
+      newSection.setName(s"noFill-copiedSection${randomUUID().toString}")
     }
 
     //remove template section
@@ -366,7 +365,7 @@ trait DocumentProcessor extends LazyLogging {
       processTextboxes(container, props, locale, Seq(key))
       //append section
       val newFrame = p.appendFrame(frame)
-      newFrame.setName(s"noFill-copiedFrame${r.nextInt(1000000)}")
+      newFrame.setName(s"noFill-copiedFrame${randomUUID().toString}")
     }
     //remove template
     frame.remove()
