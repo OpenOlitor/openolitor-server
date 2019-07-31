@@ -64,6 +64,7 @@ trait DocumentProcessor extends LazyLogging {
 
   val dateFormatPattern = """date:\s*"(.*)"""".r
   val numberFormatPattern = """number:\s*"(\[([#@]?[\w\.]+)\])?([#,.0]+)(;((\[([#@]?[\w\.]+)\])?-([#,.0]+)))?"""".r
+  val orderByPattern = """orderBy:\s*"([\w\.]+)"(:ASC|:DESC)?""".r
   val backgroundColorFormatPattern = """bg-color:\s*"([#@]?[\w\.]+)"""".r
   val foregroundColorFormatPattern = """fg-color:\s*"([#@]?[\w\.]+)"""".r
   val replaceFormatPattern = """replace:\s*((\w+\s*\-\>\s*\w+\,?\s?)*)""".r
@@ -114,6 +115,8 @@ trait DocumentProcessor extends LazyLogging {
     "BLANC" -> Color.WHITE,
     "JAUNE" -> Color.YELLOW
   )
+
+  val r = scala.util.Random
 
   def processDocument(doc: TextDocument, data: JsValue, locale: Locale = Locale.getDefault): Try[Boolean] = {
     logger.debug(s"processDocument with data: ${data.prettyPrint}")
@@ -199,15 +202,17 @@ trait DocumentProcessor extends LazyLogging {
    * duplicate all rows except header rows. Try to replace textbox values with value from property map
    */
   def processTable(doc: TableContainer, table: Table, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
-    val propertyKey = parsePropertyKey(table.getDotTableName, pathPrefixes)
+    val (name, structuring) = parseFormats(table.getDotTableName)
+    val propertyKey = parsePropertyKey(name, pathPrefixes)
     props.get(propertyKey) map {
       case Value(JsArray(values), _) =>
-        logger.debug(s"processTable (dynamic): ${table.getDotTableName}")
-        processTableWithValues(doc, table, props, values, locale, pathPrefixes, withinContainer)
+        val valuesStruct = applyStructure(values, structuring, props, pathPrefixes)
+        logger.debug(s"processTable (dynamic): ${name}")
+        processTableWithValues(doc, table, props, valuesStruct, locale, pathPrefixes, withinContainer)
 
     } getOrElse {
       //static proccesing
-      logger.debug(s"processTable (static): ${table.getDotTableName}: $pathPrefixes, $propertyKey")
+      logger.debug(s"processTable (static): ${name}: $pathPrefixes, $propertyKey")
       processStaticTable(table, props, locale, pathPrefixes)
     }
   }
@@ -241,19 +246,20 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  def processTableWithValues(doc: TableContainer, table: Table, props: Map[String, Value], values: Vector[JsValue], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
+  def processTableWithValues(doc: TableContainer, table: Table, props: Map[String, Value], values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
     val startIndex = Math.max(table.getHeaderRowCount, 0)
     val rows = table.getRowList.toList
     val nonHeaderRows = rows.takeRight(rows.length - startIndex)
+    val (tableName, structuring) = parseFormats(table.getDotTableName)
 
-    logger.debug(s"processTable: ${table.getDotTableName} -> Header rows: ${table.getHeaderRowCount}")
+    logger.debug(s"processTable: ${tableName} -> Header rows: ${table.getHeaderRowCount}")
 
-    for (index <- 0 to values.length - 1) {
-      val rowPathPrefix = findPathPrefixes(table.getDotTableName + s".$index", pathPrefixes)
+    for (index <- values) {
+      val rowPathPrefix = findPathPrefixes(tableName + s".${index._2}", pathPrefixes)
 
       //copy rows
       val newRows = if (withinContainer) table.appendRow() :: Nil else table.appendRows(nonHeaderRows.length).toList
-      logger.debug(s"processTable: ${table.getDotTableName} -> Appended rows: ${newRows.length}")
+      logger.debug(s"processTable: ${tableName} -> Appended rows: ${newRows.length}")
       for (r <- 0 to newRows.length - 1) {
         //replace textfields
         for (cell <- 0 to table.getColumnCount - 1) {
@@ -270,7 +276,7 @@ trait DocumentProcessor extends LazyLogging {
     }
 
     //remove template rows
-    logger.debug(s"processTable: ${table.getDotTableName} -> Remove template rows from:$startIndex, count: ${nonHeaderRows.length}.")
+    logger.debug(s"processTable: ${tableName} -> Remove template rows from:$startIndex, count: ${nonHeaderRows.length}.")
     if (nonHeaderRows.length == table.getRowCount) {
       //remove whole table
       table.remove()
@@ -303,21 +309,26 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def processSection(doc: TextDocument, section: Section, props: Map[String, Value], locale: Locale) = {
-    props.get(section.getName) map {
-      case Value(JsArray(values), _) =>
-        processSectionWithValues(doc, section, props, values, locale)
-    } getOrElse logger.debug(s"Section not mapped to property, will be processed statically:${section.getName}")
+    val (name, structuring) = parseFormats(section.getName)
+    props.get(name) map {
+      case Value(JsArray(values), _) => {
+        val valuesStruct = applyStructure(values, structuring, props)
+        processSectionWithValues(doc, section, props, valuesStruct, locale)
+      }
+    } getOrElse logger.debug(s"Section not mapped to property, will be processed statically:${name}")
   }
 
-  private def processSectionWithValues(doc: TextDocument, section: Section, props: Map[String, Value], values: Vector[JsValue], locale: Locale) = {
-    for (index <- 0 to values.length - 1) {
-      val sectionKey = s"${section.getName}.$index"
+  private def processSectionWithValues(doc: TextDocument, section: Section, props: Map[String, Value], values: Vector[(JsValue, Int)], locale: Locale) = {
+    val (name, _) = parseFormats(section.getName)
+    for (index <- values) {
+      val sectionKey = s"${name}.${index._2}"
       logger.debug(s"processSection:$sectionKey")
       processTextboxes(section, props, locale, Seq(sectionKey))
       processTables(section, props, locale, Seq(sectionKey), true)
       processLists(section, props, locale, Seq(sectionKey))
       //append section
-      doc.appendSection(section, false)
+      val newSection = doc.appendSection(section, false)
+      newSection.setName(s"noFill-copiedSection${r.nextInt(1000000)}")
     }
 
     //remove template section
@@ -335,22 +346,27 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def processFrame(p: Paragraph, frame: Frame, props: Map[String, Value], locale: Locale) = {
-    props.get(frame.getName) collect {
-      case (Value(JsArray(values), _)) =>
-        processFrameWithValues(p, frame, props, values, locale)
-    } getOrElse (logger.debug(s"Frame not mapped to property, will be processed statically:${frame.getName}"))
+    val (name, structuring) = parseFormats(frame.getName)
+    props.get(name) collect {
+      case (Value(JsArray(values), _)) => {
+        val valuesStruct = applyStructure(values, structuring, props)
+        processFrameWithValues(p, frame, props, valuesStruct, locale)
+      }
+    } getOrElse (logger.debug(s"Frame not mapped to property, will be processed statically:${name}"))
   }
 
-  private def processFrameWithValues(p: Paragraph, frame: Frame, props: Map[String, Value], values: Vector[JsValue], locale: Locale) = {
-    for (index <- 0 to values.length - 1) {
-      val key = s"${frame.getName}.$index"
-      logger.debug(s"processFrame:$key")
+  private def processFrameWithValues(p: Paragraph, frame: Frame, props: Map[String, Value], values: Vector[(JsValue, Int)], locale: Locale) = {
+    val (name, _) = parseFormats(frame.getName)
+    for (index <- values) {
+      val key = s"${name}.${index._2}"
+      logger.error(s"---------------------------processFrame:$key")
       // process textboxes starting below first child which has to be a <text-box>
       val firstTextBox = OdfElement.findFirstChildNode(classOf[DrawTextBoxElement], frame.getOdfElement())
       val container = new GenericParagraphContainerImpl(firstTextBox)
       processTextboxes(container, props, locale, Seq(key))
       //append section
-      p.appendFrame(frame)
+      val newFrame = p.appendFrame(frame)
+      newFrame.setName(s"noFill-copiedFrame${r.nextInt(1000000)}")
     }
     //remove template
     frame.remove()
@@ -368,7 +384,7 @@ trait DocumentProcessor extends LazyLogging {
     } {
       val (name, formats) = parseFormats(t.getName)
       val propertyKey = parsePropertyKey(name, pathPrefixes)
-      logger.debug(s"processImage: ${propertyKey} | formats:$formats")
+      logger.error(s"--------------------processImage: ${propertyKey} | formats:$formats")
 
       // resolve textbox content from properties, otherwise only apply formats to current content
       props.get(propertyKey) map {
@@ -426,17 +442,19 @@ trait DocumentProcessor extends LazyLogging {
       t <- new NestedTextboxIterator(p.getFrameContainerElement)
     } {
       val (name, formats) = parseFormats(t.getName)
-      val propertyKey = parsePropertyKey(name, pathPrefixes)
-      logger.debug(s"processTextbox: ${propertyKey} | formats:$formats")
+      if (!name.startsWith("noFill-")) {
+        val propertyKey = parsePropertyKey(name, pathPrefixes)
+        logger.error(s"-----------------processTextbox: ${propertyKey} | formats:$formats | name:$name | t.name:${t.getName}")
 
-      // resolve textbox content from properties, otherwise only apply formats to current content
-      t.removeCommonStyle()
-      props.get(propertyKey) map {
-        case Value(_, value) =>
-          applyFormats(t, formats, value, props, locale, pathPrefixes)
-      } getOrElse {
-        if (!pathPrefixes.isEmpty) {
-          applyFormats(t, formats, t.getTextContent, props, locale, pathPrefixes)
+        // resolve textbox content from properties, otherwise only apply formats to current content
+        t.removeCommonStyle()
+        props.get(propertyKey) map {
+          case Value(_, value) =>
+            applyFormats(t, formats, value, props, locale, pathPrefixes)
+        } getOrElse {
+          if (!pathPrefixes.isEmpty) {
+            applyFormats(t, formats, t.getTextContent, props, locale, pathPrefixes)
+          }
         }
       }
     }
@@ -446,6 +464,10 @@ trait DocumentProcessor extends LazyLogging {
   private def applyFormats(textbox: Textbox, formats: Seq[String], value: String, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]): String = {
     formats match {
       case Nil => applyFormat(textbox, "", value, props, locale, pathPrefixes)
+      case s :: _ if (s.contains("orderBy")) => {
+        logger.info(s"---------------------------------------------")
+        applyFormat(textbox, "", value, props, locale, pathPrefixes)
+      }
       case format :: tail =>
         val formattedValue = applyFormat(textbox, format, value, props, locale, pathPrefixes)
         applyFormats(textbox, tail, formattedValue, props, locale, pathPrefixes)
@@ -557,6 +579,25 @@ trait DocumentProcessor extends LazyLogging {
           logger.debug(s"Unsupported color: $color")
           None
         }
+    }
+  }
+
+  private def applyStructure(values: Vector[JsValue], structure: Seq[String], props: Map[String, Value], pathPrefixes: Seq[String] = Seq.empty[String]): Vector[(JsValue, Int)] = {
+    val indexed = values.zipWithIndex
+    structure match {
+      case first +: tail => {
+        first match {
+          case orderByPattern(orderProp, direction) => {
+            val ordering = direction match {
+              case ":DESC" => Ordering[String].reverse
+              case _       => Ordering[String]
+            }
+            indexed.sortBy(e => extractProperties(e._1).get(orderProp).headOption.getOrElse(Value(JsNull, "")).value)(ordering)
+          }
+          case _ => indexed
+        }
+      }
+      case _ => indexed
     }
   }
 
