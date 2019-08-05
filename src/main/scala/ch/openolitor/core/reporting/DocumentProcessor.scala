@@ -554,7 +554,7 @@ trait DocumentProcessor extends LazyLogging {
 
   private def parseFormats(name: String): (String, Seq[String]) = {
     if (name == null || name.trim.isEmpty) {
-      return (name, Nil)
+      return ("", Nil)
     }
     name.split('|').toList match {
       case name :: Nil  => (name.trim, Nil)
