@@ -23,12 +23,12 @@
 package ch.openolitor.reports
 
 import spray.routing._
-
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
+
 import scala.concurrent.Future
 import ch.openolitor.reports.eventsourcing.ReportsEventStoreSerializer
 import ch.openolitor.reports.models._
@@ -40,6 +40,7 @@ import ch.openolitor.util.parsing.UriQueryParamFilterParser
 import ch.openolitor.reports.repositories.DefaultReportsReadRepositorySyncComponent
 import ch.openolitor.reports.repositories.ReportsReadRepositorySyncComponent
 import scalikejdbc.DB
+import spray.http.StatusCodes
 
 /**
  * This is using a Sync-Repository as there is no way to fetch the MetaData on the
@@ -64,11 +65,15 @@ trait SyncReportsRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[ReportExecute]) { reportExecute =>
-              list(Future.successful {
-                DB readOnly {
+              try {
+                val result = DB readOnly {
                   implicit session => reportsReadRepository.executeReport(reportExecute)
                 }
-              }, exportFormat)
+                list(Future.successful { result }, exportFormat)
+              } catch {
+                case e: Exception =>
+                  complete(StatusCodes.BadRequest, s"$e")
+              }
             }
           }
         }
