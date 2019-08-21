@@ -1903,7 +1903,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${depotAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${depotAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(zusatzAboTyp.id, zusatzAbo.abotypId)
-        .leftJoin(pendenzMapping as pendenz).on(pendenz.kundeId, kunde.id)
+        .leftJoin(pendenzMapping as pendenz).on(sqls"${pendenz.kundeId} = ${kunde.id} AND ${pendenz.status} = 'Lieferinformation'")
         .where.eq(depotAuslieferung.id, auslieferungId)
     }.one(depotAuslieferungMapping(depotAuslieferung))
       .toManies(
@@ -1920,7 +1920,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       )
       .map((auslieferung, depots, koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos, zusatzAbotypen, pendenzen) => {
         val personenDetails = personen map (p => copyTo[Person, PersonDetail](p))
-        f(auslieferung, depots.head, koerbe, lieferpositionen, abos, abotypen, zusatzAbotypen, kunden, personenDetails.distinct, zusatzAbos, pendenzen)
+        f(auslieferung, depots.head, koerbe, lieferpositionen, abos, abotypen, zusatzAbotypen, kunden, personenDetails.distinct, zusatzAbos, pendenzen.distinct)
       }).single
 
   }
@@ -1952,7 +1952,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${heimlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${tourAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${tourAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(zusatzAboTyp.id, zusatzAbo.abotypId)
-        .leftJoin(pendenzMapping as pendenz).on(pendenz.kundeId, kunde.id)
+        .leftJoin(pendenzMapping as pendenz).on(sqls"${pendenz.kundeId} = ${kunde.id} AND ${pendenz.status} = 'Lieferinformation'")
         .where.eq(tourAuslieferung.id, auslieferungId)
         .orderBy(korb.sort)
     }.one(tourAuslieferungMapping(tourAuslieferung))
@@ -1970,7 +1970,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       )
       .map((auslieferung, tour, koerbe, lieferposition, abos, abotypen, kunden, personen, zusatzAbos, zusatzAbotypen, pendenzen) => {
         val personenDetails = personen map (p => copyTo[Person, PersonDetail](p))
-        f(auslieferung, tour.head, koerbe, lieferposition, abos, abotypen, zusatzAbotypen, kunden, personenDetails.distinct, zusatzAbos, pendenzen)
+        f(auslieferung, tour.head, koerbe, lieferposition, abos, abotypen, zusatzAbotypen, kunden, personenDetails.distinct, zusatzAbos, pendenzen.distinct)
       }).single
 
   }
@@ -2003,7 +2003,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${postlieferungAbo.id} = ${zusatzAbo.hauptAboId} AND ((${zusatzAbo.ende} IS NULL AND DATE(${postAuslieferung.datum}) >= ${zusatzAbo.start}) OR DATE(${postAuslieferung.datum}) between ${zusatzAbo.start} AND ${zusatzAbo.ende})")
         .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(zusatzAboTyp.id, zusatzAbo.abotypId)
-        .leftJoin(pendenzMapping as pendenz).on(pendenz.kundeId, kunde.id)
+        .leftJoin(pendenzMapping as pendenz).on(sqls"${pendenz.kundeId} = ${kunde.id} AND ${pendenz.status} = 'Lieferinformation'")
         .where.eq(postAuslieferung.id, auslieferungId)
     }.one(postAuslieferungMapping(postAuslieferung))
       .toManies(
@@ -2019,7 +2019,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       )
       .map((auslieferung, koerbe, lieferpositionen, abos, abotypen, kunden, personen, zusatzAbos, zusatzAbotypen, pendenzen) => {
         val personenDetails = personen map (p => copyTo[Person, PersonDetail](p))
-        f(auslieferung, koerbe, lieferpositionen, abos, abotypen, zusatzAbotypen, kunden, personenDetails.distinct, zusatzAbos, pendenzen)
+        f(auslieferung, koerbe, lieferpositionen, abos, abotypen, zusatzAbotypen, kunden, personenDetails.distinct, zusatzAbos, pendenzen.distinct)
       }).single
   }
 

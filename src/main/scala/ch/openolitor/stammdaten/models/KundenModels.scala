@@ -611,11 +611,12 @@ case class PersonCategoryCreate(name: PersonCategoryNameId, description: Option[
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus
 case object Erledigt extends PendenzStatus
+case object Lieferinformation extends PendenzStatus
 case object NichtErledigt extends PendenzStatus
 
 object PendenzStatus {
   def apply(value: String): PendenzStatus = {
-    Vector(Ausstehend, Erledigt, NichtErledigt).find(_.toString == value).getOrElse(Ausstehend)
+    Vector(Ausstehend, Erledigt, Lieferinformation, NichtErledigt).find(_.toString == value).getOrElse(Ausstehend)
   }
 }
 
