@@ -548,6 +548,8 @@ object V1Scripts {
         plzLieferung = None,
         ortLieferung = None,
         zusatzinfoLieferung = None,
+        latLieferung = None,
+        longLieferung = None,
         typen = Set(),
         //Zusatzinformationen
         anzahlAbos = 0,

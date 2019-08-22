@@ -240,5 +240,6 @@ object V2Scripts {
     OO_sunu_27_adding_status_to_zahlungs_export.scripts ++
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts ++
-    ArbeitseinsatzExt.scripts
+    ArbeitseinsatzExt.scripts ++
+    OO199_Coordinates.scripts
 }

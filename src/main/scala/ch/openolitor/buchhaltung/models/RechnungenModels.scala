@@ -254,6 +254,7 @@ case class RechnungDetailReport(
 ) extends JSONSerializable {
   lazy val referenzNummerFormatiert: String = referenzNummer.reverse.grouped(5).map(_.reverse).toList.reverse.mkString(" ")
   lazy val betragRappen = (betrag - betrag.toLong) * 100
+  lazy val betragFranken = betrag.abs
 }
 
 case class RechnungCreateFromRechnungsPositionen(
