@@ -109,8 +109,8 @@ trait IKundeReport extends IKunde {
   lazy val strasseUndNummer: String = strasse + hausNummer.map(" " + _).getOrElse("")
   lazy val plzOrt: String = plz + " " + ort
 
-  lazy val strasseUndNummerLieferung = strasseLieferung.map(_ + hausNummerLieferung.map(" " + _).getOrElse(""))
-  lazy val plzOrtLieferung = plzLieferung.map(_ + ortLieferung.map(" " + _).getOrElse(""))
+  lazy val strasseUndNummerLieferung = strasseLieferung.map(_ + hausNummerLieferung.map(" " + _).getOrElse(strasse + hausNummer.map(" " + _).getOrElse("")))
+  lazy val plzOrtLieferung = plzLieferung.map(_ + ortLieferung.map(" " + _).getOrElse(plz + " " + ort))
 
   lazy val adresszeilen = Seq(
     Some(bezeichnung),
