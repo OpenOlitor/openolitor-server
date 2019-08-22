@@ -56,9 +56,13 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   val kundeModifyPersister = persister[KundeModify]("kunde-modify")
   val kundeModifyV2Persister = persister[KundeModify, V2]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen)))
-  implicit val kundeModifyV3Persister = persister[KundeModify, V3]("kunde-modify", from[V1]
+  val kundeModifyV3Persister = persister[KundeModify, V3]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None))))
+  implicit val kundeModifyV4Persister = persister[KundeModify, V4]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
+    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
+    .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None))))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 

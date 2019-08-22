@@ -36,14 +36,14 @@ object KundeParser extends EntityParser {
     parseEntity[Kunde, KundeId]("id", Seq("bezeichnung", "strasse", "haus_nummer", "adress_zusatz", "plz", "ort", "bemerkungen",
       "abweichende_lieferadresse", "bezeichnung_lieferung", "strasse_lieferung", "haus_nummer_lieferung",
       "adress_zusatz_lieferung", "plz_lieferung", "ort_lieferung", "zusatzinfo_lieferung", "typen",
-      "anzahl_abos", "anzahl_abos_aktiv", "anzahl_pendenzen", "anzahl_personen", "paymentType") ++ modifyColumns) { id => indexes => row =>
+      "anzahl_abos", "anzahl_abos_aktiv", "anzahl_pendenzen", "anzahl_personen", "paymentType", "coordinates_lat", "coordinates_long") ++ modifyColumns) { id => indexes => row =>
       //match column indexes
       val Seq(indexBezeichnung, indexStrasse, indexHausNummer, indexAdressZusatz, indexPlz, indexOrt, indexBemerkungen,
         indexAbweichendeLieferadresse, indexBezeichnungLieferung, indexStrasseLieferung, indexHausNummerLieferung,
         indexAdresseZusatzLieferung, indexPlzLieferung, indexOrtLieferung, indexZusatzinfoLieferung, indexKundentyp,
         indexAnzahlAbos, indexAnzahlAbosAktiv, indexAnzahlPendenzen, indexAnzahlPersonen, indexPaymentType) = indexes take (21)
 
-      val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
+      val Seq(indexLatLieferung, indexLongLieferung, indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (6)
 
       val kundeId = KundeId(id)
       val personenByKundeId = personen filter (_.kundeId == kundeId)
@@ -71,6 +71,8 @@ object KundeParser extends EntityParser {
         plzLieferung = row.value[Option[String]](indexPlzLieferung),
         ortLieferung = row.value[Option[String]](indexOrtLieferung),
         zusatzinfoLieferung = row.value[Option[String]](indexZusatzinfoLieferung),
+        latLieferung = row.value[Option[BigDecimal]](indexLatLieferung),
+        longLieferung = row.value[Option[BigDecimal]](indexLongLieferung),
         typen = (row.value[String](indexKundentyp).split(",") map (KundentypId)).toSet,
         //Zusatzinformationen
         anzahlAbos = row.value[Int](indexAnzahlAbos),

@@ -260,6 +260,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.ortLieferung -> kunde.ortLieferung,
         column.adressZusatzLieferung -> kunde.adressZusatzLieferung,
         column.zusatzinfoLieferung -> kunde.zusatzinfoLieferung,
+        column.latLieferung -> kunde.latLieferung,
+        column.longLieferung -> kunde.longLieferung,
         column.typen -> kunde.typen,
         column.bemerkungen -> kunde.bemerkungen,
         column.anzahlAbos -> kunde.anzahlAbos,
