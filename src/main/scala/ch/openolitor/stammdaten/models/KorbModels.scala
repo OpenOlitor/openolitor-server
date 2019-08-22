@@ -121,6 +121,7 @@ case class KorbReport(
   zusatzAbosString: String,
   zusatzAbosAggregatedString: String,
   lieferpositionen: Seq[Lieferposition],
+  lieferinformation: Seq[Pendenz],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
