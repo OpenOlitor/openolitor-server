@@ -34,7 +34,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.2.0",
+  version := "2.3.0-SNAPSHOT",
   scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -73,7 +73,7 @@ val buildSettings = Seq(
     //akka persistence journal driver
     //"com.okumin" 		               %%  "akka-persistence-sql-async" 	        % "0.5.1",
     // use currently own fork, until PR was merged and a new release is available
-    "org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.9.+",
+    //"org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.9.+",
     "com.github.mauricio"          %%  "mysql-async" 						              % "0.2.+",
     //
     "org.scalikejdbc" 	           %%  "scalikejdbc-config"				            % scalalikeV,
@@ -112,10 +112,10 @@ lazy val scalaxbSettings = Seq(
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07")
 )
 
-lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version")
+lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version_with_timeout")
 lazy val akkaPersistenceSqlAsync = ProjectRef(akkaPersistenceSqlAsyncUri, "core")
 
-lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/support_up_to_9_joins")
+lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/oneToManies21Traversable")
 lazy val scalikejdbcAsync = ProjectRef(scalikejdbcAsyncForkUri, "core")
 
 lazy val sprayJsonMacro = RootProject(uri("git://github.com/openolitor/spray-json-macros.git"))
@@ -148,6 +148,6 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
       // to merge generated sources into sources.jar as well
       (f, f.relativeTo((sourceManaged in Compile).value).get.getPath)
     }
-    )) dependsOn (macroSub, sprayJsonMacro, akkaPersistenceSqlAsync)
+  )) dependsOn (macroSub, sprayJsonMacro, scalikejdbcAsync, akkaPersistenceSqlAsync)
 
 lazy val root = (project in file("root")).settings(buildSettings).aggregate(macroSub, main, sprayJsonMacro)

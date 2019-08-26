@@ -26,7 +26,7 @@ import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.scalax.Tuple26
+import ch.openolitor.core.scalax.Tuple28
 
 case class KundeId(id: Long) extends BaseId
 
@@ -60,6 +60,8 @@ trait IKunde extends BaseEntity[KundeId] {
   val plzLieferung: Option[String]
   val ortLieferung: Option[String]
   val zusatzinfoLieferung: Option[String]
+  val latLieferung: Option[BigDecimal]
+  val longLieferung: Option[BigDecimal]
   val typen: Set[KundentypId]
   val personen: Seq[PersonDetail]
   //Zusatzinformationen
@@ -87,6 +89,8 @@ case class Kunde(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   //Zusatzinformationen
   anzahlAbos: Int,
@@ -105,8 +109,8 @@ trait IKundeReport extends IKunde {
   lazy val strasseUndNummer: String = strasse + hausNummer.map(" " + _).getOrElse("")
   lazy val plzOrt: String = plz + " " + ort
 
-  lazy val strasseUndNummerLieferung = strasseLieferung.map(_ + hausNummerLieferung.map(" " + _).getOrElse(""))
-  lazy val plzOrtLieferung = plzLieferung.map(_ + ortLieferung.map(" " + _).getOrElse(""))
+  lazy val strasseUndNummerLieferung = strasseLieferung.map(_ + hausNummerLieferung.map(" " + _).getOrElse(strasse + hausNummer.map(" " + _).getOrElse("")))
+  lazy val plzOrtLieferung = plzLieferung.map(_ + ortLieferung.map(" " + _).getOrElse(plz + " " + ort))
 
   lazy val adresszeilen = Seq(
     Some(bezeichnung),
@@ -154,6 +158,8 @@ case class KundeReport(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   personen: Seq[PersonDetail],
   //Zusatzinformationen
@@ -186,6 +192,8 @@ case class KundeDetailReport(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   //Zusatzinformationen
   anzahlAbos: Int,
@@ -222,6 +230,8 @@ case class KundeDetailArbeitseinsatzReport(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   paymentType: Option[PaymentType],
   //Zusatzinformationen
@@ -242,7 +252,7 @@ case class KundeDetailArbeitseinsatzReport(
 ) extends BaseEntity[KundeId] with IKundeReport
 
 object Kunde {
-  def unapply(k: Kunde) = Some(Tuple26(
+  def unapply(k: Kunde) = Some(Tuple28(
     k.id: KundeId,
     k.bezeichnung: String,
     k.strasse: String,
@@ -259,6 +269,8 @@ object Kunde {
     k.plzLieferung: Option[String],
     k.ortLieferung: Option[String],
     k.zusatzinfoLieferung: Option[String],
+    k.latLieferung: Option[BigDecimal],
+    k.longLieferung: Option[BigDecimal],
     k.typen: Set[KundentypId],
     //Zusatzinformationen
     k.anzahlAbos: Int,
@@ -291,6 +303,8 @@ case class KundeUebersicht(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   //Zusatzinformationen
   anzahlAbos: Int,
@@ -322,6 +336,8 @@ case class KundeDetail(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   //Zusatzinformationen
   anzahlAbos: Int,
@@ -356,6 +372,8 @@ case class KundeModify(
   plzLieferung: Option[String],
   ortLieferung: Option[String],
   zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
   typen: Set[KundentypId],
   pendenzen: Seq[PendenzModify],
   ansprechpersonen: Seq[PersonModify],
@@ -611,11 +629,12 @@ case class PersonCategoryCreate(name: PersonCategoryNameId, description: Option[
 sealed trait PendenzStatus
 case object Ausstehend extends PendenzStatus
 case object Erledigt extends PendenzStatus
+case object Lieferinformation extends PendenzStatus
 case object NichtErledigt extends PendenzStatus
 
 object PendenzStatus {
   def apply(value: String): PendenzStatus = {
-    Vector(Ausstehend, Erledigt, NichtErledigt).find(_.toString == value).getOrElse(Ausstehend)
+    Vector(Ausstehend, Erledigt, Lieferinformation, NichtErledigt).find(_.toString == value).getOrElse(Ausstehend)
   }
 }
 
