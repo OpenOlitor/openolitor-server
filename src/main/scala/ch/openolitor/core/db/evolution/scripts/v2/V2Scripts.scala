@@ -241,5 +241,6 @@ object V2Scripts {
     Seq(arbeitseinsatzDBInitializationScript) ++
     OO109_Arbeitseinsatz.scripts ++
     ArbeitseinsatzExt.scripts ++
-    OO199_Coordinates.scripts
+    OO199_Coordinates.scripts ++
+    LPHTMLEditor.scripts
 }
