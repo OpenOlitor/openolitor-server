@@ -532,8 +532,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         (
           "strasseUndNummer" -> JsString(obj.strasseUndNummer),
           "plzOrt" -> JsString(obj.plzOrt),
-          "strasseUndNummerLieferung" -> JsString(obj.strasseUndNummerLieferung.getOrElse("")),
-          "plzOrtLieferung" -> JsString(obj.plzOrtLieferung.getOrElse("")),
+          "strasseUndNummerLieferung" -> JsString(obj.strasseUndNummerLieferung),
+          "plzOrtLieferung" -> JsString(obj.plzOrtLieferung),
           "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector),
           "lieferAdresszeilen" -> JsArray(obj.lieferAdresszeilen.map(JsString(_)).toVector),
           "telefonNummern" -> JsString(obj.telefonNummern)
