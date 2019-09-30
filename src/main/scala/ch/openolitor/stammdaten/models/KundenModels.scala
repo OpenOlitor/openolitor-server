@@ -109,8 +109,15 @@ trait IKundeReport extends IKunde {
   lazy val strasseUndNummer: String = strasse + hausNummer.map(" " + _).getOrElse("")
   lazy val plzOrt: String = plz + " " + ort
 
-  lazy val strasseUndNummerLieferung = strasseLieferung.map(_ + hausNummerLieferung.map(" " + _).getOrElse(strasse + hausNummer.map(" " + _).getOrElse("")))
-  lazy val plzOrtLieferung = plzLieferung.map(_ + ortLieferung.map(" " + _).getOrElse(plz + " " + ort))
+  lazy val strasseUndNummerLieferung: String = abweichendeLieferadresse match {
+    case true  => strasseLieferung.getOrElse("") + hausNummerLieferung.map(" " + _).getOrElse("")
+    case false => strasseUndNummer
+  }
+
+  lazy val plzOrtLieferung: String = abweichendeLieferadresse match {
+    case true  => plzLieferung.map(_ + " ").getOrElse("") + ortLieferung.getOrElse("")
+    case false => plzOrt
+  }
 
   lazy val adresszeilen = Seq(
     Some(bezeichnung),
@@ -124,8 +131,8 @@ trait IKundeReport extends IKunde {
       Seq(
         Some(bezeichnungLieferung.getOrElse(bezeichnung)),
         adressZusatzLieferung,
-        strasseUndNummerLieferung,
-        plzOrtLieferung
+        Some(strasseUndNummerLieferung),
+        Some(plzOrtLieferung)
       ).flatten.padTo(6, "")
     case false => adresszeilen
   }
