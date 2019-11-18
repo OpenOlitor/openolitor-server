@@ -665,7 +665,9 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.zusatzAbotypNames -> abo.zusatzAbotypNames,
         column.guthabenVertraglich -> abo.guthabenVertraglich,
         column.guthaben -> abo.guthaben,
-        column.guthabenInRechnung -> abo.guthabenInRechnung
+        column.guthabenInRechnung -> abo.guthabenInRechnung,
+        column.vertriebId -> abo.vertriebId,
+        column.vertriebBeschrieb -> abo.vertriebBeschrieb
       )
     }
   }
@@ -699,8 +701,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(heimlieferungAbo: HeimlieferungAbo) = {
       super.updateParameters(heimlieferungAbo) ++ Seq(
         column.tourId -> heimlieferungAbo.tourId,
-        column.tourName -> heimlieferungAbo.tourName,
-        column.vertriebBeschrieb -> heimlieferungAbo.vertriebBeschrieb
+        column.tourName -> heimlieferungAbo.tourName
       )
     }
   }
