@@ -124,19 +124,24 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       }
 
       stammdatenWriteRepository.getAbosByVertrieb(id) map { abo =>
+        val beschrieb = update.beschrieb
         abo match {
-          case dlAbo: DepotlieferungAbo =>
-            logger.debug(s"Update abo with data -> vertriebBeschrieb")
-            stammdatenWriteRepository.updateEntity[DepotlieferungAbo, AboId](abo.id)(depotlieferungAboMapping.column.vertriebBeschrieb -> update.beschrieb)
-          case hlAbo: HeimlieferungAbo =>
-            logger.debug(s"Update abo with data -> vertriebBeschrieb")
-            stammdatenWriteRepository.updateEntity[HeimlieferungAbo, AboId](abo.id)(heimlieferungAboMapping.column.vertriebBeschrieb -> (update.beschrieb))
-          case plAbo: PostlieferungAbo =>
-            logger.debug(s"Update abo with data -> vertriebBeschrieb")
-            stammdatenWriteRepository.updateEntity[PostlieferungAbo, AboId](abo.id)(postlieferungAboMapping.column.vertriebBeschrieb -> update.beschrieb)
-          case zAbo: ZusatzAbo =>
-            logger.debug(s"Update abo with data -> vertriebBeschrieb")
-            stammdatenWriteRepository.updateEntity[ZusatzAbo, AboId](abo.id)(zusatzAboMapping.column.vertriebBeschrieb -> update.beschrieb)
+          case dlAbo: DepotlieferungAbo => {
+            logger.debug(s"Update abo with data -> vertriebBeschrieb ${beschrieb}")
+            stammdatenWriteRepository.updateEntity[DepotlieferungAbo, AboId](dlAbo.id)(depotlieferungAboMapping.column.vertriebBeschrieb -> beschrieb)
+          }
+          case hlAbo: HeimlieferungAbo => {
+            logger.debug(s"Update abo with data -> vertriebBeschrieb ${beschrieb}")
+            stammdatenWriteRepository.updateEntity[HeimlieferungAbo, AboId](hlAbo.id)(heimlieferungAboMapping.column.vertriebBeschrieb -> beschrieb)
+          }
+          case plAbo: PostlieferungAbo => {
+            logger.debug(s"Update abo with data -> vertriebBeschrieb ${beschrieb}")
+            stammdatenWriteRepository.updateEntity[PostlieferungAbo, AboId](plAbo.id)(postlieferungAboMapping.column.vertriebBeschrieb -> beschrieb)
+          }
+          case zAbo: ZusatzAbo => {
+            logger.debug(s"Update abo with data -> vertriebBeschrieb ${beschrieb}")
+            stammdatenWriteRepository.updateEntity[ZusatzAbo, AboId](zAbo.id)(zusatzAboMapping.column.vertriebBeschrieb -> beschrieb)
+          }
           case _ =>
         }
       }
