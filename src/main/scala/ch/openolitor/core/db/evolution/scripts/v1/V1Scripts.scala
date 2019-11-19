@@ -200,6 +200,8 @@ object V1Scripts {
         plz_lieferung varchar(10),
         ort_lieferung varchar(50),
         zusatzinfo_lieferung varchar(100),
+        lat_lieferung DECIMAL(9,6),
+        long_lieferung DECIMAL(9,6),
         typen varchar(200),
         anzahl_abos int not null,
         anzahl_abos_aktiv int not null,
