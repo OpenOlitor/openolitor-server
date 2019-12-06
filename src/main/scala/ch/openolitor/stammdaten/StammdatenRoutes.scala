@@ -78,7 +78,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      kontoDatenRoute ~ aboTypenRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
+      kontoDatenRoute ~ aboTypenRoute ~ vertriebeRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
         kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
         mailingRoute
@@ -253,6 +253,11 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         (put | post)(update[CustomKundentypModify, CustomKundentypId](kundentypId)) ~
           delete(remove(kundentypId))
       }
+
+  private def vertriebeRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+    path("vertriebe") {
+      get(list(stammdatenReadRepository.getVertriebe))
+    }
 
   private def aboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
     path("abotypen") {

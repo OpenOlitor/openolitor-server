@@ -2162,6 +2162,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
+  protected def getVertriebeQuery() = {
+    withSQL {
+      select
+        .from(vertriebMapping as vertrieb)
+        .orderBy(vertrieb.beschrieb)
+    }.map(vertriebMapping(vertrieb)).list
+  }
+
   protected def getProjektVorlagenQuery() = {
     withSQL {
       select
