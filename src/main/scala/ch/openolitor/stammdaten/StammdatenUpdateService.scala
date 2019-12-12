@@ -154,9 +154,9 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         }
         case _ =>
           throw new IllegalArgumentException("The type of subscription is not known")
-          }
-          stammdatenWriteRepository.getUngeplanteLieferungen(id) map { lieferung =>
-            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(lieferungMapping.column.zielpreis -> update.zielpreis)
+      }
+      stammdatenWriteRepository.getUngeplanteLieferungen(id) map { lieferung =>
+        stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(lieferungMapping.column.zielpreis -> update.zielpreis)
       }
     }
   }
