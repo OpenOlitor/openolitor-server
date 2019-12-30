@@ -52,6 +52,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
 
   def getVertrieb(vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Vertrieb]]
   def getVertriebe(abotypId: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[VertriebVertriebsarten]]
+  def getVertriebe(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Vertrieb]]
 
   def getVertriebsart(vertriebsartId: VertriebsartId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[VertriebsartDetail]]
   def getVertriebsarten(vertriebId: VertriebId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[VertriebsartDetail]]
@@ -259,12 +260,17 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   override def getZusatzAbotypDetail(id: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZusatzAbotyp]] = {
     getZusatzAbotypDetailQuery(id).future
   }
+
   def getVertrieb(vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Vertrieb]] = {
     getVertriebQuery(vertriebId).future
   }
 
   def getVertriebe(abotypId: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[VertriebVertriebsarten]] = {
     getVertriebeQuery(abotypId).future
+  }
+
+  def getVertriebe(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Vertrieb]] = {
+    getVertriebeQuery().future
   }
 
   def getVertriebsarten(vertriebId: VertriebId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext) = {
