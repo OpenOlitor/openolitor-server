@@ -93,9 +93,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
 
   def kontoDatenRoute(implicit subject: Subject) = {
     path("kontodaten") {
-      get {
-        get(detail(kundenportalReadRepository.getKontoDaten))
-      }
+      get(detail(kundenportalReadRepository.getKontoDatenProjekt))
     }
   }
 
