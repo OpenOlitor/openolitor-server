@@ -811,7 +811,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .where.eq(depotlieferungAbo.id, id)
         .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
+          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(depotlieferungAbo.aktiv, false))
         ))
     }
       .one(depotlieferungAboMapping(depotlieferungAbo))
@@ -851,7 +851,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .where.eq(heimlieferungAbo.id, id)
         .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
+          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(heimlieferungAbo.aktiv, false))
         ))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toManies(
@@ -890,7 +890,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
         .where.eq(postlieferungAbo.id, id)
         .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
+          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(postlieferungAbo.aktiv, false))
         ))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toManies(
