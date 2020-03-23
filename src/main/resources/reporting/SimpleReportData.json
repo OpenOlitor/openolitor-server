@@ -27,7 +27,6 @@
  		},
  		{
  			"id": 2,
- 			"street" : "Work address",
  			"date": "2002-01-01T12:21:01.123Z",
  			"number": -456.789,
  			"persons": [

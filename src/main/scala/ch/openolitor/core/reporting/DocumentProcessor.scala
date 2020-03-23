@@ -433,7 +433,8 @@ trait DocumentProcessor extends LazyLogging {
   /**
    * Process textboxes and fill in content based on
    *
-   * If pathPrefixes is Nil, applyFormats will not be executed
+   * If pathPrefixes is Nil, applyFormats will not be executed. If property value is not found, bind text to empty string value
+   * to overwrite the previously copied dynamic value
    */
   private def processTextboxes(cont: ParagraphContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
     for {
@@ -452,7 +453,7 @@ trait DocumentProcessor extends LazyLogging {
             applyFormats(t, formats, value, props, locale, pathPrefixes)
         } getOrElse {
           if (!pathPrefixes.isEmpty) {
-            applyFormats(t, formats, t.getTextContent, props, locale, pathPrefixes)
+            applyFormats(t, formats, "", props, locale, pathPrefixes)
           }
         }
       }
