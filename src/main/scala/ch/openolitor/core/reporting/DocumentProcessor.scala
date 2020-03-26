@@ -63,8 +63,8 @@ trait DocumentProcessor extends LazyLogging {
   val dateFormatPattern = """date:\s*"(.*)"(-\w*)?""".r
   val numberFormatPattern = """number:\s*"(\[([#@]?[\w\.]+)\])?([#,.0]+)(;((\[([#@]?[\w\.]+)\])?-([#,.0]+)))?"(-\w*)?""".r
   val orderByPattern = """orderBy:\s*"([\w\.]+)"(:ASC|:DESC)?(-\w*)?""".r
-  val backgroundColorFormatPattern = """bg-color:\s*"([#@]?[\w\.]+)"(-\w*)?""".r
-  val foregroundColorFormatPattern = """fg-color:\s*"([#@]?[\w\.]+)"(-\w*)?""".r
+  val backgroundColorFormatPattern = """bg-color:\s*"(.+)"(-\w*)?""".r
+  val foregroundColorFormatPattern = """fg-color:\s*"(.+)"(-\w*)?""".r
   val replaceFormatPattern = """replace:\s*((\w+\s*\-\>\s*\w+\,?\s?)*)(-\w*)?""".r
   val dateFormatter = ISODateTimeFormat.dateTime
   val libreOfficeDateFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss")
@@ -154,7 +154,7 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def resolvePropertyFromJson(propertyKey: String, json: JsValue): Option[Vector[JsValue]] =
-    JsonPath.query(propertyKey, json).right.toOption.flatMap{
+    JsonPath.query(propertyKey, json).right.toOption.flatMap {
       case Vector() =>
         // an empty vectors indicates that the property was not found
         None
@@ -373,9 +373,10 @@ trait DocumentProcessor extends LazyLogging {
     }
     val (name, structuring) = parseFormats(propertyName)
     val propertyKey = parsePropertyKey(name, pathPrefixes)
-    resolvePropertyFromJson(propertyKey, json) map { values =>
-      val valuesStruct = applyStructure(values, structuring, pathPrefixes)
-      processFrameWithValues(json, p, frame, valuesStruct, locale, pathPrefixes, name)
+    resolvePropertyFromJson(propertyKey, json) collect {
+      case Vector(JsArray(values)) =>
+        val valuesStruct = applyStructure(values, structuring, pathPrefixes)
+        processFrameWithValues(json, p, frame, valuesStruct, locale, pathPrefixes, name)
     } getOrElse (logger.debug(s"Frame not mapped to property, will be processed statically:${name}"))
   }
 

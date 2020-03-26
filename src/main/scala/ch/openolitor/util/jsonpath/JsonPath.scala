@@ -46,10 +46,7 @@ object JsonPath {
     }
 
   def query(query: String, jsonObject: JsValue): Either[JPError, Vector[JsValue]] = {
-    System.err.println(s"query:$query")
-    val r = compile(query).right.map(_.query(jsonObject))
-    System.err.println(s"result:$r")
-    r
+   compile(query).right.map(_.query(jsonObject))
   }
 }
 
@@ -63,8 +60,6 @@ class JsonPathWalker(rootNode: JsValue, fullPath: List[PathToken]) {
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   private[this] def walk(node: JsValue, path: List[PathToken]): Iterator[JsValue] = {
-    System.err.println(s"walk:$path:$node")
-
     path match {
       case head :: tail => walk1(node, head).flatMap(walk(_, tail))
       case _            => Iterator.single(node)
