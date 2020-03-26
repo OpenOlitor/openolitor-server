@@ -30,6 +30,7 @@ import spray.json.{ JsArray, JsObject, JsValue }
  * @param root the tree root
  *
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 class RecursiveDataIterator(root: JsValue) extends RecursiveIterator[Iterator[JsValue]](root) {
 

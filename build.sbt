@@ -66,6 +66,7 @@ val buildSettings = Seq(
     "org.specs2"                   %%  "specs2-core"   					              % specs2V     % "test",
     "org.specs2"                   %%  "specs2-mock"                          % specs2V     % "test",
     "org.specs2"                   %%  "specs2-junit"                         % specs2V     % "test",
+    "org.specs2"                   %%  "specs2-scalacheck"                    % specs2V     % "test",
     "org.mockito"                  %   "mockito-core"                         % "1.10.19"   % "test",
     "org.scalaz" 		               %%  "scalaz-core"						              % "7.1.8",
     //use scala logging to log outside of the actor system

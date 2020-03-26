@@ -26,6 +26,7 @@ import spray.json.{ JsFalse, JsNull, JsNumber, JsString, JsTrue, JsValue }
 
 /**
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 object AST {
   sealed trait AstToken extends Product with Serializable

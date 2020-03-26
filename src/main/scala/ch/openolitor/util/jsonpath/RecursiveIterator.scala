@@ -28,6 +28,7 @@ import scala.collection.AbstractIterator
 
 /**
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 abstract class RecursiveIterator[T](root: JsValue) extends AbstractIterator[JsValue] {
 

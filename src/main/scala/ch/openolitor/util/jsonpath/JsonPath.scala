@@ -33,6 +33,7 @@ final case class JPError(reason: String)
 
 /**
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 object JsonPath {
   private val JsonPathParser = ThreadLocal.withInitial[Parser](new Supplier[Parser] {

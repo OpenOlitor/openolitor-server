@@ -40,6 +40,7 @@ final case class VisitedArray(it: Iterator[JsValue]) extends VisitedIterator {
  * @param name the searched name
  *
  *  Originally token from gatlin-jsonpath and converted to spray-json
+ *  https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 class RecursiveFieldIterator(root: JsValue, name: String) extends RecursiveIterator[VisitedIterator](root) {
 

@@ -26,67 +26,11 @@ import ch.openolitor.util.jsonpath.AST._
 
 import scala.util.parsing.combinator.RegexParsers
 
-class StringBuilderPool extends ThreadLocal[StringBuilder] {
-
-  override def initialValue() = new StringBuilder(512)
-
-  override def get(): StringBuilder = {
-    val sb = super.get()
-    sb.setLength(0)
-    sb
-  }
-}
-
-object FastStringOps {
-
-  private val stringBuilderPool = new StringBuilderPool
-
-  implicit class RichString(val text: String) extends AnyVal {
-    def fastReplaceAll(replaced: String, replacement: String): String =
-      if (replaced.isEmpty || replacement.isEmpty) {
-        text
-      } else {
-        var end = text.indexOf(replaced)
-        if (end == -1) {
-          text
-        } else {
-          var start = 0
-          val replacedLength = replaced.length
-          val buf = stringBuilderPool.get()
-          while (end != -1) {
-            buf.append(text, start, end).append(replacement)
-            start = end + replacedLength
-            end = text.indexOf(replaced, start)
-          }
-          buf.append(text, start, text.length).toString
-        }
-      }
-  }
-}
-
 /**
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 object Parser extends RegexParsers {
-
-  private val stringBuilderPool = new StringBuilderPool
-
-  private[jsonpath] def fastReplaceAll(text: String, replaced: String, replacement: String): String = {
-    var end = text.indexOf(replaced)
-    if (end == -1) {
-      text
-    } else {
-      var start = 0
-      val replacedLength = replaced.length
-      val buf = stringBuilderPool.get()
-      while (end != -1) {
-        buf.append(text, start, end).append(replacement)
-        start = end + replacedLength
-        end = text.indexOf(replaced, start)
-      }
-      buf.append(text, start, text.length).toString
-    }
-  }
 
   private val NumberRegex = """-?\d+""".r
   private val FieldRegex = """[^\*\.\[\]\(\)=!<>\s]+""".r
@@ -102,10 +46,10 @@ object Parser extends RegexParsers {
 
   private def field: Parser[String] = FieldRegex
 
-  private def singleQuotedField = "'" ~> SingleQuotedFieldRegex <~ "'" ^^ (fastReplaceAll(_, "\\'", "'"))
-  private def doubleQuotedField = "\"" ~> DoubleQuotedFieldRegex <~ "\"" ^^ (fastReplaceAll(_, "\\\"", "\""))
-  private def singleQuotedValue = "'" ~> SingleQuotedValueRegex <~ "'" ^^ (fastReplaceAll(_, "\\'", "'"))
-  private def doubleQuotedValue = "\"" ~> DoubleQuotedValueRegex <~ "\"" ^^ (fastReplaceAll(_, "\\\"", "\""))
+  private def singleQuotedField = "'" ~> SingleQuotedFieldRegex <~ "'" ^^ (_.replaceAll("""\\'""", """'"""))
+  private def doubleQuotedField = "\"" ~> DoubleQuotedFieldRegex <~ "\"" ^^ (_.replaceAll("""\\"""", """""""))
+  private def singleQuotedValue = "'" ~> SingleQuotedValueRegex <~ "'" ^^ (_.replaceAll("""\\'""", """'"""))
+  private def doubleQuotedValue = "\"" ~> DoubleQuotedValueRegex <~ "\"" ^^ (_.replaceAll("""\\"""", """""""))
   private def quotedField: Parser[String] = singleQuotedField | doubleQuotedField
   private def quotedValue: Parser[String] = singleQuotedValue | doubleQuotedValue
 

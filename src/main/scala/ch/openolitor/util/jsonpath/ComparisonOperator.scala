@@ -31,6 +31,7 @@ sealed trait ComparisonOperator extends Product with Serializable {
 // Comparison operators
 /**
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 sealed trait ComparisonWithOrderingOperator extends ComparisonOperator {
 

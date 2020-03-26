@@ -22,15 +22,14 @@
 \*                                                                           */
 package ch.openolitor.util.jsonpath
 
-import spray.json.{ JsObject, JsValue }
-
-import scala.collection.AbstractIterator
+import spray.json.{JsArray, JsObject, JsValue}
 
 /**
  * Collect all nodes
  * @param root the tree root
  *
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 class RecursiveNodeIterator(root: JsValue) extends RecursiveIterator[Iterator[JsValue]](root) {
 
@@ -47,6 +46,9 @@ class RecursiveNodeIterator(root: JsValue) extends RecursiveIterator[Iterator[Js
     node match {
       case JsObject(fields) if (fields.size > 0) =>
         stack = fields.values.iterator :: stack
+      case JsArray(elements) if (elements.size > 0) =>
+        stack = elements.iterator :: stack
+      case _ =>
     }
 
     nextNode = node

@@ -23,14 +23,16 @@
 package ch.openolitor.util.jsonpath
 
 import org.specs2.mutable._
+import org.specs2.matcher._
 import spray.json._
 
 /**
  * Originally token from gatlin-jsonpath and converted to spray-json
+ * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
-class JsonPathSpec extends Specification {
+class JsonPathSpec extends Specification with Matchers {
 
-  private def parseJson(s: String): JsValue = parseJson(s)
+  private def parseJson(s: String): JsValue = s.parseJson
   private def bool(b: Boolean) = JsBoolean(b)
   private def int(i: Int) = JsNumber(i)
   private def double(f: Double) = JsNumber(f)
@@ -783,7 +785,7 @@ class JsonPathSpec extends Specification {
 
   "Incorrect JsonPath expressions" should {
     "be handled properly" in {
-      JsonPath.query("€.$", goessnerJson) === 'left
+      JsonPath.query("€.$", goessnerJson) === Left(JPError("`$' expected but `€' found"))
     }
   }
 
@@ -876,7 +878,7 @@ class JsonPathSpec extends Specification {
       val json = parseJson(""" { "foo" : {"bar" : "baz"} }""")
       val x = JsonPath.query("$.foo", json)
       val expected = new JsObject(Map("bar" -> JsString("baz")))
-      x === Right((expected))
+      x === Right(Vector(expected))
       JsonPath.query("$.foo.bar", json) === Right(Vector(string("baz")))
       JsonPath.query("$..bar", json) === Right(Vector(string("baz")))
     }
@@ -998,16 +1000,16 @@ class JsonPathSpec extends Specification {
 
     "not mess up with node with the same name at different depths in the hierarchy" in {
       val json = """{"foo":{"nico":{"nico":42}}}"""
-      JsonPath.query("""$..foo[?(@.nico)]""", parseJson(json)) === Right(Vector(parseJson("""{"nico":{"nico":42}}}""")))
+      JsonPath.query("""$..foo[?(@.nico)]""", parseJson(json)).right.get must containTheSameElementsAs(Seq(parseJson("""{"nico":{"nico":42}}""")))
     }
 
     "work with getting the whole store" in {
       JsonPath.query("$..book.*", goessnerJson) === Right(Vector())
-      JsonPath.query("$.store.*", goessnerJson) === Right(Vector(parseJson(allBooks), parseJson(bicycle)))
+      JsonPath.query("$.store.*", goessnerJson).right.get must containTheSameElementsAs(Vector(parseJson(allBooks), parseJson(bicycle)))
     }
 
     "work with getting all prices" in {
-      JsonPath.query("$.store..price", goessnerJson) === Right(Vector(
+      JsonPath.query("$.store..price", goessnerJson).right.get must containTheSameElementsAs(Vector(
         double(8.95),
         double(12.99),
         double(8.99),
@@ -1024,7 +1026,7 @@ class JsonPathSpec extends Specification {
     }
 
     "allow to get everything" in {
-      JsonPath.query("$..*", goessnerJson) === Right(Vector(
+      JsonPath.query("$..*", goessnerJson).right.get must containTheSameElementsAs(Vector(
         goessnerJson,
         parseJson(allStore),
         parseJson(bicycle),
