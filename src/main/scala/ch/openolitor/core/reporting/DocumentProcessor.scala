@@ -506,7 +506,7 @@ trait DocumentProcessor extends LazyLogging {
   @tailrec
   private def findPathPrefixes(name: String, pathPrefixes: Seq[String] = Nil): Seq[String] = {
     name match {
-      case parentPathPattern(rest) if !pathPrefixes.isEmpty => findPathPrefixes(rest, pathPrefixes.tail)
+      case parentPathPattern(rest) if !pathPrefixes.isEmpty => findPathPrefixes(rest, pathPrefixes.dropRight(1))
       case _ => pathPrefixes :+ name
     }
   }
