@@ -154,7 +154,7 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def resolvePropertyFromJson(propertyKey: String, json: JsValue): Option[Vector[JsValue]] =
-    JsonPath.query(propertyKey, json).right.toOption.map(_.toVector)
+    JsonPath.query(propertyKey, json).right.toOption
 
   /**
    * Register all values as variables to conditional field might react on them
@@ -261,19 +261,21 @@ trait DocumentProcessor extends LazyLogging {
     val rows = table.getRowList.toList
     val nonHeaderRows = rows.takeRight(rows.length - startIndex)
 
-    logger.debug(s"processTable: ${tableName} -> Header rows: ${table.getHeaderRowCount}")
+    logger.debug(s"processTable: $values, ${tableName} -> Header rows: ${table.getHeaderRowCount}")
 
     for (index <- values) {
-      val rowPathPrefix = findPathPrefixes(tableName + s".${index._2}", pathPrefixes)
+      val rowPathPrefix = findPathPrefixes(tableName + s"[${index._2}]", pathPrefixes)
 
       //copy rows
       val newRows = if (withinContainer) table.appendRow() :: Nil else table.appendRows(nonHeaderRows.length).toList
-      logger.debug(s"processTable: ${tableName} -> Appended rows: ${newRows.length}")
+      logger.debug(s"processTable: $index, ${tableName} $withinContainer -> Appended rows: ${newRows.length}, nonHeaderRows:${nonHeaderRows.length}")
       for (r <- 0 to newRows.length - 1) {
+        val row = nonHeaderRows.get(r)
+        val newRow = newRows.get(r)
         //replace textfields
         for (cell <- 0 to table.getColumnCount - 1) {
-          val origCell = nonHeaderRows.get(r).getCellByIndex(cell)
-          val newCell = newRows.get(r).getCellByIndex(cell)
+          val origCell = row.getCellByIndex(cell)
+          val newCell = newRow.getCellByIndex(cell)
 
           // copy cell content
           copyCell(origCell, newCell)
@@ -334,7 +336,7 @@ trait DocumentProcessor extends LazyLogging {
     values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String],
     name: String) = {
     for (index <- values) {
-      val sectionKey = s"${name}.${index._2}"
+      val sectionKey = s"${name}[${index._2}]"
       //append section
       val newSection = doc.appendSection(section, false)
       newSection.setName(s"noFill-copiedSection${randomUUID().toString}")
@@ -374,7 +376,7 @@ trait DocumentProcessor extends LazyLogging {
 
   private def processFrameWithValues(json: JsValue, p: Paragraph, frame: Frame, values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String], name: String) = {
     for (index <- values) {
-      val key = s"${name}.${index._2}"
+      val key = s"${name}[${index._2}]"
       logger.debug(s"---------------------------processFrame:$key")
       //append section
       val newFrame = p.appendFrame(frame)
@@ -411,7 +413,8 @@ trait DocumentProcessor extends LazyLogging {
         _.headOption.map {
           case JsString(value) =>
             if (!value.isEmpty) {
-              resolvePropertyFromJson("referenzNummer", json) flatMap {
+              val refProperty = parsePropertyKey("referenzNummer", pathPrefixes)
+              resolvePropertyFromJson(refProperty, json) flatMap {
                 _.headOption.map {
                   case JsString(referenzNummer) =>
                     val filenameSVG = qrCodeFilename + referenzNummer + ".svg"
@@ -519,13 +522,16 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def parsePropertyKey(name: String, pathPrefixes: Seq[String] = Nil): String = {
-    findPathPrefixes(name, pathPrefixes).mkString(".")
+    // replace all dot based accesses to arrays as from user fields bracets are not supported
+    val adjustedName = name.replaceAll("""\.(\d+)""", "[$1]")
+
+    findPathPrefixes(adjustedName, pathPrefixes).mkString(".")
   }
 
   @tailrec
   private def findPathPrefixes(name: String, pathPrefixes: Seq[String] = Nil): Seq[String] = {
     name match {
-      case parentPathPattern(rest) if !pathPrefixes.isEmpty => findPathPrefixes(rest, pathPrefixes.tail)
+      case parentPathPattern(rest) if !pathPrefixes.isEmpty => findPathPrefixes(rest, pathPrefixes.dropRight(1))
       case absoluteJsonPathPattern(rest) => Seq(name)
       case _ => pathPrefixes :+ name
     }
@@ -544,7 +550,7 @@ trait DocumentProcessor extends LazyLogging {
       case backgroundColorFormatPattern(pattern, _) =>
         // set background to textbox
         val color = resolveColor(json, pattern, pathPrefixes)
-        logger.error(s"setBackgronudColor:$color")
+        logger.error(s"setBackgroundColor:$color")
         textbox.setBackgroundColorWithNewStyle(color)
         value
       case foregroundColorFormatPattern(pattern, _) =>
@@ -579,7 +585,7 @@ trait DocumentProcessor extends LazyLogging {
       case replaceFormatPattern(stringMap, _, _) =>
         val replaceMap = (stringMap split ("\\s*,\\s*") map (_ split ("\\s*->\\s*")) map { case Array(k, v) => k -> v }).toMap
         replaceMap find { case (k, v) => value.contains(k) } map { case (k, v) => value.replaceAll(k, v) } getOrElse (value)
-      case x if format.length > 0 =>
+      case x if format.length > 0 && !value.isEmpty =>
         logger.warn(s"Unsupported format:$format")
         textbox.setTextContentStyleAware(value)
         value
@@ -629,7 +635,12 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def applyStructure(values: Vector[JsValue], structure: Seq[String], pathPrefixes: Seq[String] = Seq.empty[String]): Vector[(JsValue, Int)] = {
-    val indexed = values.zipWithIndex
+    // flatten value because query might be a list of JsValue or a single value from a JsArray proprty
+    val flattenedValues: Vector[JsValue] = values.flatMap {
+      case JsArray(elements) => elements
+      case x                 => Vector(x)
+    }
+    val indexed = flattenedValues.zipWithIndex
     structure match {
       case first +: tail => {
         first match {
