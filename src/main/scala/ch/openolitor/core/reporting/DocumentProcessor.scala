@@ -154,7 +154,12 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def resolvePropertyFromJson(propertyKey: String, json: JsValue): Option[Vector[JsValue]] =
-    JsonPath.query(propertyKey, json).right.toOption
+    JsonPath.query(propertyKey, json).right.toOption.flatMap{
+      case Vector() =>
+        // an empty vectors indicates that the property was not found
+        None
+      case x => Some(x)
+    }
 
   /**
    * Register all values as variables to conditional field might react on them
@@ -495,6 +500,8 @@ trait DocumentProcessor extends LazyLogging {
               applyFormats(json, t, formats, convertedDate, locale, pathPrefixes)
             case Vector(JsString(value)) =>
               applyFormats(json, t, formats, value, locale, pathPrefixes)
+            case Vector(JsNumber(value)) =>
+              applyFormats(json, t, formats, value.toString, locale, pathPrefixes)
             case _ =>
               applyFormats(json, t, formats, "", locale, pathPrefixes)
           } getOrElse {
