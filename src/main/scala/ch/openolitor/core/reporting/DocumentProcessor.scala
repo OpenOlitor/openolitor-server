@@ -30,6 +30,7 @@ import java.util.Locale
 import java.util.UUID.randomUUID
 
 import ch.openolitor.core.reporting.odf.{ NestedImageIterator, NestedTextboxIterator }
+import ch.openolitor.util.jsonpath.JsonPath
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.batik.transcoder.image.PNGTranscoder
 import org.apache.batik.transcoder.{ TranscoderInput, TranscoderOutput }
@@ -62,13 +63,14 @@ trait DocumentProcessor extends LazyLogging {
   val dateFormatPattern = """date:\s*"(.*)"(-\w*)?""".r
   val numberFormatPattern = """number:\s*"(\[([#@]?[\w\.]+)\])?([#,.0]+)(;((\[([#@]?[\w\.]+)\])?-([#,.0]+)))?"(-\w*)?""".r
   val orderByPattern = """orderBy:\s*"([\w\.]+)"(:ASC|:DESC)?(-\w*)?""".r
-  val backgroundColorFormatPattern = """bg-color:\s*"([#@]?[\w\.]+)"(-\w*)?""".r
-  val foregroundColorFormatPattern = """fg-color:\s*"([#@]?[\w\.]+)"(-\w*)?""".r
+  val backgroundColorFormatPattern = """bg-color:\s*"(.+)"(-\w*)?""".r
+  val foregroundColorFormatPattern = """fg-color:\s*"(.+)"(-\w*)?""".r
   val replaceFormatPattern = """replace:\s*((\w+\s*\-\>\s*\w+\,?\s?)*)(-\w*)?""".r
   val dateFormatter = ISODateTimeFormat.dateTime
   val libreOfficeDateFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss")
 
   val parentPathPattern = """\$parent\.(.*)""".r
+  val absoluteJsonPathPattern = """\$\.(.*)""".r
   val resolvePropertyPattern = """@(.*)""".r
   val staticTextPattern = """\"(.*)\"""".r
   val noFillTextPattern = """noFill-.*""".r
@@ -120,34 +122,44 @@ trait DocumentProcessor extends LazyLogging {
     logger.debug(s"processDocument with data: ${data.prettyPrint}")
     doc.setLocale(locale)
 
+    val rootPathPrefix = Seq("$")
+
     for {
       props <- Try(extractProperties(data))
       // process header
       _ <- Try(processVariables(doc.getHeader, props))
-      _ <- Try(processTables(doc.getHeader, props, locale, Nil, false))
+      _ <- Try(processTables(data, doc.getHeader, locale, rootPathPrefix, false))
       //_ <- Try(processLists(doc.getHeader, props, locale, ""))
       headerContainer = new GenericParagraphContainerImpl(doc.getHeader.getOdfElement)
-      _ <- Try(processTextboxes(headerContainer, props, locale, Nil))
+      _ <- Try(processTextboxes(data, headerContainer, locale, rootPathPrefix))
 
       // process footer
       _ <- Try(processVariables(doc.getFooter, props))
-      _ <- Try(processTables(doc.getFooter, props, locale, Nil, false))
+      _ <- Try(processTables(data, doc.getFooter, locale, rootPathPrefix, false))
       //_ <- Try(processLists(doc.getFooter, props, locale, ""))
       footerContainer = new GenericParagraphContainerImpl(doc.getFooter.getOdfElement)
-      _ <- Try(processTextboxes(footerContainer, props, locale, Nil))
+      _ <- Try(processTextboxes(data, footerContainer, locale, rootPathPrefix))
 
       // process content, order is important
       _ <- Try(processVariables(doc, props))
-      _ <- Try(processTables(doc, props, locale, Nil, false))
-      _ <- Try(processLists(doc, props, locale, Nil))
-      _ <- Try(processFrames(doc, props, locale))
-      _ <- Try(processSections(doc, props, locale))
-      _ <- Try(processTextboxes(doc, props, locale, Nil))
-      _ <- Try(processImages(doc, props, locale, Nil))
+      _ <- Try(processTables(data, doc, locale, rootPathPrefix, false))
+      _ <- Try(processLists(data, doc, locale, rootPathPrefix))
+      _ <- Try(processFrames(data, doc, locale, rootPathPrefix))
+      _ <- Try(processSections(data, doc, locale, rootPathPrefix))
+      _ <- Try(processTextboxes(data, doc, locale, rootPathPrefix))
+      _ <- Try(processImages(data, doc, locale, rootPathPrefix))
       //TODO Reactivate a smarter way (i.e. only boolean and number fields?)
       //_ <- Try(registerVariables(doc, props))
     } yield true
   }
+
+  private def resolvePropertyFromJson(propertyKey: String, json: JsValue): Option[Vector[JsValue]] =
+    JsonPath.query(propertyKey, json).right.toOption.flatMap {
+      case Vector() =>
+        // an empty vectors indicates that the property was not found
+        None
+      case x => Some(x)
+    }
 
   /**
    * Register all values as variables to conditional field might react on them
@@ -192,87 +204,89 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  def processTables(doc: TableContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
-    doc.getTableList map (table => processTable(doc, table, props, locale, pathPrefixes, withinContainer))
+  def processTables(json: JsValue, doc: TableContainer, locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
+    doc.getTableList map (table => processTable(json, doc, table, locale, pathPrefixes, withinContainer))
   }
 
   /**
    * Process table:
    * duplicate all rows except header rows. Try to replace textbox values with value from property map
    */
-  def processTable(doc: TableContainer, table: Table, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
+  def processTable(json: JsValue, doc: TableContainer, table: Table, locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean) = {
     val propertyName = table.getDotTableName match {
       case propertyPattern(tableName) => tableName
       case fullName                   => fullName
     }
     val (name, structuring) = parseFormats(propertyName)
+
     val propertyKey = parsePropertyKey(name, pathPrefixes)
-    props.get(propertyKey) map {
-      case Value(JsArray(values), _) =>
-        val valuesStruct = applyStructure(values, structuring, props, pathPrefixes)
-        logger.debug(s"processTable (dynamic): ${name}")
-        processTableWithValues(doc, table, props, valuesStruct, locale, pathPrefixes, withinContainer, name)
+    resolvePropertyFromJson(propertyKey, json) map { values =>
+      val valuesStruct = applyStructure(values, structuring, pathPrefixes)
+      logger.debug(s"processTable (dynamic): ${name}")
+      processTableWithValues(json, doc, table, valuesStruct, locale, pathPrefixes, withinContainer, name)
 
     } getOrElse {
       //static proccesing
       logger.debug(s"processTable (static): ${name}: $pathPrefixes, $propertyKey")
-      processStaticTable(table, props, locale, pathPrefixes)
+      processStaticTable(json, table, locale, pathPrefixes)
     }
   }
 
-  def processStaticTable(table: Table, props: Map[String, Value], locale: Locale = Locale.getDefault, pathPrefixes: Seq[String]) = {
+  def processStaticTable(json: JsValue, table: Table, locale: Locale = Locale.getDefault, pathPrefixes: Seq[String]) = {
     for (r <- 0 to table.getRowCount - 1) {
       //replace textfields
       for (c <- 0 to table.getColumnCount - 1) {
         val cell = table.getCellByPosition(c, r)
-        processTextboxes(cell, props, locale, pathPrefixes)
+        processTextboxes(json, cell, locale, pathPrefixes)
       }
     }
   }
 
-  def processLists(doc: ListContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
+  def processLists(json: JsValue, doc: ListContainer, locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       list <- doc.getListIterator
-    } processList(doc, list, props, locale, pathPrefixes)
+    } processList(json, doc, list, locale, pathPrefixes)
   }
 
   /**
    * Process list:
    * process content of every list item as paragraph container
    */
-  def processList(doc: ListContainer, list: List, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
+  def processList(json: JsValue, doc: ListContainer, list: List, locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       item <- list.getItems
     } yield {
       val container = new GenericParagraphContainerImpl(item.getOdfElement())
-      processTextboxes(container, props, locale, pathPrefixes)
+      processTextboxes(json, container, locale, pathPrefixes)
     }
   }
 
-  def processTableWithValues(doc: TableContainer, table: Table, props: Map[String, Value], values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean, tableName: String) = {
+  def processTableWithValues(json: JsValue, doc: TableContainer, table: Table, values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String], withinContainer: Boolean, tableName: String) = {
     val startIndex = Math.max(table.getHeaderRowCount, 0)
     val rows = table.getRowList.toList
     val nonHeaderRows = rows.takeRight(rows.length - startIndex)
 
-    logger.debug(s"processTable: ${tableName} -> Header rows: ${table.getHeaderRowCount}")
+    logger.debug(s"processTable: $values, ${tableName} -> Header rows: ${table.getHeaderRowCount}")
 
     for (index <- values) {
-      val rowPathPrefix = findPathPrefixes(tableName + s".${index._2}", pathPrefixes)
+      val rowPathPrefix = findPathPrefixes(tableName + s"[${index._2}]", pathPrefixes)
 
       //copy rows
       val newRows = if (withinContainer) table.appendRow() :: Nil else table.appendRows(nonHeaderRows.length).toList
-      logger.debug(s"processTable: ${tableName} -> Appended rows: ${newRows.length}")
+      logger.debug(s"processTable: $index, ${tableName} $withinContainer -> Appended rows: ${newRows.length}, nonHeaderRows:${nonHeaderRows.length}")
       for (r <- 0 to newRows.length - 1) {
+        val row = nonHeaderRows.get(r)
+        val newRow = newRows.get(r)
         //replace textfields
         for (cell <- 0 to table.getColumnCount - 1) {
-          val origCell = nonHeaderRows.get(r).getCellByIndex(cell)
-          val newCell = newRows.get(r).getCellByIndex(cell)
+          val origCell = row.getCellByIndex(cell)
+          val newCell = newRow.getCellByIndex(cell)
 
           // copy cell content
           copyCell(origCell, newCell)
 
           // replace textfields
-          processTextboxes(newCell, props, locale, rowPathPrefix)
+          processTextboxes(json, newCell, locale, rowPathPrefix)
         }
       }
     }
@@ -304,37 +318,38 @@ trait DocumentProcessor extends LazyLogging {
   /**
    * Process section which are part of the property map and append it to the document
    */
-  private def processSections(doc: TextDocument, props: Map[String, Value], locale: Locale) = {
+  private def processSections(json: JsValue, doc: TextDocument, locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       s <- doc.getSectionIterator
-    } processSection(doc, s, props, locale)
+    } processSection(json, doc, s, locale, pathPrefixes)
   }
 
-  private def processSection(doc: TextDocument, section: Section, props: Map[String, Value], locale: Locale) = {
+  private def processSection(json: JsValue, doc: TextDocument, section: Section, locale: Locale, pathPrefixes: Seq[String]) = {
     val propertyName = section.getName match {
       case propertyPattern(sectionName) => sectionName
       case fullName                     => fullName
     }
     val (name, structuring) = parseFormats(propertyName)
-    props.get(name) map {
-      case Value(JsArray(values), _) => {
-        val valuesStruct = applyStructure(values, structuring, props)
-        processSectionWithValues(doc, section, props, valuesStruct, locale, name)
-      }
+    val propertyKey = parsePropertyKey(name, pathPrefixes)
+    resolvePropertyFromJson(propertyKey, json) map { values =>
+      val valuesStruct = applyStructure(values, structuring, pathPrefixes)
+      processSectionWithValues(json, doc, section, valuesStruct, locale, pathPrefixes, name)
     } getOrElse logger.debug(s"Section not mapped to property, will be processed statically:${name}")
   }
 
-  private def processSectionWithValues(doc: TextDocument, section: Section, props: Map[String, Value], values: Vector[(JsValue, Int)], locale: Locale, name: String) = {
+  private def processSectionWithValues(json: JsValue, doc: TextDocument, section: Section,
+    values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String],
+    name: String) = {
     for (index <- values) {
-      val sectionKey = s"${name}.${index._2}"
+      val sectionKey = s"${name}[${index._2}]"
       //append section
       val newSection = doc.appendSection(section, false)
       newSection.setName(s"noFill-copiedSection${randomUUID().toString}")
 
       logger.debug(s"processSection:$sectionKey")
-      processTextboxes(newSection, props, locale, Seq(sectionKey))
-      processTables(newSection, props, locale, Seq(sectionKey), true)
-      processLists(newSection, props, locale, Seq(sectionKey))
+      processTextboxes(json, newSection, locale, pathPrefixes :+ sectionKey)
+      processTables(json, newSection, locale, pathPrefixes :+ sectionKey, true)
+      processLists(json, newSection, locale, pathPrefixes :+ sectionKey)
     }
 
     //remove template section
@@ -344,30 +359,30 @@ trait DocumentProcessor extends LazyLogging {
   /**
    * Process frames which are part of the property map and append it to the document
    */
-  private def processFrames(doc: TextDocument, props: Map[String, Value], locale: Locale) = {
+  private def processFrames(json: JsValue, doc: TextDocument, locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       p <- doc.getParagraphIterator
       f <- p.getFrameIterator
-    } processFrame(p, f, props, locale)
+    } processFrame(json, p, f, locale, pathPrefixes)
   }
 
-  private def processFrame(p: Paragraph, frame: Frame, props: Map[String, Value], locale: Locale) = {
+  private def processFrame(json: JsValue, p: Paragraph, frame: Frame, locale: Locale, pathPrefixes: Seq[String]) = {
     val propertyName = frame.getName match {
       case propertyPattern(frameName) => frameName
       case fullName                   => fullName
     }
     val (name, structuring) = parseFormats(propertyName)
-    props.get(name) collect {
-      case (Value(JsArray(values), _)) => {
-        val valuesStruct = applyStructure(values, structuring, props)
-        processFrameWithValues(p, frame, props, valuesStruct, locale, name)
-      }
+    val propertyKey = parsePropertyKey(name, pathPrefixes)
+    resolvePropertyFromJson(propertyKey, json) collect {
+      case Vector(JsArray(values)) =>
+        val valuesStruct = applyStructure(values, structuring, pathPrefixes)
+        processFrameWithValues(json, p, frame, valuesStruct, locale, pathPrefixes, name)
     } getOrElse (logger.debug(s"Frame not mapped to property, will be processed statically:${name}"))
   }
 
-  private def processFrameWithValues(p: Paragraph, frame: Frame, props: Map[String, Value], values: Vector[(JsValue, Int)], locale: Locale, name: String) = {
+  private def processFrameWithValues(json: JsValue, p: Paragraph, frame: Frame, values: Vector[(JsValue, Int)], locale: Locale, pathPrefixes: Seq[String], name: String) = {
     for (index <- values) {
-      val key = s"${name}.${index._2}"
+      val key = s"${name}[${index._2}]"
       logger.debug(s"---------------------------processFrame:$key")
       //append section
       val newFrame = p.appendFrame(frame)
@@ -376,7 +391,7 @@ trait DocumentProcessor extends LazyLogging {
       // process textboxes starting below first child which has to be a <text-box>
       val firstTextBox = OdfElement.findFirstChildNode(classOf[DrawTextBoxElement], newFrame.getOdfElement())
       val container = new GenericParagraphContainerImpl(firstTextBox)
-      processTextboxes(container, props, locale, Seq(key))
+      processTextboxes(json, container, locale, pathPrefixes :+ key)
     }
     //remove template
     frame.remove()
@@ -386,8 +401,7 @@ trait DocumentProcessor extends LazyLogging {
    * Process images and fill in content based on
    *
    */
-
-  private def processImages(cont: TextDocument, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
+  private def processImages(json: JsValue, cont: TextDocument, locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       p <- cont.getParagraphIterator
       t <- new NestedImageIterator(p.getFrameContainerElement)
@@ -401,35 +415,43 @@ trait DocumentProcessor extends LazyLogging {
       logger.debug(s"--------------------processImage: ${propertyKey} | formats:$formats")
 
       // resolve textbox content from properties, otherwise only apply formats to current content
-      props.get(propertyKey) map {
-        case Value(_, value) =>
-          if (!value.isEmpty) {
-            props.get("referenzNummer") map { referenzNummer =>
-              val filenameSVG = qrCodeFilename + referenzNummer.value + ".svg"
-              val filenamePNG = qrCodeFilename + referenzNummer.value + ".png"
-              // create a new svg file with the svg qrcode content in the value
-              val fileSVG = new File(filenameSVG)
-              val pw = new PrintWriter(fileSVG)
-              pw.write(value)
-              pw.close
+      resolvePropertyFromJson(propertyKey, json) map {
+        _.headOption.map {
+          case JsString(value) =>
+            if (!value.isEmpty) {
+              val refProperty = parsePropertyKey("referenzNummer", pathPrefixes)
+              resolvePropertyFromJson(refProperty, json) flatMap {
+                _.headOption.map {
+                  case JsString(referenzNummer) =>
+                    val filenameSVG = qrCodeFilename + referenzNummer + ".svg"
+                    val filenamePNG = qrCodeFilename + referenzNummer + ".png"
+                    // create a new svg file with the svg qrcode content in the value
+                    val fileSVG = new File(filenameSVG)
+                    val pw = new PrintWriter(fileSVG)
+                    pw.write(value)
+                    pw.close
 
-              //transform the svg in a png and getting the reference of the file
-              svg2png(filenameSVG, referenzNummer.value)
-              val uri = new URI(filenamePNG)
-              val filePNG = new File(filenamePNG)
+                    //transform the svg in a png and getting the reference of the file
+                    svg2png(filenameSVG, referenzNummer)
+                    val uri = new URI(filenamePNG)
+                    val filePNG = new File(filenamePNG)
 
-              val templateFilename = t.getInternalPath
-              //remove the template image
-              cont.getPackage().remove(templateFilename)
-              cont.newImage(uri)
-              //insert the new image
-              val mediaType = OdfFileEntry.getMediaTypeString(uri.toString)
-              cont.getPackage.insert(uri, templateFilename, mediaType)
-              //delete both svg and png files
-              fileSVG.delete
-              filePNG.delete
+                    val templateFilename = t.getInternalPath
+                    //remove the template image
+                    cont.getPackage().remove(templateFilename)
+                    cont.newImage(uri)
+                    //insert the new image
+                    val mediaType = OdfFileEntry.getMediaTypeString(uri.toString)
+                    cont.getPackage.insert(uri, templateFilename, mediaType)
+                    //delete both svg and png files
+                    fileSVG.delete
+                    filePNG.delete
+                  case _ =>
+                }
+              }
             }
-          }
+          case _ =>
+        }
       }
     }
   }
@@ -451,7 +473,7 @@ trait DocumentProcessor extends LazyLogging {
    * If pathPrefixes is Nil, applyFormats will not be executed. If property value is not found, bind text to empty string value
    * to overwrite the previously copied dynamic value
    */
-  private def processTextboxes(cont: ParagraphContainer, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]) = {
+  private def processTextboxes(json: JsValue, cont: ParagraphContainer, locale: Locale, pathPrefixes: Seq[String]) = {
     for {
       p <- cont.getParagraphIterator
       t <- new NestedTextboxIterator(p.getFrameContainerElement)
@@ -464,7 +486,7 @@ trait DocumentProcessor extends LazyLogging {
       name match {
         case staticTextPattern(text) =>
           logger.debug(s"-----------------processTextbox with static value:$text | formats:$formats | name:${name}")
-          applyFormats(t, formats, text, props, locale, pathPrefixes)
+          applyFormats(json, t, formats, text, locale, pathPrefixes)
         case noFillTextPattern() => // do nothing
         case property => {
           val propertyKey = parsePropertyKey(property, pathPrefixes)
@@ -472,12 +494,20 @@ trait DocumentProcessor extends LazyLogging {
 
           // resolve textbox content from properties, otherwise only apply formats to current content
           t.removeCommonStyle()
-          props.get(propertyKey) map {
-            case Value(_, value) =>
-              applyFormats(t, formats, value, props, locale, pathPrefixes)
+          resolvePropertyFromJson(propertyKey, json) map {
+            case Vector(JsString(value)) if Try(dateFormatter.parseDateTime(value)).isSuccess =>
+              //it is a date, convert to libreoffice compatible datetime format
+              val convertedDate = dateFormatter.parseDateTime(value).toString(libreOfficeDateFormat)
+              applyFormats(json, t, formats, convertedDate, locale, pathPrefixes)
+            case Vector(JsString(value)) =>
+              applyFormats(json, t, formats, value, locale, pathPrefixes)
+            case Vector(JsNumber(value)) =>
+              applyFormats(json, t, formats, value.toString, locale, pathPrefixes)
+            case _ =>
+              applyFormats(json, t, formats, "", locale, pathPrefixes)
           } getOrElse {
             if (!pathPrefixes.isEmpty) {
-              applyFormats(t, formats, "", props, locale, pathPrefixes)
+              applyFormats(json, t, formats, "", locale, pathPrefixes)
             }
           }
         }
@@ -486,27 +516,31 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   @tailrec
-  private def applyFormats(textbox: Textbox, formats: Seq[String], value: String, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]): String = {
+  private def applyFormats(json: JsValue, textbox: Textbox, formats: Seq[String], value: String, locale: Locale, pathPrefixes: Seq[String]): String = {
     formats match {
-      case Nil => applyFormat(textbox, "", value, props, locale, pathPrefixes)
+      case Nil => applyFormat(json, textbox, "", value, locale, pathPrefixes)
       case s :: _ if (s.contains("orderBy")) => {
         logger.info(s"---------------------------------------------")
-        applyFormat(textbox, "", value, props, locale, pathPrefixes)
+        applyFormat(json, textbox, "", value, locale, pathPrefixes)
       }
       case format :: tail =>
-        val formattedValue = applyFormat(textbox, format, value, props, locale, pathPrefixes)
-        applyFormats(textbox, tail, formattedValue, props, locale, pathPrefixes)
+        val formattedValue = applyFormat(json, textbox, format, value, locale, pathPrefixes)
+        applyFormats(json, textbox, tail, formattedValue, locale, pathPrefixes)
     }
   }
 
   private def parsePropertyKey(name: String, pathPrefixes: Seq[String] = Nil): String = {
-    findPathPrefixes(name, pathPrefixes).mkString(".")
+    // replace all dot based accesses to arrays as from user fields bracets are not supported
+    val adjustedName = name.replaceAll("""\.(\d+)""", "[$1]")
+
+    findPathPrefixes(adjustedName, pathPrefixes).mkString(".")
   }
 
   @tailrec
   private def findPathPrefixes(name: String, pathPrefixes: Seq[String] = Nil): Seq[String] = {
     name match {
       case parentPathPattern(rest) if !pathPrefixes.isEmpty => findPathPrefixes(rest, pathPrefixes.dropRight(1))
+      case absoluteJsonPathPattern(rest) => Seq(name)
       case _ => pathPrefixes :+ name
     }
   }
@@ -514,31 +548,31 @@ trait DocumentProcessor extends LazyLogging {
   /**
    *
    */
-  private def applyFormat(textbox: Textbox, format: String, value: String, props: Map[String, Value], locale: Locale, pathPrefixes: Seq[String]): String = {
+  private def applyFormat(json: JsValue, textbox: Textbox, format: String, value: String, locale: Locale, pathPrefixes: Seq[String]): String = {
     format match {
-      case dateFormatPattern(pattern, _) =>
+      case dateFormatPattern(pattern, _) if !value.isEmpty =>
         // parse date
         val formattedDate = libreOfficeDateFormat.parseDateTime(value).toString(pattern, locale)
         logger.debug(s"Formatted date with pattern $pattern => $formattedDate")
         formattedDate
       case backgroundColorFormatPattern(pattern, _) =>
         // set background to textbox
-        val color = resolveColor(pattern, props, pathPrefixes)
-        logger.error(s"setBackgronudColor:$color")
+        val color = resolveColor(json, pattern, pathPrefixes)
+        logger.error(s"setBackgroundColor:$color")
         textbox.setBackgroundColorWithNewStyle(color)
         value
       case foregroundColorFormatPattern(pattern, _) =>
         // set foreground to textbox (unfortunately resets font style to default)
-        val color = resolveColor(pattern, props, pathPrefixes)
+        val color = resolveColor(json, pattern, pathPrefixes)
         textbox.setFontColor(color)
         value
-      case numberFormatPattern(_, positiveColor, positivePattern, _, _, _, negativeColor, negativeFormat, _) =>
+      case numberFormatPattern(_, positiveColor, positivePattern, _, _, _, negativeColor, negativeFormat, _) if !value.isEmpty =>
         // lookup color value
         val number = value.toDouble
         if (number < 0 && negativeFormat != null) {
           val formattedValue = decimaleFormatForLocale(negativeFormat, locale).format(value.toDouble)
           if (negativeColor != null) {
-            val color = resolveColor(negativeColor, props, pathPrefixes)
+            val color = resolveColor(json, negativeColor, pathPrefixes)
             logger.debug(s"Resolved native color:$color")
             textbox.setFontColor(color)
           } else {
@@ -548,7 +582,7 @@ trait DocumentProcessor extends LazyLogging {
         } else {
           val formattedValue = decimaleFormatForLocale(positivePattern, locale).format(value.toDouble)
           if (positiveColor != null) {
-            val color = resolveColor(positiveColor, props, pathPrefixes)
+            val color = resolveColor(json, positiveColor, pathPrefixes)
             logger.debug(s"Resolved positive color:$color")
             textbox.setFontColor(color)
           } else {
@@ -559,7 +593,7 @@ trait DocumentProcessor extends LazyLogging {
       case replaceFormatPattern(stringMap, _, _) =>
         val replaceMap = (stringMap split ("\\s*,\\s*") map (_ split ("\\s*->\\s*")) map { case Array(k, v) => k -> v }).toMap
         replaceMap find { case (k, v) => value.contains(k) } map { case (k, v) => value.replaceAll(k, v) } getOrElse (value)
-      case x if format.length > 0 =>
+      case x if format.length > 0 && !value.isEmpty =>
         logger.warn(s"Unsupported format:$format")
         textbox.setTextContentStyleAware(value)
         value
@@ -586,14 +620,18 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  private def resolveColor(color: String, props: Map[String, Value], pathPrefixes: Seq[String]): Option[Color] = {
+  private def resolveColor(json: JsValue, color: String, pathPrefixes: Seq[String]): Option[Color] = {
     color match {
       case resolvePropertyPattern(property) =>
         //resolve color in props
         val propertyKey = parsePropertyKey(property, pathPrefixes)
-        props.get(propertyKey) flatMap {
-          case Value(_, value) =>
-            resolveColor(value, props, pathPrefixes)
+        resolvePropertyFromJson(propertyKey, json) flatMap {
+          case Vector(JsString(value)) =>
+            resolveColor(json, value, pathPrefixes)
+          case Vector() => None
+          case x =>
+            logger.warn(s"Unable to resolve color from property: $x")
+            None
         }
       case color =>
         if (Color.isValid(color)) Some(Color.valueOf(color))
@@ -604,8 +642,13 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  private def applyStructure(values: Vector[JsValue], structure: Seq[String], props: Map[String, Value], pathPrefixes: Seq[String] = Seq.empty[String]): Vector[(JsValue, Int)] = {
-    val indexed = values.zipWithIndex
+  private def applyStructure(values: Vector[JsValue], structure: Seq[String], pathPrefixes: Seq[String] = Seq.empty[String]): Vector[(JsValue, Int)] = {
+    // flatten value because query might be a list of JsValue or a single value from a JsArray proprty
+    val flattenedValues: Vector[JsValue] = values.flatMap {
+      case JsArray(elements) => elements
+      case x                 => Vector(x)
+    }
+    val indexed = flattenedValues.zipWithIndex
     structure match {
       case first +: tail => {
         first match {
