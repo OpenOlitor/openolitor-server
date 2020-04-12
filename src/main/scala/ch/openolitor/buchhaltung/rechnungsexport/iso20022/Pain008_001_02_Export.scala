@@ -97,7 +97,7 @@ class Pain008_001_02_Export extends LazyLogging {
     val UltmtCdtr = None
     val ChrgBr = Some(pain008_001_02.SLEV)
     //-----------------
-    val PartySEPA2 = pain008_001_02.PartySEPA2(pain008_001_02.PersonIdentificationSEPA2(pain008_001_02.RestrictedPersonIdentificationSEPA(kontoDatenProjekt.iban.getOrElse("Iban subscriptor"), pain008_001_02.RestrictedPersonIdentificationSchemeNameSEPA(IdentificationSchemeNameSEPA.fromString("SEPA", defineNamespaceBinding())))))
+    val PartySEPA2 = pain008_001_02.PartySEPA2(pain008_001_02.PersonIdentificationSEPA2(pain008_001_02.RestrictedPersonIdentificationSEPA(kontoDatenProjekt.creditorIdentifier.getOrElse("Creditor identifier"), pain008_001_02.RestrictedPersonIdentificationSchemeNameSEPA(IdentificationSchemeNameSEPA.fromString("SEPA", defineNamespaceBinding())))))
     val CdtrSchmeId = Some(pain008_001_02.PartyIdentificationSEPA3(PartySEPA2))
     //-----------------
     val DrctDbtTxInf = rechnungen map {
