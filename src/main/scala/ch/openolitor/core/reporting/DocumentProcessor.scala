@@ -536,7 +536,10 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def parsePropertyKey(name: String, pathPrefixes: Seq[String] = Nil): String = {
-    findPathPrefixes(name, pathPrefixes).mkString(".")
+    // replace all dot based accesses to arrays as from user fields bracets are not supported
+    val adjustedName = name.replaceAll("""\.(\d+)""", "[$1]")
+
+    findPathPrefixes(adjustedName, pathPrefixes).mkString(".")
   }
 
   @tailrec
