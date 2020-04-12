@@ -70,7 +70,7 @@ trait DocumentProcessor extends LazyLogging {
   val libreOfficeDateFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss")
 
   val parentPathPattern = """\$parent\.(.*)""".r
-  val absoluteJsonPathPattern = """\$\.(.*)""".r
+  val absoluteJsonPathPattern = """\$[\.\[](.*)""".r
   val resolvePropertyPattern = """@(.*)""".r
   val staticTextPattern = """\"(.*)\"""".r
   val noFillTextPattern = """noFill-.*""".r
@@ -529,11 +529,14 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  private def parsePropertyKey(name: String, pathPrefixes: Seq[String] = Nil): String = {
+  private def correctPropertyName(name: String): String = {
     // replace all dot based accesses to arrays as from user fields bracets are not supported
     val adjustedName = name.replaceAll("""\.(\d+)""", "[$1]")
+    adjustedName
+  }
 
-    findPathPrefixes(adjustedName, pathPrefixes).mkString(".")
+  private def parsePropertyKey(name: String, pathPrefixes: Seq[String] = Nil): String = {
+    findPathPrefixes(name, pathPrefixes).mkString(".")
   }
 
   @tailrec
@@ -614,17 +617,18 @@ trait DocumentProcessor extends LazyLogging {
       return ("", Nil)
     }
     name.split('|').toList match {
-      case name :: Nil  => (name.trim, Nil)
-      case name :: tail => (name.trim, tail.map(_.trim))
-      case _            => (name, Nil)
+      case name :: Nil  => (correctPropertyName(name.trim), Nil)
+      case name :: tail => (correctPropertyName(name.trim), tail.map(_.trim))
+      case _            => (correctPropertyName(name), Nil)
     }
   }
 
   private def resolveColor(json: JsValue, color: String, pathPrefixes: Seq[String]): Option[Color] = {
     color match {
       case resolvePropertyPattern(property) =>
+        val name = correctPropertyName(property)
         //resolve color in props
-        val propertyKey = parsePropertyKey(property, pathPrefixes)
+        val propertyKey = parsePropertyKey(name, pathPrefixes)
         resolvePropertyFromJson(propertyKey, json) flatMap {
           case Vector(JsString(value)) =>
             resolveColor(json, value, pathPrefixes)
