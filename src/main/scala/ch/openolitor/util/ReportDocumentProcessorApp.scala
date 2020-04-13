@@ -51,6 +51,8 @@ object ReportDocumentProcessorApp extends App with DocumentProcessor {
     sys.error(s"Json data file $jsonDataFile does not exist!")
   }
 
+  val processMultiDocument = args.length > 2 && args(2).equals("multi")
+
   // load template
   println(s"Load template document...")
   val doc = TextDocument.loadDocument(template)
@@ -59,23 +61,36 @@ object ReportDocumentProcessorApp extends App with DocumentProcessor {
   println(s"Load json data...")
   val jsonData = Source.fromFile(jsonDataFile).getLines.mkString.parseJson
 
-  // process report
-  println(s"Process report...")
-  processDocument(doc, jsonData, Locale.GERMAN) match {
-    case Success(_) =>
-      val outFile = if (args.length > 2) {
-        new File(args(2))
-      } else {
-        File.createTempFile("report", ".odt")
-      }
+  def processData(data: JsValue): Unit = {
+    processDocument(doc, data, Locale.GERMAN) match {
+      case Success(_) =>
+        val outFile = if (!processMultiDocument && args.length > 2) {
+          new File(args(2))
+        } else if (processMultiDocument && args.length > 3) {
+          new File(args(3))
+        } else {
+          File.createTempFile("report", ".odt")
+        }
 
-      // save result
-      println(s"Save result document...")
-      doc.save(outFile)
-      println(s"Report successful processed. Output file: $outFile")
-    case Failure(error) =>
-      println(s"Failed processing report")
-      error.printStackTrace
+        // save result
+        println(s"Save result document...")
+        doc.save(outFile)
+        println(s"Report successful processed. Output file: $outFile")
+      case Failure(error) =>
+        println(s"Failed processing report")
+        error.printStackTrace
+    }
   }
 
+  // if the json is from a multidocument processing, process for every row
+  (processMultiDocument, jsonData) match {
+    case (true, JsArray(data)) =>
+      data.map{ row =>
+        processData(row)
+      }
+    case _ => processData(jsonData)
+  }
+
+  // process report
+  println(s"Process report...")
 }
