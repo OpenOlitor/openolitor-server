@@ -107,19 +107,19 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     case RolleGewechseltEvent(meta, _, personId, rolle) =>
       changeRolle(meta, personId, rolle)
     case SendEmailToPersonEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case SendEmailToKundeEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case SendEmailToAbotypSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case SendEmailToZusatzabotypSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case SendEmailToTourSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case SendEmailToDepotSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case SendEmailToAboSubscriberEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -251,6 +251,15 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
   def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
     sendEinladung(meta, einladungCreate, BaseZugangLink, InvitationMailTemplateType)
+  }
+
+  def checkBccAndSend(meta: EventMetadata, subject: String, body: String, person: Person, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      lazy val bccAddress = config.getString("smtp.bcc")
+      stammdatenWriteRepository.getProjekt map { projekt =>
+        sendEmail(meta, subject, body, projekt.sendEmailToBcc, bccAddress, person, None, context, mailService)
+      }
+    }
   }
 
   private def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate, baseLink: String, mailTemplateType: TemplateType)(implicit originator: PersonId): Unit = {

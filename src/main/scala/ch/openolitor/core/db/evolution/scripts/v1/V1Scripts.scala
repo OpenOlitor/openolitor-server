@@ -617,6 +617,7 @@ object V1Scripts {
         einsatzEinheit = Stunden,
         einsatzAbsageVorlaufTage = 3,
         einsatzShowListeKunde = true,
+        sendEmailToBcc = true,
 
         //modification flags
         erstelldat = DateTime.now,

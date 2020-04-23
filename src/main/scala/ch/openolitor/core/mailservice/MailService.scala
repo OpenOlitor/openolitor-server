@@ -93,7 +93,7 @@ trait MailService extends AggregateRoot
   lazy val security = sysConfig.mandantConfiguration.config.getString("smtp.security")
   lazy val mailer = if (security.equals("STARTTLS")) {
     Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
-    .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).startTls(true)()
+      .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).startTls(true)()
   } else {
     Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
       .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).ssl(true)()
@@ -146,6 +146,8 @@ trait MailService extends AggregateRoot
             case Right(f) => {
               Right(Envelope.from(new InternetAddress(fromAddress))
                 .to(InternetAddress.parse(mail.to): _*)
+                .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
+                .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
                 .subject(mail.subject)
                 .content(Multipart()
                   .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
@@ -159,24 +161,12 @@ trait MailService extends AggregateRoot
             Right(
               Envelope.from(new InternetAddress(fromAddress))
                 .to(InternetAddress.parse(mail.to): _*)
+                .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
+                .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
                 .subject(mail.subject)
                 .content(Text(mail.content))
             )
           }
-      }
-
-      mail.cc map { cc =>
-        envelope match {
-          case Right(e) => e.cc(InternetAddress.parse(cc): _*)
-          case Left(e)  => Left(e)
-        }
-      }
-
-      mail.bcc map { bcc =>
-        envelope match {
-          case Right(e) => e.bcc(InternetAddress.parse(bcc): _*)
-          case Left(e)  => Left(e)
-        }
       }
 
       // we have to await the result, maybe switch to standard javax.mail later
