@@ -27,9 +27,12 @@ import org.odftoolkit.odfdom.dom._
 import org.odftoolkit.odfdom.dom.element.draw._
 import org.odftoolkit.odfdom.dom.element.text._
 import org.odftoolkit.odfdom.dom.style._
+import org.odftoolkit.odfdom.dom.style.props.OdfStylePropertiesSet
 import org.odftoolkit.simple.draw._
 import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text.Paragraph
+
+import scala.collection.JavaConverters._
 
 /**
  * Extends document to make method accessor public available
@@ -82,6 +85,12 @@ object OdfToolkitUtils {
           for (i <- 0 to l) {
             val item = attrs.item(i)
             props.setAttribute(item.getNodeName, item.getNodeValue)
+          }
+
+          // copy over all graphic related styles from current base style
+          val baseProps = baseStyle.getStyleProperties
+          baseProps.asScala.filter(_._1.getPropertySet == OdfStylePropertiesSet.GraphicProperties).foreach{ entry =>
+            props.setAttributeNS(entry._1.getName.getUri, entry._1.getName.getQName, entry._2)
           }
         }
 
