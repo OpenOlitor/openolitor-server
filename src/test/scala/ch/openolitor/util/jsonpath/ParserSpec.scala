@@ -97,21 +97,21 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
     }
 
     "work with array access on fields" in {
-      parse(pathSequence, ".foo[1]").get shouldEqual(Field("foo") :: ArrayRandomAccess(List(1)) :: Nil)
-      parse(pathSequence, ".ñ1çölå$[*]").get shouldEqual(Field("ñ1çölå$") :: ArraySlice.All :: Nil)
+      parse(pathSequence, ".foo[1]").get shouldEqual (Field("foo") :: ArrayRandomAccess(List(1)) :: Nil)
+      parse(pathSequence, ".ñ1çölå$[*]").get shouldEqual (Field("ñ1çölå$") :: ArraySlice.All :: Nil)
     }
 
     "work with array access on subscript fields" in {
-      parse(pathSequence, "['foo'][1]").get shouldEqual(Field("foo") :: ArrayRandomAccess(List(1)) :: Nil)
-      parse(pathSequence, "['ñ1çölå$'][*]").get shouldEqual(Field("ñ1çölå$") :: ArraySlice.All :: Nil)
+      parse(pathSequence, "['foo'][1]").get shouldEqual (Field("foo") :: ArrayRandomAccess(List(1)) :: Nil)
+      parse(pathSequence, "['ñ1çölå$'][*]").get shouldEqual (Field("ñ1çölå$") :: ArraySlice.All :: Nil)
     }
 
     "work on the root element" in {
-      new Parser().compile("$.foo").get shouldEqual(RootNode :: Field("foo") :: Nil)
-      new Parser().compile("$['foo']").get shouldEqual(RootNode :: Field("foo") :: Nil)
+      new Parser().compile("$.foo").get shouldEqual (RootNode :: Field("foo") :: Nil)
+      new Parser().compile("$['foo']").get shouldEqual (RootNode :: Field("foo") :: Nil)
 
       // TODO  : how to access childs w/ ['xxx'] notation
-      new Parser().compile("$..foo").get shouldEqual(RootNode :: RecursiveField("foo") :: Nil)
+      new Parser().compile("$..foo").get shouldEqual (RootNode :: RecursiveField("foo") :: Nil)
     }
 
     "work with some predefined comparison operators" in {
@@ -182,25 +182,25 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
         ComparisonFilter(EqOperator, SubQuery(List(CurrentNode)), SubQuery(List(RootNode, Field("foo"))))
       )
 
-      new Parser().compile("$['points'][?(@['y'] >= 3)].id").get shouldEqual(
+      new Parser().compile("$['points'][?(@['y'] >= 3)].id").get shouldEqual (
         RootNode
-          :: Field("points")
-          :: ComparisonFilter(GreaterOrEqOperator, SubQuery(List(CurrentNode, Field("y"))), FilterDirectValue.long(3))
-          :: Field("id") :: Nil
+        :: Field("points")
+        :: ComparisonFilter(GreaterOrEqOperator, SubQuery(List(CurrentNode, Field("y"))), FilterDirectValue.long(3))
+        :: Field("id") :: Nil
       )
 
-      new Parser().compile("$.points[?(@['id']=='i4')].x").get shouldEqual(
+      new Parser().compile("$.points[?(@['id']=='i4')].x").get shouldEqual (
         RootNode
-          :: Field("points")
-          :: ComparisonFilter(EqOperator, SubQuery(List(CurrentNode, Field("id"))), FilterDirectValue.string("i4"))
-          :: Field("x") :: Nil
+        :: Field("points")
+        :: ComparisonFilter(EqOperator, SubQuery(List(CurrentNode, Field("id"))), FilterDirectValue.string("i4"))
+        :: Field("x") :: Nil
       )
 
-      new Parser().compile("""$.points[?(@['id']=="i4")].x""").get shouldEqual(
+      new Parser().compile("""$.points[?(@['id']=="i4")].x""").get shouldEqual (
         RootNode
-          :: Field("points")
-          :: ComparisonFilter(EqOperator, SubQuery(List(CurrentNode, Field("id"))), FilterDirectValue.string("i4"))
-          :: Field("x") :: Nil
+        :: Field("points")
+        :: ComparisonFilter(EqOperator, SubQuery(List(CurrentNode, Field("id"))), FilterDirectValue.string("i4"))
+        :: Field("x") :: Nil
       )
     }
 
@@ -263,7 +263,6 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
       parse(arrayAccessors, "[-1,42 , -9]") should beParsedAs(ArrayRandomAccess(-1 :: 42 :: -9 :: Nil))
     }
   }
-
 
   "Dot fields" should {
     "get parsed properly" in {
@@ -356,7 +355,7 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
       gracefulFailure("$.[42]")
       gracefulFailure("$.[1:2,3]")
       gracefulFailure("$.[?(@.foo && 2)]")
-      1===1
+      1 === 1
     }
   }
 
@@ -372,11 +371,11 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
         HasFilter(SubQuery(List(CurrentNode, Field("foo"))))
       )
 
-      new Parser().compile("$.things[?(@.foo.bar)]").get shouldEqual(
+      new Parser().compile("$.things[?(@.foo.bar)]").get shouldEqual (
         RootNode
-          :: Field("things")
-          :: HasFilter(SubQuery(CurrentNode :: Field("foo") :: Field("bar") :: Nil))
-          :: Nil
+        :: Field("things")
+        :: HasFilter(SubQuery(CurrentNode :: Field("foo") :: Field("bar") :: Nil))
+        :: Nil
       )
 
     }
@@ -387,7 +386,7 @@ trait ParsingMatchers {
 
   class SuccessBeMatcher[+T <: AstToken](expected: T) extends Matcher[Parser.ParseResult[AstToken]] {
     override def apply[S <: jsonpath.Parser.ParseResult[AstToken]](expectable: Expectable[S]): MatchResult[S] = {
-     expectable.value match {
+      expectable.value match {
         case Parser.Success(res, _) =>
           result(
             expected == res,

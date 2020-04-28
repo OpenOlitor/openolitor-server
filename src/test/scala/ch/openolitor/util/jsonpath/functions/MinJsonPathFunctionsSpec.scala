@@ -20,38 +20,28 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util.jsonpath
+package ch.openolitor.util.jsonpath.functions
 
-import spray.json.{ JsArray, JsObject, JsValue }
+import org.specs2.matcher.Matchers
+import org.specs2.mutable._
+import spray.json.{JsNull, JsNumber, JsObject, JsString}
 
-/**
- * Collect all nodes
- * @param root the tree root
- *
- * Originally token from gatlin-jsonpath and converted to spray-json
- * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
- */
-class RecursiveNodeIterator(root: JsValue) extends RecursiveIterator[Iterator[JsValue]](root) {
-
-  override protected def visit(it: Iterator[JsValue]): Unit = {
-    while (it.hasNext && !pause) {
-      visitNode(it.next())
-    }
-    if (!pause) {
-      stack = stack.tail
-    }
-  }
-
-  override protected def visitNode(node: JsValue): Unit = {
-    node match {
-      case JsObject(fields) if (fields.size > 0) =>
-        stack = fields.values.iterator :: stack
-      case JsArray(elements) if (elements.size > 0) =>
-        stack = elements.iterator :: stack
-      case _ =>
+class MinJsonPathFunctionsSpec extends Specification with Matchers {
+  "Min of values" should {
+    "calculate correct min if all values are numbers" in {
+      JsonPathFunctions.Min.evaluate(Vector(JsNumber(2), JsNumber(3), JsNumber(4))) shouldEqual Some(Vector(JsNumber(2)))
     }
 
-    nextNode = node
-    pause = true
+    "Parse numbers from strings" in {
+      JsonPathFunctions.Min.evaluate(Vector(JsString("2"), JsNumber(3), JsString("4"))) shouldEqual Some(Vector(JsNumber(2)))
+    }
+
+    "min only valid numbers" in {
+      JsonPathFunctions.Min.evaluate(Vector(JsString("NoString"), JsNumber(3), JsString("4"), JsObject(), JsNull)) shouldEqual Some(Vector(JsNumber(3)))
+    }
+
+    "evaluate to None for empty lists" in {
+      JsonPathFunctions.Min.evaluate(Vector()) shouldEqual None
+    }
   }
 }

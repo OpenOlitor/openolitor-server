@@ -20,38 +20,31 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util.jsonpath
+package ch.openolitor.util.jsonpath.functions
 
-import spray.json.{ JsArray, JsObject, JsValue }
+import org.specs2.matcher.Matchers
+import org.specs2.mutable._
+import spray.json.{JsNull, JsNumber, JsObject, JsString}
 
-/**
- * Collect all nodes
- * @param root the tree root
- *
- * Originally token from gatlin-jsonpath and converted to spray-json
- * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
- */
-class RecursiveNodeIterator(root: JsValue) extends RecursiveIterator[Iterator[JsValue]](root) {
-
-  override protected def visit(it: Iterator[JsValue]): Unit = {
-    while (it.hasNext && !pause) {
-      visitNode(it.next())
-    }
-    if (!pause) {
-      stack = stack.tail
-    }
-  }
-
-  override protected def visitNode(node: JsValue): Unit = {
-    node match {
-      case JsObject(fields) if (fields.size > 0) =>
-        stack = fields.values.iterator :: stack
-      case JsArray(elements) if (elements.size > 0) =>
-        stack = elements.iterator :: stack
-      case _ =>
+class AverageJsonPathFunctionsSpec extends Specification with Matchers {
+  "Average of values" should {
+    "calculate correct average if all values are numbers" in {
+      JsonPathFunctions.Average.evaluate(Vector(JsNumber(2), JsNumber(3), JsNumber(4))) shouldEqual Some(Vector(JsNumber(3)))
     }
 
-    nextNode = node
-    pause = true
+    "Parse numbers from strings" in {
+      JsonPathFunctions.Average.evaluate(Vector(JsString("2"), JsNumber(3), JsString("4"))) shouldEqual Some(Vector(JsNumber(3)))
+    }
+
+    "average only valid numbers, but divide against all elements in the set" in {
+      // valid sum = 8
+      // count = 5
+      // average = 2
+      JsonPathFunctions.Average.evaluate(Vector(JsString("NoString"), JsNumber(3), JsString("5"), JsObject(), JsNull)) shouldEqual Some(Vector(JsNumber(1.6)))
+    }
+
+    "evaluate to None for empty lists" in {
+      JsonPathFunctions.Average.evaluate(Vector()) shouldEqual None
+    }
   }
 }

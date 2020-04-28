@@ -31,6 +31,7 @@ import java.util.UUID.randomUUID
 
 import ch.openolitor.core.reporting.odf.{ NestedImageIterator, NestedTextboxIterator }
 import ch.openolitor.util.jsonpath.JsonPath
+import ch.openolitor.util.jsonpath.functions.{ JsonPathFunctions, Param1JsonPathFunction, UnaryJsonPathFunction }
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.batik.transcoder.image.PNGTranscoder
 import org.apache.batik.transcoder.{ TranscoderInput, TranscoderOutput }
@@ -56,6 +57,7 @@ case class Value(jsValue: JsValue, value: String)
 class ReportException(msg: String) extends Exception(msg)
 
 trait DocumentProcessor extends LazyLogging {
+
   import OdfToolkitUtils._
 
   val qrCodeFilename = "./qrCode"
@@ -69,12 +71,27 @@ trait DocumentProcessor extends LazyLogging {
   val dateFormatter = ISODateTimeFormat.dateTime
   val libreOfficeDateFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss")
 
+  val unaryFunctionsPattern = """\$(sum|avg|min|max|count)\((.*)\)""".r
+  val param1FunctionsPattern = """\$(groupBy)\((.*),\s*(.*)\)""".r
+
   val parentPathPattern = """\$parent\.(.*)""".r
-  val absoluteJsonPathPattern = """\$[\.\[](.*)""".r
+  val absoluteJsonPathPattern = """\$(.*)""".r
   val resolvePropertyPattern = """@(.*)""".r
   val staticTextPattern = """\"(.*)\"""".r
   val noFillTextPattern = """noFill-.*""".r
   val propertyPattern = """(.*)-\w+""".r
+
+  val unaryFunctionMap = Map[String, UnaryJsonPathFunction](
+    "sum" -> JsonPathFunctions.Sum,
+    "count" -> JsonPathFunctions.Count,
+    "min" -> JsonPathFunctions.Min,
+    "max" -> JsonPathFunctions.Max,
+    "avg" -> JsonPathFunctions.Average
+  )
+
+  val param1FunctionsMap = Map[String, Param1JsonPathFunction](
+    "groupBy" -> JsonPathFunctions.GroupBy
+  )
 
   val colorMap: Map[String, Color] = Map(
     // english words
@@ -153,13 +170,34 @@ trait DocumentProcessor extends LazyLogging {
     } yield true
   }
 
-  private def resolvePropertyFromJson(propertyKey: String, json: JsValue): Option[Vector[JsValue]] =
-    JsonPath.query(propertyKey, json).right.toOption.flatMap {
-      case Vector() =>
-        // an empty vectors indicates that the property was not found
-        None
-      case x => Some(x)
+  /**
+   * Resolve property from json and apply optionally additional functions after resolving the property
+   *
+   * @param propertyKey
+   * @param json
+   * @return
+   */
+  private def resolvePropertyFromJson(propertyKey: String, json: JsValue): Option[Vector[JsValue]] = {
+    def resolveProperty(property: String) = {
+      JsonPath.query(property, json).right.toOption.flatMap {
+        case Vector() =>
+          // an empty vectors indicates that the property was not found
+          None
+        case x => Some(x)
+      }
     }
+    propertyKey match {
+      case unaryFunctionsPattern(function, path) =>
+        logger.debug(s"Found unary function:$function:$path")
+        // evaluate unary function
+        resolveProperty(path).flatMap(result => unaryFunctionMap.get(function).flatMap(_.evaluate(result)))
+      case param1FunctionsPattern(function, param1, path) =>
+        logger.debug(s"Found function with one param:$function:$param1:$path")
+        // evaluate function with one parameter
+        resolveProperty(path).flatMap(result => param1FunctionsMap.get(function).flatMap(_.evaluate(param1, result)))
+      case _ => resolveProperty(propertyKey)
+    }
+  }
 
   /**
    * Register all values as variables to conditional field might react on them

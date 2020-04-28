@@ -47,7 +47,7 @@ object JsonPath {
     }
 
   def query(query: String, jsonObject: JsValue): Either[JPError, Vector[JsValue]] = {
-   compile(query).right.map(_.query(jsonObject))
+    compile(query).right.map(_.query(jsonObject))
   }
 }
 

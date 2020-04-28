@@ -62,5 +62,50 @@
  				}
  			]
  		}
- 	]
+ 	],
+	 "orders": [
+		 {
+			 "id": "order1",
+			 "product": {
+				 "id": "product1",
+				 "name": "Product 1"
+			 },
+			 "quantity": 12,
+			 "price": 123.4
+		 },
+		 {
+			 "id": "order2",
+			 "product": {
+				 "id": "product2",
+				 "name": "Product 2"
+			 },
+			 "quantity": 14,
+			 "price": 45
+		 },
+		 {
+			 "id": "order3",
+			 "product": {
+				 "id": "product1",
+				 "name": "Product 1"
+			 },
+			 "quantity": 1,
+			 "price": 56
+		 },
+		 {
+			 "id": "order4",
+			 "product": {
+				 "id": "product3",
+				 "name": "Product 3"
+			 },
+			 "quantity": 10,
+			 "price": 123.4
+		 },
+		 {
+			 "id": "order5",
+			 "product": {
+				 "id": "product3",
+				 "name": "Product 3"
+			 }
+		 }
+	 ]
  }
