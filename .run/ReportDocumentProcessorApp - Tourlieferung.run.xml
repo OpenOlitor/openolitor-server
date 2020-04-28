@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ReportDocumentProcessorApp - Tourlieferung" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="ch.openolitor.util.ReportDocumentProcessorApp" />
+    <option name="PROGRAM_PARAMETERS" value="$USER_HOME$/Downloads/Vorlage_Korbübersicht_Bioabi.odt $USER_HOME$/Downloads/39fc1f96-accf-479c-8e53-dcb82a034161.json multi" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
