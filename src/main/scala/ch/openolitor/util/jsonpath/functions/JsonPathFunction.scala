@@ -133,7 +133,9 @@ object JsonPathFunctions {
         case x => Some(x)
       })
       // filter out not matched properties and map vector into a jsarray
-      Some(groups.filterNot(_._1.isEmpty).map(entries => JsArray(entries._2)).toVector)
+      val result = groups.filterNot(_._1.isEmpty).map(entries => JsArray(entries._2)).toVector
+      logger.debug(s"Result of $$groupBy function is:$result")
+      Some(result)
     }
   }
 }
