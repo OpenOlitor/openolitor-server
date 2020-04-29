@@ -67,7 +67,7 @@
 		 {
 			 "id": "order1",
 			 "product": {
-				 "id": "product1",
+				 "id": "1",
 				 "name": "Product 1"
 			 },
 			 "quantity": 12,
@@ -76,7 +76,7 @@
 		 {
 			 "id": "order2",
 			 "product": {
-				 "id": "product2",
+				 "id": "2",
 				 "name": "Product 2"
 			 },
 			 "quantity": 14,
@@ -85,7 +85,7 @@
 		 {
 			 "id": "order3",
 			 "product": {
-				 "id": "product1",
+				 "id": "1",
 				 "name": "Product 1"
 			 },
 			 "quantity": 1,
@@ -94,7 +94,7 @@
 		 {
 			 "id": "order4",
 			 "product": {
-				 "id": "product3",
+				 "id": "3",
 				 "name": "Product 3"
 			 },
 			 "quantity": 10,
@@ -103,7 +103,7 @@
 		 {
 			 "id": "order5",
 			 "product": {
-				 "id": "product3",
+				 "id": "3",
 				 "name": "Product 3"
 			 }
 		 }
