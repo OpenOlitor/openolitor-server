@@ -11,6 +11,7 @@
  	"addresses": [
  		{
  			"id": 1,
+			"color": "#f00",
  			"street" : "Home address",
  			"date": "2001-02-01T12:21:01.123Z",
  			"number": 123,
@@ -27,7 +28,6 @@
  		},
  		{
  			"id": 2,
- 			"street" : "Work address",
  			"date": "2002-01-01T12:21:01.123Z",
  			"number": -456.789,
  			"persons": [
@@ -47,6 +47,7 @@
  		},
  		{
  			"id": 3,
+			"color": "#0f0",
  			"street" : "Lab address",
  			"date": "2002-01-01T12:21:01.123Z",
  			"number": -456.789,

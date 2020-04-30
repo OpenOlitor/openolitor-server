@@ -22,20 +22,24 @@
 \*                                                                           */
 package org.odftoolkit.simple
 
-import org.odftoolkit.simple.draw._
-import org.odftoolkit.odfdom.dom._
-import org.odftoolkit.odfdom.dom.style._
-import org.odftoolkit.odfdom.dom.element.text._
-import org.odftoolkit.odfdom.dom.element.draw._
 import org.odftoolkit.odfdom.`type`.Color
+import org.odftoolkit.odfdom.dom._
+import org.odftoolkit.odfdom.dom.element.draw._
+import org.odftoolkit.odfdom.dom.element.text._
+import org.odftoolkit.odfdom.dom.style._
+import org.odftoolkit.odfdom.dom.style.props.OdfStylePropertiesSet
+import org.odftoolkit.simple.draw._
 import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text.Paragraph
+
+import scala.collection.JavaConverters._
 
 /**
  * Extends document to make method accessor public available
  */
 
 object OdfToolkitUtils {
+
   implicit class MyTextbox(self: Textbox) {
     /**
      * Remove style declared on draw textbox, otherwise styles applied on template won't get applied
@@ -57,65 +61,80 @@ object OdfToolkitUtils {
       }
     }
 
-    def setBackgroundColorWithNewStyle(color: Color) = {
-      val parent = self.getOdfElement.getParentNode.asInstanceOf[DrawFrameElement]
-      val styleName = parent.getStyleName
-      val styleFamily = parent.getStyleFamily
+    def setBackgroundColorWithNewStyle(color: Option[Color]) = {
+      color map { color =>
+        val parent = self.getOdfElement.getParentNode.asInstanceOf[DrawFrameElement]
+        val styleName = parent.getStyleName
+        val styleFamily = parent.getStyleFamily
 
-      val dom = self.getOdfElement.getOwnerDocument
-      val doc = self.getOwnerDocument()
-      val styles = if (dom.isInstanceOf[OdfContentDom]) {
-        dom.asInstanceOf[OdfContentDom].getAutomaticStyles
-      } else {
-        dom.asInstanceOf[OdfStylesDom].getAutomaticStyles
+        val dom = self.getOdfElement.getOwnerDocument
+        val doc = self.getOwnerDocument()
+        val styles = if (dom.isInstanceOf[OdfContentDom]) {
+          dom.asInstanceOf[OdfContentDom].getAutomaticStyles
+        } else {
+          dom.asInstanceOf[OdfStylesDom].getAutomaticStyles
+        }
+        val baseStyle = styles.getStyle(styleName, styleFamily)
+
+        val graphicStyle = styles.newStyle(OdfStyleFamily.Graphic)
+        val props = graphicStyle.newStyleGraphicPropertiesElement()
+
+        if (baseStyle != null) {
+          val attrs = baseStyle.getAttributes
+          val l = attrs.getLength - 1
+          for (i <- 0 to l) {
+            val item = attrs.item(i)
+            props.setAttribute(item.getNodeName, item.getNodeValue)
+          }
+
+          // copy over all graphic related styles from current base style
+          val baseProps = baseStyle.getStyleProperties
+          baseProps.asScala.filter(_._1.getPropertySet == OdfStylePropertiesSet.GraphicProperties).foreach{ entry =>
+            props.setAttributeNS(entry._1.getName.getUri, entry._1.getName.getQName, entry._2)
+          }
+        }
+
+        props.setDrawStrokeAttribute("none")
+        props.setDrawFillAttribute("solid")
+        props.setDrawFillColorAttribute(color.toString)
+        props.setStyleRunThroughAttribute("foreground")
+
+        // set comment content
+        parent.setStyleName(graphicStyle.getStyleNameAttribute)
+
+        // don't define text-style-name otherwise wrong style might get picked up
+        parent.setDrawTextStyleNameAttribute("")
       }
-      val baseStyle = styles.getStyle(styleName, styleFamily)
-
-      val graphicStyle = styles.newStyle(OdfStyleFamily.Graphic)
-      val props = graphicStyle.newStyleGraphicPropertiesElement()
-
-      val attrs = baseStyle.getAttributes
-      val l = attrs.getLength - 1
-      for (i <- 0 to l) {
-        val item = attrs.item(i)
-        props.setAttribute(item.getNodeName, item.getNodeValue)
-      }
-
-      props.setDrawStrokeAttribute("none")
-      props.setDrawFillAttribute("solid")
-      props.setDrawFillColorAttribute(color.toString)
-      props.setStyleRunThroughAttribute("foreground")
-
-      // set comment content
-      parent.setStyleName(graphicStyle.getStyleNameAttribute)
     }
 
-    def setFontColor(color: Color) = {
-      val p = self.getParagraphIterator.next()
-      p.getStyleHandler.getTextPropertiesForWrite().setFontColor(color)
-      val styleName = p.getStyleName()
+    def setFontColor(color: Option[Color]) = {
+      color.map { color =>
+        val p = self.getParagraphIterator.next()
+        p.getStyleHandler.getTextPropertiesForWrite().setFontColor(color)
+        val styleName = p.getStyleName()
 
-      val lastNode = p.getOdfElement.getLastChild();
-      // create new style element to support coloring of font
-      val content = self.getTextContent
-      //remove last node (current text node)
-      p.getOdfElement.removeChild(lastNode)
-      val textP = p.getOdfElement.asInstanceOf[TextPElement]
-      val span = textP.newTextSpanElement()
+        val lastNode = p.getOdfElement.getLastChild();
+        // create new style element to support coloring of font
+        val content = self.getTextContent
+        //remove last node (current text node)
+        p.getOdfElement.removeChild(lastNode)
+        val textP = p.getOdfElement.asInstanceOf[TextPElement]
+        val span = textP.newTextSpanElement()
 
-      val dom = self.getOdfElement.getOwnerDocument
-      val styles = if (dom.isInstanceOf[OdfContentDom]) {
-        dom.asInstanceOf[OdfContentDom].getAutomaticStyles
-      } else {
-        dom.asInstanceOf[OdfStylesDom].getAutomaticStyles
+        val dom = self.getOdfElement.getOwnerDocument
+        val styles = if (dom.isInstanceOf[OdfContentDom]) {
+          dom.asInstanceOf[OdfContentDom].getAutomaticStyles
+        } else {
+          dom.asInstanceOf[OdfStylesDom].getAutomaticStyles
+        }
+        val textStyle = styles.newStyle(OdfStyleFamily.Text)
+        val styleTextPropertiesElement = textStyle.newStyleTextPropertiesElement(null)
+        styleTextPropertiesElement.setFoColorAttribute(color.toString)
+
+        // set comment content
+        span.setStyleName(textStyle.getStyleNameAttribute)
+        span.setTextContent(content)
       }
-      val textStyle = styles.newStyle(OdfStyleFamily.Text)
-      val styleTextPropertiesElement = textStyle.newStyleTextPropertiesElement(null)
-      styleTextPropertiesElement.setFoColorAttribute(color.toString)
-
-      // set comment content
-      span.setStyleName(textStyle.getStyleNameAttribute)
-      span.setTextContent(content)
     }
   }
 

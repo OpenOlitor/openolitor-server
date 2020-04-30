@@ -82,9 +82,9 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
             val color = hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse("")
             val korbUebersichtSeq = (proDepotTour map {
               case (POST, p2) => KorbUebersichtReportProDepotTour(POST, NO_COLOR, p2)
-              case (p1, p2)     => KorbUebersichtReportProDepotTour(p1, depotTourFarbCodes(p1), p2)
+              case (p1, p2)   => KorbUebersichtReportProDepotTour(p1, depotTourFarbCodes(p1), p2)
             }).toSeq;
-            KorbUebersichtReportProAbotyp(abotypName, color, proDepotTour.values.sum, korbUebersichtSeq )
+            KorbUebersichtReportProAbotyp(abotypName, color, proDepotTour.values.sum, korbUebersichtSeq)
         }
 
         val proAbotyp = (auslieferungReport.entries groupBy (groupIdentifierHauptabo) map {
@@ -95,7 +95,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
             val color = hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse("")
             val korbUebersichtSeq = (proDepotTour map {
               case (POST, p2) => KorbUebersichtReportProDepotTour(POST, NO_COLOR, p2)
-              case (p1, p2)     => KorbUebersichtReportProDepotTour(p1, depotTourFarbCodes(p1), p2)
+              case (p1, p2)   => KorbUebersichtReportProDepotTour(p1, depotTourFarbCodes(p1), p2)
             }).toSeq;
             KorbUebersichtReportProAbotyp(abotypName, color, proDepotTour.values.sum, korbUebersichtSeq)
         }
