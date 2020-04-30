@@ -141,14 +141,10 @@ trait MailService extends AggregateRoot
     } getOrElse (Left(FileStoreError("Error")))
     if (sendEmailOutbound) {
       val envelope = mail.attachmentReference match {
-        case Some(attachment) => {
+        case Some(_) => {
           inputStreamfile match {
             case Right(f) => {
-              Right(Envelope.from(new InternetAddress(fromAddress))
-                .to(InternetAddress.parse(mail.to): _*)
-                .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
-                .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
-                .subject(mail.subject)
+              Right(baseEnvelope(mail)
                 .content(Multipart()
                   .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
                   .html(s"${mail.content}")))
@@ -158,14 +154,7 @@ trait MailService extends AggregateRoot
         }
         case None =>
           {
-            Right(
-              Envelope.from(new InternetAddress(fromAddress))
-                .to(InternetAddress.parse(mail.to): _*)
-                .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
-                .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
-                .subject(mail.subject)
-                .content(Text(mail.content))
-            )
+            Right(baseEnvelope(mail).content(Text(mail.content)))
           }
       }
 
@@ -197,6 +186,14 @@ trait MailService extends AggregateRoot
 
       Right(MailSentEvent(metadata(meta.originator), uid, commandMeta))
     }
+  }
+
+  private def baseEnvelope(mail: Mail): Envelope = {
+    Envelope.from(new InternetAddress(fromAddress))
+      .to(InternetAddress.parse(mail.to): _*)
+      .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
+      .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
+      .subject(mail.subject)
   }
 
   def enqueueMail(meta: EventMetadata, uid: String, mail: Mail, expires: DateTime, commandMeta: Option[AnyRef]): Unit = {
