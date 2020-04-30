@@ -86,7 +86,7 @@ class Pain008_001_02_Export extends LazyLogging {
     val CtrlSum = getSumAllRechnungs(rechnungen.map(_._1))
     val PmtTpInf = Some(PaymentTypeInformationSDD(
       ServiceLevel("SEPA"),
-      LocalInstrumentSEPA("Core"),
+      LocalInstrumentSEPA("CORE"),
       SequenceType1Code.fromString("FRST", defineNamespaceBinding()),
       None
     ))
