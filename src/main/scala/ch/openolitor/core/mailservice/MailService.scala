@@ -22,35 +22,26 @@
 \*                                                                           */
 package ch.openolitor.core.mailservice
 
-import java.nio.file.{ Files, StandardCopyOption }
-import java.io.File
+import java.util.UUID
 
-import ch.openolitor.core.domain.AggregateRoot
 import akka.actor._
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.domain._
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.db.ConnectionPoolContextAware
-import org.joda.time.DateTime
 import akka.persistence.SnapshotMetadata
-
-import scala.util.Failure
-import scala.util.Success
-import scala.concurrent.duration._
+import ch.openolitor.core.domain.{ AggregateRoot, _ }
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.db.ConnectionPoolContextAware
+import ch.openolitor.core.{ JSONSerializable, SystemConfig }
+import ch.openolitor.core.filestore._
+import ch.openolitor.util.ConfigUtil._
 import courier._
 import javax.mail.internet.InternetAddress
-
+import org.joda.time.DateTime
+import spray.util._
 import stamina.Persister
-import java.util.UUID
-import javax.mail.util.ByteArrayDataSource
 
 import scala.collection.immutable.TreeSet
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.util.ConfigUtil._
-
+import scala.concurrent.duration._
 import scala.concurrent.Await
-import ch.openolitor.core.filestore._
-import spray.util._
+import scala.util.{ Failure, Success }
 
 object MailService {
 
@@ -72,6 +63,7 @@ object MailService {
   def props(dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig, dbEvolutionActor, fileStore)
 
   case object CheckMailQueue
+  case object CheckMailQueueComplete
 }
 
 trait MailService extends AggregateRoot
@@ -80,8 +72,8 @@ trait MailService extends AggregateRoot
 
   with MailRetryHandler {
 
-  import MailService._
   import AggregateRoot._
+  import MailService._
 
   override val fileStore: FileStore = null
   override def persistenceId: String = MailService.persistenceId
@@ -133,6 +125,8 @@ trait MailService extends AggregateRoot
         }
       }
     }
+
+    self ! CheckMailQueueComplete
   }
 
   def sendMail(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef]): Either[String, MailSentEvent] = {
@@ -161,7 +155,7 @@ trait MailService extends AggregateRoot
       // we have to await the result, maybe switch to standard javax.mail later
       try {
         val result = envelope match {
-          case Right(e) => Await.ready(mailer(e), 5 seconds).value match {
+          case Right(e) => Await.ready(mailer(e), 20 seconds).value match {
             case Some(e) => Right(e)
             case None    => Left("Error sending the email")
           }
@@ -241,8 +235,8 @@ trait MailService extends AggregateRoot
       // testing
       log.debug(s"uninitialized => Initialize: $state")
       this.state = state
-      initialize()
       context become created
+      initialize()
     case CheckMailQueue =>
   }
 
@@ -254,6 +248,7 @@ trait MailService extends AggregateRoot
       log.debug(s"created => GetState")
       sender ! state
     case CheckMailQueue =>
+      context.become(checkingMailQueue)
       checkMailQueue()
     case SendMailCommandWithCallback(personId, mail, retryDuration, commandMeta) =>
       val meta = metadata(personId)
@@ -273,6 +268,18 @@ trait MailService extends AggregateRoot
       }
     case other =>
       log.warning(s"Received unknown command:$other")
+  }
+
+  val checkingMailQueue: Receive = {
+    case CheckMailQueue =>
+    // drop this message as we are currently checking the mail queue
+    case CheckMailQueueComplete =>
+      // we're done checking the mail queue so unstash all the messages
+      context.become(created)
+      unstashAll()
+    case _ =>
+      // stash the rest
+      stash()
   }
 
   val removed: Receive = {
