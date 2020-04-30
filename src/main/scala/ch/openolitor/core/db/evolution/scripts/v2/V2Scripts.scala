@@ -243,5 +243,6 @@ object V2Scripts {
     ArbeitseinsatzExt.scripts ++
     OO199_Coordinates.scripts ++
     LPHTMLEditor.scripts ++
-    OO302_Add_Bcc_field.scripts
+    OO302_Add_Bcc_field.scripts ++
+    OO_sunu_adding_bic_to_account.scripts
 }

@@ -102,7 +102,7 @@ class Pain008_001_02_Export extends LazyLogging {
     //-----------------
     val DrctDbtTxInf = rechnungen map {
       case (rechnung, kontoDaten) =>
-        getDirectDebitTransactionInformation(kontoDaten.iban.getOrElse("Iban subscriptor"), kontoDaten.nameAccountHolder.getOrElse("accountHolder subscriptor"), rechnung)
+        getDirectDebitTransactionInformation(kontoDaten.bic.getOrElse("NOTPROVIDED"), kontoDaten.iban.getOrElse("Iban subscriptor"), kontoDaten.nameAccountHolder.getOrElse("accountHolder subscriptor"), rechnung)
     }
 
     PaymentInstructionInformationSDD(PmtInfId, PmtMtd, BtchBookg, NbOfTxs, CtrlSum,
@@ -110,14 +110,14 @@ class Pain008_001_02_Export extends LazyLogging {
       ChrgBr, CdtrSchmeId, DrctDbtTxInf)
   }
 
-  private def getDirectDebitTransactionInformation(iban: String, nameAccountHolder: String, rechnung: Rechnung): DirectDebitTransactionInformationSDD = {
+  private def getDirectDebitTransactionInformation(bic: String, iban: String, nameAccountHolder: String, rechnung: Rechnung): DirectDebitTransactionInformationSDD = {
     val PmtId = PaymentIdentificationSEPA(None, "NOTPROVIDED")
     val PmtTpInf = None
     val InstdAmt = pain008_001_02.ActiveOrHistoricCurrencyAndAmountSEPA(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
     val ChrgBr = None
     val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(rechnung.kundeId.id.toString, getDate(), None, None, None), None)
     val UltmtCdtr = None
-    val DbtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), "NOTPROVIDED")))
+    val DbtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), bic)))
     val DbtrAgtAcct = None
     val Dbtr = pain008_001_02.PartyIdentificationSEPA2(nameAccountHolder, None)
     val DbtrAcct = pain008_001_02.CashAccountSEPA2(pain008_001_02.AccountIdentificationSEPA(iban))
