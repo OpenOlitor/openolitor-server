@@ -278,7 +278,10 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
     DB localTxPostPublish { implicit session => implicit publisher =>
       lazy val bccAddress = config.getString("smtp.bcc")
       buchhaltungWriteRepository.getProjekt map { projekt: Projekt =>
-        sendEmail(meta, subject, body, projekt.sendEmailToBcc, bccAddress, person, invoiceReference, context, mailService)
+        projekt.sendEmailToBcc match {
+          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, invoiceReference, context, mailService)
+          case false => sendEmail(meta, subject, body, None, person, invoiceReference, context, mailService)
+        }
       }
     }
   }

@@ -43,7 +43,7 @@ object ProjektParser extends EntityParser {
         val Seq(indexBezeichnung, indexStrasse, indexHausNummer, indexAdressZusatz, indexPlz, indexOrt, indexPreiseSichtbar,
           indexPreiseEditierbar, indexEmailErforderlich, indexWaehrung, indexGeschaeftsjahrMonat, indexGeschaeftsjahrTag, indexTwoFactorAuth,
           indexSprache, indexWelcomeMessage1, indexWelcomeMessage2, indexMaintenanceMode,
-          indexGenerierteMailsSenden, indexEinsatzEinheit, indexEinsatzAbsageVorlaufTage, indexEinsatzShowListeKunde, indexSendEmailToBcc) = indexes take (21)
+          indexGenerierteMailsSenden, indexEinsatzEinheit, indexEinsatzAbsageVorlaufTage, indexEinsatzShowListeKunde, indexSendEmailToBcc) = indexes take (22)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
         val twoFactorAuth = parseMap(row.value[String](indexTwoFactorAuth))(r => Rolle(r).getOrElse(throw ParseException(s"Unknown Rolle $r while parsing Projekt")), _.toBoolean)
 

@@ -257,7 +257,10 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     DB localTxPostPublish { implicit session => implicit publisher =>
       lazy val bccAddress = config.getString("smtp.bcc")
       stammdatenWriteRepository.getProjekt map { projekt =>
-        sendEmail(meta, subject, body, projekt.sendEmailToBcc, bccAddress, person, None, context, mailService)
+        projekt.sendEmailToBcc match {
+          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, None, context, mailService)
+          case false => sendEmail(meta, subject, body, None, person, None, context, mailService)
+        }
       }
     }
   }

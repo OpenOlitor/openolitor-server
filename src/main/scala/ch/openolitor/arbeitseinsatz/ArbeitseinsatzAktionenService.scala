@@ -68,7 +68,10 @@ class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, overri
     DB localTxPostPublish { implicit session => implicit publisher =>
       lazy val bccAddress = config.getString("smtp.bcc")
       arbeitseinsatzWriteRepository.getProjekt map { projekt: Projekt =>
-        sendEmail(meta, subject, body, projekt.sendEmailToBcc, bccAddress, person, None, context, mailService)
+        projekt.sendEmailToBcc match {
+          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, None, context, mailService)
+          case false => sendEmail(meta, subject, body, None, person, None, context, mailService)
+        }
       }
     }
   }
