@@ -93,7 +93,7 @@ class Pain008_001_02_Export extends LazyLogging {
     val ReqdColltnDt = getDate()
     val Cdtr = pain008_001_02.PartyIdentificationSEPA5(projekt.bezeichnung, None)
     val CdtrAcct = pain008_001_02.CashAccountSEPA1(pain008_001_02.AccountIdentificationSEPA(kontoDatenProjekt.iban.getOrElse("iban from CSA")))
-    val CdtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), "NOTPROVIDED")))
+    val CdtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), kontoDatenProjekt.bic.getOrElse("NOTPROVIDED"))))
     val UltmtCdtr = None
     val ChrgBr = Some(pain008_001_02.SLEV)
     //-----------------
