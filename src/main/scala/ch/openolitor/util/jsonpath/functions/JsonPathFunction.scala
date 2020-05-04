@@ -41,6 +41,59 @@ sealed trait Param1JsonPathFunction extends LazyLogging {
  */
 object JsonPathFunctions {
 
+  abstract class BaseStringFunction extends LazyLogging {
+    def extractNumber(jsValue: JsValue): Option[String] = {
+      jsValue match {
+        case JsObject(_) =>
+          logger.debug(s"Cannot extract string from JsObject: $jsValue")
+          None
+        case JsNull =>
+          logger.debug(s"Cannot convert null value to number")
+          None
+        case JsString(stringValue) =>
+          Some(stringValue)
+        case JsNumber(number) =>
+          Some(number.toString())
+        case JsBoolean(value)  =>
+          Some(value.toString)
+        case JsArray(values) =>
+          logger.debug(s"Cannot extract string from array:$values")
+          None
+      }
+    }
+
+  }
+
+  abstract class BaseUnaryStringFunction extends BaseStringFunction with UnaryJsonPathFunction {
+    def evaluate(jsValue: Vector[JsValue]): Option[Vector[JsValue]] = {
+      val result = applyNumberFunction(jsValue.map(extractNumber))
+      result.map(x => Vector(JsString(x)))
+    }
+
+    protected def applyNumberFunction(values: Vector[Option[String]]): Option[String]
+  }
+
+  abstract class BaseParam1StringFunction extends BaseStringFunction with Param1JsonPathFunction {
+    def evaluate(param1: String, jsValue: Vector[JsValue]): Option[Vector[JsValue]] = {
+      val result = applyNumberFunction(param1, jsValue.map(extractNumber))
+      result.map(x => Vector(JsString(x)))
+    }
+
+    protected def applyNumberFunction(params1: String, values: Vector[Option[String]]): Option[String]
+  }
+
+  /**
+   * Concatenate all paths into a single string with a defined separator
+   */
+  object MkString extends BaseParam1StringFunction {
+    protected def applyNumberFunction(separator: String, values: Vector[Option[String]]): Option[String] = {
+      values match {
+        case Vector() => None
+        case _ =>  Some(values.flatten.mkString(separator))
+      }
+    }
+  }
+
   abstract class BaseNumberFunction extends UnaryJsonPathFunction {
     def extractNumber(jsValue: JsValue): Option[BigDecimal] = {
       jsValue match {
@@ -123,7 +176,7 @@ object JsonPathFunctions {
   }
 
   /**
-   * Group jsValue
+   * Group jsValue33
    */
   object GroupBy extends Param1JsonPathFunction {
     def evaluate(property: String, jsValue: Vector[JsValue]): Option[Vector[JsValue]] = {
