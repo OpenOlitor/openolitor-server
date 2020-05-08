@@ -29,12 +29,16 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.EmailHandler
-
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext.Implicits._
+
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ ActorRef, ActorSystem }
+import ch.openolitor.stammdaten.models.{ Person, Projekt }
+import scalikejdbc.DB
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.repositories.EventPublishingImplicits._
+import scala.concurrent.ExecutionContext.Implicits._
 
 object ArbeitseinsatzAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): ArbeitseinsatzAktionenService = new DefaultArbeitseinsatzAktionenService(sysConfig, system, mailService)
@@ -55,9 +59,21 @@ class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, overri
 
   val handle: Handle = {
     case SendEmailToArbeitsangebotPersonenEvent(meta, subject, body, person, context) =>
-      sendEmail(meta, subject, body, person, context, mailService)
+      checkBccAndSend(meta, subject, body, person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
+  }
+
+  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, person: Person, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      lazy val bccAddress = config.getString("smtp.bcc")
+      arbeitseinsatzWriteRepository.getProjekt map { projekt: Projekt =>
+        projekt.sendEmailToBcc match {
+          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, None, context, mailService)
+          case false => sendEmail(meta, subject, body, None, person, None, context, mailService)
+        }
+      }
+    }
   }
 
 }

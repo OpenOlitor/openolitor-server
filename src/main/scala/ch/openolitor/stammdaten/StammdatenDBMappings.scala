@@ -843,7 +843,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.generierteMailsSenden -> projekt.generierteMailsSenden,
         column.einsatzEinheit -> projekt.einsatzEinheit,
         column.einsatzAbsageVorlaufTage -> projekt.einsatzAbsageVorlaufTage,
-        column.einsatzShowListeKunde -> projekt.einsatzShowListeKunde
+        column.einsatzShowListeKunde -> projekt.einsatzShowListeKunde,
+        column.sendEmailToBcc -> projekt.sendEmailToBcc
       )
     }
   }

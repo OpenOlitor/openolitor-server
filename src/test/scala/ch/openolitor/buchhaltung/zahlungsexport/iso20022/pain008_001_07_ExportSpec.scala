@@ -118,7 +118,7 @@ class pain008_001_07_ExportSpec extends Specification {
         None,
         false,
         false,
-        EinsatzEinheit("Tage"), 1, false,
+        EinsatzEinheit("Tage"), 1, false, false,
         DateTime.parse("2017-08-07T14:48:06"),
         PersonId(1),
         DateTime.parse("2017-08-07T14:48:06"),

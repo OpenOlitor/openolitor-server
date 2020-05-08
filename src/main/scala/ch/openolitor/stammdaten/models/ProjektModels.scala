@@ -28,7 +28,6 @@ import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
 import java.util.Locale
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple26
 import ch.openolitor.core.scalax.Tuple27
 
 sealed trait EinsatzEinheit extends Product
@@ -109,6 +108,7 @@ case class Projekt(
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
+  sendEmailToBcc: Boolean,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -120,7 +120,7 @@ case class Projekt(
 
 object Projekt {
   def unapply(o: Projekt) = {
-    Some(Tuple26(
+    Some(Tuple27(
       o.id,
       o.bezeichnung,
       o.strasse,
@@ -143,6 +143,7 @@ object Projekt {
       o.einsatzEinheit,
       o.einsatzAbsageVorlaufTage,
       o.einsatzShowListeKunde,
+      o.sendEmailToBcc,
       o.erstelldat,
       o.ersteller,
       o.modifidat,
@@ -172,7 +173,8 @@ object Projekt {
     generierteMailsSenden: Boolean = false,
     einsatzEinheit: EinsatzEinheit = Stunden,
     einsatzAbsageVorlaufTage: Int = 3,
-    einsatzShowListeKunde: Boolean = true
+    einsatzShowListeKunde: Boolean = true,
+    sendEmailToBcc: Boolean = true
   )(implicit person: PersonId): Projekt = {
     Projekt(
       id,
@@ -197,6 +199,7 @@ object Projekt {
       einsatzEinheit,
       einsatzAbsageVorlaufTage,
       einsatzShowListeKunde,
+      sendEmailToBcc,
       erstelldat = DateTime.now,
       ersteller = person,
       modifidat = DateTime.now,
@@ -221,7 +224,8 @@ case class ProjektPublik(
   maintenanceMode: Boolean,
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
-  einsatzShowListeKunde: Boolean
+  einsatzShowListeKunde: Boolean,
+  sendEmailToBcc: Boolean
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -280,7 +284,8 @@ case class ProjektModify(
   generierteMailsSenden: Boolean,
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
-  einsatzShowListeKunde: Boolean
+  einsatzShowListeKunde: Boolean,
+  sendEmailToBcc: Boolean
 ) extends JSONSerializable
 
 @deprecated("This class exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")

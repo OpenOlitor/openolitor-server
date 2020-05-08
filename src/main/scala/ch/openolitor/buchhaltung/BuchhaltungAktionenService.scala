@@ -31,10 +31,8 @@ import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ ActorRef, ActorSystem }
-import akka.pattern.ask
 import akka.util.Timeout
 import ch.openolitor.util.ConfigUtil._
-import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.core.Macros._
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
@@ -44,8 +42,9 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryC
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.stammdaten.EmailHandler
+import ch.openolitor.stammdaten.models.Projekt
 
-import scala.util.{ Failure, Success }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -67,6 +66,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
   with MailServiceReference
   with BuchhaltungEventStoreSerializer
   with MailTemplateService
+  with EmailHandler
   with SystemConfigReference {
   self: BuchhaltungWriteRepositoryComponent =>
 
@@ -97,7 +97,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
     case MahnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
       mahnungPDFStored(meta, rechnungId, fileStoreId)
     case SendEmailToInvoiceSubscribersEvent(meta, subject, body, person, invoice, context) =>
-      sendEmail(meta, subject, body, person, invoice, context)
+      checkBccAndSend(meta, subject, body, person, invoice, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -115,25 +115,6 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.modifyEntity[Rechnung, RechnungId](id) { rechnung =>
         Map(rechnungMapping.column.mahnungFileStoreIds -> ((rechnung.mahnungFileStoreIds filterNot (_ == "")) + fileStoreId))
-      }
-    }
-  }
-
-  private def sendEmail(meta: EventMetadata, emailSubject: String, body: String, person: Person, invoiceReference: Option[String], mailContext: Product)(implicit originator: PersonId = meta.originator): Unit = {
-    DB localTxPostPublish { implicit session => implicit publisher =>
-      generateMail(emailSubject, body, mailContext) match {
-        case Success(mailPayload) =>
-          person.email map { email =>
-            val mail = mailPayload.toMail(1, email, None, None, invoiceReference)
-            mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
-              case _: SendMailEvent =>
-              //ok
-              case other =>
-                logger.debug(s"Sending Mail failed resulting in $other")
-            }
-          }
-        case Failure(e) =>
-          logger.warn(s"Failed preparing mail", e)
       }
     }
   }
@@ -289,6 +270,18 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
           zahlungsEingangMapping.column.erledigt -> true,
           zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
         )
+      }
+    }
+  }
+
+  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, person: Person, invoiceReference: Option[String], context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      lazy val bccAddress = config.getString("smtp.bcc")
+      buchhaltungWriteRepository.getProjekt map { projekt: Projekt =>
+        projekt.sendEmailToBcc match {
+          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, invoiceReference, context, mailService)
+          case false => sendEmail(meta, subject, body, None, person, invoiceReference, context, mailService)
+        }
       }
     }
   }

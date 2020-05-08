@@ -229,7 +229,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       DB readOnly { implicit session =>
         if (checkTemplateAbosSubscribers(body, subject, ids)) {
           val events = ids flatMap { aboId: AboId =>
-            stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
+            stammdatenReadRepository.getById(zusatzAboMapping, aboId) orElse
+              stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
               stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
               stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
                 stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>

@@ -45,6 +45,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
   lazy val depotlieferungAbo = depotlieferungAboMapping.syntax("depotlieferungAbo")
   lazy val heimlieferungAbo = heimlieferungAboMapping.syntax("heimlieferungAbo")
   lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
+  lazy val projekt = projektMapping.syntax("projekt")
 
   protected def getArbeitskategorienQuery = {
     withSQL {
@@ -240,4 +241,12 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .where.eq(arbeitseinsatz.arbeitsangebotId, arbeitsangebotId)
     }.map(personMapping(person)).list
   }
+
+  protected def getProjektQuery = {
+    withSQL {
+      select
+        .from(projektMapping as projekt)
+    }.map(projektMapping(projekt)).single
+  }
+
 }
