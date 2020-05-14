@@ -54,7 +54,7 @@ trait ProduzentenabrechnungReportService extends AsyncConnectionPoolContextAware
     )
   }
 
-  private def name(fileType: FileType)(la: MultiReport[ProduzentenabrechnungReport]) = s"la_${la.id}_${filenameDateFormat.print(System.currentTimeMillis())}"
+  private def name(fileType: FileType)(la: MultiReport[ProduzentenabrechnungReport]) = s"delivery_${la.id.id}_${filenameDateFormat.print(System.currentTimeMillis())}"
 
   private def bestellungById(ids: Seq[SammelbestellungId]): Future[(Seq[ValidationError[SammelbestellungId]], Seq[MultiReport[ProduzentenabrechnungReport]])] = {
     stammdatenReadRepository.getProjekt flatMap {
