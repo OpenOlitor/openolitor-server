@@ -22,20 +22,21 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.zahlungsexport.iso20022
 
+import java.util.Locale
+
 import ch.openolitor.buchhaltung.models.{ Rechnung, RechnungId, RechnungStatus }
-import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_001_07_Export
+import ch.openolitor.buchhaltung.rechnungsexport.iso20022.Pain008_001_02_Export
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models._
 import org.joda.time.DateTime
 import org.specs2.mutable._
-import java.util.Locale
 
 import scala.io.Source.fromInputStream
 
-class pain008_001_07_ExportSpec extends Specification {
-  "Pain008_001_07_Export" should {
-    "export pain008_001_07 XML file" in {
-      val exampleFileInputStream = getClass.getResourceAsStream("/pain_008_001_07_Sunu_Beispiel.xml")
+class pain008_001_02_ExportSpec extends Specification {
+  "Pain008_001_02_Export" should {
+    "export pain008_001_02 XML file" in {
+      val exampleFileInputStream = getClass.getResourceAsStream("/pain_008_001_02_example.xml")
       val exampleFileString = fromInputStream(exampleFileInputStream).mkString
       val iban = "AD12000120302003591001000000000001"
       val rechnung = Rechnung(
@@ -43,7 +44,7 @@ class pain008_001_07_ExportSpec extends Specification {
         KundeId(1),
         "",
         Waehrung("EUR"),
-        BigDecimal(99.99),
+        BigDecimal(523.00),
         None,
         DateTime.parse("2017-08-07T14:48:06"),
         DateTime.parse("2017-08-07T14:48:06"),
@@ -72,7 +73,7 @@ class pain008_001_07_ExportSpec extends Specification {
         None,
         None,
         Some("bankName"),
-        Some("Musterfrau, Birgit"),
+        Some("mikel mikel"),
         None,
         Some(KundeId(1)),
         None,
@@ -93,7 +94,7 @@ class pain008_001_07_ExportSpec extends Specification {
         None,
         None,
         Some("Musterfirma"),
-        None,
+        Some("MALADE51KAD"),
         DateTime.parse("2017-08-07T14:48:06"),
         PersonId(1),
         DateTime.parse("2017-08-07T14:48:06"),
@@ -128,7 +129,7 @@ class pain008_001_07_ExportSpec extends Specification {
       )
 
       val exampleFileStringNoSpaces = exampleFileString.split('\n').map(_.trim.filter(_ >= ' ')).mkString
-      val result = Pain008_001_07_Export.exportPain008_001_07(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1", projekt)
+      val result = Pain008_001_02_Export.exportPain008_001_02(List[(Rechnung, KontoDaten)]((rechnung, kontoDatenKunde)), kontoDatenProjekt, "1", projekt)
       //delete the dates and id from the result and the expected xml
       val exampleFileNoDates = exampleFileStringNoSpaces.replaceAll("<CreDtTm>.*</CreDtTm>", "<CreDtTm></CreDtTm>")
         .replaceAll("<ReqdColltnDt>.*</ReqdColltnDt>", "<ReqdColltnDt></ReqdColltnDt>")
