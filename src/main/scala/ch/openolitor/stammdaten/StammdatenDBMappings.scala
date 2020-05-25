@@ -1106,7 +1106,8 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.nameAccountHolder -> entity.nameAccountHolder,
         column.addressAccountHolder -> entity.addressAccountHolder,
         column.kunde -> entity.kunde,
-        column.creditorIdentifier -> entity.creditorIdentifier
+        column.creditorIdentifier -> entity.creditorIdentifier,
+        column.bic -> entity.bic
       )
     }
   }
