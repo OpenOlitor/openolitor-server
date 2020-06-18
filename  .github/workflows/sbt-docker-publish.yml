@@ -16,9 +16,8 @@ jobs:
       with:
         java-version: 1.8
     - name: Docker Login
-      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Build and Publish Docker Image
       run: sbt docker:publish
       env:
-        VERSION:
         DOCKER_UPDATE_LATEST: true
