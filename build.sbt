@@ -1,6 +1,7 @@
 scalaVersion := "2.11.11"
 
 enablePlugins(JavaServerAppPackaging)
+enablePlugins(DockerPlugin)
 
 name := "openolitor-server"
 mainClass in Compile := Some("ch.openolitor.core.Boot")
@@ -153,3 +154,6 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
   )) dependsOn (macroSub, sprayJsonMacro, scalikejdbcAsync, akkaPersistenceSqlAsync)
 
 lazy val root = (project in file("root")).settings(buildSettings).aggregate(macroSub, main, sprayJsonMacro)
+
+dockerUsername := Some("openolitor")
+dockerUpdateLatest:= true
