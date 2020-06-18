@@ -165,5 +165,6 @@ val updateLatest = sys.env.get("DOCKER_UPDATE_LATEST") match {
                       }
 
 dockerUpdateLatest := updateLatest
+dockerBaseImage := "openjdk:8"
 
 version in Docker := sys.env.get("VERSION").getOrElse(version.value + "_SNAPSHOT")

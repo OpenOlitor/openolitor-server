@@ -5,7 +5,7 @@ on:
     types: [prereleased, released]
 
 jobs:
-  build:
+  docker:
 
     runs-on: ubuntu-latest
 
