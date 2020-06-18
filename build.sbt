@@ -156,4 +156,5 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
 lazy val root = (project in file("root")).settings(buildSettings).aggregate(macroSub, main, sprayJsonMacro)
 
 dockerUsername := Some("openolitor")
-dockerUpdateLatest:= true
+dockerUpdateLatest:= sys.env.get("DOCKER_UPDATE_LATEST").getOrElse(false)
+version in Docker := sys.env.get("VERSION").getOrElse(version.value + "_SNAPSHOT")
