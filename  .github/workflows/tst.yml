@@ -7,10 +7,8 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Run Simple Test No Function
-      run: less build.sbt
+      - uses: actions/checkout@v2
+      - name: Run Simple Test No Function
+        run: less build.sbt
