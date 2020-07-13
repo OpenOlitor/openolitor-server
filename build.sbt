@@ -35,7 +35,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.3.2",
+  version := "2.4.0",
   scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -91,7 +91,7 @@ val buildSettings = Seq(
     "org.jfarcand"                 %   "wcs"                                  % "1.5",
     "com.scalapenos"               %%  "stamina-json"                         % "0.1.1",
     // s3
-    "com.amazonaws"                %   "aws-java-sdk"                         % "1.11.4",
+    "com.amazonaws"                %   "aws-java-sdk-s3"                      % "1.11.807",
     "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
     "com.github.daddykotex"        %% "courier"                                % "2.0.0",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
@@ -166,5 +166,11 @@ val updateLatest = sys.env.get("DOCKER_UPDATE_LATEST") match {
 
 dockerUpdateLatest := updateLatest
 dockerBaseImage := "openjdk:8"
+dockerExposedPorts ++= Seq(9003)
+
+dockerEnvVars := Map("JAVA_OPTS" -> "-Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml")
+
+maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
+packageSummary in Docker := "Server Backend of the OpenOlitor Platform"
 
 version in Docker := sys.env.get("VERSION").getOrElse(version.value + "_SNAPSHOT")
