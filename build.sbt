@@ -168,7 +168,7 @@ dockerUpdateLatest := updateLatest
 dockerBaseImage := "openjdk:8"
 dockerExposedPorts ++= Seq(9003)
 
-dockerEnvVars := Map("JAVA_OPTS" -> "-Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml")
+dockerEnvVars := Map("JAVA_OPTS" -> "-Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml")
 
 maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
 packageSummary in Docker := "Server Backend of the OpenOlitor Platform"
