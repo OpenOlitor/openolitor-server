@@ -96,7 +96,10 @@ val buildSettings = Seq(
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
     "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic"),
-    "net.codecrete.qrbill"         % "qrbill-generator"                       % "1.0.0",
+    "net.codecrete.qrbill"         % "qrbill-generator"                       % "2.4.3",
+    "io.nayuki"                    % "qrcodegen"                              % "1.6.0",
+    "org.apache.pdfbox"            % "pdfbox"                                 % "2.0.20",
+    "org.apache.pdfbox"            % "pdfbox-parent"                          % "2.0.20" pomOnly(),
     "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
     "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
     "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
