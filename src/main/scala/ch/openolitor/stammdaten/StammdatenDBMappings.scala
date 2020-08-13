@@ -1100,14 +1100,14 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     override def updateParameters(entity: KontoDaten) = {
       super.updateParameters(entity) ++ Seq(
         column.iban -> entity.iban,
+        column.bic -> entity.bic,
         column.referenzNummerPrefix -> entity.referenzNummerPrefix,
         column.teilnehmerNummer -> entity.teilnehmerNummer,
         column.bankName -> entity.bankName,
         column.nameAccountHolder -> entity.nameAccountHolder,
         column.addressAccountHolder -> entity.addressAccountHolder,
         column.kunde -> entity.kunde,
-        column.creditorIdentifier -> entity.creditorIdentifier,
-        column.bic -> entity.bic
+        column.creditorIdentifier -> entity.creditorIdentifier
       )
     }
   }
