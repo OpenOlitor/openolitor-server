@@ -32,6 +32,7 @@ import spray.can.websocket.UpgradedToWebSocket
 import akka.util.ByteString
 import ch.openolitor.core.Boot.MandantSystem
 import org.jfarcand.wcs._
+import spray.http.HttpHeaders.Connection
 
 import scala.util.{ Failure, Success, Try }
 
@@ -90,7 +91,7 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
         case Success(result) => result
         case Failure(error) => {
           log.error(s"Handshake failure: $error")
-          serverConnection ! HttpResponse(400)
+          serverConnection ! HttpResponse(426).withHeaders(List(Connection("Upgrade")))
           context become (closeLogic orElse unsupported)
         }
       }
