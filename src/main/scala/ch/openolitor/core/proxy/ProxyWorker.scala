@@ -33,6 +33,8 @@ import akka.util.ByteString
 import ch.openolitor.core.Boot.MandantSystem
 import org.jfarcand.wcs._
 
+import scala.util.{ Failure, Success, Try }
+
 object ProxyWorker {
   case class Push(msg: String)
   case class BinaryPush(msg: Array[Byte])
@@ -77,9 +79,21 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
       log.error(s"Unmatched request: $x")
   }
 
+  val unsupported: Receive = {
+    case x =>
+      log.debug(s"Unsupported request state: $x")
+  }
+
   val requestContextHandshake: Receive = {
     case ctx: RequestContext =>
-      handshaking(ctx.request)
+      Try(handshaking(ctx.request)) match {
+        case Success(result) => result
+        case Failure(error) => {
+          log.error(s"Handshake failure: $error")
+          serverConnection ! HttpResponse(400)
+          context become (closeLogic orElse unsupported)
+        }
+      }
   }
 
   lazy val textMessageListener = new TextListener {
