@@ -37,7 +37,7 @@ import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import net.codecrete.qrbill.generator.{ Address, Bill, BillFormat, GraphicsFormat, Language, OutputSize, QRBill, QRBillValidationError, SeparatorType }
+import net.codecrete.qrbill.generator.{ Address, Bill, BillFormat, GraphicsFormat, Language, OutputSize, QRBill, QRBillValidationError, SeparatorType, Payments }
 import java.time.LocalDate
 
 import com.typesafe.scalalogging.LazyLogging
@@ -124,10 +124,8 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
 
           // more bill data
           bill.setUnstructuredMessage(rechnung.titel);
-          stammdatenReadRepository.getKontoDatenKunde(rechnung.kunde.id) map { kd =>
-            bill.setReference(iban)
-          }
-          //bill.setReference(rechnung.referenzNummer);
+          bill.setReference(Payments.createQRReference(rechnung.referenzNummer.replace("0", "")));
+          bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF);
 
           // Set debtor
           val debtor = new Address();
