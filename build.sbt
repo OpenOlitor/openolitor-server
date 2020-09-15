@@ -176,4 +176,4 @@ dockerEnvVars := Map("JAVA_OPTS" -> "-Xms256m -Xmx3G -Dconfig.file=/etc/openolit
 maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
 packageSummary in Docker := "Server Backend of the OpenOlitor Platform"
 
-version in Docker := sys.env.get("VERSION").getOrElse(version.value + "_SNAPSHOT")
+version in Docker := sys.env.get("GITHUB_REF").getOrElse(version.value + "_SNAPSHOT")
