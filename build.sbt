@@ -21,6 +21,8 @@ assemblyMergeStrategy in assembly := {
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 
 val specs2V = "2.4.17" // based on spray 1.3.x built in support
@@ -171,7 +173,11 @@ dockerUpdateLatest := updateLatest
 dockerBaseImage := "openjdk:8"
 dockerExposedPorts ++= Seq(9003)
 
-dockerEnvVars := Map("JAVA_OPTS" -> "-Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml")
+val todayD = Calendar.getInstance.getTime
+val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
+
+dockerEnvVars := Map("JAVA_OPTS" -> "-Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
+                     "application_buildnr" -> today)
 
 maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
 packageSummary in Docker := "Server Backend of the OpenOlitor Platform"
