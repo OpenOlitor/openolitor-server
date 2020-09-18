@@ -559,7 +559,7 @@ trait DocumentProcessor extends LazyLogging {
       case backgroundColorFormatPattern(pattern, _) =>
         // set background to textbox
         val color = resolveColor(json, pattern, pathPrefixes)
-        logger.error(s"setBackgroundColor:$color")
+        logger.debug(s"setBackgroundColor:$color")
         textbox.setBackgroundColorWithNewStyle(color)
         value
       case foregroundColorFormatPattern(pattern, _) =>
