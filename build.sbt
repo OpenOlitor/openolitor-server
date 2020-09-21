@@ -173,6 +173,10 @@ dockerUpdateLatest := updateLatest
 dockerBaseImage := "openjdk:8"
 dockerExposedPorts ++= Seq(9003)
 
+// the directories created, e.g. /var/log/openolitor-server, are created using user id 1000,
+// but the default user starting the app has id 1001 which wouldn't have access to it
+daemonUserUid in Docker := Some("1000")
+
 val todayD = Calendar.getInstance.getTime
 val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
 
