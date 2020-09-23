@@ -180,7 +180,7 @@ daemonUserUid in Docker := Some("1000")
 val todayD = Calendar.getInstance.getTime
 val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
 
-dockerEnvVars := Map("JAVA_OPTS" -> "-Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
+dockerEnvVars := Map("JAVA_OPTS" -> "-XX:+ExitOnOutOfMemoryError -Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
                      "application_buildnr" -> today)
 
 maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
