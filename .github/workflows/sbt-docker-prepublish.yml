@@ -2,7 +2,7 @@ name: Build and Publish Docker Image
 
 on:
   release:
-    types: [released]
+    types: [prereleased]
 
 jobs:
   docker:
@@ -20,4 +20,4 @@ jobs:
     - name: Build and Publish Docker Image
       run: sbt docker:publish
       env:
-        DOCKER_UPDATE_LATEST: true
+        DOCKER_UPDATE_LATEST: false
