@@ -95,7 +95,8 @@ object Boot extends App with LazyLogging {
     }.opt.getOrElse(sys.error(s"Couldn't aquire new free server port"))
   }
 
-  logger.info(s"sun.misc.VM.maxDirectMemory(): ${sun.misc.VM.maxDirectMemory() / 1024.0 / 1024.0} MB")
+  // JDK 11 does not offer this function publicly
+  // logger.info(s"sun.misc.VM.maxDirectMemory(): ${sun.misc.VM.maxDirectMemory() / 1024.0 / 1024.0} MB")
   logger.info(s"io.netty.util.internal.PlatformDependent.maxDirectMemory(): ${io.netty.util.internal.PlatformDependent.maxDirectMemory() / 1024.0 / 1024.0} MB")
   logger.debug(s"application_name: " + sys.env.get("application_config"))
   logger.debug(s"config-file java prop: " + sys.props.get("config-file"))

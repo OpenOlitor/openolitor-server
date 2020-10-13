@@ -1,4 +1,4 @@
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -105,6 +105,7 @@ val buildSettings = Seq(
     "org.apache.pdfbox"            % "pdfbox-parent"                          % "2.0.20" pomOnly(),
     "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
     "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
+    "org.glassfish.jaxb"           % "jaxb-runtime"                           % "2.3.1",
     "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
   )
 }
