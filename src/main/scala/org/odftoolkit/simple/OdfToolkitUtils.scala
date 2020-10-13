@@ -89,7 +89,7 @@ object OdfToolkitUtils {
 
           // copy over all graphic related styles from current base style
           val baseProps = baseStyle.getStyleProperties
-          baseProps.asScala.filter(_._1.getPropertySet == OdfStylePropertiesSet.GraphicProperties).foreach{ entry =>
+          baseProps.asScala.filter(_._1.getPropertySet == OdfStylePropertiesSet.GraphicProperties).foreach { entry =>
             props.setAttributeNS(entry._1.getName.getUri, entry._1.getName.getQName, entry._2)
           }
         }

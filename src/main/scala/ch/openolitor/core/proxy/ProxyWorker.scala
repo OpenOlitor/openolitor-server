@@ -32,6 +32,9 @@ import spray.can.websocket.UpgradedToWebSocket
 import akka.util.ByteString
 import ch.openolitor.core.Boot.MandantSystem
 import org.jfarcand.wcs._
+import spray.http.HttpHeaders.Connection
+
+import scala.util.{ Failure, Success, Try }
 
 object ProxyWorker {
   case class Push(msg: String)
@@ -77,9 +80,21 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
       log.error(s"Unmatched request: $x")
   }
 
+  val unsupported: Receive = {
+    case x =>
+      log.debug(s"Unsupported request state: $x")
+  }
+
   val requestContextHandshake: Receive = {
     case ctx: RequestContext =>
-      handshaking(ctx.request)
+      Try(handshaking(ctx.request)) match {
+        case Success(result) => result
+        case Failure(error) => {
+          log.error(s"Handshake failure: $error")
+          serverConnection ! HttpResponse(426).withHeaders(List(Connection("Upgrade")))
+          context become (closeLogic orElse unsupported)
+        }
+      }
   }
 
   lazy val textMessageListener = new TextListener {

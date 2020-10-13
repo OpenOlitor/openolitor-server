@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.util.jsonpath
 
-import spray.json.{JsArray, JsObject, JsValue}
+import spray.json.{ JsArray, JsObject, JsValue }
 
 /**
  * Collect all nodes

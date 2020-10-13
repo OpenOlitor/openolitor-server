@@ -85,7 +85,7 @@ object ReportDocumentProcessorApp extends App with DocumentProcessor {
   // if the json is from a multidocument processing, process for every row
   (processMultiDocument, jsonData) match {
     case (true, JsArray(data)) =>
-      data.map{ row =>
+      data.map { row =>
         processData(row)
       }
     case _ => processData(jsonData)
