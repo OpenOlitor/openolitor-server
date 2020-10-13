@@ -1,6 +1,7 @@
 scalaVersion := "2.11.11"
 
 enablePlugins(JavaServerAppPackaging)
+enablePlugins(DockerPlugin)
 
 name := "openolitor-server"
 mainClass in Compile := Some("ch.openolitor.core.Boot")
@@ -20,6 +21,8 @@ assemblyMergeStrategy in assembly := {
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 
 val specs2V = "2.4.17" // based on spray 1.3.x built in support
@@ -34,7 +37,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.3.1",
+  version := "2.4.2",
   scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -90,13 +93,16 @@ val buildSettings = Seq(
     "org.jfarcand"                 %   "wcs"                                  % "1.5",
     "com.scalapenos"               %%  "stamina-json"                         % "0.1.1",
     // s3
-    "com.amazonaws"                %   "aws-java-sdk"                         % "1.11.4",
+    "com.amazonaws"                %   "aws-java-sdk-s3"                      % "1.11.807",
     "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
-    "me.lessis"                    %%  "courier"                              % "0.1.3",
+    "com.github.daddykotex"        %% "courier"                                % "2.0.0",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
     "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic"),
-    "net.codecrete.qrbill"         % "qrbill-generator"                       % "1.0.0",
+    "net.codecrete.qrbill"         % "qrbill-generator"                       % "2.4.3",
+    "io.nayuki"                    % "qrcodegen"                              % "1.6.0",
+    "org.apache.pdfbox"            % "pdfbox"                                 % "2.0.20",
+    "org.apache.pdfbox"            % "pdfbox-parent"                          % "2.0.20" pomOnly(),
     "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
     "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
     "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
@@ -110,7 +116,8 @@ lazy val scalaxbSettings = Seq(
    scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd",
    scalaxbPackageNames in (Compile, scalaxb) := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.04") -> "ch.openolitor.generated.xsd.camt054_001_04",
-                                                    uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07")
+                                                    uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07",
+                                                    uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.02") -> "ch.openolitor.generated.xsd.pain008_001_02")
 )
 
 lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version_with_timeout")
@@ -152,3 +159,31 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
   )) dependsOn (macroSub, sprayJsonMacro, scalikejdbcAsync, akkaPersistenceSqlAsync)
 
 lazy val root = (project in file("root")).settings(buildSettings).aggregate(macroSub, main, sprayJsonMacro)
+
+dockerUsername := Some("openolitor")
+
+val updateLatest = sys.env.get("DOCKER_UPDATE_LATEST") match {
+                        case Some("true") =>
+                            true
+                        case _ =>
+                            false
+                      }
+
+dockerUpdateLatest := updateLatest
+dockerBaseImage := "openjdk:8"
+dockerExposedPorts ++= Seq(9003)
+
+// the directories created, e.g. /var/log/openolitor-server, are created using user id 1000,
+// but the default user starting the app has id 1001 which wouldn't have access to it
+daemonUserUid in Docker := Some("1000")
+
+val todayD = Calendar.getInstance.getTime
+val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
+
+dockerEnvVars := Map("JAVA_OPTS" -> "-XX:+ExitOnOutOfMemoryError -Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
+                     "application_buildnr" -> today)
+
+maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
+packageSummary in Docker := "Server Backend of the OpenOlitor Platform"
+
+version in Docker := sys.env.get("GITHUB_REF").getOrElse(version.value + "_SNAPSHOT").split("/").last

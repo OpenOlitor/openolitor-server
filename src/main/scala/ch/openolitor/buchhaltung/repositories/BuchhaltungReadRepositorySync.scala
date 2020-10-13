@@ -46,6 +46,7 @@ trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
 
   def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten]
   def getKontoDatenKunde(id: KundeId)(implicit session: DBSession): Option[KontoDaten]
+  def getProjekt(implicit session: DBSession): Option[Projekt]
 }
 
 trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync with LazyLogging with BuchhaltungRepositoryQueries {
@@ -99,5 +100,9 @@ trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync wi
 
   def getZahlungsExportDetail(id: ZahlungsExportId)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[ZahlungsExport] = {
     getZahlungsExportQuery(id).apply()
+  }
+
+  def getProjekt(implicit session: DBSession): Option[Projekt] = {
+    getProjektQuery.apply()
   }
 }

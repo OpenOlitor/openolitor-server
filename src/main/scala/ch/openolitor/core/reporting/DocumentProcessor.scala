@@ -23,8 +23,6 @@
 package ch.openolitor.core.reporting
 
 import java.io._
-import java.net._
-import java.nio.file.Paths
 import java.text.DecimalFormat
 import java.util.Locale
 import java.util.UUID.randomUUID
@@ -486,26 +484,23 @@ trait DocumentProcessor extends LazyLogging {
               resolvePropertyFromJson("referenzNummer", paths) flatMap {
                 _.headOption.map {
                   case JsString(referenzNummer) =>
-                    val filenameSVG = qrCodeFilename + referenzNummer + ".svg"
-                    val filenamePNG = qrCodeFilename + referenzNummer + ".png"
                     // create a new svg file with the svg qrcode content in the value
-                    val fileSVG = new File(filenameSVG)
+                    val fileSVG = File.createTempFile("qrcSVG", ".svg")
                     val pw = new PrintWriter(fileSVG)
                     pw.write(value)
                     pw.close()
 
+                    val filePNG = File.createTempFile("qrcPNG", ".png")
                     //transform the svg in a png and getting the reference of the file
-                    svg2png(filenameSVG, referenzNummer)
-                    val uri = new URI(filenamePNG)
-                    val filePNG = new File(filenamePNG)
+                    svg2png(fileSVG, filePNG, referenzNummer)
 
                     val templateFilename = t.getInternalPath
                     //remove the template image
-                    cont.getPackage.remove(templateFilename)
-                    cont.newImage(uri)
+                    cont.getPackage().remove(templateFilename)
+                    cont.newImage(filePNG.toURI)
                     //insert the new image
-                    val mediaType = OdfFileEntry.getMediaTypeString(uri.toString)
-                    cont.getPackage.insert(uri, templateFilename, mediaType)
+                    val mediaType = OdfFileEntry.getMediaTypeString(filePNG.toURI.toString)
+                    cont.getPackage.insert(filePNG.toURI, templateFilename, mediaType)
                     //delete both svg and png files
                     fileSVG.delete
                     filePNG.delete
@@ -519,10 +514,10 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  private def svg2png(svgFile: String, referenzNummer: String) {
-    val svg_URI_input = Paths.get(svgFile).toUri.toURL.toString
+  private def svg2png(svgFile: File, pngFile: File, referenzNummer: String) {
+    val svg_URI_input = svgFile.toURL.toString
     val input_svg_image = new TranscoderInput(svg_URI_input)
-    val png_ostream = new FileOutputStream(qrCodeFilename + referenzNummer + ".png")
+    val png_ostream = new FileOutputStream(pngFile)
     val output_png_image = new TranscoderOutput(png_ostream)
     val my_converter = new PNGTranscoder()
     my_converter.transcode(input_svg_image, output_png_image)
@@ -632,7 +627,7 @@ trait DocumentProcessor extends LazyLogging {
       case backgroundColorFormatPattern(pattern, _) =>
         // set background to textbox
         val color = resolveColor(pattern, paths)
-        logger.error(s"setBackgroundColor:$color")
+        logger.debug(s"setBackgroundColor:$color")
         textbox.setBackgroundColorWithNewStyle(color)
         value
       case foregroundColorFormatPattern(pattern, _) =>

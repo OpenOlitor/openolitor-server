@@ -229,7 +229,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       DB readOnly { implicit session =>
         if (checkTemplateAbosSubscribers(body, subject, ids)) {
           val events = ids flatMap { aboId: AboId =>
-            stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
+            stammdatenReadRepository.getById(zusatzAboMapping, aboId) orElse
+              stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
               stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
               stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
                 stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
@@ -504,8 +505,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
         //Konto daten creation
         val kontoDaten = entity.kontoDaten match {
-          case Some(kd) => KontoDatenModify(kd.iban, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
-          case None     => KontoDatenModify(None, None, None, None, None, None, Some(kundeId), None)
+          case Some(kd) => KontoDatenModify(kd.iban, kd.bic, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
+          case None     => KontoDatenModify(None, None, None, None, None, None, None, Some(kundeId), None)
         }
         logger.debug(s"created => Insert entity:$kontoDaten")
         val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)

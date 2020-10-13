@@ -47,6 +47,7 @@ trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
 
   def getZahlungsExports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZahlungsExport]]
   def getZahlungsExportDetail(id: ZahlungsExportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZahlungsExport]]
+  def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]]
 }
 
 class BuchhaltungReadRepositoryAsyncImpl extends BuchhaltungReadRepositoryAsync with LazyLogging with BuchhaltungRepositoryQueries {
@@ -84,6 +85,10 @@ class BuchhaltungReadRepositoryAsyncImpl extends BuchhaltungReadRepositoryAsync 
 
   def getZahlungsExportDetail(id: ZahlungsExportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZahlungsExport]] = {
     getZahlungsExportQuery(id).future
+  }
+
+  def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]] = {
+    getProjektQuery.future
   }
 }
 

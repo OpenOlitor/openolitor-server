@@ -22,35 +22,26 @@
 \*                                                                           */
 package ch.openolitor.core.mailservice
 
-import java.nio.file.{ Files, StandardCopyOption }
-import java.io.File
+import java.util.UUID
 
-import ch.openolitor.core.domain.AggregateRoot
 import akka.actor._
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.domain._
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.db.ConnectionPoolContextAware
-import org.joda.time.DateTime
 import akka.persistence.SnapshotMetadata
-
-import scala.util.Failure
-import scala.util.Success
-import scala.concurrent.duration._
+import ch.openolitor.core.domain.{ AggregateRoot, _ }
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.db.ConnectionPoolContextAware
+import ch.openolitor.core.{ JSONSerializable, SystemConfig }
+import ch.openolitor.core.filestore._
+import ch.openolitor.util.ConfigUtil._
 import courier._
 import javax.mail.internet.InternetAddress
-
+import org.joda.time.DateTime
+import spray.util._
 import stamina.Persister
-import java.util.UUID
-import javax.mail.util.ByteArrayDataSource
 
 import scala.collection.immutable.TreeSet
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.util.ConfigUtil._
-
+import scala.concurrent.duration._
 import scala.concurrent.Await
-import ch.openolitor.core.filestore._
-import spray.util._
+import scala.util.{ Failure, Success }
 
 object MailService {
 
@@ -72,6 +63,7 @@ object MailService {
   def props(dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig, dbEvolutionActor, fileStore)
 
   case object CheckMailQueue
+  case object CheckMailQueueComplete
 }
 
 trait MailService extends AggregateRoot
@@ -80,8 +72,8 @@ trait MailService extends AggregateRoot
 
   with MailRetryHandler {
 
-  import MailService._
   import AggregateRoot._
+  import MailService._
 
   override val fileStore: FileStore = null
   override def persistenceId: String = MailService.persistenceId
@@ -90,10 +82,22 @@ trait MailService extends AggregateRoot
   lazy val maxNumberOfRetries = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
   lazy val sendEmailOutbound = sysConfig.mandantConfiguration.config.getBooleanOption("smtp.send-email").getOrElse(true)
   lazy val DefaultChunkSize = sysConfig.mandantConfiguration.config.getIntBytes("smtp.max-chunk-size")
-  lazy val mailer = Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port"))
-    .auth(true)
-    .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password"))
-    .startTtls(true)()
+  lazy val security = sysConfig.mandantConfiguration.config.getString("smtp.security")
+
+  lazy val mailer = security match {
+    case "STARTTLS" => {
+      Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
+        .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).startTls(true)()
+    }
+    case "SSL" => {
+      Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
+        .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).ssl(true)()
+    }
+    case _ => {
+      Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
+        .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password"))()
+    }
+  }
 
   override var state: MailServiceState = MailServiceState(DateTime.now, TreeSet.empty[MailEnqueued])
 
@@ -129,20 +133,20 @@ trait MailService extends AggregateRoot
         }
       }
     }
+
+    self ! CheckMailQueueComplete
   }
 
   def sendMail(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef]): Either[String, MailSentEvent] = {
     val inputStreamfile = mail.attachmentReference map { attachment: String =>
-      Await.result(fileStore.getFile(GeneriertBucket, attachment), 5 seconds)
+      Await.result(fileStore.getFile(GeneriertBucket, attachment), 20 seconds)
     } getOrElse (Left(FileStoreError("Error")))
     if (sendEmailOutbound) {
       val envelope = mail.attachmentReference match {
-        case Some(attachment) => {
+        case Some(_) => {
           inputStreamfile match {
             case Right(f) => {
-              Right(Envelope.from(new InternetAddress(fromAddress))
-                .to(InternetAddress.parse(mail.to): _*)
-                .subject(mail.subject)
+              Right(baseEnvelope(mail)
                 .content(Multipart()
                   .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
                   .html(s"${mail.content}")))
@@ -152,33 +156,14 @@ trait MailService extends AggregateRoot
         }
         case None =>
           {
-            Right(
-              Envelope.from(new InternetAddress(fromAddress))
-                .to(InternetAddress.parse(mail.to): _*)
-                .subject(mail.subject)
-                .content(Text(mail.content))
-            )
+            Right(baseEnvelope(mail).content(Text(mail.content)))
           }
-      }
-
-      mail.cc map { cc =>
-        envelope match {
-          case Right(e) => e.cc(InternetAddress.parse(cc): _*)
-          case Left(e)  => Left(e)
-        }
-      }
-
-      mail.bcc map { bcc =>
-        envelope match {
-          case Right(e) => e.bcc(InternetAddress.parse(bcc): _*)
-          case Left(e)  => Left(e)
-        }
       }
 
       // we have to await the result, maybe switch to standard javax.mail later
       try {
         val result = envelope match {
-          case Right(e) => Await.ready(mailer(e), 5 seconds).value match {
+          case Right(e) => Await.ready(mailer(e), 20 seconds).value match {
             case Some(e) => Right(e)
             case None    => Left("Error sending the email")
           }
@@ -203,6 +188,14 @@ trait MailService extends AggregateRoot
 
       Right(MailSentEvent(metadata(meta.originator), uid, commandMeta))
     }
+  }
+
+  private def baseEnvelope(mail: Mail): Envelope = {
+    Envelope.from(new InternetAddress(fromAddress))
+      .to(InternetAddress.parse(mail.to): _*)
+      .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
+      .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
+      .subject(mail.subject)
   }
 
   def enqueueMail(meta: EventMetadata, uid: String, mail: Mail, expires: DateTime, commandMeta: Option[AnyRef]): Unit = {
@@ -250,8 +243,8 @@ trait MailService extends AggregateRoot
       // testing
       log.debug(s"uninitialized => Initialize: $state")
       this.state = state
-      initialize()
       context become created
+      initialize()
     case CheckMailQueue =>
   }
 
@@ -263,6 +256,7 @@ trait MailService extends AggregateRoot
       log.debug(s"created => GetState")
       sender ! state
     case CheckMailQueue =>
+      context.become(checkingMailQueue)
       checkMailQueue()
     case SendMailCommandWithCallback(personId, mail, retryDuration, commandMeta) =>
       val meta = metadata(personId)
@@ -282,6 +276,18 @@ trait MailService extends AggregateRoot
       }
     case other =>
       log.warning(s"Received unknown command:$other")
+  }
+
+  val checkingMailQueue: Receive = {
+    case CheckMailQueue =>
+    // drop this message as we are currently checking the mail queue
+    case CheckMailQueueComplete =>
+      // we're done checking the mail queue so unstash all the messages
+      context.become(created)
+      unstashAll()
+    case _ =>
+      // stash the rest
+      stash()
   }
 
   val removed: Receive = {

@@ -98,7 +98,7 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
 
   override def persistenceStateStoreId: String = viewId
 
-  override def autoUpdateInterval: FiniteDuration = 100 millis
+  override def autoUpdateInterval: FiniteDuration = 300 millis
 
   /**
    * Delegate to

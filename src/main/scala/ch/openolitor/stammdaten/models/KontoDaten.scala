@@ -9,6 +9,7 @@ case class KontoDatenId(id: Long) extends BaseId
 case class KontoDaten(
   id: KontoDatenId,
   iban: Option[String],
+  bic: Option[String],
   referenzNummerPrefix: Option[String],
   teilnehmerNummer: Option[String],
   bankName: Option[String],
@@ -25,6 +26,7 @@ case class KontoDaten(
 
 case class KontoDatenModify(
   iban: Option[String],
+  bic: Option[String],
   referenzNummerPrefix: Option[String],
   teilnehmerNummer: Option[String],
   bankName: Option[String],

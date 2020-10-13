@@ -20,38 +20,25 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util.jsonpath
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import spray.json.{ JsArray, JsObject, JsValue }
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-/**
- * Collect all nodes
- * @param root the tree root
- *
- * Originally token from gatlin-jsonpath and converted to spray-json
- * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
- */
-class RecursiveNodeIterator(root: JsValue) extends RecursiveIterator[Iterator[JsValue]](root) {
+import scala.util.{ Success, Try }
 
-  override protected def visit(it: Iterator[JsValue]): Unit = {
-    while (it.hasNext && !pause) {
-      visitNode(it.next())
-    }
-    if (!pause) {
-      stack = stack.tail
+object OO_sunu_adding_bic_to_account {
+
+  val addingBICToAccount = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      alterTableAddColumnIfNotExists(kontoDatenMapping, "BIC", "VARCHAR(15)", "iban")
+      Success(true)
     }
   }
 
-  override protected def visitNode(node: JsValue): Unit = {
-    node match {
-      case JsObject(fields) if (fields.size > 0) =>
-        stack = fields.values.iterator :: stack
-      case JsArray(elements) if (elements.size > 0) =>
-        stack = elements.iterator :: stack
-      case _ =>
-    }
-
-    nextNode = node
-    pause = true
-  }
+  val scripts = Seq(addingBICToAccount)
 }

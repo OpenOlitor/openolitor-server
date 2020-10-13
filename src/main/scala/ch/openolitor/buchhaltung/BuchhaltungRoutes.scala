@@ -124,13 +124,13 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
                 generatePain008(rechnungen) match {
                   case Right(xmlData) => {
                     val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-                    storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_07") { (fileId, meta) =>
+                    storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_02") { (fileId, meta) =>
                       createZahlungExport(fileId, rechnungen, xmlData)
                     }
                   }
                   case Left(errorMessage) => {
-                    logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
-                    complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_07 : $errorMessage")
+                    logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_02 : $errorMessage")
+                    complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_02 : $errorMessage")
                   }
                 }
               }
@@ -442,7 +442,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       case (Some(iban), Some(creditorIdentifier)) => {
         val emptyIbanList = checkEmptyIban(rechnungen)
         if (emptyIbanList.isEmpty) {
-          val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
+          val xmlText = Pain008_001_02_Export.exportPain008_001_02(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
           Right(xmlText)
         } else {
           val decoratedEmptyList = emptyIbanList.mkString(" ")

@@ -37,12 +37,13 @@ import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import net.codecrete.qrbill.generator.{ Address, Bill, QRBill, QRBillValidationError }
+import net.codecrete.qrbill.generator.{ Address, Bill, BillFormat, GraphicsFormat, Language, OutputSize, QRBill, QRBillValidationError, SeparatorType, Payments }
 import java.time.LocalDate
+
 import com.typesafe.scalalogging.LazyLogging
 import java.util.Locale
-import scala.collection.JavaConversions._
 
+import scala.collection.JavaConversions._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 
@@ -64,7 +65,16 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                     Left(ValidationError[RechnungId](rechnungId, s"Für bezahlte Rechnungen können keine Berichte mehr erzeugt werden"))
                   case _ =>
                     val projektReport = copyTo[Projekt, ProjektReport](projekt)
-                    Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
+                    qrCode match {
+                      case Some("") => {
+                        Left(ValidationError[RechnungId](rechnungId, s"Die Rechnung konnte nicht erstellt werden." +
+                          s"Denken Sie daran, dass für die Initiative eine IBAN registriert sein muss, um Rechnungen erstellen zu können"))
+                      }
+                      case Some(error) if error.startsWith("Error: ") => {
+                        Left(ValidationError[RechnungId](rechnungId, error))
+                      }
+                      case Some(_) => Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
+                    }
                 }
 
               }.getOrElse(Left(ValidationError[RechnungId](rechnungId, s"Rechnung konnte nicht gefunden werden"))))
@@ -82,21 +92,24 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
     /* the iban is mandatory in order to get a valid qrCode. In case the system does not have one iban setup
     * the qrcode will be empty*/
     kontoDaten.iban match {
-      case Some("") => ""
       case Some(iban) =>
         val result = stammdatenReadRepository.getPersonen(rechnung.kunde.id) map { personen =>
-          var bill = new Bill();
+          val bill = new Bill();
+          val billFormat = new BillFormat();
           val language = projekt.sprache match {
-            case Locale.FRENCH  => Bill.Language.FR;
-            case Locale.GERMAN  => Bill.Language.DE;
-            case Locale.ITALIAN => Bill.Language.IT;
-            case Locale.ENGLISH => Bill.Language.EN;
-            case _              => Bill.Language.DE;
+            case Locale.FRENCH  => Language.FR;
+            case Locale.GERMAN  => Language.DE;
+            case Locale.ITALIAN => Language.IT;
+            case Locale.ENGLISH => Language.EN;
+            case _              => Language.DE;
           }
-          bill.setLanguage(language)
+          billFormat.setLanguage(language)
+          billFormat.setOutputSize(OutputSize.QR_BILL_WITH_HORIZONTAL_LINE)
+          billFormat.setSeparatorType(SeparatorType.DASHED_LINE_WITH_SCISSORS)
+          bill.setFormat(billFormat)
           //this value is mandatory for the qrCode. In case of generating qrCode
           bill.setAccount(iban)
-          bill.setAmount(rechnung.betrag.toDouble);
+          bill.setAmount(rechnung.betrag.bigDecimal);
           bill.setCurrency(projekt.waehrung.toString);
 
           // Set creditor
@@ -109,20 +122,10 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           creditor.setCountryCode("CH");
           bill.setCreditor(creditor);
 
-          // Set final creditor
-          val finalCreditor = new Address();
-          finalCreditor.setName(projekt.bezeichnung);
-          finalCreditor.setStreet(projekt.strasse.getOrElse(""));
-          finalCreditor.setHouseNo(projekt.hausNummer.getOrElse(""));
-          finalCreditor.setPostalCode(projekt.plz.getOrElse(""));
-          finalCreditor.setTown(projekt.ort.getOrElse(""));
-          finalCreditor.setCountryCode("CH");
-          bill.setFinalCreditor(finalCreditor);
-
           // more bill data
-          bill.setDueDate(toLocalDate(rechnung.faelligkeitsDatum));
-          bill.setReferenceNo(rechnung.referenzNummer);
-          bill.setAdditionalInfo(null);
+          bill.setUnstructuredMessage(rechnung.titel);
+          bill.setReference(Payments.createQRReference(rechnung.referenzNummer.replace("0", "")));
+          bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF);
 
           // Set debtor
           val debtor = new Address();
@@ -138,21 +141,29 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           bill.setDebtor(debtor);
 
           try {
-            val svg = QRBill.generate(bill, QRBill.BillFormat.A6_LANDSCAPE_SHEET, QRBill.GraphicsFormat.SVG)
+            val svg = QRBill.generate(bill)
             new String(svg)
           } catch {
             case e: QRBillValidationError => {
               val listValidation = e.getValidationResult.getValidationMessages
-              val message = listValidation.map { m =>
-                m.getField
+              val message: String = listValidation.map { m =>
+                m.getMessageKey: String
+              }.mkString("")
+              if (message.equals("account_is_ch_li_iban")) {
+                logger.warn(s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt")
+                s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt"
+              } else {
+                logger.warn(s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt: $message")
+                s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt: $message}"
               }
-              logger.warn(s"the qr code validation detected errors while generation at the following fields: $message}")
-              new String("")
             }
           }
         }
         Await.result(result, 5.seconds)
-      case None => ""
+      case None => {
+        logger.warn(s"Error: Die Initiative muss über eine IBAN verfügen, um einen QR-Code erstellen zu können ")
+        s"Error: Die Initiative muss über eine IBAN verfügen, um einen QR-Code erstellen zu können"
+      }
     }
   }
 

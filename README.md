@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/OpenOlitor/openolitor-server.svg?branch=prod)](https://travis-ci.org/OpenOlitor/openolitor-server)
+[![Build Status](https://travis-ci.com/OpenOlitor/openolitor-server.svg?branch=prod)](https://travis-ci.com/OpenOlitor/openolitor-server)
 # openolitor-server
 Server Backend der OpenOlitor Administrationsplattform
 
