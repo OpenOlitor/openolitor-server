@@ -124,7 +124,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
 
           // more bill data
           bill.setUnstructuredMessage(rechnung.titel);
-          bill.setReference(Payments.createQRReference(rechnung.referenzNummer.replace("0", "")));
+          bill.setReference(rechnung.referenzNummer);
           bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF);
 
           // Set debtor
@@ -150,11 +150,11 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                 m.getMessageKey: String
               }.mkString("")
               if (message.equals("account_is_ch_li_iban")) {
-                logger.warn(s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt")
+                logger.warn(s"Error: Bei der QR-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt")
                 s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt"
               } else {
-                logger.warn(s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt: $message")
-                s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt: $message}"
+                logger.warn(s"Error: QR-Code-Validierung wurde folgender Problemcode ausgegeben: $message")
+                s"Error: QR-Code-Validierung wurde folgender Problemcode ausgegeben: $message}"
               }
             }
           }
