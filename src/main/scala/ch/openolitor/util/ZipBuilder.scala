@@ -23,13 +23,16 @@
 package ch.openolitor.util
 
 import java.util.zip._
+
 import scala.util.Try
 import java.io.InputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
 
-class ZipBuilder(outputStream: OutputStream) {
+import com.typesafe.scalalogging.LazyLogging
+
+class ZipBuilder(outputStream: OutputStream) extends LazyLogging {
   val zipOutputStream: ZipOutputStream = new ZipOutputStream(outputStream)
 
   def addZipEntry(fileName: String, document: File): Try[Boolean] = {
@@ -49,18 +52,24 @@ class ZipBuilder(outputStream: OutputStream) {
 
   def addZipEntry(fileName: String, is: InputStream): Try[Boolean] = {
     try {
-      val zipEntry = new ZipEntry(fileName)
-      zipOutputStream.putNextEntry(zipEntry)
-      val bytes = new Array[Byte](1024);
-      var length = is.read(bytes)
-      while (length >= 0) {
-        zipOutputStream.write(bytes, 0, length);
-        length = is.read(bytes)
+      zipOutputStream.synchronized {
+        val zipEntry = new ZipEntry(fileName)
+        zipOutputStream.putNextEntry(zipEntry)
+        val bytes = new Array[Byte](1024);
+        var length = is.read(bytes)
+        while (length >= 0) {
+          zipOutputStream.write(bytes, 0, length);
+          length = is.read(bytes)
+        }
+
+        zipOutputStream.closeEntry()
       }
-
-      zipOutputStream.closeEntry()
-
       Try(true)
+    } catch {
+      case t: Throwable => {
+        logger.error(s"ZIP Download - addZipEntry Exception : ${t.getMessage}")
+        Try(false)
+      }
     } finally {
       is.close()
     }
