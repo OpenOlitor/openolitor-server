@@ -244,5 +244,6 @@ object V2Scripts {
     OO199_Coordinates.scripts ++
     LPHTMLEditor.scripts ++
     OO302_Add_Bcc_field.scripts ++
-    OO_sunu_adding_bic_to_account.scripts
+    OO_sunu_adding_bic_to_account.scripts ++
+    OO_sunu_43_Add_default_PaymentTypefield.scripts
 }

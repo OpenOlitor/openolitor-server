@@ -22,13 +22,12 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import ch.openolitor.core.models._
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import ch.openolitor.core.JSONSerializable
 import java.util.Locale
+
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.Tuple27
+import ch.openolitor.core.models._
+import ch.openolitor.core.scalax.Tuple28
+import org.joda.time.{ DateTime, LocalDate }
 
 sealed trait EinsatzEinheit extends Product
 
@@ -109,6 +108,7 @@ case class Projekt(
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
   sendEmailToBcc: Boolean,
+  defaultPaymentType: Option[String],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -120,7 +120,7 @@ case class Projekt(
 
 object Projekt {
   def unapply(o: Projekt) = {
-    Some(Tuple27(
+    Some(Tuple28(
       o.id,
       o.bezeichnung,
       o.strasse,
@@ -144,6 +144,7 @@ object Projekt {
       o.einsatzAbsageVorlaufTage,
       o.einsatzShowListeKunde,
       o.sendEmailToBcc,
+      o.defaultPaymentType,
       o.erstelldat,
       o.ersteller,
       o.modifidat,
@@ -174,7 +175,8 @@ object Projekt {
     einsatzEinheit: EinsatzEinheit = Stunden,
     einsatzAbsageVorlaufTage: Int = 3,
     einsatzShowListeKunde: Boolean = true,
-    sendEmailToBcc: Boolean = true
+    sendEmailToBcc: Boolean = true,
+    defaultPaymentType: Option[String] = None
   )(implicit person: PersonId): Projekt = {
     Projekt(
       id,
@@ -200,6 +202,7 @@ object Projekt {
       einsatzAbsageVorlaufTage,
       einsatzShowListeKunde,
       sendEmailToBcc,
+      defaultPaymentType,
       erstelldat = DateTime.now,
       ersteller = person,
       modifidat = DateTime.now,
@@ -225,7 +228,8 @@ case class ProjektPublik(
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
-  sendEmailToBcc: Boolean
+  sendEmailToBcc: Boolean,
+  defaultPaymentType: Option[String]
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -285,7 +289,8 @@ case class ProjektModify(
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
-  sendEmailToBcc: Boolean
+  sendEmailToBcc: Boolean,
+  defaultPaymentType: Option[String]
 ) extends JSONSerializable
 
 @deprecated("This class exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")

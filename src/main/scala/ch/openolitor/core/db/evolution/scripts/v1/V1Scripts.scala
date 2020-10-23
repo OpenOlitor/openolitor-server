@@ -619,6 +619,7 @@ object V1Scripts {
         einsatzAbsageVorlaufTage = 3,
         einsatzShowListeKunde = true,
         sendEmailToBcc = false,
+        defaultPaymentType = None,
 
         //modification flags
         erstelldat = DateTime.now,
