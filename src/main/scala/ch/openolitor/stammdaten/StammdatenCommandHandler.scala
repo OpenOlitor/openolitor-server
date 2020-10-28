@@ -60,6 +60,7 @@ object StammdatenCommandHandler {
   case class PasswortResetCommand(originator: PersonId, personId: PersonId) extends UserCommand
   case class RolleWechselnCommand(originator: PersonId, kundeId: KundeId, personId: PersonId, rolle: Rolle) extends UserCommand
   case class UpdateKundeCommand(originator: PersonId, kundeId: KundeId, kunde: KundeModify) extends UserCommand
+  case class CreateKundeCommand(originator: PersonId, kunde: KundeModify) extends UserCommand
 
   // TODO person id for calculations
   case class AboAktivierenCommand(aboId: AboId, originator: PersonId = PersonId(100)) extends UserCommand
@@ -420,6 +421,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
     case UpdateKundeCommand(originator, kundeId, kunde) => idFactory => meta =>
       updateKunde(idFactory, meta, kundeId, kunde)
+
+    case CreateKundeCommand(originator, kunde) => idFactory => meta =>
+      createKunde(idFactory, meta, kunde)
     /*
        * Insert command handling
        */
@@ -495,32 +499,6 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       handleEntityInsert[VertriebModify, VertriebId](idFactory, meta, entity, VertriebId.apply)
     case e @ InsertEntityCommand(personId, entity: ProjektVorlageCreate) => idFactory => meta =>
       handleEntityInsert[ProjektVorlageCreate, ProjektVorlageId](idFactory, meta, entity, ProjektVorlageId.apply)
-    case e @ InsertEntityCommand(personId, entity: KundeModify) => idFactory => meta =>
-      if (entity.ansprechpersonen.isEmpty) {
-        Failure(new InvalidStateException(s"Zum Erstellen eines Kunden muss mindestens ein Ansprechpartner angegeben werden"))
-      } else {
-        logger.debug(s"created => Insert entity:$entity")
-        val kundeId = idFactory.newId(KundeId.apply)
-        val kundeEvent = EntityInsertEvent(kundeId, entity)
-
-        //Konto daten creation
-        val kontoDaten = entity.kontoDaten match {
-          case Some(kd) => KontoDatenModify(kd.iban, kd.bic, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
-          case None     => KontoDatenModify(None, None, None, None, None, None, None, Some(kundeId), None)
-        }
-        logger.debug(s"created => Insert entity:$kontoDaten")
-        val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)
-
-        val apartnerEvents = entity.ansprechpersonen.zipWithIndex.map {
-          case (newPerson, index) =>
-            val sort = index + 1
-            val personCreate = copyTo[PersonModify, PersonCreate](newPerson, "kundeId" -> kundeId, "sort" -> sort)
-            logger.debug(s"created => Insert entity:$personCreate")
-            EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
-        }
-
-        Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
-      }
 
     /*
     * Custom update command handling
@@ -791,28 +769,70 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   def updateKunde(idFactory: IdFactory, meta: EventTransactionMetadata, kundeId: KundeId, kunde: KundeModify) = {
     DB readOnly { implicit session =>
-      val personen = kunde.ansprechpersonen.map { person =>
+      if (isEmailUnique(idFactory, meta, Some(kundeId), kunde)) {
+        updateKundeEntity(idFactory, meta.originator, kundeId, kunde)
+      } else {
+        Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
+      }
+    }
+  }
+
+  def createKunde(idFactory: IdFactory, meta: EventTransactionMetadata, kunde: KundeModify) = {
+    DB readOnly { implicit session =>
+      if (kunde.ansprechpersonen.isEmpty) {
+        Failure(new InvalidStateException(s"Zum Erstellen eines Kunden muss mindestens ein Ansprechpartner angegeben werden"))
+      } else {
+        if (isEmailUnique(idFactory, meta, None, kunde)) {
+          logger.debug(s"created => Insert entity:$kunde")
+          val kundeId = idFactory.newId(KundeId.apply)
+          val kundeEvent = EntityInsertEvent(kundeId, kunde)
+
+          //Konto daten creation
+          val kontoDaten = kunde.kontoDaten match {
+            case Some(kd) => KontoDatenModify(kd.iban, kd.bic, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
+            case None     => KontoDatenModify(None, None, None, None, None, None, None, Some(kundeId), None)
+          }
+          logger.debug(s"created => Insert entity:$kontoDaten")
+          val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)
+
+          val apartnerEvents = kunde.ansprechpersonen.zipWithIndex.map {
+            case (newPerson, index) =>
+              val sort = index + 1
+              val personCreate = copyTo[PersonModify, PersonCreate](newPerson, "kundeId" -> kundeId, "sort" -> sort)
+              logger.debug(s"created => Insert entity:$personCreate")
+              EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
+          }
+          Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
+        } else {
+          Failure(new InvalidStateException(s"The email address needs to be unique. More than one person is using the same email address"))
+        }
+      }
+    }
+  }
+
+  private def isEmailUnique(idFactory: IdFactory, meta: EventTransactionMetadata, kundeId: Option[KundeId], kunde: KundeModify): Boolean = {
+    DB readOnly { implicit session =>
+      kunde.ansprechpersonen.map { person =>
         person.email match {
           case Some(email) =>
             if (!email.isEmpty) {
               stammdatenReadRepository.getPersonByEmail(email) match {
-                case Some(p) => if (p.kundeId != kundeId) {
-                  Some(p)
-                } else {
-                  None
-                }
+                case Some(p) =>
+                  kundeId match {
+                    case Some(kid) =>
+                      if (p.kundeId != kid) {
+                        Some(p)
+                      } else {
+                        None
+                      }
+                    case _ => Some(p)
+                  }
                 case _ => None
               }
             } else { None }
           case _ => None
         }
-      }.flatten
-
-      if (personen.isEmpty) {
-        updateKundeEntity(idFactory, meta.originator, kundeId, kunde)
-      } else {
-        Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
-      }
+      }.flatten.isEmpty
     }
   }
 
