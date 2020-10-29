@@ -599,7 +599,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   private def createKunde(kunde: KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.CreateKundeCommand(subject.personId, kunde)) {
       case UserCommandFailed =>
-        complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+        complete(StatusCodes.BadRequest, s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet.")
       case _ =>
         complete("")
     }
