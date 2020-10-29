@@ -149,7 +149,7 @@ trait MailService extends AggregateRoot
               Right(baseEnvelope(mail)
                 .content(Multipart()
                   .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
-                  .html(s"${mail.content}")))
+                  .text(s"${mail.content}")))
             }
             case Left(e) => Left(e)
           }
