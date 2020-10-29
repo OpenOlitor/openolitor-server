@@ -804,7 +804,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           }
           Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
         } else {
-          Failure(new InvalidStateException(s"The email address needs to be unique. More than one person is using the same email address"))
+          Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
         }
       }
     }
