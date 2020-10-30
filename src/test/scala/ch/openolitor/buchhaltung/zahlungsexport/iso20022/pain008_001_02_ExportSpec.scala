@@ -79,6 +79,8 @@ class pain008_001_02_ExportSpec extends Specification {
         Some(KundeId(1)),
         None,
         DateTime.parse("2017-08-07T14:48:06"),
+        Some("Musterfirma"),
+        DateTime.parse("2017-08-07T14:48:06"),
         PersonId(1),
         DateTime.parse("2017-08-07T14:48:06"),
         PersonId(1)
@@ -94,6 +96,8 @@ class pain008_001_02_ExportSpec extends Specification {
         None,
         None,
         None,
+        Some("Musterfirma"),
+        DateTime.parse("2017-08-07T14:48:06"),
         Some("Musterfirma"),
         DateTime.parse("2017-08-07T14:48:06"),
         PersonId(1),
