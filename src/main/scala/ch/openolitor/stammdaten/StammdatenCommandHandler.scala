@@ -789,8 +789,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
           //Konto daten creation
           val kontoDaten = kunde.kontoDaten match {
-            case Some(kd) => KontoDatenModify(kd.iban, kd.bic, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None, None, None)
-            case None     => KontoDatenModify(None, None, None, None, None, None, None, Some(kundeId), None, None, None)
+            case Some(kd) => KontoDatenModify(kd.iban, kd.bic, None, None, kd.bankName, kd.nameAccountHolder, kd.addressAccountHolder, Some(kundeId), None)
+            case None     => KontoDatenModify(None, None, None, None, None, None, None, Some(kundeId), None)
           }
           logger.debug(s"created => Insert entity:$kontoDaten")
           val kontoDatenEvent = EntityInsertEvent(KontoDatenId(kundeId.id), kontoDaten)

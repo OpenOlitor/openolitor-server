@@ -22,13 +22,16 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
+import ch.openolitor.core.models._
 import ch.openolitor.core.models.VorlageTyp
-import ch.openolitor.core.repositories.{ BaseEntitySQLSyntaxSupport, BaseParameter, DBMappings }
-import ch.openolitor.stammdaten.models.{ PendenzStatus, _ }
-import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.stammdaten.models._
 import scalikejdbc._
-
+import ch.openolitor.core.repositories.DBMappings
+import com.typesafe.scalalogging.LazyLogging
+import ch.openolitor.stammdaten.models.PendenzStatus
+import ch.openolitor.core.repositories.BaseEntitySQLSyntaxSupport
 import scala.collection.immutable.TreeMap
+import ch.openolitor.core.repositories.BaseParameter
 
 //DB Model bindig
 trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParameter {
@@ -1104,9 +1107,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.nameAccountHolder -> entity.nameAccountHolder,
         column.addressAccountHolder -> entity.addressAccountHolder,
         column.kunde -> entity.kunde,
-        column.creditorIdentifier -> entity.creditorIdentifier,
-        column.dateOfSignature -> entity.dateOfSignature,
-        column.mandateId -> entity.mandateId
+        column.creditorIdentifier -> entity.creditorIdentifier
       )
     }
   }

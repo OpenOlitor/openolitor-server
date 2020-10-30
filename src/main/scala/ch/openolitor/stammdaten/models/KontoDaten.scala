@@ -17,8 +17,6 @@ case class KontoDaten(
   addressAccountHolder: Option[String],
   kunde: Option[KundeId],
   creditorIdentifier: Option[String],
-  dateOfSignature: Option[DateTime],
-  mandateId: Option[String],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -35,7 +33,5 @@ case class KontoDatenModify(
   nameAccountHolder: Option[String],
   addressAccountHolder: Option[String],
   kunde: Option[KundeId],
-  creditorIdentifier: Option[String],
-  dateOfSignature: Option[DateTime],
-  mandateId: Option[String]
+  creditorIdentifier: Option[String]
 ) extends JSONSerializable
