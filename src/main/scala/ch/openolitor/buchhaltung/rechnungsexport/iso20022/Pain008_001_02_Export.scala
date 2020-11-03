@@ -53,13 +53,13 @@ class Pain008_001_02_Export extends LazyLogging {
                   ), "Document", defineNamespaceBinding()).toString()
             }
           case _ => {
-            logger.debug("Invalid payment information while creating a pain008_001_02 file")
+            logger.error("Invalid payment information while creating a pain008_001_02 file")
             "Invalid payment information"
           }
         }
       }
       case _ => {
-        logger.debug(s"Invalid number of transactions while creating a pain008_001_02 file: $NbOfTxs")
+        logger.error(s"Invalid number of transactions while creating a pain008_001_02 file: $NbOfTxs")
         "Invalid number of transactions"
       }
     }
