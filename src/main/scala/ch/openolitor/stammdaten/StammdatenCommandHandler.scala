@@ -584,11 +584,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
               val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung, None, repoType)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
 
-              val zusatzRechnungPositionEventList = createRechnungPositionForZusatzabos(idFactory, abo, aboRechnungCreate.titel, anzahlLieferungen, Some(parentRechnungPositionId), aboRechnungCreate.waehrung)
-
-              val result = (zusatzRechnungPositionEventList :+ EntityInsertEvent(parentRechnungPositionId, hauptRechnungPosition))
-
-              Success(result)
+              Success(List(EntityInsertEvent(parentRechnungPositionId, hauptRechnungPosition)))
 
             } else {
               Failure(new InvalidStateException(s"Für das Abo mit der Id ${abo.id} wurde keine RechnungsPositionen erstellt. Anzahl Lieferungen 0"))
@@ -630,16 +626,6 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val updateEntity = entity.copy(ansprechpersonen = updatePersons, pendenzen = updatePendenzen)
     val updateEvent = EntityUpdateEvent(id, updateEntity)
     Success(updateEvent +: (newPersonsEvents ++ newPendenzenEvents))
-  }
-
-  private def createRechnungPositionForZusatzabos(idFactory: IdFactory, hauptAbo: Abo, titel: String, anzahlLieferungen: Int, parentRechnungsPositionId: Option[RechnungsPositionId], waehrung: Waehrung)(implicit session: DBSession): Seq[ResultingEvent] = {
-    val zusatzabos = stammdatenReadRepository.getZusatzAbosByHauptAbo(hauptAbo.id)
-    for (zusatzabo <- zusatzabos) yield {
-      val zusatzRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
-      val zusatzabosTyp = stammdatenReadRepository.getZusatzAbotypDetail(zusatzabo.abotypId)
-      val zusatzRechnungPosition = createRechnungPositionEvent(zusatzabo, titel, anzahlLieferungen, anzahlLieferungen * zusatzabo.price.getOrElse(zusatzabosTyp.get.preis), waehrung, parentRechnungsPositionId, RechnungsPositionTyp.ZusatzAbo)
-      EntityInsertEvent(zusatzRechnungPositionId, zusatzRechnungPosition)
-    }
   }
 
   private def createRechnungPositionEvent(abo: Abo, titel: String, anzahlLieferungen: Int, betrag: BigDecimal, waehrung: Waehrung, parentRechnungsPositionId: Option[RechnungsPositionId] = None, rechnungsPositionTyp: RechnungsPositionTyp.RechnungsPositionTyp = RechnungsPositionTyp.Abo): RechnungsPositionCreate = {
@@ -690,11 +676,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
               val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate.waehrung)
               val parentRechnungPositionId = idFactory.newId(RechnungsPositionId.apply)
 
-              val zusatzRechnungPositionEventList = createRechnungPositionForZusatzabos(idFactory, abo, aboRechnungCreate.titel, anzahlLieferungen, Some(parentRechnungPositionId), aboRechnungCreate.waehrung)
-
-              val result = (zusatzRechnungPositionEventList :+ EntityInsertEvent(parentRechnungPositionId, hauptRechnungPosition))
-
-              Success(result)
+              Success(List(EntityInsertEvent(parentRechnungPositionId, hauptRechnungPosition)))
             } else {
               Failure(new InvalidStateException(s"Für das Abo mit der Id ${abo.id} wurde keine Rechnungsposition erstellt. Anzahl Lieferungen 0"))
             }
