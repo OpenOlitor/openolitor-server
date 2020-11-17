@@ -20,64 +20,26 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import java.util.zip._
-
-import scala.util.Try
-import java.io.InputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.OutputStream
-
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-class ZipBuilder(outputStream: OutputStream) extends LazyLogging {
-  val zipOutputStream: ZipOutputStream = new ZipOutputStream(outputStream)
+import scala.util.{ Success, Try }
 
-  def addZipEntry(fileName: String, document: File): Try[Boolean] = {
-    val is = new FileInputStream(document)
-    addZipEntry(fileName, is)
-  }
+object OO_github_39_adding_mandantId_DateOfSignature {
 
-  def addZipEntry(fileName: String, document: Array[Byte]): Try[Boolean] = {
-    Try {
-      val zipEntry = new ZipEntry(fileName)
-      zipOutputStream.putNextEntry(zipEntry)
-      zipOutputStream.write(document)
-      zipOutputStream.closeEntry()
-      true
+  val addingMandantIdDateOfSignature = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      alterTableAddColumnIfNotExists(kontoDatenMapping, "mandate_id", "VARCHAR(35)", "creditor_identifier")
+      alterTableAddColumnIfNotExists(kontoDatenMapping, "date_of_signature", "datetime", "mandate_id")
+      Success(true)
     }
   }
 
-  def addZipEntry(fileName: String, is: InputStream): Try[Boolean] = {
-    try {
-      zipOutputStream.synchronized {
-        val zipEntry = new ZipEntry(fileName)
-        zipOutputStream.putNextEntry(zipEntry)
-        val bytes = new Array[Byte](1024);
-        var length = is.read(bytes)
-        while (length >= 0) {
-          zipOutputStream.write(bytes, 0, length);
-          length = is.read(bytes)
-        }
-
-        zipOutputStream.closeEntry()
-      }
-      Try(true)
-    } catch {
-      case t: Throwable => {
-        logger.error(s"ZIP Download - addZipEntry Exception : ${t.getMessage}")
-        Try(false)
-      }
-    } finally {
-      is.close()
-    }
-
-  }
-
-  def close(): Option[File] = {
-    Try(zipOutputStream.close())
-    None
-  }
+  val scripts = Seq(addingMandantIdDateOfSignature)
 }

@@ -101,7 +101,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           entity(as[KundeModify]) { kunde =>
             val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
             if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
-              create[KundeModify, KundeId](KundeId.apply _)
+              createKunde(kunde)
             } else {
               complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
             }
@@ -591,6 +591,15 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     onSuccess(entityStore ? StammdatenCommandHandler.LieferplanungModifyCommand(subject.personId, lieferplanungModify)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Could not modify Lieferplanung")
+      case _ =>
+        complete("")
+    }
+  }
+
+  private def createKunde(kunde: KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateKundeCommand(subject.personId, kunde)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet.")
       case _ =>
         complete("")
     }
