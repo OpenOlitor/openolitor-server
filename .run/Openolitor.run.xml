@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Openolitor" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="ch.openolitor.core.Boot" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

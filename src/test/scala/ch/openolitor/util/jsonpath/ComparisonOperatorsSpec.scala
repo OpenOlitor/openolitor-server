@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.util.jsonpath
 
-
 import org.specs2.mutable.Specification
 import org.specs2.matcher._
 import org.specs2.ScalaCheck
@@ -45,7 +44,7 @@ class ComparisonOperatorsSpec extends Specification with Matchers with ScalaChec
         GreaterOrEqOperator(lhn, rhn) should beFalse
       }
 
-      prop { (bool:Boolean, string:String) =>
+      prop { (bool: Boolean, string: String) =>
         val lhn = JsBoolean(bool)
         val rhn = JsString(string)
         LessOperator(lhn, rhn) should beFalse
@@ -243,7 +242,7 @@ class ComparisonOperatorsSpec extends Specification with Matchers with ScalaChec
 
   "AndOperator" should {
     "&& the lhs and rhs" in {
-      prop { (b1:Boolean, b2: Boolean) =>
+      prop { (b1: Boolean, b2: Boolean) =>
         AndOperator(b1, b2) should beEqualTo(b1 && b2)
       }
     }
@@ -251,7 +250,7 @@ class ComparisonOperatorsSpec extends Specification with Matchers with ScalaChec
 
   "OrOperator" should {
     "|| the lhs and rhs" in {
-      prop { (b1:Boolean, b2: Boolean) =>
+      prop { (b1: Boolean, b2: Boolean) =>
         OrOperator(b1, b2) should beEqualTo(b1 || b2)
       }
     }
