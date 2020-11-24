@@ -131,6 +131,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val auslieferungStatusFormat = enumFormat(AuslieferungStatus.apply)
   implicit val pendenzStatusFormat = enumFormat(PendenzStatus.apply)
   implicit val liefereinheitFormat = enumFormat(Liefereinheit.apply)
+  implicit val secondFactorTypeFormat = enumFormat(SecondFactorType.apply)
 
   //id formats
   implicit val vertriebIdFormat = baseIdFormat(VertriebId)

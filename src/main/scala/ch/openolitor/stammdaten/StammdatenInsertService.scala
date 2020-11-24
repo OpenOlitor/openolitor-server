@@ -38,6 +38,7 @@ import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.util.OtpUtil
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
@@ -258,6 +259,10 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   def createPerson(meta: EventMetadata, id: PersonId, create: PersonCreate)(implicit personId: PersonId = meta.originator) = {
     val rolle: Option[Rolle] = Some(KundenZugang)
 
+    val (otpSecret: Option[String], otpReset: Boolean) = create.secondFactorType match {
+      case _: OtpSecondFactorType => (Some(OtpUtil.generateOtpSecretString), true)
+      case _                      => (None, false)
+    }
     val person = copyTo[PersonCreate, Person](
       create,
       "id" -> id,
@@ -268,6 +273,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "passwort" -> None,
       "passwortWechselErforderlich" -> FALSE,
       "rolle" -> rolle,
+      "otpSecret" -> otpSecret,
+      "otpReset" -> otpReset,
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,

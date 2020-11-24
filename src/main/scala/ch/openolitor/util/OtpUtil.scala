@@ -20,39 +20,50 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.security
+package ch.openolitor.util
 
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.models.PersonSummary
-import ch.openolitor.stammdaten.models.Rolle
-import ch.openolitor.stammdaten.models.KundeId
+import java.nio.charset.StandardCharsets
+import java.security.Key
+import java.time.{ Duration, Instant }
 
-sealed trait SecondFactor {
-  val personId: PersonId;
-  val token: String;
-}
-case class EmailSecondFactor(token: String, code: String, personId: PersonId) extends SecondFactor with JSONSerializable
-case class OtpSecondFactor(token: String, personId: PersonId) extends SecondFactor with JSONSerializable
+import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator
+import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator.TOTP_ALGORITHM_HMAC_SHA1
+import javax.crypto.KeyGenerator
+import javax.crypto.spec.SecretKeySpec
+import org.apache.commons.codec.binary.Base32
 
-case class LoginForm(email: String, passwort: String) extends JSONSerializable
-case class SecondFactorLoginForm(token: String, code: String) extends JSONSerializable
-case class ChangePasswordForm(alt: String, neu: String) extends JSONSerializable
-case class SetPasswordForm(token: String, neu: String) extends JSONSerializable
-case class PasswordResetForm(email: String) extends JSONSerializable
+object OtpUtil {
+  private val SLIDING_WINDOW_MARGIN = 15L
+  lazy val Totp = new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30), 6, TOTP_ALGORITHM_HMAC_SHA1)
 
-sealed trait LoginStatus extends Product
-case object LoginOk extends LoginStatus
-case object LoginSecondFactorRequired extends LoginStatus
+  /**
+   * @return a generated TOTP secret Base32 encoded String.
+   */
+  def generateOtpSecretString: String = {
+    val keyGenerator = KeyGenerator.getInstance(Totp.getAlgorithm)
 
-object LoginStatus {
-  def apply(value: String): Option[LoginStatus] = {
-    Vector(LoginOk, LoginSecondFactorRequired).find(_.toString == value)
+    val key = keyGenerator.generateKey()
+
+    new String(new Base32().encode(key.getEncoded))
+  }
+
+  /**
+   * The time window is double the size of the time step and therefore slides with -15s, +15s respectively.
+   *
+   * @param code The code as string.
+   * @param secretBase32 The secret as Base32 encoded string.
+   * @return true if the given code matches the currently valid code for the given secret.
+   */
+  def checkCodeWithSecret(code: String, secretBase32: String): Boolean = {
+    val key =
+      new SecretKeySpec(new Base32().decode(secretBase32.getBytes(StandardCharsets.US_ASCII)), Totp.getAlgorithm)
+
+    slidingWindowTotpCodes(key).contains(code.toInt)
+  }
+
+  private def slidingWindowTotpCodes(key: Key) = {
+    val now = Instant.now()
+    List(now.minusSeconds(SLIDING_WINDOW_MARGIN), now, now.plusSeconds(SLIDING_WINDOW_MARGIN)).map(instant =>
+      Totp.generateOneTimePassword(key, instant))
   }
 }
-
-case class LoginResult(status: LoginStatus, token: String, person: PersonSummary, otpSecret: Option[String]) extends JSONSerializable
-
-case class RequestFailed(msg: String)
-
-case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle])

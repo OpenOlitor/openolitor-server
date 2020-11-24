@@ -135,6 +135,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit def liefersaisonParameterBinderFactory[A <: Liefersaison]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def vorlageParameterBinderFactory[A <: VorlageTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def einsatzEinheitBinderFactory[A <: EinsatzEinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
+  implicit def secondFactorTypeBinderFactor[A <: SecondFactorType]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val abotypMapping = new BaseEntitySQLSyntaxSupport[Abotyp] {
     override val tableName = "Abotyp"
@@ -297,7 +298,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.letzteAnmeldung -> person.letzteAnmeldung,
         column.passwortWechselErforderlich -> person.passwortWechselErforderlich,
         column.rolle -> person.rolle,
-        column.categories -> person.categories
+        column.categories -> person.categories,
+        column.secondFactorType -> person.secondFactorType,
+        column.otpSecret -> person.otpSecret,
+        column.otpReset -> person.otpReset
       )
     }
   }
