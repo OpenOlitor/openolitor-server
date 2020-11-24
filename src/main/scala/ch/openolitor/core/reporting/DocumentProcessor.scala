@@ -182,11 +182,11 @@ trait DocumentProcessor extends LazyLogging {
           case Vector() =>
             // an empty vectors indicates that the property was not found
             None
-          case _ =>
+          case values: Any =>
             // flatten value because query might be a list of JsValue or a single value from a JsArray proprty
             val flattenedValues: Vector[JsValue] = values.flatMap {
               case JsArray(elements) => elements
-              case x                 => Vector(x)
+              case x: Any            => Vector(x)
             }
             Some(flattenedValues)
         }
@@ -264,7 +264,11 @@ trait DocumentProcessor extends LazyLogging {
    * duplicate all rows except header rows. Try to replace textbox values with value from property map
    */
   protected def processTable(table: Table, locale: Locale, paths: Seq[JsValue], withinContainer: Boolean): Unit = {
-    val (name, structuring) = parseFormats(table.getDotTableName)
+    val propertyName = table.getDotTableName match {
+      case propertyPattern(tableName) => tableName
+      case fullName: Any              => fullName
+    }
+    val (name, structuring) = parseFormats(propertyName)
 
     resolvePropertyFromJson(name, paths) map { values =>
       val valuesStruct = applyStructure(values, structuring)
@@ -371,7 +375,11 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def processSection(doc: TextDocument, section: Section, locale: Locale, paths: Seq[JsValue]): Unit = {
-    val (name, structuring) = parseFormats(section.getName)
+    val propertyName = section.getName match {
+      case propertyPattern(sectionName) => sectionName
+      case fullName: Any                => fullName
+    }
+    val (name, structuring) = parseFormats(propertyName)
     resolvePropertyFromJson(name, paths) map { values =>
       val valuesStruct = applyStructure(values, structuring)
       processSectionWithValues(doc, section, valuesStruct, locale, paths, name)
@@ -418,7 +426,13 @@ trait DocumentProcessor extends LazyLogging {
     // <draw:frame><draw:text-box><p:text></p:text><p:text></p:text></draw:text-box></draw:frame>
     // just have multiple paragraphs as we want to replace multiple values
     if (frame.getDrawFrameElement.getFirstChild.getChildNodes.getLength > 1) {
-      val (name, structuring) = parseFormats(frame.getName)
+
+      val propertyName = frame.getName match {
+        case propertyPattern(frameName) => frameName
+        case fullName: Any              => fullName
+      }
+
+      val (name, structuring) = parseFormats(propertyName)
       resolvePropertyFromJson(name, paths) map { values =>
         val valuesStruct = applyStructure(values, structuring)
         processFrameWithValues(p, frame, valuesStruct, locale, paths, name)
@@ -454,7 +468,11 @@ trait DocumentProcessor extends LazyLogging {
       p <- cont.getParagraphIterator
       t <- new NestedImageIterator(p.getFrameContainerElement)
     } {
-      val (name, formats) = parseFormats(t.getName)
+      val propertyName = t.getName match {
+        case propertyPattern(imageName) => imageName
+        case fullName: Any              => fullName
+      }
+      val (name, formats) = parseFormats(propertyName)
       logger.debug(s"--------------------processImage: $name | formats:$formats")
 
       // resolve textbox content from properties, otherwise only apply formats to current content
@@ -517,13 +535,17 @@ trait DocumentProcessor extends LazyLogging {
       p <- cont.getParagraphIterator
       t <- new NestedTextboxIterator(p.getFrameContainerElement)
     } {
-      val (name, formats) = parseFormats(t.getName)
+      val propertyName = t.getName match {
+        case propertyPattern(textboxName) => textboxName
+        case fullName: Any                => fullName
+      }
+      val (name, formats) = parseFormats(propertyName)
       name match {
         case staticTextPattern(text) =>
           logger.debug(s"-----------------processTextbox with static value:$text | formats:$formats | name:$name")
           applyFormats(t, formats, text, locale, paths)
         case noFillTextPattern() => // do nothing
-        case property =>
+        case property: Any =>
           logger.debug(s"-----------------processTextbox: $property | formats:$formats | name:$name")
 
           // resolve textbox content from properties, otherwise only apply formats to current content
@@ -537,7 +559,7 @@ trait DocumentProcessor extends LazyLogging {
               applyFormats(t, formats, value, locale, paths)
             case Vector(JsNumber(value)) =>
               applyFormats(t, formats, value.toString, locale, paths)
-            case _ =>
+            case _: Any =>
               applyFormats(t, formats, "", locale, paths)
           } getOrElse {
             if (paths.nonEmpty) {
@@ -659,14 +681,10 @@ trait DocumentProcessor extends LazyLogging {
     if (name == null || name.trim.isEmpty) {
       ("", Nil)
     } else {
-      val propertyName = name match {
-        case propertyPattern(frameName) => frameName
-        case fullName                   => fullName
-      }
-      propertyName.split('|').toList match {
+      name.split('|').toList match {
         case name :: Nil  => (correctPropertyName(name.trim), Nil)
         case name :: tail => (correctPropertyName(name.trim), tail.map(_.trim))
-        case _            => (correctPropertyName(propertyName), Nil)
+        case _            => (correctPropertyName(name), Nil)
       }
     }
   }
@@ -679,11 +697,11 @@ trait DocumentProcessor extends LazyLogging {
           case Vector(JsString(value)) =>
             resolveColor(value, paths)
           case Vector() => None
-          case x =>
+          case x: Any =>
             logger.warn(s"Unable to resolve color from property: $x")
             None
         }
-      case color =>
+      case color: Any =>
         if (Color.isValid(color)) {
           Some(Color.valueOf(color))
         } else {
@@ -732,7 +750,7 @@ trait DocumentProcessor extends LazyLogging {
         val convertedDate = dateFormatter.parseDateTime(value).toString(libreOfficeDateFormat)
         Map(prefix -> Value(j, convertedDate))
       case j @ JsString(value) => Map(prefix -> Value(j, value))
-      case value               => Map(prefix -> Value(value, value.toString))
+      case value: Any          => Map(prefix -> Value(value, value.toString))
     }
   }
 }

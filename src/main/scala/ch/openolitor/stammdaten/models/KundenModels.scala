@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.models
 
-import ch.openolitor.core.models._
-import org.joda.time.DateTime
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.scalax.Tuple28
+import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.models._
+import ch.openolitor.core.scalax.{ Tuple24, Tuple28 }
+import org.joda.time.DateTime
 
 case class KundeId(id: Long) extends BaseId
 
@@ -412,6 +412,18 @@ object Anrede {
   }
 }
 
+sealed trait SecondFactorType
+case object OtpSecondFactor extends SecondFactorType
+case object EmailSecondFactor extends SecondFactorType
+
+object SecondFactorType {
+  val AlleTypen = Vector(OtpSecondFactor, EmailSecondFactor)
+
+  def apply(value: String): Option[SecondFactorType] = {
+    AlleTypen.find(_.toString == value)
+  }
+}
+
 sealed trait Rolle
 case object AdministratorZugang extends Rolle
 case object KundenZugang extends Rolle
@@ -444,6 +456,9 @@ case class Person(
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
   contactPermission: Boolean,
+  secondFactorType: SecondFactorType,
+  otpSecret: Option[String],
+  otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -454,6 +469,35 @@ case class Person(
 }
 
 object Person {
+  def unapply(p: Person) = {
+    Some(Tuple24(
+      p.id,
+      p.kundeId,
+      p.anrede,
+      p.name,
+      p.vorname,
+      p.email,
+      p.emailAlternative,
+      p.telefonMobil,
+      p.telefonFestnetz,
+      p.bemerkungen,
+      p.sort,
+      p.loginAktiv,
+      p.passwort,
+      p.letzteAnmeldung,
+      p.passwortWechselErforderlich,
+      p.rolle,
+      p.categories,
+      p.secondFactorType,
+      p.otpSecret,
+      p.otpReset,
+      p.erstelldat,
+      p.ersteller,
+      p.modifidat,
+      p.modifikator
+    ))
+  }
+
   def build(
     id: PersonId = PersonId(0),
     kundeId: KundeId = KundeId(0),
@@ -473,7 +517,10 @@ object Person {
     passwortWechselErforderlich: Boolean = false,
     rolle: Option[Rolle] = None,
     categories: Set[PersonCategoryNameId] = Set(),
-    contactPermission: Boolean = false
+    contactPermission: Boolean = false,
+    secondFactorType: SecondFactorType = EmailSecondFactor,
+    otpSecret: Option[String] = None,
+    otpReset: Boolean = false
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -494,6 +541,9 @@ object Person {
     rolle,
     categories,
     contactPermission,
+    secondFactorType,
+    otpSecret,
+    otpReset,
     // modification flags
     erstelldat = DateTime.now,
     ersteller = person,
@@ -520,6 +570,7 @@ case class PersonDetail(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
+<<<<<<< HEAD
   contactPermission: Boolean,
   // modification flags
   erstelldat: DateTime,
@@ -540,6 +591,8 @@ case class PersonEmailData(
   telefonFestnetz: Option[String],
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
+  secondFactorType: SecondFactorType,
+  otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -553,7 +606,8 @@ case class PersonSummary(
   vorname: String,
   email: Option[String],
   emailAlternative: Option[String],
-  letzteAnmeldung: Option[DateTime]
+  letzteAnmeldung: Option[DateTime],
+  secondFactorType: SecondFactorType
 ) extends JSONSerializable
 
 case class PersonUebersicht(
@@ -650,7 +704,8 @@ case class PersonCreate(
   categories: Set[PersonCategoryNameId],
   contactPermission: Boolean,
   bemerkungen: Option[String],
-  sort: Int
+  sort: Int,
+  secondFactorType: SecondFactorType
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
