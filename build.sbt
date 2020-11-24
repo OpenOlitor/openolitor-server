@@ -85,7 +85,7 @@ val buildSettings = Seq(
     "ch.qos.logback"  	           %   "logback-classic"    		  		        % "1.1.7",
     "org.mariadb.jdbc"	           %   "mariadb-java-client"                  % "2.7.5",
     // Libreoffice document API
-    "org.apache.odftoolkit"        %   "simple-odf"					          % "0.8.2-incubating" withSources(),
+    "org.apache.odftoolkit"        %   "simple-odf"					                  % "0.8.2-incubating" withSources(),
     "com.jsuereth"                 %%  "scala-arm"                            % "1.4",
     //simple websocket client
     "org.jfarcand"                 %   "wcs"                                  % "1.5",
@@ -106,7 +106,8 @@ val buildSettings = Seq(
     "org.apache.pdfbox"            % "pdfbox-parent"                          % "2.0.20" pomOnly(),
     "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
     "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
-    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
+    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2",
+    "com.eatthepath"               % "java-otp"                               % "0.2.0"
   )
 }
 )

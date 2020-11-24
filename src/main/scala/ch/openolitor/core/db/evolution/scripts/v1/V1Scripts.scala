@@ -611,6 +611,7 @@ object V1Scripts {
         geschaeftsjahrMonat = 1,
         geschaeftsjahrTag = 1,
         twoFactorAuthentication = Map(AdministratorZugang -> false, KundenZugang -> true),
+        defaultSecondFactorType = EmailSecondFactor,
         sprache = Locale.forLanguageTag("de-CH"),
         welcomeMessage1 = None,
         welcomeMessage2 = None,

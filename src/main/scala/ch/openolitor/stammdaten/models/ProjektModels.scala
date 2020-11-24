@@ -26,10 +26,12 @@ import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
-
 import java.util.Locale
+
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.{ Tuple27, Tuple28 }
+import ch.openolitor.core.models._
+import ch.openolitor.core.scalax.Tuple28
+import org.joda.time.{ DateTime, LocalDate }
 
 sealed trait EinsatzEinheit extends Product
 
@@ -101,6 +103,7 @@ case class Projekt(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
+  defaultSecondFactorType: SecondFactorType,
   sprache: Locale,
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],
@@ -137,6 +140,7 @@ object Projekt {
       o.geschaeftsjahrMonat,
       o.geschaeftsjahrTag,
       o.twoFactorAuthentication,
+      o.defaultSecondFactorType,
       o.sprache,
       o.welcomeMessage1,
       o.welcomeMessage2,
@@ -169,6 +173,7 @@ object Projekt {
     geschaeftsjahrMonat: Int = 1,
     geschaeftsjahrTag: Int = 1,
     twoFactorAuthentication: Map[Rolle, Boolean] = Map(),
+    defaultSecondFactorType: SecondFactorType = EmailSecondFactor,
     sprache: Locale = Locale.GERMAN,
     welcomeMessage1: Option[String] = None,
     welcomeMessage2: Option[String] = None,
@@ -195,6 +200,7 @@ object Projekt {
       geschaeftsjahrMonat,
       geschaeftsjahrTag,
       twoFactorAuthentication,
+      defaultSecondFactorType,
       sprache,
       welcomeMessage1,
       welcomeMessage2,
@@ -305,6 +311,7 @@ case class ProjektModify(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
+  defaultSecondFactorType: SecondFactorType,
   sprache: Locale,
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],
