@@ -30,7 +30,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.util.OtpUtil
 import scalikejdbc._
 
-import scala.util.{Success, Try}
+import scala.util.{ Success, Try }
 
 object OO_add_otp_second_factor {
 
@@ -52,8 +52,8 @@ object OO_add_otp_second_factor {
       sql"""UPDATE Person SET otp_reset='1'""".execute.apply()
 
       // generate otpSecret for all persons
-      val personId: Seq[Long] = sql"SELECT id from Person".map(rs => rs.string("id")).list.apply()
-      personId.foreach{ id =>
+      val personId: Seq[Long] = sql"SELECT id from Person".map(rs => rs.long("id")).list.apply()
+      personId.foreach { id =>
         val otpSecret = OtpUtil.generateOtpSecretString
         sql"""UPDATE Person SET otp_secret='$otpSecret' WHERE id=$id""".execute.apply()
       }
