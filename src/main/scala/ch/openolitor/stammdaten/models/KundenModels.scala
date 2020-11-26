@@ -25,7 +25,8 @@ package ch.openolitor.stammdaten.models
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models._
-import ch.openolitor.core.scalax.{ Tuple24, Tuple28 }
+import ch.openolitor.core.scalax.{Tuple24, Tuple28}
+import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
 
 case class KundeId(id: Long) extends BaseId
@@ -436,6 +437,33 @@ object Rolle {
   }
 }
 
+case class PersonV1(
+     id: PersonId,
+     kundeId: KundeId,
+     anrede: Option[Anrede],
+     name: String,
+     vorname: String,
+     email: Option[String],
+     emailAlternative: Option[String],
+     telefonMobil: Option[String],
+     telefonFestnetz: Option[String],
+     bemerkungen: Option[String],
+     sort: Int,
+     // security data
+     loginAktiv: Boolean,
+     passwort: Option[Array[Char]],
+     letzteAnmeldung: Option[DateTime],
+     passwortWechselErforderlich: Boolean,
+     rolle: Option[Rolle],
+     categories: Set[PersonCategoryNameId],
+     // modification flags
+     erstelldat: DateTime,
+     ersteller: PersonId,
+     modifidat: DateTime,
+     modifikator: PersonId
+   ) extends BaseEntity[PersonId] {
+}
+
 case class Person(
   id: PersonId,
   kundeId: KundeId,
@@ -457,7 +485,7 @@ case class Person(
   categories: Set[PersonCategoryNameId],
   contactPermission: Boolean,
   secondFactorType: Option[SecondFactorType],
-  otpSecret: Option[String],
+  otpSecret: String,
   otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
@@ -519,7 +547,7 @@ object Person {
     categories: Set[PersonCategoryNameId] = Set(),
     contactPermission: Boolean = false,
     secondFactorType: Option[SecondFactorType] = None,
-    otpSecret: Option[String] = None,
+    otpSecret: String = OtpUtil.generateOtpSecretString,
     otpReset: Boolean = false
   )(implicit person: PersonId): Person = Person(
     id,
@@ -642,6 +670,7 @@ case class PersonUebersicht(
 
 case class KundeSummary(id: KundeId, kunde: String) extends Product
 
+@Deprecated
 case class PersonModifyV1(
   id: Option[PersonId],
   anrede: Option[Anrede],
@@ -652,9 +681,21 @@ case class PersonModifyV1(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   bemerkungen: Option[String]
-) extends JSONSerializable {
-  def fullName = name + ' ' + vorname
-}
+) extends JSONSerializable
+
+@Deprecated
+case class PersonModifyV2(
+   id: Option[PersonId],
+   anrede: Option[Anrede],
+   name: String,
+   vorname: String,
+   email: Option[String],
+   emailAlternative: Option[String],
+   telefonMobil: Option[String],
+   telefonFestnetz: Option[String],
+   categories: Set[PersonCategoryNameId],
+   bemerkungen: Option[String]
+ ) extends JSONSerializable
 
 case class PersonModifyV2(
   id: Option[PersonId],

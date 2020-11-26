@@ -96,7 +96,6 @@ trait LoginRouteService extends HttpService with ActorReferences
   val errorTokenOrCodeMismatch = RequestFailed("Code stimmt nicht überein")
   val errorPersonNotFound = RequestFailed("Person konnte nicht gefunden werden")
   val errorPersonLoginNotActive = RequestFailed("Login wurde deaktiviert")
-  val errorNoOtpSecretConfigured = RequestFailed("Kein OtpSecret auf dem Benutzer konfiguriert")
   val errorConfigurationError = RequestFailed("Konfigurationsfehler. Bitte Administrator kontaktieren.")
 
 
@@ -305,8 +304,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def validateSecondFactor(person: Person, form: SecondFactorLoginForm, secondFactor: SecondFactor): EitherFuture[Boolean] = Future {
     EitherT {
       (secondFactor, person.otpSecret) match {
-        case (_: OtpSecondFactor, None) => errorNoOtpSecretConfigured.left
-        case (_: OtpSecondFactor, Some(secret)) if OtpUtil.checkCodeWithSecret(form.code, secret) => true.right
+        case (_: OtpSecondFactor, secret) if OtpUtil.checkCodeWithSecret(form.code, secret) => true.right
         case (_: OtpSecondFactor, _) => errorTokenOrCodeMismatch.left
         case (EmailSecondFactor(_, code, _), _) if code == form.code => true.right
         case (_: EmailSecondFactor, _) => errorTokenOrCodeMismatch.left
@@ -357,7 +355,7 @@ trait LoginRouteService extends HttpService with ActorReferences
     } yield {
       val personSummary = copyTo[Person, PersonSummary](person)
       val otpSecret = (secondFactor, person.otpReset) match {
-        case (_:OtpSecondFactor, true) => person.otpSecret
+        case (_:OtpSecondFactor, true) => Some(person.otpSecret)
         case _                          => None
       }
       LoginResult(LoginSecondFactorRequired, secondFactor.token, personSummary, otpSecret)

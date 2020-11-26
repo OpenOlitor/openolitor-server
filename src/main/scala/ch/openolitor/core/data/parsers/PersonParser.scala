@@ -71,7 +71,7 @@ object PersonParser extends EntityParser {
             case "otp"   => Some(OtpSecondFactorType)
             case "" => None
           },
-          otpSecret = Some(OtpUtil.generateOtpSecretString),
+          otpSecret = OtpUtil.generateOtpSecretString,
           otpReset = true,
           // modification flags
           erstelldat = row.value[DateTime](indexErstelldat),

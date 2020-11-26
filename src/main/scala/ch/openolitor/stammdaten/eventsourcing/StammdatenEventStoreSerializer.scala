@@ -71,6 +71,12 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
     .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None)))
     .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen)))
+  implicit val kundeModifyPersister = persister[KundeModify, V6]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModifyV2(_, 'ansprechpersonen))
+    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
+    .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None)))
+    .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen)))
+    .to[V7](fixPersonModifyInKundeModifyV3(_, 'ansprechpersonen)))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
@@ -174,6 +180,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val vorlageUploadPersister = persister[ProjektVorlageUpload]("projekt-vorlage-upload")
   implicit val vorlageIdPersister = persister[ProjektVorlageId]("projekt-vorlage-id")
 
+<<<<<<< HEAD
   val projektModifyV5Persister = persister[ProjektModify, V5](
     "projekt-modify",
     from[V1]
@@ -187,6 +194,9 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   )
 
   implicit val projektModifyV6Persister = persister[ProjektModify, V6](
+=======
+  implicit val projektModifyPersister = persister[ProjektModify, V6](
+>>>>>>> 004908c4... changed otpSecret to non-optional, provided persistence evolution and db migration
     "projekt-modify",
     from[V1]
       .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
@@ -196,7 +206,11 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
         .update('einsatzAbsageVorlaufTage ! set[Int](3))
         .update('einsatzShowListeKunde ! set[Boolean](true)))
       .to[V5](_.update('sendEmailToBcc ! set[Boolean](true)))
+<<<<<<< HEAD
       .to[V6](_.update('messageForMembers ! set[Option[String]](None)))
+=======
+      .to[V6](_.update('defaultSecondFactorType ! set[SecondFactorType](EmailSecondFactorType)))
+>>>>>>> 004908c4... changed otpSecret to non-optional, provided persistence evolution and db migration
   )
 
   implicit val projektIdPersister = persister[ProjektId]("projekt-id")
@@ -267,7 +281,11 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAbotypModifyPersister,
     zusatzAboModifyPersister,
     zusatzAboCreatePersister,
+<<<<<<< HEAD
     kundeModifyV5Persister,
+=======
+    kundeModifyPersister,
+>>>>>>> 004908c4... changed otpSecret to non-optional, provided persistence evolution and db migration
     kundeIdPersister,
     personCreateV3Persister,
     personCategoryIdPersister,
@@ -327,7 +345,11 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     tourCreatePersiter,
     tourModifyPersiter,
     tourIdPersister,
+<<<<<<< HEAD
     projektModifyV6Persister,
+=======
+    projektModifyPersister,
+>>>>>>> 004908c4... changed otpSecret to non-optional, provided persistence evolution and db migration
     projektIdPersister,
     abwesenheitCreateV2Persister,
     abwesenheitIdPersister,
@@ -400,7 +422,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     }
   }
 
-  def fixPersonModifyInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
+  def fixPersonModifyInKundeModifyV2(in: JsValue, attribute: Symbol): JsValue = {
     val personen = in.extract[Set[PersonModifyV1]](attribute)
     val emptySet = Set[PersonCategoryNameId]()
     val personenV3 = personen map { person =>
