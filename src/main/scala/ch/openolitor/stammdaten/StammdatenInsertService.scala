@@ -34,11 +34,13 @@ import akka.actor.ActorSystem
 import ch.openolitor.core.models._
 import org.joda.time.LocalDate
 import ch.openolitor.core.Macros._
+
 import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.util.OtpUtil
+import ch.openolitor.stammdaten.models.OtpSecondFactorType
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
@@ -257,11 +259,16 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   }
 
   def createPerson(meta: EventMetadata, id: PersonId, create: PersonCreate)(implicit personId: PersonId = meta.originator) = {
+
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      val projekt = stammdatenWriteRepository.getProjekt
+
     val rolle: Option[Rolle] = Some(KundenZugang)
 
-    val (otpSecret: Option[String], otpReset: Boolean) = create.secondFactorType match {
-      case _: OtpSecondFactorType => (Some(OtpUtil.generateOtpSecretString), true)
-      case _                      => (None, false)
+    val (otpSecret: Option[String], otpReset: Boolean) = (projekt.map(_.defaultSecondFactorType), create.secondFactorType) match {
+      case (Some(OtpSecondFactorType), _) => (Some(OtpUtil.generateOtpSecretString), true)
+      case (_, Some(OtpSecondFactorType)) => (Some(OtpUtil.generateOtpSecretString), true)
+      case _                  => (None, false)
     }
     val person = copyTo[PersonCreate, Person](
       create,
@@ -281,7 +288,6 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "modifikator" -> meta.originator
     )
 
-    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Person, PersonId](person)
     }
   }

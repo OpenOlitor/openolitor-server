@@ -413,11 +413,11 @@ object Anrede {
 }
 
 sealed trait SecondFactorType
-case object OtpSecondFactor extends SecondFactorType
-case object EmailSecondFactor extends SecondFactorType
+case object OtpSecondFactorType extends SecondFactorType
+case object EmailSecondFactorType extends SecondFactorType
 
 object SecondFactorType {
-  val AlleTypen = Vector(OtpSecondFactor, EmailSecondFactor)
+  val AlleTypen = Vector(OtpSecondFactorType, EmailSecondFactorType)
 
   def apply(value: String): Option[SecondFactorType] = {
     AlleTypen.find(_.toString == value)
@@ -456,7 +456,7 @@ case class Person(
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
   contactPermission: Boolean,
-  secondFactorType: SecondFactorType,
+  secondFactorType: Option[SecondFactorType],
   otpSecret: Option[String],
   otpReset: Boolean,
   // modification flags
@@ -518,7 +518,7 @@ object Person {
     rolle: Option[Rolle] = None,
     categories: Set[PersonCategoryNameId] = Set(),
     contactPermission: Boolean = false,
-    secondFactorType: SecondFactorType = EmailSecondFactor,
+    secondFactorType: Option[SecondFactorType] = None,
     otpSecret: Option[String] = None,
     otpReset: Boolean = false
   )(implicit person: PersonId): Person = Person(
@@ -570,7 +570,6 @@ case class PersonDetail(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-<<<<<<< HEAD
   contactPermission: Boolean,
   // modification flags
   erstelldat: DateTime,
@@ -591,7 +590,7 @@ case class PersonEmailData(
   telefonFestnetz: Option[String],
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-  secondFactorType: SecondFactorType,
+  secondFactorType: Option[SecondFactorType],
   otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
@@ -607,7 +606,7 @@ case class PersonSummary(
   email: Option[String],
   emailAlternative: Option[String],
   letzteAnmeldung: Option[DateTime],
-  secondFactorType: SecondFactorType
+  secondFactorType: Option[SecondFactorType]
 ) extends JSONSerializable
 
 case class PersonUebersicht(
@@ -683,7 +682,8 @@ case class PersonModify(
   telefonFestnetz: Option[String],
   categories: Set[PersonCategoryNameId],
   contactPermission: Boolean,
-  bemerkungen: Option[String]
+  bemerkungen: Option[String],
+  secondFactorType: Option[SecondFactorType]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
@@ -705,7 +705,7 @@ case class PersonCreate(
   contactPermission: Boolean,
   bemerkungen: Option[String],
   sort: Int,
-  secondFactorType: SecondFactorType
+  secondFactorType: Option[SecondFactorType]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }

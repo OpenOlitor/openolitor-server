@@ -112,6 +112,16 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         s"${frist.wert}$einheit"
     }
   })
+  implicit val secondFactorTypeBinders: Binders[SecondFactorType] = Binders.string.xmap(_ match {
+    case "otp"   => OtpSecondFactorType
+    case "email" => EmailSecondFactorType
+  }, {
+    _ match {
+      case OtpSecondFactorType   => "otp"
+      case EmailSecondFactorType => "email"
+    }
+  })
+  implicit val optionalSecondFactorTypeBinders: Binders[Option[SecondFactorType]] = Binders.option[SecondFactorType]
 
   implicit val baseProduktekategorieIdSetBinders: Binders[Set[BaseProduktekategorieId]] = setBaseStringIdBinders(BaseProduktekategorieId.apply _)
   implicit val baseProduzentIdSetBinders: Binders[Set[BaseProduzentId]] = setBaseStringIdBinders(BaseProduzentId.apply _)
@@ -135,7 +145,6 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit def liefersaisonParameterBinderFactory[A <: Liefersaison]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def vorlageParameterBinderFactory[A <: VorlageTyp]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
   implicit def einsatzEinheitBinderFactory[A <: EinsatzEinheit]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
-  implicit def secondFactorTypeBinderFactor[A <: SecondFactorType]: ParameterBinderFactory[A] = ParameterBinderFactory.stringParameterBinderFactory.contramap(_.toString)
 
   implicit val abotypMapping = new BaseEntitySQLSyntaxSupport[Abotyp] {
     override val tableName = "Abotyp"

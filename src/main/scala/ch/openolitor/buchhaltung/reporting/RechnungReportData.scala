@@ -22,30 +22,26 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.reporting
 
-import ch.openolitor.buchhaltung.models._
-
-import scala.concurrent.Future
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.ActorReferences
-import ch.openolitor.core.reporting._
-import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
-import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import net.codecrete.qrbill.generator.{ Address, Bill, BillFormat, Language, OutputSize, QRBill, QRBillValidationError, SeparatorType }
 import java.time.LocalDate
-
-import com.typesafe.scalalogging.LazyLogging
 import java.util.Locale
 
+import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
+import ch.openolitor.buchhaltung.models._
+import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
+import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.Macros._
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import ch.openolitor.core.reporting._
+import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
+import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
+import com.typesafe.scalalogging.LazyLogging
+import net.codecrete.qrbill.generator._
+import org.joda.time.{ DateTime, DateTimeZone }
+
 import scala.collection.JavaConversions._
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
 
 trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
@@ -57,10 +53,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           maybeKontoDaten map { kontoDaten =>
             val results = Future.sequence(rechnungIds.map { rechnungId =>
               buchhaltungReadRepository.getRechnungDetail(rechnungId).map(_.map { rechnung =>
-                val qrCode = kontoDaten.iban match {
-                  case Some(i) if i.startsWith("CH") && ("30".equals(i.slice(4, 6)) || "31".equals(i.slice(4, 6))) => Some(createQrCode(rechnung, kontoDaten, projekt))
-                  case _ => None
-                }
+                val qrCode = Some(createQrCode(rechnung, kontoDaten, projekt))
                 rechnung.status match {
                   case Storniert =>
                     Left(ValidationError[RechnungId](rechnungId, s"Für stornierte Rechnungen können keine Berichte mehr erzeugt werden"))

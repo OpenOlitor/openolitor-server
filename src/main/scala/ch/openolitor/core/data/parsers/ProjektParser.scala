@@ -22,13 +22,14 @@
 \*                                                                           */
 package ch.openolitor.core.data.parsers
 
+import java.util.Locale
+
 import ch.openolitor.core.data.EntityParser
-import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.data.ParseException
-import java.util.Locale
-import org.joda.time.DateTime
 import akka.event.LoggingAdapter
+import ch.openolitor.core.models.PersonId
+import org.joda.time.DateTime
 
 object ProjektParser extends EntityParser {
   import EntityParser._
@@ -62,6 +63,7 @@ object ProjektParser extends EntityParser {
           geschaeftsjahrMonat = row.value[Int](indexGeschaeftsjahrMonat),
           geschaeftsjahrTag = row.value[Int](indexGeschaeftsjahrTag),
           twoFactorAuthentication = twoFactorAuth,
+          defaultSecondFactorType = OtpSecondFactorType,
           sprache = new Locale(row.value[String](indexSprache)),
           welcomeMessage1 = row.value[Option[String]](indexWelcomeMessage1),
           welcomeMessage2 = row.value[Option[String]](indexWelcomeMessage2),

@@ -22,8 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.mailservice
 
-import java.io.File
-
 import ch.openolitor.core.domain.EventMetadata
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable

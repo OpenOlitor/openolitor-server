@@ -25,7 +25,6 @@ package ch.openolitor.core.data.parsers
 import ch.openolitor.core.data.EntityParser
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.util.DateTimeUtil
 
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
