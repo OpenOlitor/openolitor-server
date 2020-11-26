@@ -590,7 +590,7 @@ object V1Scripts {
         categories = Set.empty[PersonCategoryNameId],
         contactPermission = false,
         secondFactorType = Some(OtpSecondFactorType),
-        otpSecret = Some(OtpUtil.generateOtpSecretString),
+        otpSecret = OtpUtil.generateOtpSecretString,
         otpReset = true,
         // modification flags
         erstelldat = DateTime.now,
