@@ -30,7 +30,6 @@ import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.models._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.ActorSystem

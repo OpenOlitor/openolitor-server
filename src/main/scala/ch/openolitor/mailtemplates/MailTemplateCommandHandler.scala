@@ -5,9 +5,8 @@ import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain.EntityStore.{ InsertEntityCommand, ResultingEvent }
 import ch.openolitor.core.domain.{ CommandHandler, EventTransactionMetadata, IdFactory, UserCommand }
-import ch.openolitor.core.models.EntityDeleted
 import ch.openolitor.mailtemplates.model.{ MailTemplateId, MailTemplateModify }
-import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateReadRepositoryComponent, MailTemplateDBMappings, MailTemplateReadRepositorySync, MailTemplateReadRepositorySyncImpl }
+import ch.openolitor.mailtemplates.repositories.{ MailTemplateDBMappings, MailTemplateReadRepositorySync, MailTemplateReadRepositorySyncImpl }
 
 import scala.util.Try
 

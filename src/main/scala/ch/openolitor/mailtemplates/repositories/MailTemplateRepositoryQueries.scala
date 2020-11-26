@@ -22,11 +22,9 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates.repositories
 
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.mailtemplates.model._
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
 trait MailTemplateRepositoryQueries extends LazyLogging with MailTemplateDBMappings {
   lazy val mailTemplate = mailTemplateMapping.syntax("mailTemplate")

@@ -35,7 +35,6 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
-import ch.openolitor.core.models.PersonId
 
 trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings with ArbeitseinsatzDBMappings {
 

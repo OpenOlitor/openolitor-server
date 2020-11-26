@@ -28,7 +28,6 @@ import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models.KundeId
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 
-import ch.openolitor.core.RouteServiceActor._
 import scala.util._
 import scalikejdbc.DB
 import scalikejdbc.DBSession

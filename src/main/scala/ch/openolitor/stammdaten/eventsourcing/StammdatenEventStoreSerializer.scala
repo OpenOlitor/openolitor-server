@@ -366,7 +366,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     val personen = in.extract[Set[PersonModifyV1]](attribute)
     val emptySet = Set[PersonCategoryNameId]()
     val personenV2 = personen map { person =>
-      copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet)
+      copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet, "secondFactorType" -> None)
     }
     in.update(attribute ! set[Set[PersonModify]](personenV2))
   }

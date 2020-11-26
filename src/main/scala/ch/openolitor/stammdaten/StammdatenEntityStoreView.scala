@@ -23,12 +23,10 @@
 package ch.openolitor.stammdaten
 
 import akka.actor._
-import ch.openolitor.core.domain._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
+import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.core.filestore.FileStoreReference
-import ch.openolitor.core.filestore.FileStore
 
 object StammdatenEntityStoreView {
   def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultStammdatenEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)
@@ -61,7 +59,6 @@ trait StammdatenEntityStoreView extends EntityStoreView
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
 trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with MailServiceReference with SystemConfigReference {
-  import EntityStore._
 
   override val insertService = StammdatenInsertService(sysConfig, system)
   override val updateService = StammdatenUpdateService(sysConfig, system)

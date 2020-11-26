@@ -27,7 +27,6 @@ import ch.openolitor.core.models.{ BaseId, BaseStringId }
 import scala.collection.immutable.HashSet
 
 object ProductUtil {
-  import StringUtil._
 
   val defaultMethods: HashSet[String] = HashSet(
     "hashCode",

@@ -23,18 +23,16 @@
 package ch.openolitor.mailtemplates
 
 import akka.actor.ActorSystem
-import scalikejdbc._
-import ch.openolitor.mailtemplates.model._
-import ch.openolitor.mailtemplates.repositories._
+import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.EntityStore._
-import ch.openolitor.core.models._
 import ch.openolitor.core.domain._
+import ch.openolitor.core.models._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.core.Macros._
-import ch.openolitor.core.SystemConfig
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
 import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
 object MailTemplateDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): MailTemplateDeleteService = new DefaultMailTemplateDeleteService(sysConfig, system)

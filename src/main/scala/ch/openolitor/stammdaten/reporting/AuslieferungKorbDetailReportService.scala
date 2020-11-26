@@ -35,7 +35,6 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.util.IdUtil
 import org.joda.time.DateTime
-import scala.util.{ Failure, Success }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

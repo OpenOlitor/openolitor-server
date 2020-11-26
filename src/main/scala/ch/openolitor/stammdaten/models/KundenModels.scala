@@ -412,11 +412,11 @@ object Anrede {
 }
 
 sealed trait SecondFactorType
-case object OtpSecondFactor extends SecondFactorType
-case object EmailSecondFactor extends SecondFactorType
+case object OtpSecondFactorType extends SecondFactorType
+case object EmailSecondFactorType extends SecondFactorType
 
 object SecondFactorType {
-  val AlleTypen = Vector(OtpSecondFactor, EmailSecondFactor)
+  val AlleTypen = Vector(OtpSecondFactorType, EmailSecondFactorType)
 
   def apply(value: String): Option[SecondFactorType] = {
     AlleTypen.find(_.toString == value)
@@ -454,7 +454,7 @@ case class Person(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-  secondFactorType: SecondFactorType,
+  secondFactorType: Option[SecondFactorType],
   otpSecret: Option[String],
   otpReset: Boolean,
   // modification flags
@@ -497,27 +497,27 @@ object Person {
   }
 
   def build(
-    id: PersonId = PersonId(0),
-    kundeId: KundeId = KundeId(0),
-    anrede: Option[Anrede] = None,
-    name: String,
-    vorname: String,
-    email: Option[String] = None,
-    emailAlternative: Option[String] = None,
-    telefonMobil: Option[String] = None,
-    telefonFestnetz: Option[String] = None,
-    bemerkungen: Option[String] = None,
-    sort: Int = 1,
-    // security data
-    loginAktiv: Boolean = false,
-    passwort: Option[Array[Char]] = None,
-    letzteAnmeldung: Option[DateTime] = None,
-    passwortWechselErforderlich: Boolean = false,
-    rolle: Option[Rolle] = None,
-    categories: Set[PersonCategoryNameId] = Set(),
-    secondFactorType: SecondFactorType = EmailSecondFactor,
-    otpSecret: Option[String] = None,
-    otpReset: Boolean = false
+             id: PersonId = PersonId(0),
+             kundeId: KundeId = KundeId(0),
+             anrede: Option[Anrede] = None,
+             name: String,
+             vorname: String,
+             email: Option[String] = None,
+             emailAlternative: Option[String] = None,
+             telefonMobil: Option[String] = None,
+             telefonFestnetz: Option[String] = None,
+             bemerkungen: Option[String] = None,
+             sort: Int = 1,
+             // security data
+             loginAktiv: Boolean = false,
+             passwort: Option[Array[Char]] = None,
+             letzteAnmeldung: Option[DateTime] = None,
+             passwortWechselErforderlich: Boolean = false,
+             rolle: Option[Rolle] = None,
+             categories: Set[PersonCategoryNameId] = Set(),
+             secondFactorType: Option[SecondFactorType] = None,
+             otpSecret: Option[String] = None,
+             otpReset: Boolean = false
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -566,7 +566,7 @@ case class PersonDetail(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-  secondFactorType: SecondFactorType,
+  secondFactorType: Option[SecondFactorType],
   otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
@@ -582,7 +582,7 @@ case class PersonSummary(
   email: Option[String],
   emailAlternative: Option[String],
   letzteAnmeldung: Option[DateTime],
-  secondFactorType: SecondFactorType
+  secondFactorType: Option[SecondFactorType]
 ) extends JSONSerializable
 
 case class PersonUebersicht(
@@ -641,7 +641,8 @@ case class PersonModify(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   categories: Set[PersonCategoryNameId],
-  bemerkungen: Option[String]
+  bemerkungen: Option[String],
+  secondFactorType: Option[SecondFactorType]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
@@ -658,7 +659,7 @@ case class PersonCreate(
   categories: Set[PersonCategoryNameId],
   bemerkungen: Option[String],
   sort: Int,
-  secondFactorType: SecondFactorType
+  secondFactorType: Option[SecondFactorType]
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }

@@ -3,8 +3,8 @@ object GenerateParametersMapping {
     s"""
 package ch.openolitor.core.repositories
 
-import ch.openolitor.core.scalax._
 import scalikejdbc._
+${if (n > 22) "import ch.openolitor.core.scalax.Tuple"+n else ""}
 
 trait Parameters$n extends BaseParameter {
   def parameters[${(1 to n) map (i => s"T$i") mkString (",")}](params: Tuple$n[${(1 to n) map (i => s"T$i") mkString (",")}])(

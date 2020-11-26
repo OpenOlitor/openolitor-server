@@ -35,19 +35,21 @@ import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyn
 import akka.actor.ActorRef
 import ch.openolitor.core.filestore.FileStore
 import akka.actor.ActorRefFactory
-import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.stammdaten.models.{Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt}
 import org.mindrot.jbcrypt.BCrypt
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.models.PersonId
 import java.util.UUID
+
 import ch.openolitor.core.Macros._
+
 import scala.util.Random
 import scalaz._
 import Scalaz._
 import ch.openolitor.util.ConfigUtil._
-import ch.openolitor.stammdaten.models.PersonSummary
 import ch.openolitor.core.domain.SystemEvents
 import spray.routing.authentication.UserPass
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
@@ -55,10 +57,9 @@ import akka.pattern.ask
 import akka.actor.ActorSystem
 import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.core.mailservice.Mail
+
 import scala.concurrent.duration._
-import ch.openolitor.stammdaten.models.Einladung
 import org.joda.time.DateTime
-import ch.openolitor.stammdaten.models.EinladungId
 import ch.openolitor.util.OtpUtil
 
 trait LoginRouteService extends HttpService with ActorReferences
@@ -96,6 +97,8 @@ trait LoginRouteService extends HttpService with ActorReferences
   val errorPersonNotFound = RequestFailed("Person konnte nicht gefunden werden")
   val errorPersonLoginNotActive = RequestFailed("Login wurde deaktiviert")
   val errorNoOtpSecretConfigured = RequestFailed("Kein OtpSecret auf dem Benutzer konfiguriert")
+  val errorConfigurationError = RequestFailed("Konfigurationsfehler. Bitte Administrator kontaktieren.")
+
 
   def logoutRoute(implicit subject: Subject) = pathPrefix("auth") {
     path("logout") {
@@ -256,9 +259,19 @@ trait LoginRouteService extends HttpService with ActorReferences
       person <- personByEmail(form.email)
       _ <- validatePassword(form.passwort, person)
       _ <- validatePerson(person)
-      result <- handleLoggedIn(person)
+      projekt <- getProjekt()
+      result <- handleLoggedIn(projekt, person)
     } yield result
   }
+
+  private def getProjekt(): EitherFuture[Projekt] = {
+      EitherT {
+        stammdatenReadRepository.getProjekt map (_ map (_.right) getOrElse {
+          logger.debug(s"Could not load project")
+          errorConfigurationError.left
+        })
+      }
+    }
 
   private def transform[A](o: Option[Future[A]]): Future[Option[A]] = {
     o.map(f => f.map(Option(_))).getOrElse(Future.successful(None))
@@ -289,7 +302,7 @@ trait LoginRouteService extends HttpService with ActorReferences
     }
   }
 
-  private def validateSecondFactor(person: Person, form: SecondFactorLoginForm, secondFactor: SecondFactor) = {
+  private def validateSecondFactor(person: Person, form: SecondFactorLoginForm, secondFactor: SecondFactor): EitherFuture[Boolean] = Future {
     EitherT {
       (secondFactor, person.otpSecret) match {
         case (_: OtpSecondFactor, None) => errorNoOtpSecretConfigured.left
@@ -316,10 +329,10 @@ trait LoginRouteService extends HttpService with ActorReferences
     }
   }
 
-  private def handleLoggedIn(person: Person): EitherFuture[LoginResult] = {
+  private def handleLoggedIn(projekt: Projekt, person: Person): EitherFuture[LoginResult] = {
     requireSecondFactorAuthentifcation(person) flatMap {
       case false => doLogin(person)
-      case true  => handleSecondFactorAuthentication(person)
+      case true  => handleSecondFactorAuthentication(projekt, person)
     }
   }
 
@@ -337,39 +350,38 @@ trait LoginRouteService extends HttpService with ActorReferences
     }
   }
 
-  private def handleSecondFactorAuthentication(person: Person): EitherFuture[LoginResult] = {
+  private def handleSecondFactorAuthentication(projekt: Projekt, person: Person): EitherFuture[LoginResult] = {
     for {
-      secondFactor <- generateSecondFactor(person)
+      secondFactor <- generateSecondFactor(projekt, person)
       _ <- maybeSendEmail(secondFactor, person)
     } yield {
       val personSummary = copyTo[Person, PersonSummary](person)
       val otpSecret = (secondFactor, person.otpReset) match {
-        case (_: OtpSecondFactor, true) => Some(person.otpSecret)
+        case (_:OtpSecondFactor, true) => person.otpSecret
         case _                          => None
       }
       LoginResult(LoginSecondFactorRequired, secondFactor.token, personSummary, otpSecret)
     }
   }
 
-  private def generateSecondFactor(person: Person): EitherFuture[SecondFactor] = {
+  private def generateSecondFactor(projekt: Projekt, person: Person): EitherFuture[SecondFactor] = {
     EitherT {
       val token = generateToken
-      val secondFactor = person.secondFactorType match {
-        case _: EmailSecondFactor =>
+      val secondFactor = person.secondFactorType.getOrElse(projekt.defaultSecondFactorType) match {
+        case EmailSecondFactorType =>
           val code = generateCode
           EmailSecondFactor(token, code, person.id)
-        case _: OtpSecondFactor => OtpSecondFactor(token, person.id)
+        case OtpSecondFactorType => OtpSecondFactor(token, person.id)
       }
       secondFactorTokenCache(token)(secondFactor) map (_.right)
     }
   }
 
-  private def maybeSendEmail(secondFactor: SecondFactor, person: Person): EitherFuture[Boolean] = EitherT {
+  private def maybeSendEmail(secondFactor: SecondFactor, person: Person): EitherFuture[Boolean] =
     secondFactor match {
-      case OtpSecondFactor(token, personId) => true.right
+      case OtpSecondFactor(token, personId) => Future { EitherT { true.right } }
       case email: EmailSecondFactor         => sendEmail(email, person)
     }
-  }
 
   private def sendEmail(secondFactor: EmailSecondFactor, person: Person): EitherFuture[Boolean] = EitherT {
     // if an email can be sent has to be validated by the corresponding command handler

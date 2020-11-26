@@ -22,17 +22,11 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates.eventsourcing
 
-import stamina._
-import stamina.json._
-import ch.openolitor.mailtemplates.model._
-import ch.openolitor.mailtemplates._
-import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
-import java.util.Locale
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import spray.json.JsValue
+import ch.openolitor.mailtemplates._
+import ch.openolitor.mailtemplates.model._
+import stamina.json._
 
 trait MailTemplateEventStoreSerializer extends MailTemplateJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
   //V1 persisters

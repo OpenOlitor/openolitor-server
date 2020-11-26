@@ -23,7 +23,6 @@
 package ch.openolitor.mailtemplates.engine
 
 import de.zalando.beard.renderer._
-import scalikejdbc._
 import scala.io.Source
 import com.typesafe.scalalogging.LazyLogging
 

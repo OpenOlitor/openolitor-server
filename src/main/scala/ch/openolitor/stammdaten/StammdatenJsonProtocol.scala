@@ -123,6 +123,21 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
       }
   }
 
+  implicit val secondFactorType = new JsonFormat[SecondFactorType] {
+    def write(obj: SecondFactorType): JsValue =
+      obj match {
+        case OtpSecondFactorType   => JsString("otp")
+        case EmailSecondFactorType => JsString("email")
+      }
+
+    def read(json: JsValue): SecondFactorType =
+      json match {
+        case JsString("otp")   => OtpSecondFactorType
+        case JsString("email") => EmailSecondFactorType
+        case pe                => sys.error(s"Unknown secondfactor type:$pe")
+      }
+  }
+
   implicit val waehrungFormat = enumFormat(Waehrung.apply)
   implicit val einsatzEinheitFormat = enumFormat(EinsatzEinheit.apply)
   implicit val laufzeiteinheitFormat = enumFormat(Laufzeiteinheit.apply)
@@ -131,7 +146,6 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val auslieferungStatusFormat = enumFormat(AuslieferungStatus.apply)
   implicit val pendenzStatusFormat = enumFormat(PendenzStatus.apply)
   implicit val liefereinheitFormat = enumFormat(Liefereinheit.apply)
-  implicit val secondFactorTypeFormat = enumFormat(SecondFactorType.apply)
 
   //id formats
   implicit val vertriebIdFormat = baseIdFormat(VertriebId)

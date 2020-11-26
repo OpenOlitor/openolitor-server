@@ -36,6 +36,7 @@ import ch.openolitor.core.repositories.BaseWriteRepository
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.core.models.PersonId
 import java.util.Locale
+import ch.openolitor.util.OtpUtil
 
 object V1Scripts {
   val StammdatenDBInitializationScript = new Script with LazyLogging with StammdatenDBMappings {
@@ -587,6 +588,9 @@ object V1Scripts {
         passwortWechselErforderlich = true,
         rolle = Some(AdministratorZugang),
         categories = Set.empty[PersonCategoryNameId],
+        secondFactorType = Some(OtpSecondFactorType),
+        otpSecret = Some(OtpUtil.generateOtpSecretString),
+        otpReset = true,
         // modification flags
         erstelldat = DateTime.now,
         ersteller = personId,
@@ -610,7 +614,7 @@ object V1Scripts {
         geschaeftsjahrMonat = 1,
         geschaeftsjahrTag = 1,
         twoFactorAuthentication = Map(AdministratorZugang -> false, KundenZugang -> true),
-        defaultSecondFactorType = EmailSecondFactor,
+        defaultSecondFactorType = EmailSecondFactorType,
         sprache = Locale.forLanguageTag("de-CH"),
         welcomeMessage1 = None,
         welcomeMessage2 = None,
