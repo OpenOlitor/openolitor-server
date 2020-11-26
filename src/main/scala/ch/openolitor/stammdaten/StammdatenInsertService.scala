@@ -40,7 +40,6 @@ import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.util.OtpUtil
-import ch.openolitor.stammdaten.models.OtpSecondFactorType
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
@@ -68,6 +67,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
 
   val ZERO = 0
   val FALSE = false
+  val TRUE = true
 
   val stammdatenInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: AbotypId, abotyp: AbotypModify) =>
@@ -260,16 +260,8 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
 
   def createPerson(meta: EventMetadata, id: PersonId, create: PersonCreate)(implicit personId: PersonId = meta.originator) = {
 
-    DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      val projekt = stammdatenWriteRepository.getProjekt
-
     val rolle: Option[Rolle] = Some(KundenZugang)
 
-    val (otpSecret: Option[String], otpReset: Boolean) = (projekt.map(_.defaultSecondFactorType), create.secondFactorType) match {
-      case (Some(OtpSecondFactorType), _) => (Some(OtpUtil.generateOtpSecretString), true)
-      case (_, Some(OtpSecondFactorType)) => (Some(OtpUtil.generateOtpSecretString), true)
-      case _                  => (None, false)
-    }
     val person = copyTo[PersonCreate, Person](
       create,
       "id" -> id,
@@ -280,14 +272,16 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "passwort" -> None,
       "passwortWechselErforderlich" -> FALSE,
       "rolle" -> rolle,
-      "otpSecret" -> otpSecret,
-      "otpReset" -> otpReset,
+      // Always generate otp secret even if the user doesn't use it at the moment
+      "otpSecret" -> OtpUtil.generateOtpSecretString,
+      "otpReset" -> TRUE,
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
       "modifikator" -> meta.originator
     )
 
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.insertEntity[Person, PersonId](person)
     }
   }

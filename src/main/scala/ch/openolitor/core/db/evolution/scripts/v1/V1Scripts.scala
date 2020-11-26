@@ -589,7 +589,7 @@ object V1Scripts {
         rolle = Some(AdministratorZugang),
         categories = Set.empty[PersonCategoryNameId],
         secondFactorType = Some(OtpSecondFactorType),
-        otpSecret = Some(OtpUtil.generateOtpSecretString),
+        otpSecret = OtpUtil.generateOtpSecretString,
         otpReset = true,
         // modification flags
         erstelldat = DateTime.now,
