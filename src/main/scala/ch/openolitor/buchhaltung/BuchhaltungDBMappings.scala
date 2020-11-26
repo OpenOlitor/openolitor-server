@@ -22,7 +22,6 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung
 
-import ch.openolitor.stammdaten.models.AboId
 import ch.openolitor.buchhaltung.models._
 import scalikejdbc._
 import ch.openolitor.core.repositories.DBMappings

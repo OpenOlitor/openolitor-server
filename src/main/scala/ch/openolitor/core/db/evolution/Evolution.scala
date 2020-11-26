@@ -41,9 +41,6 @@ import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.reports.ReportsDBMappings
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.db.evolution.scripts.Scripts
-import akka.actor.ActorSystem
-import ch.openolitor.core.ActorSystemReference
 import ch.openolitor.mailtemplates.repositories.MailTemplateDBMappings
 
 trait Script {
