@@ -116,6 +116,8 @@ trait KorbHandler extends KorbStatusHandler
             logger.error(s"calculateStatusGuthaben: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
             throw new InvalidStateException(s"calculateStatusGuthaben: Abotype of Hauptabo must never be a ZusatzAbotyp. Is the case for abo: ${abo.id}")
         }
+      case abo =>
+        throw new InvalidStateException(s"Unexpected abo:$abo")
     }
   }
 

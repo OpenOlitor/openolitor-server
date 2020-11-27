@@ -25,7 +25,8 @@ package ch.openolitor.core.security
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 import org.specs2.time.NoTimeConversions
-import org.mockito.Matchers.{ eq => isEq }
+import org.mockito.Matchers.{eq => isEq}
+
 import scala.concurrent.duration._
 import ch.openolitor.stammdaten.MockStammdatenReadRepositoryComponent
 import akka.actor.ActorRef
@@ -35,18 +36,23 @@ import akka.actor.ActorRefFactory
 import ch.openolitor.core.models.PersonId
 import org.joda.time.DateTime
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
+
 import scala.concurrent.Future
 import org.mindrot.jbcrypt.BCrypt
 import ch.openolitor.stammdaten.models._
+
 import scala.concurrent.ExecutionContext
 import akka.testkit.TestActorRef
 import ch.openolitor.core.domain.DefaultSystemEventStore
 import akka.actor.ActorSystem
 import spray.caching.Cache
 import spray.caching.LruCache
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.mailservice.MailServiceMock
 import java.util.Locale
+
+import ch.openolitor.util.OtpUtil
 
 class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConversions {
   val email = "info@test.com"
@@ -54,12 +60,12 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
   val pwdHashed = BCrypt.hashpw(pwd, BCrypt.gensalt())
   val personId = PersonId(1);
   val personKundeActive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, true, Some(pwdHashed.toCharArray), None,
-    false, Some(KundenZugang), Set.empty, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+    false, Some(KundenZugang), Set.empty, None, OtpUtil.generateOtpSecretString, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val personAdminActive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, true, Some(pwdHashed.toCharArray), None,
-    false, Some(AdministratorZugang), Set.empty, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+    false, Some(AdministratorZugang), Set.empty, None, OtpUtil.generateOtpSecretString, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val personAdminInactive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, false, Some(pwdHashed.toCharArray), None,
-    false, Some(AdministratorZugang), Set.empty, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
-  val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), Locale.GERMAN, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, None, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+    false, Some(AdministratorZugang), Set.empty, None, OtpUtil.generateOtpSecretString, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+  val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), EmailSecondFactorType, Locale.GERMAN, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, None, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
 
   implicit val ctx = MultipleAsyncConnectionPoolContext()
   val timeout = 5 seconds
@@ -145,7 +151,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
       val code = "sadfasd"
-      val secondFactor = SecondFactor(token, code, personId)
+      val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
       service.secondFactorTokenCache(token)(secondFactor)
@@ -161,7 +167,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
       val code = "sadfasd"
-      val secondFactor = SecondFactor(token, code, personId)
+      val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
       service.secondFactorTokenCache(token)(secondFactor)
@@ -177,7 +183,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
       val code = "sadfasd"
-      val secondFactor = SecondFactor(token, code, personId)
+      val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
       service.secondFactorTokenCache(token)(secondFactor)
@@ -193,7 +199,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
       val code = "sadfasd"
-      val secondFactor = SecondFactor(token, code, personId)
+      val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
       service.secondFactorTokenCache(token)(secondFactor)
@@ -209,7 +215,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
       val code = "sadfasd"
-      val secondFactor = SecondFactor(token, code, personId)
+      val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
       service.secondFactorTokenCache(token)(secondFactor)
@@ -225,7 +231,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
       val code = "sadfasd"
-      val secondFactor = SecondFactor(token, code, personId)
+      val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
       service.secondFactorTokenCache(token)(secondFactor)

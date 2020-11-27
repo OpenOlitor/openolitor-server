@@ -173,7 +173,7 @@ object Projekt {
     geschaeftsjahrMonat: Int = 1,
     geschaeftsjahrTag: Int = 1,
     twoFactorAuthentication: Map[Rolle, Boolean] = Map(),
-    defaultSecondFactorType: SecondFactorType = EmailSecondFactor,
+    defaultSecondFactorType: SecondFactorType = EmailSecondFactorType,
     sprache: Locale = Locale.GERMAN,
     welcomeMessage1: Option[String] = None,
     welcomeMessage2: Option[String] = None,
