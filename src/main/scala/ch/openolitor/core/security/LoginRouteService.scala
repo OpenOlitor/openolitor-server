@@ -35,7 +35,7 @@ import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyn
 import akka.actor.ActorRef
 import ch.openolitor.core.filestore.FileStore
 import akka.actor.ActorRefFactory
-import ch.openolitor.stammdaten.models.{Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt}
+import ch.openolitor.stammdaten.models.{ Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt }
 import org.mindrot.jbcrypt.BCrypt
 
 import scala.concurrent.Future
@@ -97,7 +97,6 @@ trait LoginRouteService extends HttpService with ActorReferences
   val errorPersonNotFound = RequestFailed("Person konnte nicht gefunden werden")
   val errorPersonLoginNotActive = RequestFailed("Login wurde deaktiviert")
   val errorConfigurationError = RequestFailed("Konfigurationsfehler. Bitte Administrator kontaktieren.")
-
 
   def logoutRoute(implicit subject: Subject) = pathPrefix("auth") {
     path("logout") {
@@ -264,13 +263,13 @@ trait LoginRouteService extends HttpService with ActorReferences
   }
 
   private def getProjekt(): EitherFuture[Projekt] = {
-      EitherT {
-        stammdatenReadRepository.getProjekt map (_ map (_.right) getOrElse {
-          logger.debug(s"Could not load project")
-          errorConfigurationError.left
-        })
-      }
+    EitherT {
+      stammdatenReadRepository.getProjekt map (_ map (_.right) getOrElse {
+        logger.debug(s"Could not load project")
+        errorConfigurationError.left
+      })
     }
+  }
 
   private def transform[A](o: Option[Future[A]]): Future[Option[A]] = {
     o.map(f => f.map(Option(_))).getOrElse(Future.successful(None))
@@ -301,16 +300,17 @@ trait LoginRouteService extends HttpService with ActorReferences
     }
   }
 
-  private def validateSecondFactor(person: Person, form: SecondFactorLoginForm, secondFactor: SecondFactor): EitherFuture[Boolean] = Future {
+  private def validateSecondFactor(person: Person, form: SecondFactorLoginForm, secondFactor: SecondFactor): EitherFuture[Boolean] =
     EitherT {
-      (secondFactor, person.otpSecret) match {
-        case (_: OtpSecondFactor, secret) if OtpUtil.checkCodeWithSecret(form.code, secret) => true.right
-        case (_: OtpSecondFactor, _) => errorTokenOrCodeMismatch.left
-        case (EmailSecondFactor(_, code, _), _) if code == form.code => true.right
-        case (_: EmailSecondFactor, _) => errorTokenOrCodeMismatch.left
+      Future {
+        (secondFactor, person.otpSecret) match {
+          case (_: OtpSecondFactor, secret) if OtpUtil.checkCodeWithSecret(form.code, secret) => true.right
+          case (_: OtpSecondFactor, _) => errorTokenOrCodeMismatch.left
+          case (EmailSecondFactor(_, code, _), _) if code == form.code => true.right
+          case (_: EmailSecondFactor, _) => errorTokenOrCodeMismatch.left
+        }
       }
     }
-  }
 
   private def personByEmail(email: String): EitherFuture[Person] = {
     EitherT {
@@ -355,7 +355,7 @@ trait LoginRouteService extends HttpService with ActorReferences
     } yield {
       val personSummary = copyTo[Person, PersonSummary](person)
       val otpSecret = (secondFactor, person.otpReset) match {
-        case (_:OtpSecondFactor, true) => Some(person.otpSecret)
+        case (_: OtpSecondFactor, true) => Some(person.otpSecret)
         case _                          => None
       }
       LoginResult(LoginSecondFactorRequired, secondFactor.token, personSummary, otpSecret)
@@ -377,7 +377,7 @@ trait LoginRouteService extends HttpService with ActorReferences
 
   private def maybeSendEmail(secondFactor: SecondFactor, person: Person): EitherFuture[Boolean] =
     secondFactor match {
-      case OtpSecondFactor(token, personId) => Future { EitherT { true.right } }
+      case OtpSecondFactor(token, personId) => EitherT { Future { true.right } }
       case email: EmailSecondFactor         => sendEmail(email, person)
     }
 
@@ -442,7 +442,7 @@ trait LoginRouteService extends HttpService with ActorReferences
   private def validatePasswordResetForm(form: PasswordResetForm): EitherFuture[Boolean] = {
     for {
       person <- personByEmail(form.email)
-      personValid <- validatePerson(person)
+      _ <- validatePerson(person)
       result <- resetPassword(person)
     } yield result
   }
