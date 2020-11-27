@@ -66,7 +66,7 @@ object PersonParser extends EntityParser {
           secondFactorType = row.value[String](indexSecondFactorType) match {
             case "email" => Some(EmailSecondFactorType)
             case "otp"   => Some(OtpSecondFactorType)
-            case "" => None
+            case ""      => None
           },
           otpSecret = OtpUtil.generateOtpSecretString,
           otpReset = true,

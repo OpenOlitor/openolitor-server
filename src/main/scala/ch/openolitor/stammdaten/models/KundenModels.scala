@@ -25,7 +25,7 @@ package ch.openolitor.stammdaten.models
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models._
-import ch.openolitor.core.scalax.{Tuple24, Tuple28}
+import ch.openolitor.core.scalax.{ Tuple24, Tuple28 }
 import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
 
@@ -437,30 +437,30 @@ object Rolle {
 }
 
 case class PersonV1(
-     id: PersonId,
-     kundeId: KundeId,
-     anrede: Option[Anrede],
-     name: String,
-     vorname: String,
-     email: Option[String],
-     emailAlternative: Option[String],
-     telefonMobil: Option[String],
-     telefonFestnetz: Option[String],
-     bemerkungen: Option[String],
-     sort: Int,
-     // security data
-     loginAktiv: Boolean,
-     passwort: Option[Array[Char]],
-     letzteAnmeldung: Option[DateTime],
-     passwortWechselErforderlich: Boolean,
-     rolle: Option[Rolle],
-     categories: Set[PersonCategoryNameId],
-     // modification flags
-     erstelldat: DateTime,
-     ersteller: PersonId,
-     modifidat: DateTime,
-     modifikator: PersonId
-   ) extends BaseEntity[PersonId] {
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String],
+  sort: Int,
+  // security data
+  loginAktiv: Boolean,
+  passwort: Option[Array[Char]],
+  letzteAnmeldung: Option[DateTime],
+  passwortWechselErforderlich: Boolean,
+  rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonId] {
 }
 
 case class Person(
@@ -525,27 +525,27 @@ object Person {
   }
 
   def build(
-             id: PersonId = PersonId(0),
-             kundeId: KundeId = KundeId(0),
-             anrede: Option[Anrede] = None,
-             name: String,
-             vorname: String,
-             email: Option[String] = None,
-             emailAlternative: Option[String] = None,
-             telefonMobil: Option[String] = None,
-             telefonFestnetz: Option[String] = None,
-             bemerkungen: Option[String] = None,
-             sort: Int = 1,
-             // security data
-             loginAktiv: Boolean = false,
-             passwort: Option[Array[Char]] = None,
-             letzteAnmeldung: Option[DateTime] = None,
-             passwortWechselErforderlich: Boolean = false,
-             rolle: Option[Rolle] = None,
-             categories: Set[PersonCategoryNameId] = Set(),
-             secondFactorType: Option[SecondFactorType] = None,
-             otpSecret: String = OtpUtil.generateOtpSecretString,
-             otpReset: Boolean = false
+    id: PersonId = PersonId(0),
+    kundeId: KundeId = KundeId(0),
+    anrede: Option[Anrede] = None,
+    name: String,
+    vorname: String,
+    email: Option[String] = None,
+    emailAlternative: Option[String] = None,
+    telefonMobil: Option[String] = None,
+    telefonFestnetz: Option[String] = None,
+    bemerkungen: Option[String] = None,
+    sort: Int = 1,
+    // security data
+    loginAktiv: Boolean = false,
+    passwort: Option[Array[Char]] = None,
+    letzteAnmeldung: Option[DateTime] = None,
+    passwortWechselErforderlich: Boolean = false,
+    rolle: Option[Rolle] = None,
+    categories: Set[PersonCategoryNameId] = Set(),
+    secondFactorType: Option[SecondFactorType] = None,
+    otpSecret: String = OtpUtil.generateOtpSecretString,
+    otpReset: Boolean = false
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -660,17 +660,17 @@ case class PersonModifyV1(
 
 @Deprecated
 case class PersonModifyV2(
-   id: Option[PersonId],
-   anrede: Option[Anrede],
-   name: String,
-   vorname: String,
-   email: Option[String],
-   emailAlternative: Option[String],
-   telefonMobil: Option[String],
-   telefonFestnetz: Option[String],
-   categories: Set[PersonCategoryNameId],
-   bemerkungen: Option[String]
- ) extends JSONSerializable
+  id: Option[PersonId],
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  categories: Set[PersonCategoryNameId],
+  bemerkungen: Option[String]
+) extends JSONSerializable
 
 case class PersonModify(
   id: Option[PersonId],
