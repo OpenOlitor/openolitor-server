@@ -675,6 +675,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
                 val hauptabo = stammdatenReadRepository.getHauptAbo(zusatzAbo.id)
                 hauptabo.get.guthaben
               case abo: HauptAbo => abo.guthaben
+              case abo           => throw new InvalidStateException(s"Unexpected abo type found:$abo")
             }
             val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - guthaben), 0)
 

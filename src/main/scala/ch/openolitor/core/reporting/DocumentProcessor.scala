@@ -514,7 +514,7 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def svg2png(svgFile: File, pngFile: File, referenzNummer: String) {
-    val svg_URI_input = svgFile.toURL.toString
+    val svg_URI_input = svgFile.toURI.toString
     val input_svg_image = new TranscoderInput(svg_URI_input)
     val png_ostream = new FileOutputStream(pngFile)
     val output_png_image = new TranscoderOutput(png_ostream)

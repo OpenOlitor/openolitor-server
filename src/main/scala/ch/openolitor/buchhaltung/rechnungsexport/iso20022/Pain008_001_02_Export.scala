@@ -52,6 +52,9 @@ class Pain008_001_02_Export extends LazyLogging {
                   scalaxb.toXML[ch.openolitor.generated.xsd.pain008_001_02.Document](ch.openolitor.generated.xsd.pain008_001_02.Document(
                     CustomerDirectDebitInitiationV02(grpHeader, Seq(pmtInf))
                   ), "Document", defineNamespaceBinding()).toString()
+              case None =>
+                logger.error("Invalid group header SDD information while creating a pain008_001_02 file")
+                "Invalid payment information (group header)"
             }
           case _ => {
             logger.error("Invalid payment information while creating a pain008_001_02 file")

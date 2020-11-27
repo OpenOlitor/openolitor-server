@@ -119,6 +119,7 @@ class pain008_001_07_ExportSpec extends Specification {
         1,
         1,
         Map(),
+        EmailSecondFactorType,
         Locale.ENGLISH,
         None,
         None,
