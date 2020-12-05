@@ -24,15 +24,18 @@ package ch.openolitor.stammdaten
 
 import org.joda.time.DateTime
 import spray.routing._
+import spray.json._
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
+
 import scala.concurrent.duration._
 import akka.util.Timeout
 import ch.openolitor.stammdaten.models._
@@ -47,6 +50,7 @@ import akka.actor._
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
+import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
@@ -600,8 +604,12 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     onSuccess(entityStore ? StammdatenCommandHandler.CreateKundeCommand(subject.personId, kunde)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet.")
-      case _ =>
-        complete("")
+      case response: EntityInsertedEvent[_, _] =>
+        respondWithStatus(StatusCodes.Created) {
+          complete(IdResponse(response.id.id).toJson.compactPrint)
+        }
+      case x =>
+        complete(StatusCodes.BadRequest, s"No id generated or CommandHandler not triggered:$x")
     }
   }
 

@@ -784,7 +784,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
               logger.debug(s"created => Insert entity:$personCreate")
               EntityInsertEvent(idFactory.newId(PersonId.apply), personCreate)
           }
-          Success(kontoDatenEvent +: kundeEvent +: apartnerEvents)
+          Success(kundeEvent +: kontoDatenEvent +: apartnerEvents)
         } else {
           Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
         }
