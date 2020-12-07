@@ -82,6 +82,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   val personCreatePersister = persister[PersonCreate]("person-create")
   val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
+  val personCreatePersister = persister[PersonCreate, V2]("person-create", from[V1]
     .to[V2](_.update('categories ! set[Set[PersonModify]](Set()))))
   implicit val personCreateV3Persister = persister[PersonCreate, V3]("person-create", from[V1]
     .to[V2](_.update('categories ! set[Set[PersonModify]](Set())))
@@ -91,8 +92,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val personCategoryCreatePersister = persister[PersonCategoryCreate]("personCategory-create")
   implicit val personCategoryModifyPersister = persister[PersonCategoryModify]("personCategory-modify")
 
-  implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate]("abwesenheit-create")
-  implicit val abwesenheitCreateV2Persister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
+  implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
     .to[V2](fixToLocalDate(_, 'datum)))
 
   implicit val abwesenheitIdPersister = persister[AbwesenheitId]("abwesenheit-id")
@@ -112,19 +112,18 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   implicit val aboPriceModifyPersister = persister[AboPriceModify]("abo-price-modify")
 
-  val aboGuthabenModifyPersister = persister[AboGuthabenModify]("abo-guthaben-modify")
-  implicit val aboGuthabenModifyV2Persister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
+  implicit val aboGuthabenModifyPersister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
     .to[V2](in => in.update('guthabenAlt ! set[Int](in.extract[Int]('guthabenNeu)))))
 
   // TODO how to set vertriebId?!
   implicit val aboVertriebsartModifyPersister = persister[AboVertriebsartModify, V2]("abo-vertriebsart-modify", from[V1]
     .to[V2](in => in.update('vertriebIdNeu ! set[Int](0))))
 
-  implicit val aboDLV2Persister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
+  implicit val aboDLPersister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
-  implicit val aboPLV2Persister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
+  implicit val aboPLPersister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
-  implicit val aboHLV2Persister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
+  implicit val aboHLPersister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
 
   implicit val aboDLCreatePersister = persister[DepotlieferungAboCreate]("depotlieferungabo-create")
@@ -287,7 +286,11 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     kundeModifyPersister,
 >>>>>>> 004908c4... changed otpSecret to non-optional, provided persistence evolution and db migration
     kundeIdPersister,
+<<<<<<< HEAD
     personCreateV3Persister,
+=======
+    personCreatePersister,
+>>>>>>> f7c8a8fb... fixed second factor otp login
     personCategoryIdPersister,
     personCategoryCreatePersister,
     personCategoryModifyPersister,
@@ -303,14 +306,14 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     vertriebsartDLAbotypPersister,
     vertriebsartPLAbotypPersister,
     vertriebsartHLAbotypPersister,
-    aboDLV2Persister,
-    aboPLV2Persister,
-    aboHLV2Persister,
+    aboDLPersister,
+    aboPLPersister,
+    aboHLPersister,
     aboPriceModifyPersister,
     aboDLCreatePersister,
     aboPLCreatePersister,
     aboHLCreatePersister,
-    aboGuthabenModifyV2Persister,
+    aboGuthabenModifyPersister,
     aboVertriebsartModifyPersister,
     customKundetypCreatePersister,
     customKundetypModifyV1Persister,
@@ -351,7 +354,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     projektModifyPersister,
 >>>>>>> 004908c4... changed otpSecret to non-optional, provided persistence evolution and db migration
     projektIdPersister,
-    abwesenheitCreateV2Persister,
+    abwesenheitCreatePersister,
     abwesenheitIdPersister,
     korbCreatePersister,
     korbModifyAuslieferungPersister,
