@@ -22,21 +22,22 @@
 \*                                                                           */
 package ch.openolitor.core.db.evolution.scripts
 
-import ch.openolitor.core.db.evolution._
-import scalikejdbc._
-import scala.util._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import org.mindrot.jbcrypt.BCrypt
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.SystemConfig
-import org.joda.time.DateTime
-import ch.openolitor.core.repositories.BaseWriteRepository
-import ch.openolitor.core.NoPublishEventStream
-import ch.openolitor.core.models.PersonId
 import java.util.Locale
+
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.core.{ NoPublishEventStream, SystemConfig }
+import ch.openolitor.core.db.evolution._
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.repositories.BaseWriteRepository
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.stammdaten.models._
 import ch.openolitor.util.OtpUtil
+import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
+import org.mindrot.jbcrypt.BCrypt
+import scalikejdbc._
+
+import scala.util._
 
 object V1Scripts {
   val StammdatenDBInitializationScript = new Script with LazyLogging with StammdatenDBMappings {
@@ -255,6 +256,9 @@ object V1Scripts {
         passwort_wechsel_erforderlich varchar(1),
         rolle varchar(50),
         categories varchar(2000),
+        second_factor_type varchar(10),
+        otp_secret varchar(200),
+        otp_reset varchar(1),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -480,6 +484,7 @@ object V1Scripts {
         geschaeftsjahr_monat DECIMAL(2,0) not null,
         geschaeftsjahr_tag DECIMAL(2,0) not null,
         two_factor_authentication varchar(100),
+        default_second_factor_type varchar(10),
         sprache varchar(10),
         welcome_message1 varchar(2000),
         welcome_message2 varchar(2000),
@@ -614,8 +619,8 @@ object V1Scripts {
         waehrung = CHF,
         geschaeftsjahrMonat = 1,
         geschaeftsjahrTag = 1,
-        twoFactorAuthentication = Map(AdministratorZugang -> false, KundenZugang -> true),
-        defaultSecondFactorType = EmailSecondFactorType,
+        twoFactorAuthentication = Map(AdministratorZugang -> true, KundenZugang -> true),
+        defaultSecondFactorType = OtpSecondFactorType,
         sprache = Locale.forLanguageTag("de-CH"),
         welcomeMessage1 = None,
         welcomeMessage2 = None,

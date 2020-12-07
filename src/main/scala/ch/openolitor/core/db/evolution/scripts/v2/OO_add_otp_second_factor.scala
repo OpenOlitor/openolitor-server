@@ -23,9 +23,13 @@
 package ch.openolitor.core.db.evolution.scripts.v2
 
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.{ Boot, NoPublishEventStream, SystemConfig }
 import ch.openolitor.core.db.evolution.Script
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.util.OtpUtil
 import scalikejdbc._
@@ -42,20 +46,24 @@ object OO_add_otp_second_factor {
     }
   }
 
-  val updatePersonen = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
+  val updatePersonen = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts with StammdatenDBMappings with StammdatenWriteRepositoryImpl with NoPublishEventStream {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       alterTableAddColumnIfNotExists(personMapping, "second_factor_type", "VARCHAR(10)", "categories")
-      alterTableAddColumnIfNotExists(personMapping, "otp_secret", "VARCHAR(50)", "second_factor_type")
+      alterTableAddColumnIfNotExists(personMapping, "otp_secret", "VARCHAR(200)", "second_factor_type")
       alterTableAddColumnIfNotExists(personMapping, "otp_reset", "VARCHAR(1)", "otp_secret")
 
       // update all otpReset to true
       sql"""UPDATE Person SET otp_reset='1'""".execute.apply()
 
       // generate otpSecret for all persons
-      val personId: Seq[Long] = sql"SELECT id from Person".map(rs => rs.long("id")).list.apply()
-      personId.foreach { id =>
+      implicit val personId = Boot.systemPersonId
+
+      val persons = getPersonen
+      persons map { person =>
         val otpSecret = OtpUtil.generateOtpSecretString
-        sql"""UPDATE Person SET otp_secret='$otpSecret' WHERE id=$id""".execute.apply()
+        if (person.otpSecret == null) {
+          updateEntity[Person, PersonId](person.id)(personMapping.column.otpSecret -> otpSecret, personMapping.column.otpReset -> true)
+        }
       }
 
       Success(true)
