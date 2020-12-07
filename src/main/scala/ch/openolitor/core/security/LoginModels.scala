@@ -24,16 +24,20 @@ package ch.openolitor.core.security
 
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.models.PersonSummary
-import ch.openolitor.stammdaten.models.Rolle
-import ch.openolitor.stammdaten.models.KundeId
+import ch.openolitor.stammdaten.models.{ EmailSecondFactorType, KundeId, OtpSecondFactorType, PersonDetail, PersonSummary, Rolle, SecondFactorType }
 
 sealed trait SecondFactor {
   val personId: PersonId;
   val token: String;
+
+  def `type`: SecondFactorType
 }
-case class EmailSecondFactor(token: String, code: String, personId: PersonId) extends SecondFactor with JSONSerializable
-case class OtpSecondFactor(token: String, personId: PersonId) extends SecondFactor with JSONSerializable
+case class EmailSecondFactor(token: String, code: String, personId: PersonId) extends SecondFactor with JSONSerializable {
+  def `type` = EmailSecondFactorType
+}
+case class OtpSecondFactor(token: String, personId: PersonId) extends SecondFactor with JSONSerializable {
+  def `type` = OtpSecondFactorType
+}
 
 case class LoginForm(email: String, passwort: String) extends JSONSerializable
 case class SecondFactorLoginForm(token: String, code: String) extends JSONSerializable
@@ -51,8 +55,10 @@ object LoginStatus {
   }
 }
 
-case class LoginResult(status: LoginStatus, token: String, person: PersonSummary, otpSecret: Option[String]) extends JSONSerializable
+case class LoginResult(status: LoginStatus, token: String, person: PersonSummary, otpSecret: Option[String], secondFactorType: Option[SecondFactorType]) extends JSONSerializable
 
 case class RequestFailed(msg: String)
 
-case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle])
+case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle], secondFactorType: Option[SecondFactorType]) extends JSONSerializable
+
+case class User(user: PersonDetail, subject: Subject) extends JSONSerializable

@@ -43,7 +43,7 @@ class XSRFTokenSessionAuthenticatorImplSpec extends Specification with NoTimeCon
     val token = "asdasd"
     val personId = PersonId(123)
     val kundeId = KundeId(321)
-    val subject = Subject(token, personId, kundeId, None)
+    val subject = Subject(token, personId, kundeId, None, None)
 
     "Succeed without time limitation" in {
       val provider = new MockXSRFTokenSessionAuthenticatorProvider(None)

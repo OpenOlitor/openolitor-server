@@ -29,9 +29,9 @@ import akka.actor.ActorSystem
 import ch.openolitor.core.{ JSONSerializable, MandantConfiguration }
 import ch.openolitor.core.models.BaseStringId
 import com.amazonaws.{ AmazonClientException, ClientConfiguration }
-import com.amazonaws.auth.{ AWSStaticCredentialsProvider, BasicAWSCredentials }
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.services.s3.{ AmazonS3Client, S3ClientOptions }
 import com.amazonaws.services.s3.model._
-import com.amazonaws.services.s3.{ AmazonS3ClientBuilder, S3ClientOptions }
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 
@@ -167,15 +167,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
   opts.setSignerOverride("S3SignerType")
 
   lazy val client = {
-    val c = AmazonS3ClientBuilder
-      .standard()
-      .withCredentials(
-        new AWSStaticCredentialsProvider(
-          new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key"))
-        )
-      )
-      .withClientConfiguration(opts).build()
-
+    val c = new AmazonS3Client(new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key")), opts)
     c.setEndpoint(mandantConfiguration.config.getString("s3.aws-endpoint"))
     c.setS3ClientOptions(S3ClientOptions.builder.setPathStyleAccess(true).build())
     c

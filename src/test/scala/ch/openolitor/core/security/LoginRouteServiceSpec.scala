@@ -22,37 +22,30 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import org.specs2.mutable._
-import org.specs2.mock.Mockito
-import org.specs2.time.NoTimeConversions
-import org.mockito.Matchers.{eq => isEq}
-
-import scala.concurrent.duration._
-import ch.openolitor.stammdaten.MockStammdatenReadRepositoryComponent
-import akka.actor.ActorRef
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.filestore.FileStore
-import akka.actor.ActorRefFactory
-import ch.openolitor.core.models.PersonId
-import org.joda.time.DateTime
-import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-
-import scala.concurrent.Future
-import org.mindrot.jbcrypt.BCrypt
-import ch.openolitor.stammdaten.models._
-
-import scala.concurrent.ExecutionContext
-import akka.testkit.TestActorRef
-import ch.openolitor.core.domain.DefaultSystemEventStore
-import akka.actor.ActorSystem
-import spray.caching.Cache
-import spray.caching.LruCache
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.mailservice.MailServiceMock
 import java.util.Locale
 
+import akka.actor.{ActorRef, ActorRefFactory, ActorSystem}
+import akka.testkit.TestActorRef
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
+import ch.openolitor.core.domain.DefaultSystemEventStore
+import ch.openolitor.core.filestore.FileStore
+import ch.openolitor.core.mailservice.MailServiceMock
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.stammdaten.MockStammdatenReadRepositoryComponent
+import ch.openolitor.stammdaten.models._
 import ch.openolitor.util.OtpUtil
+import org.joda.time.DateTime
+import org.mindrot.jbcrypt.BCrypt
+import org.mockito.Matchers.{eq => isEq}
+import org.specs2.mock.Mockito
+import org.specs2.mutable._
+import org.specs2.time.NoTimeConversions
+import spray.caching.{Cache, LruCache}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConversions {
   val email = "info@test.com"

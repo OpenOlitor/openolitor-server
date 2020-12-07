@@ -35,7 +35,7 @@ import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyn
 import akka.actor.ActorRef
 import ch.openolitor.core.filestore.FileStore
 import akka.actor.ActorRefFactory
-import ch.openolitor.stammdaten.models.{ Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt }
+import ch.openolitor.stammdaten.models.{ Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonDetail, PersonSummary, Projekt, SecondFactorType }
 import org.mindrot.jbcrypt.BCrypt
 
 import scala.concurrent.Future
@@ -50,7 +50,7 @@ import scala.util.Random
 import scalaz._
 import Scalaz._
 import ch.openolitor.util.ConfigUtil._
-import ch.openolitor.core.domain.SystemEvents
+import ch.openolitor.core.domain.{ SystemEvents }
 import spray.routing.authentication.UserPass
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import akka.pattern.ask
@@ -218,7 +218,8 @@ trait LoginRouteService extends HttpService with ActorReferences
             case -\/(error) =>
               complete(StatusCodes.Unauthorized)
             case \/-(person) =>
-              complete(person)
+              val personDetail = copyTo[Person, PersonDetail](person)
+              complete(User(personDetail, subject))
           }
         }
       } ~
@@ -281,7 +282,7 @@ trait LoginRouteService extends HttpService with ActorReferences
       person <- personById(secondFactor.personId)
       _ <- validateSecondFactor(person, form, secondFactor)
       _ <- validatePerson(person)
-      result <- doLogin(person)
+      result <- doLogin(person, Some(secondFactor.`type`))
     } yield {
       //cleanup code from cache
       secondFactorTokenCache.remove(form.token)
@@ -328,22 +329,22 @@ trait LoginRouteService extends HttpService with ActorReferences
   }
 
   private def handleLoggedIn(projekt: Projekt, person: Person): EitherFuture[LoginResult] = {
-    requireSecondFactorAuthentifcation(person) flatMap {
-      case false => doLogin(person)
+    requireSecondFactorAuthentifcation(projekt, person) flatMap {
+      case false => doLogin(person, None)
       case true  => handleSecondFactorAuthentication(projekt, person)
     }
   }
 
-  private def doLogin(person: Person): EitherFuture[LoginResult] = {
+  private def doLogin(person: Person, secondFactorType: Option[SecondFactorType]): EitherFuture[LoginResult] = {
     //generate token
     val token = generateToken
     EitherT {
-      loginTokenCache(token)(Subject(token, person.id, person.kundeId, person.rolle)) map { _ =>
+      loginTokenCache(token)(Subject(token, person.id, person.kundeId, person.rolle, secondFactorType)) map { _ =>
         val personSummary = copyTo[Person, PersonSummary](person)
 
-        eventStore ! PersonLoggedIn(person.id, org.joda.time.DateTime.now)
+        eventStore ! PersonLoggedIn(person.id, org.joda.time.DateTime.now, secondFactorType)
 
-        LoginResult(LoginOk, token, personSummary, None).right
+        LoginResult(LoginOk, token, personSummary, None, secondFactorType).right
       }
     }
   }
@@ -358,7 +359,7 @@ trait LoginRouteService extends HttpService with ActorReferences
         case (_: OtpSecondFactor, true) => Some(person.otpSecret)
         case _                          => None
       }
-      LoginResult(LoginSecondFactorRequired, secondFactor.token, personSummary, otpSecret)
+      LoginResult(LoginSecondFactorRequired, secondFactor.token, personSummary, otpSecret, Some(secondFactor.`type`))
     }
   }
 
@@ -394,13 +395,12 @@ trait LoginRouteService extends HttpService with ActorReferences
     }
   }
 
-  private def requireSecondFactorAuthentifcation(person: Person): EitherFuture[Boolean] = EitherT {
-    requireSecondFactorAuthentication match {
-      case false                          => Future.successful(false.right)
-      case true if (person.rolle.isEmpty) => Future.successful(true.right)
-      case true => stammdatenReadRepository.getProjekt map {
-        case None          => true.right
-        case Some(projekt) => projekt.twoFactorAuthentication.get(person.rolle.get).map(_.right).getOrElse(true.right)
+  private def requireSecondFactorAuthentifcation(projekt: Projekt, person: Person): EitherFuture[Boolean] = EitherT {
+    Future {
+      requireSecondFactorAuthentication match {
+        case false                          => false.right
+        case true if (person.rolle.isEmpty) => true.right
+        case true                           => projekt.twoFactorAuthentication.get(person.rolle.get).map(_.right).getOrElse(true.right)
       }
     }
   }
@@ -476,8 +476,8 @@ trait LoginRouteService extends HttpService with ActorReferences
       person <- personByEmail(up.user)
       _ <- validatePassword(up.pass, person)
       _ <- validatePerson(person)
-      result <- doLogin(person)
-    } yield Subject(result.token, person.id, person.kundeId, person.rolle)).run.map(_.toOption)
+      result <- doLogin(person, None)
+    } yield Subject(result.token, person.id, person.kundeId, person.rolle, None)).run.map(_.toOption)
   }
 
   private def validateUserPass(userPass: Option[UserPass]): EitherFuture[UserPass] = EitherT {

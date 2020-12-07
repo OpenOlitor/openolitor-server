@@ -74,8 +74,8 @@ trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache 
         headerToken <- findHeaderToken(ctx)
         pair <- extractTimeFromHeaderToken(headerToken)
         (token, requestTime) = pair
-        valid <- validateCookieAndHeaderToken(token, token)
-        time <- compareRequestTime(requestTime)
+        _ <- validateCookieAndHeaderToken(token, token)
+        _ <- compareRequestTime(requestTime)
         subject <- findSubjectInCache(token)
       } yield subject).run.map(_.toEither)
     }

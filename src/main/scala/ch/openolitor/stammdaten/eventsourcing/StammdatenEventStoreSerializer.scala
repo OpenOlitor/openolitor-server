@@ -61,16 +61,14 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
-  implicit val personCreatePersister = persister[PersonCreate]("person-create")
-  implicit val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
+  implicit val personCreatePersister = persister[PersonCreate, V2]("person-create", from[V1]
     .to[V2](_.update('categories ! set[Set[PersonModify]](Set()))))
 
   implicit val personCategoryIdPersister = persister[PersonCategoryId]("personCategory-id")
   implicit val personCategoryCreatePersister = persister[PersonCategoryCreate]("personCategory-create")
   implicit val personCategoryModifyPersister = persister[PersonCategoryModify]("personCategory-modify")
 
-  implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate]("abwesenheit-create")
-  implicit val abwesenheitCreateV2Persister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
+  implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
     .to[V2](fixToLocalDate(_, 'datum)))
 
   implicit val abwesenheitIdPersister = persister[AbwesenheitId]("abwesenheit-id")
@@ -90,19 +88,18 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   implicit val aboPriceModifyPersister = persister[AboPriceModify]("abo-price-modify")
 
-  val aboGuthabenModifyPersister = persister[AboGuthabenModify]("abo-guthaben-modify")
-  implicit val aboGuthabenModifyV2Persister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
+  implicit val aboGuthabenModifyPersister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
     .to[V2](in => in.update('guthabenAlt ! set[Int](in.extract[Int]('guthabenNeu)))))
 
   // TODO how to set vertriebId?!
   implicit val aboVertriebsartModifyPersister = persister[AboVertriebsartModify, V2]("abo-vertriebsart-modify", from[V1]
     .to[V2](in => in.update('vertriebIdNeu ! set[Int](0))))
 
-  implicit val aboDLV2Persister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
+  implicit val aboDLPersister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
-  implicit val aboPLV2Persister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
+  implicit val aboPLPersister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
-  implicit val aboHLV2Persister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
+  implicit val aboHLPersister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
 
   implicit val aboDLCreatePersister = persister[DepotlieferungAboCreate]("depotlieferungabo-create")
@@ -227,7 +224,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAboCreatePersister,
     kundeModifyPersister,
     kundeIdPersister,
-    personCreateV2Persister,
+    personCreatePersister,
     personCategoryIdPersister,
     personCategoryCreatePersister,
     personCategoryModifyPersister,
@@ -243,14 +240,14 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     vertriebsartDLAbotypPersister,
     vertriebsartPLAbotypPersister,
     vertriebsartHLAbotypPersister,
-    aboDLV2Persister,
-    aboPLV2Persister,
-    aboHLV2Persister,
+    aboDLPersister,
+    aboPLPersister,
+    aboHLPersister,
     aboPriceModifyPersister,
     aboDLCreatePersister,
     aboPLCreatePersister,
     aboHLCreatePersister,
-    aboGuthabenModifyV2Persister,
+    aboGuthabenModifyPersister,
     aboVertriebsartModifyPersister,
     customKundetypCreatePersister,
     customKundetypModifyV1Persister,
@@ -287,7 +284,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     tourIdPersister,
     projektModifyPersister,
     projektIdPersister,
-    abwesenheitCreateV2Persister,
+    abwesenheitCreatePersister,
     abwesenheitIdPersister,
     korbCreatePersister,
     korbModifyAuslieferungPersister,

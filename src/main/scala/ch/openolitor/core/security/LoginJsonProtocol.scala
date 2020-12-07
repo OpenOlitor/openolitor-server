@@ -38,4 +38,7 @@ trait LoginJsonProtocol extends StammdatenJsonProtocol with AutoProductFormats[J
         case pt              => sys.error(s"Unknown LoginStatus:$pt")
       }
   }
+
+  implicit val subjectFormat = autoProductFormat[Subject]
+  implicit val userFormat = autoProductFormat[User]
 }
