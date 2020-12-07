@@ -45,6 +45,11 @@ case class ChangePasswordForm(alt: String, neu: String) extends JSONSerializable
 case class SetPasswordForm(token: String, neu: String) extends JSONSerializable
 case class PasswordResetForm(email: String) extends JSONSerializable
 
+case class OtpDisable(code: String) extends JSONSerializable
+case class OtpSecretResetRequest(code: String) extends JSONSerializable
+case class OtpSecretResetConfirm(token: String, code: String) extends JSONSerializable
+case class OtpSecretResetResponse(token: String, person: PersonSummary, otpSecret: String) extends JSONSerializable
+
 sealed trait LoginStatus extends Product
 case object LoginOk extends LoginStatus
 case object LoginSecondFactorRequired extends LoginStatus
