@@ -80,6 +80,12 @@ trait LoginRouteService extends HttpService with ActorReferences
     timeToIdle = 10 minutes
   )
 
+  val secondFactorResetTokenCache = LruCache[String](
+    maxCapacity = 1000,
+    timeToLive = 20 minutes,
+    timeToIdle = 10 minutes
+  )
+
   lazy val config = sysConfig.mandantConfiguration.config
   lazy val requireSecondFactorAuthentication = config.getBooleanOption(s"security.second-factor-auth.require").getOrElse(true)
   override lazy val maxRequestDelay: Option[Duration] = config.getLongOption(s"security.max-request-delay").map(_ millis)
@@ -111,7 +117,7 @@ trait LoginRouteService extends HttpService with ActorReferences
           requestInstance { request =>
             entity(as[ChangePasswordForm]) { form =>
               logger.debug(s"requested password change")
-              onSuccess(validatePasswordChange(form, subject.personId).run) {
+              onSuccess(validatePasswordChange(form).run) {
                 case -\/(error) =>
                   logger.debug(s"Password change failed ${error.msg}")
                   complete(StatusCodes.BadRequest, error.msg)
@@ -124,9 +130,9 @@ trait LoginRouteService extends HttpService with ActorReferences
       }
   }
 
-  def validatePasswordChange(form: ChangePasswordForm, personId: PersonId)(implicit subject: Subject): EitherFuture[Boolean] = {
+  def validatePasswordChange(form: ChangePasswordForm)(implicit subject: Subject): EitherFuture[Boolean] = {
     for {
-      person <- personById(personId)
+      person <- personById(subject.personId)
       _ <- validatePassword(form.alt, person)
       _ <- validateNewPassword(form.neu)
       result <- changePassword(person, form.neu, None)
@@ -230,7 +236,7 @@ trait LoginRouteService extends HttpService with ActorReferences
               onSuccess(validateSetPasswordForm(form).run) {
                 case -\/(error) =>
                   complete(StatusCodes.BadRequest, error.msg)
-                case \/-(result) =>
+                case \/-(_) =>
                   complete("Ok")
               }
             }
@@ -244,13 +250,81 @@ trait LoginRouteService extends HttpService with ActorReferences
               onSuccess(validatePasswordResetForm(form).run) {
                 case -\/(error) =>
                   complete(StatusCodes.BadRequest, error.msg)
-                case \/-(result) =>
+                case \/-(_) =>
                   complete("Ok")
               }
             }
           }
         }
+      } ~
+      pathPrefix("otp") {
+        authenticate(openOlitorAuthenticator) { implicit subject =>
+          path("requestSecret") {
+            post {
+              requestInstance { _ =>
+                entity(as[OtpSecretResetRequest]) { form =>
+                  onSuccess(validateOtpResetRequest(form).run) {
+                    case -\/(error) =>
+                      complete(StatusCodes.BadRequest, error.msg)
+                    case \/-(result) =>
+                      complete(result)
+                  }
+                }
+              }
+            }
+          } ~
+            path("changeSecret") {
+              post {
+                requestInstance { _ =>
+                  entity(as[OtpSecretResetConfirm]) { form =>
+                    onSuccess(validateOtpResetConfirm(form).run) {
+                      case -\/(error) =>
+                        complete(StatusCodes.BadRequest, error.msg)
+                      case \/-(_) =>
+                        complete("Ok")
+                    }
+                  }
+                }
+              }
+            }
+        }
       }
+  }
+
+  def validateOtpResetRequest(form: OtpSecretResetRequest)(implicit subject: Subject): EitherFuture[OtpSecretResetResponse] = {
+    for {
+      person <- personById(subject.personId)
+      _ <- validateSecondFactor(person, form.code, OtpSecondFactor("", person.id))
+      response <- generateOtpSecretResponse(person)
+    } yield response
+  }
+
+  def validateOtpResetConfirm(form: OtpSecretResetConfirm)(implicit subject: Subject): EitherFuture[Boolean] = {
+    for {
+      person <- personById(subject.personId)
+      secret <- validateOtpSecretFromCache(form)
+    } yield {
+      eventStore ! PersonChangedOtpSecret(person.id, secret)
+      secondFactorResetTokenCache.remove(form.token)
+      true
+    }
+  }
+
+  private def generateOtpSecretResponse(person: Person): EitherFuture[OtpSecretResetResponse] = EitherT {
+    val token = generateToken
+    val secret = generateOtp
+    val personSummary = copyTo[Person, PersonSummary](person)
+    val response = OtpSecretResetResponse(token, personSummary, secret)
+    secondFactorResetTokenCache(token)(secret) map (_ => response.right)
+  }
+
+  private def validateOtpSecretFromCache(form: OtpSecretResetConfirm): EitherFuture[String] = {
+    EitherT {
+      transform(secondFactorResetTokenCache.get(form.token)) map {
+        case Some(secret) if OtpUtil.checkCodeWithSecret(form.code, secret) => ToEitherOps(secret).right
+        case _ => errorTokenOrCodeMismatch.left
+      }
+    }
   }
 
   def validateLogin(form: LoginForm): EitherFuture[LoginResult] = {
@@ -280,7 +354,7 @@ trait LoginRouteService extends HttpService with ActorReferences
     for {
       secondFactor <- readTokenFromCache(form)
       person <- personById(secondFactor.personId)
-      _ <- validateSecondFactor(person, form, secondFactor)
+      _ <- validateSecondFactor(person, form.code, secondFactor)
       _ <- validatePerson(person)
       result <- doLogin(person, Some(secondFactor.`type`))
     } yield {
@@ -301,13 +375,13 @@ trait LoginRouteService extends HttpService with ActorReferences
     }
   }
 
-  private def validateSecondFactor(person: Person, form: SecondFactorLoginForm, secondFactor: SecondFactor): EitherFuture[Boolean] =
+  private def validateSecondFactor(person: Person, code: String, secondFactor: SecondFactor): EitherFuture[Boolean] =
     EitherT {
       Future {
         (secondFactor, person.otpSecret) match {
-          case (_: OtpSecondFactor, secret) if OtpUtil.checkCodeWithSecret(form.code, secret) => true.right
+          case (OtpSecondFactor(_, person.id), secret) if OtpUtil.checkCodeWithSecret(code, secret) => true.right
           case (_: OtpSecondFactor, _) => errorTokenOrCodeMismatch.left
-          case (EmailSecondFactor(_, code, _), _) if code == form.code => true.right
+          case (EmailSecondFactor(_, code, _), _) => true.right
           case (_: EmailSecondFactor, _) => errorTokenOrCodeMismatch.left
         }
       }
@@ -364,9 +438,13 @@ trait LoginRouteService extends HttpService with ActorReferences
   }
 
   private def generateSecondFactor(projekt: Projekt, person: Person): EitherFuture[SecondFactor] = {
+    generateSecondFactor(person, person.secondFactorType.getOrElse(projekt.defaultSecondFactorType))
+  }
+
+  private def generateSecondFactor(person: Person, secondFactorType: SecondFactorType): EitherFuture[SecondFactor] = {
     EitherT {
       val token = generateToken
-      val secondFactor = person.secondFactorType.getOrElse(projekt.defaultSecondFactorType) match {
+      val secondFactor = secondFactorType match {
         case EmailSecondFactorType =>
           val code = generateCode
           EmailSecondFactor(token, code, person.id)
@@ -464,6 +542,7 @@ trait LoginRouteService extends HttpService with ActorReferences
 
   private def generateToken = UUID.randomUUID.toString
   private def generateCode = (Random.alphanumeric take 6).mkString.toLowerCase
+  private def generateOtp = OtpUtil.generateOtpSecretString
 
   /**
    * Validate user password used by basic authentication. Using basic auth we never to a two factor
