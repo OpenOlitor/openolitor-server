@@ -1788,7 +1788,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(korbMapping as korb)
         .leftJoin(lieferungMapping as lieferung).on(lieferung.id, korb.lieferungId)
-        .where.eq(korb.aboId, aboId).and.not.eq(lieferung.status, Offen)
+        .where.eq(korb.aboId, aboId).and.eq(korb.status, WirdGeliefert).and.not.eq(lieferung.status, Offen)
         .orderBy(lieferung.datum)
     }.map(korbMapping(korb))
       .list
