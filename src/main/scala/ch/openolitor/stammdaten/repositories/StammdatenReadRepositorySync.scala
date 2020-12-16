@@ -82,6 +82,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getKoerbe(datum: DateTime, vertriebsartIds: List[VertriebsartId], status: KorbStatus)(implicit session: DBSession): List[Korb]
   def getKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): List[Korb]
   def getKoerbeNichtAusgeliefertByAbo(aboId: AboId)(implicit session: DBSession): List[Korb]
+  def getKoerbeNichtAusgeliefertLieferungClosedByAbo(aboId: AboId)(implicit session: DBSession): List[Korb]
   def getKorbLatestWirdGeliefert(aboId: AboId, beforeDate: DateTime)(implicit session: DBSession): Option[Korb]
   def getKorbeLaterWirdGeliefert(korbId: KorbId)(implicit session: DBSession): List[Korb]
   def countKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): Option[Int]
@@ -399,6 +400,10 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getKoerbeNichtAusgeliefertByAbo(aboId: AboId)(implicit session: DBSession): List[Korb] = {
     getKoerbeNichtAusgeliefertByAboQuery(aboId)()
+  }
+
+  def getKoerbeNichtAusgeliefertLieferungClosedByAbo(aboId: AboId)(implicit session: DBSession): List[Korb] = {
+    getKoerbeNichtAusgeliefertLieferungClosedByAboQuery(aboId)()
   }
 
   def getKorbLatestWirdGeliefert(aboId: AboId, beforeDate: DateTime)(implicit session: DBSession): Option[Korb] = {

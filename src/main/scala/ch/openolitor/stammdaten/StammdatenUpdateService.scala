@@ -395,9 +395,10 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
 
   private def adjustGuthabenVorLieferung(abo: Abo, guthaben: Int)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     stammdatenWriteRepository.getAbotypById(abo.abotypId) map { abotyp =>
+      val closedKoerbe = stammdatenWriteRepository.getKoerbeNichtAusgeliefertLieferungClosedByAbo(abo.id)
       stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(abo.id).zipWithIndex.map {
         case (korb, index) =>
-          val guthabenNeu = guthaben - index
+          val guthabenNeu = guthaben - index - closedKoerbe.length
           val countAbwesend = stammdatenWriteRepository.countAbwesend(korb.lieferungId, abo.id)
           val status = korb.auslieferungId match {
             //we don't modify the status as this korb is going to be deliverd (or not) as the order to the producer has been made
