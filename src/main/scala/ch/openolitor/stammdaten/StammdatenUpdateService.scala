@@ -351,29 +351,27 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
 
   private def updateAboGuthaben(meta: EventMetadata, id: AboId, update: AboGuthabenModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
+      // We can't just update the guthabenNeu from AboGuthabenModify since the value could have changed processing other events
       stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
-        if (abo.guthaben == update.guthabenAlt) {
-          val copy = abo.copy(guthaben = update.guthabenNeu)
-          stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
-          adjustGuthabenVorLieferung(copy, update.guthabenNeu)
-        }
+        val guthabenDelta = update.guthabenNeu - update.guthabenAlt
+        val guthabenNeu = abo.guthaben + guthabenDelta
+        val copy = abo.copy(guthaben = guthabenNeu)
+        stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+        adjustGuthabenVorLieferung(copy, guthabenNeu)
       }
       stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
-        if (abo.guthaben == update.guthabenAlt) {
-          val copy = abo.copy(guthaben = update.guthabenNeu)
-          stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
-          adjustGuthabenVorLieferung(copy, update.guthabenNeu)
-        }
+        val guthabenDelta = update.guthabenNeu - update.guthabenAlt
+        val guthabenNeu = abo.guthaben + guthabenDelta
+        val copy = abo.copy(guthaben = guthabenNeu)
+        stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+        adjustGuthabenVorLieferung(copy, guthabenNeu)
       }
       stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
-        if (abo.guthaben == update.guthabenAlt) {
-          val copy = abo.copy(guthaben = update.guthabenNeu)
-          stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
-          adjustGuthabenVorLieferung(copy, update.guthabenNeu)
-        }
-      }
-      stammdatenWriteRepository.getZusatzAbosByHauptAbo(id) map { zusatzAbo =>
-        adjustGuthabenVorLieferung(zusatzAbo, update.guthabenNeu)
+        val guthabenDelta = update.guthabenNeu - update.guthabenAlt
+        val guthabenNeu = abo.guthaben + guthabenDelta
+        val copy = abo.copy(guthaben = guthabenNeu)
+        stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
+        adjustGuthabenVorLieferung(copy, guthabenNeu)
       }
     }
   }
