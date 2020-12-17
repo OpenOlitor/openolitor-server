@@ -39,31 +39,47 @@ case class OtpSecondFactor(token: String, personId: PersonId) extends SecondFact
   def `type` = OtpSecondFactorType
 }
 
+trait AuthenticatedForm extends JSONSerializable {
+  val secondFactorAuth: Option[SecondFactorAuthentication]
+}
+
+case class SecondFactorAuthentication(token: String, code: String) extends JSONSerializable
+
 case class LoginForm(email: String, passwort: String) extends JSONSerializable
-case class SecondFactorLoginForm(token: String, code: String) extends JSONSerializable
-case class ChangePasswordForm(alt: String, neu: String) extends JSONSerializable
-case class SetPasswordForm(token: String, neu: String) extends JSONSerializable
+case class ChangePasswordForm(alt: String, neu: String, secondFactorAuth: Option[SecondFactorAuthentication]) extends JSONSerializable
+case class SetPasswordForm(token: String, neu: String, secondFactorAuth: Option[SecondFactorAuthentication]) extends JSONSerializable
 case class PasswordResetForm(email: String) extends JSONSerializable
+case class LoginSettingsForm(secondFactorEnabled: Boolean, secondFactorType: SecondFactorType, secondFactorAuth: Option[SecondFactorAuthentication]) extends AuthenticatedForm
 
 case class OtpDisable(code: String) extends JSONSerializable
 case class OtpSecretResetRequest(code: String) extends JSONSerializable
 case class OtpSecretResetConfirm(token: String, code: String) extends JSONSerializable
 case class OtpSecretResetResponse(token: String, person: PersonSummary, otpSecret: String) extends JSONSerializable
 
-sealed trait LoginStatus extends Product
-case object LoginOk extends LoginStatus
-case object LoginSecondFactorRequired extends LoginStatus
+sealed trait RequestStatus extends Product
+case object Ok extends RequestStatus
+case object SecondFactorRequired extends RequestStatus
 
-object LoginStatus {
-  def apply(value: String): Option[LoginStatus] = {
-    Vector(LoginOk, LoginSecondFactorRequired).find(_.toString == value)
+object RequestStatus {
+  def apply(value: String): Option[RequestStatus] = {
+    Vector(Ok, SecondFactorRequired).find(_.toString == value)
   }
 }
 
-case class LoginResult(status: LoginStatus, token: String, person: PersonSummary, otpSecret: Option[String], secondFactorType: Option[SecondFactorType]) extends JSONSerializable
+trait ResultWithSecondFactorValidation {
+  val status: RequestStatus
+  val token: Option[String]
+}
+
+case class FormResult(status: RequestStatus,  token: Option[String]) extends JSONSerializable with ResultWithSecondFactorValidation
+
+case class LoginResult(status: RequestStatus, token: Option[String], person: PersonSummary, otpSecret: Option[String], secondFactorType: Option[SecondFactorType]) extends JSONSerializable with ResultWithSecondFactorValidation
 
 case class RequestFailed(msg: String)
 
 case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle], secondFactorType: Option[SecondFactorType]) extends JSONSerializable
 
 case class User(user: PersonDetail, subject: Subject) extends JSONSerializable
+
+case class LoginSettings(secondFactorRequired: Boolean, secondFactorEnabled: Boolean, secondFactorType: SecondFactorType) extends JSONSerializable
+
