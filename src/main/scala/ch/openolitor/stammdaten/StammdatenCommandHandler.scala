@@ -115,7 +115,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
   override val handle: PartialFunction[UserCommand, IdFactory => EventTransactionMetadata => Try[Seq[ResultingEvent]]] = {
 
-    case DeleteAbwesenheitCommand(personId, id) => idFactory => meta =>
+    case DeleteAbwesenheitCommand(_, id) => _ => _ =>
       DB readOnly { implicit session =>
         stammdatenReadRepository.getLieferung(id) map { lieferung =>
           lieferung.status match {
@@ -285,13 +285,13 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         } getOrElse Failure(new InvalidStateException(s"Keine Lieferplanung mit der Nr. $id gefunden"))
       }
 
-    case LieferplanungModifyCommand(personId, lieferplanungPositionenModify) => idFactory => meta =>
+    case LieferplanungModifyCommand(_, lieferplanungPositionenModify) => idFactory => _ =>
       DB readOnly { implicit session =>
         stammdatenReadRepository.getById(lieferplanungMapping, lieferplanungPositionenModify.id) map { lieferplanung =>
           lieferplanung.status match {
-            case state @ Offen =>
+            case _ @ Offen =>
               Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, Set.empty, lieferplanungPositionenModify.lieferungen))) :: Nil)
-            case state @ Abgeschlossen =>
+            case _ @ Abgeschlossen =>
               val allLieferpositionen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPositionenModify =>
                 lieferungPositionenModify.lieferpositionen.lieferpositionen
               }
@@ -313,7 +313,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         } getOrElse Failure(new InvalidStateException(s"Keine Lieferplanung mit der Nr. ${lieferplanungPositionenModify.id} gefunden"))
       }
 
-    case LieferplanungAbrechnenCommand(personId, id: LieferplanungId) => idFactory => meta =>
+    case LieferplanungAbrechnenCommand(_, id: LieferplanungId) => _ => _ =>
       DB readOnly { implicit session =>
         stammdatenReadRepository.getById(lieferplanungMapping, id) map { lieferplanung =>
           lieferplanung.status match {
@@ -325,7 +325,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         } getOrElse Failure(new InvalidStateException(s"Keine Lieferplanung mit der Nr. $id gefunden"))
       }
 
-    case AbwesenheitCreateCommand(personId, abw: AbwesenheitCreate) => idFactory => meta =>
+    case AbwesenheitCreateCommand(_, abw: AbwesenheitCreate) => idFactory => meta =>
       DB readOnly { implicit session =>
         stammdatenReadRepository.countAbwesend(abw.lieferungId, abw.aboId) match {
           case Some(0) =>
@@ -335,7 +335,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         }
       }
 
-    case SammelbestellungAnProduzentenVersendenCommand(personId, id: SammelbestellungId) => idFactory => meta =>
+    case SammelbestellungAnProduzentenVersendenCommand(_, id: SammelbestellungId) => _ => _ =>
       DB readOnly { implicit session =>
         stammdatenReadRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
           sammelbestellung.status match {
@@ -347,9 +347,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         } getOrElse Failure(new InvalidStateException(s"Keine Bestellung mit der Nr. $id gefunden"))
       }
 
-    case AuslieferungenAlsAusgeliefertMarkierenCommand(personId, ids: Seq[AuslieferungId]) => idFactory => meta =>
+    case AuslieferungenAlsAusgeliefertMarkierenCommand(_, ids: Seq[AuslieferungId]) => _ => _ =>
       DB readOnly { implicit session =>
-        val (events, failures) = ids map { id =>
+        val (events, _) = ids map { id =>
           stammdatenReadRepository.getById(depotAuslieferungMapping, id) orElse
             stammdatenReadRepository.getById(tourAuslieferungMapping, id) orElse
             stammdatenReadRepository.getById(postAuslieferungMapping, id) map { auslieferung =>
@@ -377,9 +377,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         }
       }
 
-    case SammelbestellungenAlsAbgerechnetMarkierenCommand(personId, datum, ids: Seq[SammelbestellungId]) => idFactory => meta =>
+    case SammelbestellungenAlsAbgerechnetMarkierenCommand(_, datum, ids: Seq[SammelbestellungId]) => _ => _ =>
       DB readOnly { implicit session =>
-        val (events, failures) = ids map { id =>
+        val (events, _) = ids map { id =>
           stammdatenReadRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
             sammelbestellung.status match {
               case Abgeschlossen =>
@@ -397,124 +397,125 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         }
       }
 
-    case CreateAnzahlLieferungenRechnungsPositionenCommand(originator, aboRechnungCreate) => idFactory => meta =>
+    case CreateAnzahlLieferungenRechnungsPositionenCommand(_, aboRechnungCreate) => idFactory => meta =>
       createAboRechnungsPositionenAnzahlLieferungen(idFactory, meta, aboRechnungCreate)
 
-    case CreateBisGuthabenRechnungsPositionenCommand(originator, aboRechnungCreate) => idFactory => meta =>
+    case CreateBisGuthabenRechnungsPositionenCommand(_, aboRechnungCreate) => idFactory => meta =>
       createAboRechnungsPositionenBisGuthaben(idFactory, meta, aboRechnungCreate)
 
-    case PasswortWechselCommand(originator, personId, pwd, einladungId) => idFactory => meta =>
+    case PasswortWechselCommand(_, personId, pwd, einladungId) => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => PasswortGewechseltEvent(factory.newMetadata(), personId, pwd, einladungId))))
 
-    case LoginDeaktivierenCommand(originator, kundeId, personId) if originator.id != personId => idFactory => meta =>
+    case LoginDeaktivierenCommand(originator, kundeId, personId) if originator.id != personId => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => LoginDeaktiviertEvent(factory.newMetadata(), kundeId, personId))))
 
-    case LoginAktivierenCommand(originator, kundeId, personId) if originator.id != personId => idFactory => meta =>
+    case LoginAktivierenCommand(originator, kundeId, personId) if originator.id != personId => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => LoginAktiviertEvent(factory.newMetadata(), kundeId, personId))))
 
     case EinladungSendenCommand(originator, kundeId, personId) if originator.id != personId => idFactory => meta =>
       sendEinladung(idFactory, meta, kundeId, personId)
 
-    case PasswortResetCommand(originator, personId) => idFactory => meta =>
+    case PasswortResetCommand(_, personId) => idFactory => meta =>
       sendPasswortReset(idFactory, meta, personId)
 
     case RolleWechselnCommand(originator, kundeId, personId, rolle) if originator.id != personId => idFactory => meta =>
       changeRolle(idFactory, meta, kundeId, personId, rolle)
 
-    case AboAktivierenCommand(aboId, originator) => idFactory => meta =>
+    case AboAktivierenCommand(aboId, _) => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => AboAktiviertEvent(factory.newMetadata(), aboId))))
 
-    case AboDeaktivierenCommand(aboId, originator) => idFactory => meta =>
+    case AboDeaktivierenCommand(aboId, _) => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => AboDeaktiviertEvent(factory.newMetadata(), aboId))))
 
-    case UpdateKundeCommand(originator, kundeId, kunde) => idFactory => meta =>
+    case UpdateKundeCommand(_, kundeId, kunde) => idFactory => meta =>
       updateKunde(idFactory, meta, kundeId, kunde)
 
-    case CreateKundeCommand(originator, kunde) => idFactory => meta =>
+    case CreateKundeCommand(_, kunde) => idFactory => meta =>
       createKunde(idFactory, meta, kunde)
+
     /*
        * Insert command handling
        */
-    case e @ InsertEntityCommand(personId, entity: CustomKundentypCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: CustomKundentypCreate) => idFactory => meta =>
       handleEntityInsert[CustomKundentypCreate, CustomKundentypId](idFactory, meta, entity, CustomKundentypId.apply)
-    case e @ InsertEntityCommand(personId, entity: LieferungenAbotypCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: LieferungenAbotypCreate) => idFactory => meta =>
       val events = entity.daten.map { datum =>
         val lieferungCreate = copyTo[LieferungenAbotypCreate, LieferungAbotypCreate](entity, "datum" -> datum)
         insertEntityEvent[LieferungAbotypCreate, LieferungId](idFactory, meta, lieferungCreate, LieferungId.apply)
       }
       Success(events)
-    case e @ InsertEntityCommand(personId, entity: LieferungAbotypCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: LieferungAbotypCreate) => idFactory => meta =>
       handleEntityInsert[LieferungAbotypCreate, LieferungId](idFactory, meta, entity, LieferungId.apply)
-    case e @ InsertEntityCommand(personId, entity: LieferplanungCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: LieferplanungCreate) => idFactory => meta =>
       handleEntityInsert[LieferplanungCreate, LieferplanungId](idFactory, meta, entity, LieferplanungId.apply)
-    case e @ InsertEntityCommand(personId, entity: LieferungPlanungAdd) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: LieferungPlanungAdd) => idFactory => meta =>
       handleEntityInsert[LieferungPlanungAdd, LieferungId](idFactory, meta, entity, LieferungId.apply)
-    case e @ InsertEntityCommand(personId, entity: LieferpositionenModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: LieferpositionenModify) => idFactory => meta =>
       handleEntityInsert[LieferpositionenModify, LieferpositionId](idFactory, meta, entity, LieferpositionId.apply)
-    case e @ InsertEntityCommand(personId, entity: PendenzModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PendenzModify) => idFactory => meta =>
       handleEntityInsert[PendenzModify, PendenzId](idFactory, meta, entity, PendenzId.apply)
-    case e @ InsertEntityCommand(personId, entity: PersonCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PersonCreate) => idFactory => meta =>
       handleEntityInsert[PersonCreate, PersonId](idFactory, meta, entity, PersonId.apply)
-    case e @ InsertEntityCommand(personId, entity: PersonCategoryCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PersonCategoryCreate) => idFactory => meta =>
       handleEntityInsert[PersonCategoryCreate, PersonCategoryId](idFactory, meta, entity, PersonCategoryId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProduzentModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProduzentModify) => idFactory => meta =>
       handleEntityInsert[ProduzentModify, ProduzentId](idFactory, meta, entity, ProduzentId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProduktModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProduktModify) => idFactory => meta =>
       handleEntityInsert[ProduktModify, ProduktId](idFactory, meta, entity, ProduktId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProduktProduktekategorie) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProduktProduktekategorie) => idFactory => meta =>
       handleEntityInsert[ProduktProduktekategorie, ProduktProduktekategorieId](idFactory, meta, entity, ProduktProduktekategorieId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProduktProduzent) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProduktProduzent) => idFactory => meta =>
       handleEntityInsert[ProduktProduzent, ProduktProduzentId](idFactory, meta, entity, ProduktProduzentId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProduktekategorieModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProduktekategorieModify) => idFactory => meta =>
       handleEntityInsert[ProduktekategorieModify, ProduktekategorieId](idFactory, meta, entity, ProduktekategorieId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProjektModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProjektModify) => idFactory => meta =>
       handleEntityInsert[ProjektModify, ProjektId](idFactory, meta, entity, ProjektId.apply)
-    case e @ InsertEntityCommand(personId, entity: TourCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: TourCreate) => idFactory => meta =>
       handleEntityInsert[TourCreate, TourId](idFactory, meta, entity, TourId.apply)
-    case e @ InsertEntityCommand(personId, entity: AbwesenheitCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: AbwesenheitCreate) => idFactory => meta =>
       handleEntityInsert[AbwesenheitCreate, AbwesenheitId](idFactory, meta, entity, AbwesenheitId.apply)
-    case e @ InsertEntityCommand(personId, entity: AbotypModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: AbotypModify) => idFactory => meta =>
       handleEntityInsert[AbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
-    case e @ InsertEntityCommand(personId, entity: ZusatzAbotypModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ZusatzAbotypModify) => idFactory => meta =>
       handleEntityInsert[ZusatzAbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
-    case e @ InsertEntityCommand(personId, entity: DepotModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: DepotModify) => idFactory => meta =>
       handleEntityInsert[DepotModify, DepotId](idFactory, meta, entity, DepotId.apply)
-    case e @ InsertEntityCommand(personId, entity: DepotlieferungModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: DepotlieferungModify) => idFactory => meta =>
       handleEntityInsert[DepotlieferungModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: HeimlieferungModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: HeimlieferungModify) => idFactory => meta =>
       handleEntityInsert[HeimlieferungModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: PostlieferungModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PostlieferungModify) => idFactory => meta =>
       handleEntityInsert[PostlieferungModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: DepotlieferungAbotypModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: DepotlieferungAbotypModify) => idFactory => meta =>
       handleEntityInsert[DepotlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: HeimlieferungAbotypModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: HeimlieferungAbotypModify) => idFactory => meta =>
       handleEntityInsert[HeimlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: PostlieferungAbotypModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PostlieferungAbotypModify) => idFactory => meta =>
       handleEntityInsert[PostlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e @ InsertEntityCommand(personId, entity: DepotlieferungAboCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: DepotlieferungAboCreate) => idFactory => meta =>
       handleEntityInsert[DepotlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e @ InsertEntityCommand(personId, entity: HeimlieferungAboCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: HeimlieferungAboCreate) => idFactory => meta =>
       handleEntityInsert[HeimlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e @ InsertEntityCommand(personId, entity: PostlieferungAboCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PostlieferungAboCreate) => idFactory => meta =>
       handleEntityInsert[PostlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e @ InsertEntityCommand(personId, entity: ZusatzAboModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ZusatzAboModify) => idFactory => meta =>
       handleEntityInsert[ZusatzAboModify, AboId](idFactory, meta, entity, AboId.apply)
-    case e @ InsertEntityCommand(personId, entity: ZusatzAboCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ZusatzAboCreate) => idFactory => meta =>
       handleEntityInsert[ZusatzAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e @ InsertEntityCommand(personId, entity: PendenzCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: PendenzCreate) => idFactory => meta =>
       handleEntityInsert[PendenzCreate, PendenzId](idFactory, meta, entity, PendenzId.apply)
-    case e @ InsertEntityCommand(personId, entity: VertriebModify) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: VertriebModify) => idFactory => meta =>
       handleEntityInsert[VertriebModify, VertriebId](idFactory, meta, entity, VertriebId.apply)
-    case e @ InsertEntityCommand(personId, entity: ProjektVorlageCreate) => idFactory => meta =>
+    case e @ InsertEntityCommand(_, entity: ProjektVorlageCreate) => idFactory => meta =>
       handleEntityInsert[ProjektVorlageCreate, ProjektVorlageId](idFactory, meta, entity, ProjektVorlageId.apply)
 
     /*
     * Custom update command handling
     */
-    case UpdateEntityCommand(personId, id: KundeId, entity: KundeModify) => idFactory => meta =>
+    case UpdateEntityCommand(personId, id: KundeId, entity: KundeModify) => idFactory => _ =>
       updateKundeEntity(idFactory, personId, id, entity)
 
-    case UpdateEntityCommand(personId, id: AboId, entity: AboGuthabenModify) => idFactory => meta =>
+    case UpdateEntityCommand(_, id: AboId, entity: AboGuthabenModify) => idFactory => meta =>
       DB readOnly { implicit session =>
         //TODO: assemble text using gettext
         stammdatenReadRepository.getAboDetail(id) match {
@@ -527,7 +528,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             Failure(new InvalidStateException(s"UpdateEntityCommand: Abo konnte nicht gefunden werden"))
         }
       }
-    case UpdateEntityCommand(personId, id: AboId, entity: AboVertriebsartModify) => idFactory => meta =>
+    case UpdateEntityCommand(_, id: AboId, entity: AboVertriebsartModify) => idFactory => meta =>
       DB readOnly { implicit session =>
         //TODO: assemble text using gettext
         val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
