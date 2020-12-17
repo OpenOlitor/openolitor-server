@@ -75,7 +75,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
       result.map { x =>
-        x.toEither.right.map(_.status) must beRight(LoginOk)
+        x.toEither.right.map(_.status) must beRight(Ok)
         val token = x.toEither.right.map(_.token).right.get
         service.loginTokenCache.get(token) must beSome
       }.await(3, timeout)
@@ -124,7 +124,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(LoginOk) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
     }
 
     "be enabled by project settings" in {
@@ -135,7 +135,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(LoginSecondFactorRequired) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
     }
   }
 
@@ -151,9 +151,9 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
-      val result = service.validateSecondFactorLogin(SecondFactorLoginForm(token, code)).run
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(LoginOk) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
     }
 
     "Fail when login not active" in {
@@ -167,7 +167,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminInactive))
 
-      val result = service.validateSecondFactorLogin(SecondFactorLoginForm(token, code)).run
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
 
       result.map { _.toEither must beLeft(RequestFailed("Login wurde deaktiviert")) }.await(3, timeout)
     }
@@ -183,7 +183,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
-      val result = service.validateSecondFactorLogin(SecondFactorLoginForm(token, "anyCode")).run
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, "anyCode")).run
 
       result.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
     }
@@ -199,7 +199,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
-      val result = service.validateSecondFactorLogin(SecondFactorLoginForm("anyToken", code)).run
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication("anyToken", code)).run
 
       result.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
     }
@@ -215,7 +215,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(None)
 
-      val result = service.validateSecondFactorLogin(SecondFactorLoginForm(token, code)).run
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
 
       result.map { _.toEither must beLeft(RequestFailed("Person konnte nicht gefunden werden")) }.await(3, timeout)
     }
@@ -230,13 +230,13 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       service.secondFactorTokenCache(token)(secondFactor)
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
-      val result1 = service.validateSecondFactorLogin(SecondFactorLoginForm(token, code)).run
-      result1.map { _.toEither.right.map(_.status) must beRight(LoginOk) }.await(3, timeout)
+      val result1 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
+      result1.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
 
       service.secondFactorTokenCache.get(token) must beNone
 
       //second try
-      val result2 = service.validateSecondFactorLogin(SecondFactorLoginForm(token, code)).run
+      val result2 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
       result2.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
     }
   }

@@ -58,5 +58,6 @@ object SystemEvents {
 
   case class PersonLoggedIn(personId: PersonId, timestamp: DateTime, secondFactorType: Option[SecondFactorType]) extends SystemEvent with JSONSerializable
   case class PersonChangedOtpSecret(personId: PersonId, secret: String) extends SystemEvent with JSONSerializable
+  case class PersonChangeSecondFactorType(personId: PersonId, secondFactorType: Option[SecondFactorType]) extends SystemEvent with JSONSerializable
   case class SystemStarted(timestamp: DateTime) extends SystemEvent
 }
