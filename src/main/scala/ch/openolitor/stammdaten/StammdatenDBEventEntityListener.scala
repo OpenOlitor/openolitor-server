@@ -880,7 +880,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             val value = abo.anzahlLieferungen.get(geschaeftsjahrKey).map(_ + 1).getOrElse(1)
             updateAbotypOnAusgeliefert(abo.abotypId, entity.datum)
             Map(
-              depotlieferungAboMapping.column.guthaben -> (korb.guthabenVorLieferung - 1),
+              depotlieferungAboMapping.column.guthaben -> (abo.guthaben - 1),
               depotlieferungAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
               depotlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
             )
@@ -890,7 +890,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             val value = abo.anzahlLieferungen.get(geschaeftsjahrKey).map(_ + 1).getOrElse(1)
             updateAbotypOnAusgeliefert(abo.abotypId, entity.datum)
             Map(
-              heimlieferungAboMapping.column.guthaben -> (korb.guthabenVorLieferung - 1),
+              heimlieferungAboMapping.column.guthaben -> (abo.guthaben - 1),
               heimlieferungAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
               heimlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
             )
@@ -900,7 +900,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             val value = abo.anzahlLieferungen.get(geschaeftsjahrKey).map(_ + 1).getOrElse(1)
             updateAbotypOnAusgeliefert(abo.abotypId, entity.datum)
             Map(
-              postlieferungAboMapping.column.guthaben -> (korb.guthabenVorLieferung - 1),
+              postlieferungAboMapping.column.guthaben -> (abo.guthaben - 1),
               postlieferungAboMapping.column.letzteLieferung -> getLatestDate(abo.letzteLieferung, Some(entity.datum)),
               postlieferungAboMapping.column.anzahlLieferungen -> abo.anzahlLieferungen.updated(geschaeftsjahrKey, value)
             )
