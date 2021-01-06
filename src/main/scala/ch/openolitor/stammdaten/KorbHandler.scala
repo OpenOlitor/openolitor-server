@@ -385,7 +385,7 @@ trait KorbHandler extends KorbStatusHandler
 
   def recalculateNumbersLieferung(lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
     logger.debug(s"recalculateNumbersLieferung lieferung: $lieferung")
-    val stati: List[KorbStatus] = stammdatenWriteRepository.getNichtGelieferteKoerbe(lieferung.id).map(_.status)
+    val stati: List[KorbStatus] = stammdatenWriteRepository.getKoerbe(lieferung.id).map(_.status)
     val counts: Map[KorbStatus, Int] = stati.groupBy {
       s => s
     }.mapValues(_.size)
