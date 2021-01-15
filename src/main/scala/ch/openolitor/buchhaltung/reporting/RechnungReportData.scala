@@ -37,7 +37,7 @@ import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import net.codecrete.qrbill.generator.{ Address, Bill, BillFormat, GraphicsFormat, Language, OutputSize, QRBill, QRBillValidationError, SeparatorType, Payments }
+import net.codecrete.qrbill.generator.{ Address, Bill, BillFormat, Language, OutputSize, QRBill, QRBillValidationError, SeparatorType }
 import java.time.LocalDate
 
 import com.typesafe.scalalogging.LazyLogging
@@ -57,7 +57,10 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           maybeKontoDaten map { kontoDaten =>
             val results = Future.sequence(rechnungIds.map { rechnungId =>
               buchhaltungReadRepository.getRechnungDetail(rechnungId).map(_.map { rechnung =>
-                val qrCode = Some(createQrCode(rechnung, kontoDaten, projekt))
+                val qrCode = kontoDaten.iban match {
+                  case Some(i) if i.startsWith("CH") && ("30".equals(i.slice(4, 6)) || "31".equals(i.slice(4, 6))) => Some(createQrCode(rechnung, kontoDaten, projekt))
+                  case _ => None
+                }
                 rechnung.status match {
                   case Storniert =>
                     Left(ValidationError[RechnungId](rechnungId, s"Für stornierte Rechnungen können keine Berichte mehr erzeugt werden"))
