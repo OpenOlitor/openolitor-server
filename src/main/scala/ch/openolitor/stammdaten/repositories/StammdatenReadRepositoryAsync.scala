@@ -383,15 +383,15 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getDepotlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotlieferungAboDetail]] = {
-    getDepotlieferungAboQuery(id).future
+    getDepotlieferungAboAusstehendQuery(id).future
   }
 
   def getHeimlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[HeimlieferungAboDetail]] = {
-    getHeimlieferungAboQuery(id).future
+    getHeimlieferungAboAusstehendQuery(id).future
   }
 
   def getPostlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[PostlieferungAboDetail]] = {
-    getPostlieferungAboQuery(id).future
+    getPostlieferungAboAusstehendQuery(id).future
   }
 
   def getAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AboDetail]] = {
