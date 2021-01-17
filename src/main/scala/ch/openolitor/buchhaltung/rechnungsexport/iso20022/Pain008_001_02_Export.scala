@@ -129,7 +129,7 @@ class Pain008_001_02_Export extends LazyLogging {
         //-----------------
         val DrctDbtTxInf = rechnungen map {
           case (rechnung, kontoDaten) =>
-            getDirectDebitTransactionInformation(kontoDaten.bic.getOrElse(notProvided), kontoDaten.iban.getOrElse("Iban subscriptor"), kontoDaten.nameAccountHolder.getOrElse("accountHolder subscriptor"), rechnung)
+            getDirectDebitTransactionInformation(kontoDaten.bic.getOrElse(notProvided), kontoDaten, rechnung)
         }
 
         PmtInfId.length match {
@@ -143,17 +143,25 @@ class Pain008_001_02_Export extends LazyLogging {
     }
   }
 
-  private def getDirectDebitTransactionInformation(bic: String, iban: String, nameAccountHolder: String, rechnung: Rechnung): DirectDebitTransactionInformationSDD = {
+  private def getDirectDebitTransactionInformation(bic: String, kontoDaten: KontoDaten, rechnung: Rechnung): DirectDebitTransactionInformationSDD = {
     val PmtId = PaymentIdentificationSEPA(None, notProvided)
     val PmtTpInf = None
     val InstdAmt = pain008_001_02.ActiveOrHistoricCurrencyAndAmountSEPA(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
     val ChrgBr = None
-    val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(rechnung.kundeId.id.toString, getDate(), None, None, None), None)
+    val dateOfSignature = kontoDaten.dateOfSignature match {
+      case Some(date) => {
+        val d = DatatypeFactory.newInstance().newXMLGregorianCalendar(date.toGregorianCalendar)
+        d.setTime(DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED)
+        d
+      }
+      case None => getDate()
+    }
+    val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(kontoDaten.mandateId.getOrElse(rechnung.kundeId.id.toString), dateOfSignature, None, None, None), None)
     val UltmtCdtr = None
     val DbtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), bic)))
     val DbtrAgtAcct = None
-    val Dbtr = pain008_001_02.PartyIdentificationSEPA2(nameAccountHolder.slice(0, 70), None)
-    val DbtrAcct = pain008_001_02.CashAccountSEPA2(pain008_001_02.AccountIdentificationSEPA(iban))
+    val Dbtr = pain008_001_02.PartyIdentificationSEPA2(kontoDaten.nameAccountHolder.getOrElse("accountHolder subscriptor").slice(0, 70), None)
+    val DbtrAcct = pain008_001_02.CashAccountSEPA2(pain008_001_02.AccountIdentificationSEPA(kontoDaten.iban.getOrElse("Iban subscriptor")))
     val UltmtDbtr = None
     val Purp = None
     val RmtInf = Option(pain008_001_02.RemittanceInformationSEPA1Choice(DataRecord(None, Some("Ustrd"), s"${rechnung.referenzNummer}${rechnung.titel}".slice(0, 140))))
