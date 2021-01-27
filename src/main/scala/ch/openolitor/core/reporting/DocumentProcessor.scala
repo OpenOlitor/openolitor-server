@@ -27,13 +27,13 @@ import java.text.DecimalFormat
 import java.util.Locale
 import java.util.UUID.randomUUID
 
-import ch.openolitor.core.reporting.odf.{NestedImageIterator, NestedTextboxIterator}
+import ch.openolitor.core.reporting.odf.{ NestedImageIterator, NestedTextboxIterator }
 import ch.openolitor.util.jsonpath.JsonPath
-import ch.openolitor.util.jsonpath.functions.{JsonPathFunctions, Param1JsonPathFunction, UnaryJsonPathFunction}
+import ch.openolitor.util.jsonpath.functions.{ JsonPathFunctions, Param1JsonPathFunction, UnaryJsonPathFunction }
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.batik.transcoder.image.PNGTranscoder
-import org.apache.batik.transcoder.{TranscoderInput, TranscoderOutput}
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
+import org.apache.batik.transcoder.{ TranscoderInput, TranscoderOutput }
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter, ISODateTimeFormat }
 import org.odftoolkit.odfdom.`type`.Color
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement
 import org.odftoolkit.odfdom.pkg.OdfElement
@@ -186,7 +186,7 @@ trait DocumentProcessor extends LazyLogging {
             // flatten value because query might be a list of JsValue or a single value from a JsArray proprty
             val flattenedValues: Vector[JsValue] = values.flatMap {
               case JsArray(elements) => elements
-              case x: Any => Vector(x)
+              case x: Any            => Vector(x)
             }
             Some(flattenedValues)
         }
@@ -249,8 +249,8 @@ trait DocumentProcessor extends LazyLogging {
     props foreach {
       case (property, Value(_, value)) =>
         Option(cont.getVariableFieldByName(property)) map { variable =>
-            logger.debug(s"Update variable:property -> $value")
-            variable.updateField(value, null)
+          logger.debug(s"Update variable:property -> $value")
+          variable.updateField(value, null)
         }
     }
   }
@@ -266,7 +266,7 @@ trait DocumentProcessor extends LazyLogging {
   protected def processTable(table: Table, locale: Locale, paths: Seq[JsValue], withinContainer: Boolean): Unit = {
     val propertyName = table.getDotTableName match {
       case propertyPattern(tableName) => tableName
-      case fullName: Any                   => fullName
+      case fullName: Any              => fullName
     }
     val (name, structuring) = parseFormats(propertyName)
 
@@ -302,7 +302,7 @@ trait DocumentProcessor extends LazyLogging {
    * Process list:
    * process content of every list item as paragraph container
    */
-  protected def processList(list: List, locale: Locale, paths: Seq[JsValue]):Unit= {
+  protected def processList(list: List, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
       item <- list.getItems
     } yield {
@@ -377,7 +377,7 @@ trait DocumentProcessor extends LazyLogging {
   private def processSection(doc: TextDocument, section: Section, locale: Locale, paths: Seq[JsValue]): Unit = {
     val propertyName = section.getName match {
       case propertyPattern(sectionName) => sectionName
-      case fullName: Any                     => fullName
+      case fullName: Any                => fullName
     }
     val (name, structuring) = parseFormats(propertyName)
     resolvePropertyFromJson(name, paths) map { values =>
@@ -398,7 +398,7 @@ trait DocumentProcessor extends LazyLogging {
       logger.debug(s"processSection:$sectionKey")
       val childPath = paths :+ index._1
       processTextboxes(newSection, locale, childPath)
-      processTables(newSection, locale,  childPath, withinContainer = true)
+      processTables(newSection, locale, childPath, withinContainer = true)
       processLists(newSection, locale, childPath)
     }
 
@@ -429,16 +429,15 @@ trait DocumentProcessor extends LazyLogging {
 
       val propertyName = frame.getName match {
         case propertyPattern(frameName) => frameName
-        case fullName: Any => fullName
+        case fullName: Any              => fullName
       }
 
       val (name, structuring) = parseFormats(propertyName)
-      resolvePropertyFromJson(name, paths) map { values  =>
-          val valuesStruct = applyStructure(values, structuring)
-          processFrameWithValues(p, frame, valuesStruct, locale, paths, name)
+      resolvePropertyFromJson(name, paths) map { values =>
+        val valuesStruct = applyStructure(values, structuring)
+        processFrameWithValues(p, frame, valuesStruct, locale, paths, name)
       } getOrElse logger.debug(s"Frame not mapped to property, will be processed statically:$name")
-    }
-    else {
+    } else {
       logger.debug(s"Frame seems to be a textbox:${frame.getName}")
     }
   }
@@ -471,7 +470,7 @@ trait DocumentProcessor extends LazyLogging {
     } {
       val propertyName = t.getName match {
         case propertyPattern(imageName) => imageName
-        case fullName: Any                   => fullName
+        case fullName: Any              => fullName
       }
       val (name, formats) = parseFormats(propertyName)
       logger.debug(s"--------------------processImage: $name | formats:$formats")
@@ -538,7 +537,7 @@ trait DocumentProcessor extends LazyLogging {
     } {
       val propertyName = t.getName match {
         case propertyPattern(textboxName) => textboxName
-        case fullName: Any                     => fullName
+        case fullName: Any                => fullName
       }
       val (name, formats) = parseFormats(propertyName)
       name match {
@@ -602,15 +601,15 @@ trait DocumentProcessor extends LazyLogging {
     name match {
       case parentPathPattern(rest) if paths.size > 1 => findJsonPath(rest, paths.dropRight(1))
       case parentPathPattern(rest) =>
-          logger.warn(s"Tried to access parent path on root, remove parent reference: $name")
-          findJsonPath(rest, paths)
+        logger.warn(s"Tried to access parent path on root, remove parent reference: $name")
+        findJsonPath(rest, paths)
       case absoluteJsonPathPattern(_) => (name, Seq(paths.head))
       case n if n.startsWith("[") =>
         // append root anchor to name
-        ("$"+name, paths)
+        ("$" + name, paths)
       case _ =>
         // append root anchor to name
-        ("$."+name, paths)
+        ("$." + name, paths)
     }
   }
 
@@ -681,12 +680,11 @@ trait DocumentProcessor extends LazyLogging {
   private def parseFormats(name: String): (String, Seq[String]) = {
     if (name == null || name.trim.isEmpty) {
       ("", Nil)
-    }
-    else {
+    } else {
       name.split('|').toList match {
-        case name :: Nil => (correctPropertyName(name.trim), Nil)
+        case name :: Nil  => (correctPropertyName(name.trim), Nil)
         case name :: tail => (correctPropertyName(name.trim), tail.map(_.trim))
-        case _ => (correctPropertyName(name), Nil)
+        case _            => (correctPropertyName(name), Nil)
       }
     }
   }
@@ -706,8 +704,7 @@ trait DocumentProcessor extends LazyLogging {
       case color: Any =>
         if (Color.isValid(color)) {
           Some(Color.valueOf(color))
-        }
-        else {
+        } else {
           colorMap.get(color.toUpperCase).orElse {
             logger.debug(s"Unsupported color: $color")
             None
@@ -753,7 +750,7 @@ trait DocumentProcessor extends LazyLogging {
         val convertedDate = dateFormatter.parseDateTime(value).toString(libreOfficeDateFormat)
         Map(prefix -> Value(j, convertedDate))
       case j @ JsString(value) => Map(prefix -> Value(j, value))
-      case value: Any               => Map(prefix -> Value(value, value.toString))
+      case value: Any          => Map(prefix -> Value(value, value.toString))
     }
   }
 }

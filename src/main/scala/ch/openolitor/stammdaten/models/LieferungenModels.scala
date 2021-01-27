@@ -143,6 +143,36 @@ case class LieferungDetail(
   modifikator: PersonId
 ) extends BaseEntity[LieferungId]
 
+case class LieferungExtendedDetail(
+  id: LieferungId,
+  abotypId: AbotypId,
+  abotypBeschrieb: String,
+  vertriebId: VertriebId,
+  vertriebBeschrieb: Option[String],
+  status: LieferungStatus,
+  datum: DateTime,
+  anzahlKoerbeZuLiefern: Int,
+  anzahlAbwesenheiten: Int,
+  anzahlSaldoZuTief: Int,
+  zielpreis: Option[BigDecimal],
+  preisTotal: BigDecimal,
+  lieferplanungId: Option[LieferplanungId],
+  abotyp: Option[IAbotyp],
+  lieferpositionen: Seq[Lieferposition],
+  lieferplanungBemerkungen: Option[String],
+  //value for actual geschaeftsjahr
+  durchschnittspreis: BigDecimal,
+  anzahlLieferungen: Int,
+  //joined values
+  koerbe: Seq[KorbLieferungReport],
+  vertrieb: Vertrieb,
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[LieferungId]
+
 case class LieferungOpenDetail(
   id: LieferungId,
   abotypId: AbotypId,
@@ -269,5 +299,14 @@ case class LieferplanungReport(
   abotypDepotTour: String,
   status: LieferungStatus,
   lieferungen: Seq[LieferungDetail],
+  projekt: ProjektReport
+) extends JSONSerializable
+
+case class LieferplanungDetailReport(
+  id: LieferplanungId,
+  bemerkungen: Option[String],
+  abotypDepotTour: String,
+  status: LieferungStatus,
+  lieferungen: Seq[LieferungExtendedDetail],
   projekt: ProjektReport
 ) extends JSONSerializable

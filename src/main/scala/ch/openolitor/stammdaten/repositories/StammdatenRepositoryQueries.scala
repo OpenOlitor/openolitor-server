@@ -196,7 +196,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           case 0 => None
           case 1 => Some(kontoDaten(0))
           case _ => {
-            logger.error(s"The kunde $kunde.id cannot have more than an account")
+
             None
           }
         }
@@ -1281,6 +1281,76 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         }
 
         copyTo[Lieferplanung, LieferplanungReport](lieferplanung, "lieferungen" -> lieferungenDetails, "projekt" -> projekt)
+      }.single
+  }
+
+  protected def getLieferplanungDetailReportQuery(id: LieferplanungId, projekt: ProjektReport) = {
+    withSQL {
+      select
+        .from(lieferplanungMapping as lieferplanung)
+        .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .leftJoin(vertriebMapping as vertrieb).on(lieferung.vertriebId, vertrieb.id)
+        .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
+        .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(lieferung.abotypId, zusatzAboTyp.id)
+        .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
+        .leftJoin(korbMapping as korb).on(korb.lieferungId, lieferung.id)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(depotlieferungAbo.id, korb.aboId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(heimlieferungAbo.id, korb.aboId)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(postlieferungAbo.id, korb.aboId)
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.id, korb.aboId)
+        .leftJoin(depotMapping as depot).on(depotlieferungAbo.depotId, depot.id)
+        .leftJoin(tourMapping as tour).on(heimlieferungAbo.tourId, tour.id)
+        .where.eq(lieferplanung.id, id)
+        .and.not.withRoundBracket {
+          _.eq(lieferung.anzahlKoerbeZuLiefern, 0)
+            .and.isNull(aboTyp.id)
+        }
+    }.one(lieferplanungMapping(lieferplanung))
+      .toManies(
+        rs => lieferungMapping.opt(lieferung)(rs),
+        rs => vertriebMapping.opt(vertrieb)(rs),
+        rs => abotypMapping.opt(aboTyp)(rs),
+        rs => zusatzAbotypMapping.opt(zusatzAboTyp)(rs),
+        rs => lieferpositionMapping.opt(lieferposition)(rs),
+        rs => korbMapping.opt(korb)(rs),
+        rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
+        rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
+        rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs),
+        rs => depotMapping.opt(depot)(rs),
+        rs => tourMapping.opt(tour)(rs)
+      )
+      .map { (lieferplanung, lieferungen, vertriebe, abotypen, zusatzabotypen, positionen, koerbe, depotLA, heimLA, postLA, zusatzA, depos, touren) =>
+        val lieferungenDetails = lieferungen map { l =>
+          val p = positionen.filter(_.lieferungId == l.id)
+          val v = vertriebe.filter(_.id == l.vertriebId)
+          val iabotyp = (abotypen find (_.id == l.abotypId)) orElse (zusatzabotypen find (_.id == l.abotypId))
+
+          val korbByLieferung = koerbe.filter(_.lieferungId == l.id)
+          var korbL = korbByLieferung map { k =>
+            val dLAL = depotLA.filter(_.id == k.aboId)
+            val hLAL = heimLA.filter(_.id == k.aboId)
+            val pLAL = postLA.filter(_.id == k.aboId)
+            val zAL = zusatzA.filter(_.id == k.aboId)
+            val dL = depos.filter(d => dLAL.contains(d.id))
+            val tL = touren.filter(t => hLAL.contains(t.id))
+
+            val na = Seq("not available on this report")
+            val abosL = dLAL ++ hLAL ++ pLAL ++ zAL
+            val abo = abosL match {
+              case (abo: DepotlieferungAbo) +: emptyRest => copyTo[DepotlieferungAbo, DepotlieferungAbo](abo, "zusatzAbotypNames" -> na)
+              case (abo: HeimlieferungAbo) +: emptyRest  => copyTo[HeimlieferungAbo, HeimlieferungAbo](abo, "zusatzAbotypNames" -> na)
+              case (abo: PostlieferungAbo) +: emptyRest  => copyTo[PostlieferungAbo, PostlieferungAbo](abo, "zusatzAbotypNames" -> na)
+              case _                                     => null
+            }
+
+            copyTo[Korb, KorbLieferungReport](k, "abo" -> abo, "depot" -> dL.headOption, "tour" -> tL.headOption)
+          }
+
+          copyTo[Lieferung, LieferungExtendedDetail](l, "abotyp" -> iabotyp, "vertrieb" -> v.head, "koerbe" -> korbL, "lieferpositionen" -> p, "lieferplanungBemerkungen" -> lieferplanung.bemerkungen)
+        }
+
+        copyTo[Lieferplanung, LieferplanungDetailReport](lieferplanung, "lieferungen" -> lieferungenDetails, "projekt" -> projekt)
       }.single
   }
 

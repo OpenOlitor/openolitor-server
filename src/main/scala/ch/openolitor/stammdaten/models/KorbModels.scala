@@ -129,6 +129,26 @@ case class KorbReport(
   modifikator: PersonId
 ) extends JSONSerializable
 
+case class KorbLieferungReport(
+  id: KorbId,
+  abo: HauptAbo,
+  status: KorbStatus,
+  guthabenVorLieferung: Int,
+  auslieferungId: Option[AuslieferungId],
+  sort: Option[Int],
+  //zusatzAbos: Seq[ZusatzAboReport],
+  //zusatzAbosString: String,
+  //zusatzAbosAggregatedString: String,
+  //joined
+  depot: Option[Depot],
+  tour: Option[Tour],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
+
 case class KorbModify(
   id: KorbId
 ) extends JSONSerializable

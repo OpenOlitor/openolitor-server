@@ -66,6 +66,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   with AuslieferungEtikettenReportService
   with AuslieferungKorbUebersichtReportService
   with AuslieferungKorbDetailReportService
+  with LieferplanungDetailReportService
   with KundenBriefReportService
   with DepotBriefReportService
   with ProduzentenBriefReportService
@@ -562,6 +563,10 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       path("lieferplanungen" / "berichte" / "lieferplanung") {
         implicit val personId = subject.personId
         generateReport[LieferplanungId](None, generateLieferplanungReports(VorlageLieferplanung) _)(LieferplanungId.apply)
+      } ~
+      path("lieferplanungen" / lieferplanungIdPath / "berichte" / "auslieferung") { lieferplanungId =>
+        implicit val personId = subject.personId
+        generateReport[LieferplanungId](Some(lieferplanungId), generateLieferplanungDetailReports(VorlageLieferreport) _)(LieferplanungId.apply)
       }
 
   private def lieferplanungAbschliessen(id: LieferplanungId)(implicit idPersister: Persister[LieferplanungId, _], subject: Subject): Route = {

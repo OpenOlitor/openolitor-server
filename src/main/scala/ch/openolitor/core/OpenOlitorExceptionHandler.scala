@@ -35,7 +35,7 @@ object OpenOlitorExceptionHandler extends LazyLogging with BaseJsonProtocol {
 
   def apply(routeService: CORSSupport with AirbrakeNotifierReference): ExceptionHandler = ExceptionHandler {
     case th => ctx =>
-      logger.error(s"The following Exception was thrown ${th.getMessage}")
+      logger.error(s"The following Exception was thrown ${th.getMessage}", th)
       routeService.airbrakeNotifier ! AirbrakeNotification(th, Some(ctx.request))
       ctx.complete(HttpResponse(InternalServerError).withHeaders(
         routeService.allowCredentialsHeader :: routeService.allowOriginHeader :: routeService.exposeHeaders :: routeService.optionsCorsHeaders
