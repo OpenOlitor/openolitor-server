@@ -191,4 +191,15 @@ object JsonPathFunctions {
       Some(result)
     }
   }
+
+  /**
+   * Pretty-Print the current json-tree as a way of debugging into the document
+   */
+  object Debug extends UnaryJsonPathFunction {
+    def evaluate(jsValues: Vector[JsValue]): Option[Vector[JsValue]] = {
+      logger.debug(s"+++++++++++++++++ Debug:")
+      val result = JsArray(jsValues).prettyPrint
+      Some(Vector(JsString(result)))
+    }
+  }
 }

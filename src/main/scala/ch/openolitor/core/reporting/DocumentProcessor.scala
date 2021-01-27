@@ -70,7 +70,7 @@ trait DocumentProcessor extends LazyLogging {
   val dateFormatter = ISODateTimeFormat.dateTime
   val libreOfficeDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss")
 
-  val unaryFunctionsPattern: Regex = """\$(sum|avg|min|max|count)\("?([^"]+)"?\)""".r
+  val unaryFunctionsPattern: Regex = """\$(sum|avg|min|max|count|debug)\("?([^"]+)"?\)""".r
   val param1FunctionsPattern: Regex = """\$(groupBy|mkString)\("?([^"]+)"?,\s*"?(.*)"?\)""".r
 
   val parentPathPattern: Regex = """\$parent\.(.*)""".r
@@ -85,7 +85,8 @@ trait DocumentProcessor extends LazyLogging {
     "count" -> JsonPathFunctions.Count,
     "min" -> JsonPathFunctions.Min,
     "max" -> JsonPathFunctions.Max,
-    "avg" -> JsonPathFunctions.Average
+    "avg" -> JsonPathFunctions.Average,
+    "debug" -> JsonPathFunctions.Debug
   )
 
   val param1FunctionsMap: Map[String, Param1JsonPathFunction] = Map[String, Param1JsonPathFunction](
