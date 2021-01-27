@@ -2,6 +2,8 @@ name: sbt test
 
 on:
   push:
+    branches:
+      - '*'
 
 jobs:
   test:
