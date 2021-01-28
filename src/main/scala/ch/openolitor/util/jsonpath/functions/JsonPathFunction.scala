@@ -197,7 +197,23 @@ object JsonPathFunctions {
    */
   object Debug extends UnaryJsonPathFunction {
     def evaluate(jsValues: Vector[JsValue]): Option[Vector[JsValue]] = {
-      logger.debug(s"+++++++++++++++++ Debug:")
+      val result = JsArray(jsValues).prettyPrint
+      Some(Vector(JsString(result)))
+    }
+  }
+
+  object Debug1Param extends Param1JsonPathFunction {
+    def evaluate(property: String, jsValues: Vector[JsValue]): Option[Vector[JsValue]] = {
+      val evaluated = jsValues map { jsValue: JsValue =>
+        JsonPath.query(property, jsValue) match {
+          case Right(values) => values
+          case Left(error) => {
+            logger.warn(s"Could not resolve json path:$property on json:$jsValue", error)
+            Vector(JsString("property (" + property + ") not found on " + jsValue))
+          }
+        }
+      }
+
       val result = JsArray(jsValues).prettyPrint
       Some(Vector(JsString(result)))
     }
