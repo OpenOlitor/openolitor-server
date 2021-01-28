@@ -22,12 +22,12 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.actor.{ActorRef, ActorRefFactory, ActorSystem}
+import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
 import ch.openolitor.core.Macros._
 import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.stammdaten.models.{Person, PersonDetail}
-import ch.openolitor.stammdaten.repositories.{DefaultStammdatenReadRepositoryAsyncComponent, StammdatenReadRepositoryAsyncComponent}
+import ch.openolitor.stammdaten.models.{ Person, PersonDetail }
+import ch.openolitor.stammdaten.repositories.{ DefaultStammdatenReadRepositoryAsyncComponent, StammdatenReadRepositoryAsyncComponent }
 import com.typesafe.scalalogging.LazyLogging
 import scalaz._
 import spray.caching._
@@ -67,7 +67,7 @@ trait LoginRouteService extends HttpService
                   logger.debug(s"Password change failed ${error.msg}")
                   complete(StatusCodes.BadRequest, error.msg)
                 case \/-(result) =>
-                  complete("Ok")
+                  complete(result)
               }
             }
           }

@@ -5,12 +5,12 @@ import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
-import ch.openolitor.core.domain.SystemEvents.{PersonChangeSecondFactorType, PersonChangedOtpSecret, PersonLoggedIn}
+import ch.openolitor.core.domain.SystemEvents.{ PersonChangeSecondFactorType, PersonChangedOtpSecret, PersonLoggedIn }
 import ch.openolitor.core.mailservice.Mail
-import ch.openolitor.core.mailservice.MailService.{SendMailCommand, SendMailEvent}
+import ch.openolitor.core.mailservice.MailService.{ SendMailCommand, SendMailEvent }
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.StammdatenCommandHandler.{PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand}
-import ch.openolitor.stammdaten.models.{Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt, SecondFactorType}
+import ch.openolitor.stammdaten.StammdatenCommandHandler.{ PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand }
+import ch.openolitor.stammdaten.models.{ Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt, SecondFactorType }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.util.OtpUtil
 import com.typesafe.scalalogging.LazyLogging
@@ -35,7 +35,7 @@ import ch.openolitor.util.ConfigUtil._
 trait LoginService extends LazyLogging
   with AsyncConnectionPoolContextAware
   with XSRFTokenSessionAuthenticatorProvider
-  with ActorReferences{
+  with ActorReferences {
   self: StammdatenReadRepositoryAsyncComponent =>
 
   type EitherFuture[A] = EitherT[Future, RequestFailed, A]
@@ -76,7 +76,7 @@ trait LoginService extends LazyLogging
 
   /**
    * Route validation methods
-   **/
+   */
 
   def doLogout(implicit subject: Subject) = {
     logger.debug(s"Logout user:${subject.personId}, invalidate token:${subject.token}")
@@ -119,7 +119,6 @@ trait LoginService extends LazyLogging
       })
     } yield result
   }
-
 
   def validateSecondFactorLogin(form: SecondFactorAuthentication): EitherFuture[LoginResult] = {
     for {
@@ -197,10 +196,10 @@ trait LoginService extends LazyLogging
     for {
       person <- personById(personId)
       projekt <- getProjekt()
-    } yield  {
+    } yield {
       val secondFactorRequired = person.rolle.map(rolle => projekt.twoFactorAuthentication(rolle)).getOrElse(false)
       LoginSettings(
-        secondFactorRequired =secondFactorRequired,
+        secondFactorRequired = secondFactorRequired,
         secondFactorEnabled = person.secondFactorType.isDefined || secondFactorRequired,
         secondFactorType = person.secondFactorType.getOrElse(projekt.defaultSecondFactorType)
       )
@@ -209,11 +208,11 @@ trait LoginService extends LazyLogging
 
   /**
    * Helper methods
-   **/
+   */
 
   private def containsOneOf(src: String, chars: List[String]): Boolean = {
     chars match {
-      case Nil                                   => false
+      case Nil                                => false
       case head :: _ if src.indexOf(head) > 0 => true
       case _ :: tail                          => containsOneOf(src, tail)
     }
@@ -419,7 +418,7 @@ trait LoginService extends LazyLogging
     Future {
       eventStore ! PersonChangeSecondFactorType(personId, form.secondFactorEnabled match {
         case false => None
-        case true => Some(form.secondFactorType)
+        case true  => Some(form.secondFactorType)
       })
       FormResult(status = Ok, None).right
     }
@@ -428,11 +427,11 @@ trait LoginService extends LazyLogging
   /**
    * Secure requests with second factor validation
    */
-  private def processOrRequestSecondFactor[R](projekt: Projekt, person: Person, secondFactorAuth: Option[SecondFactorAuthentication])(onProceed:  => EitherFuture[R])(secondFactorResult: SecondFactor => R) : EitherFuture[R] = {
+  private def processOrRequestSecondFactor[R](projekt: Projekt, person: Person, secondFactorAuth: Option[SecondFactorAuthentication])(onProceed: => EitherFuture[R])(secondFactorResult: SecondFactor => R): EitherFuture[R] = {
     requireSecondFactorAuthentifcation(projekt, person) flatMap {
-      case true if secondFactorAuth.isEmpty   => requestSecondFactor(projekt, person)(secondFactorResult)
-      case true => validateSecondFactor(secondFactorAuth.get)(onProceed)
-      case false => onProceed
+      case true if secondFactorAuth.isEmpty => requestSecondFactor(projekt, person)(secondFactorResult)
+      case true                             => validateSecondFactor(secondFactorAuth.get)(onProceed)
+      case false                            => onProceed
     }
   }
 

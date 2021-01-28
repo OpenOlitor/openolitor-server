@@ -71,7 +71,7 @@ trait ResultWithSecondFactorValidation {
   val token: Option[String]
 }
 
-case class FormResult(status: RequestStatus,  token: Option[String]) extends JSONSerializable with ResultWithSecondFactorValidation
+case class FormResult(status: RequestStatus, token: Option[String]) extends JSONSerializable with ResultWithSecondFactorValidation
 
 case class LoginResult(status: RequestStatus, token: Option[String], person: PersonSummary, otpSecret: Option[String], secondFactorType: Option[SecondFactorType]) extends JSONSerializable with ResultWithSecondFactorValidation
 

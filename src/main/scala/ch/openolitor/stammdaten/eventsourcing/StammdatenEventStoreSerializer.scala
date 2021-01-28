@@ -29,8 +29,9 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import ch.openolitor.stammdaten.StammdatenCommandHandler._
+import ch.openolitor.stammdaten.StammdatenCommandHandler.{ OtpResetEvent, _ }
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+
 import java.util.Locale
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
@@ -213,6 +214,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val aboAktiviertEventPersister = persister[AboAktiviertEvent, V2]("abo-aktiviert-event", V1toV2metaDataMigration)
   implicit val aboDeaktiviertEventPersister = persister[AboDeaktiviertEvent, V2]("abo-deaktiviert-event", V1toV2metaDataMigration)
 
+  implicit val otpResetEventPersistet = persister[OtpResetEvent]("otp-reset-event")
+
   val stammdatenPersisters = List(
     depotModifyPersister,
     depotIdPersister,
@@ -325,7 +328,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     sendEmailToDepotSubscriberEventPersister,
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
-    korbIdPersister
+    korbIdPersister,
+    otpResetEventPersistet
   ) ++ mailTemplatePersisters
 
   def fixToOptionLocalDate(in: JsValue, attribute: Symbol): JsValue = {
