@@ -211,13 +211,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         delete(remove(personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "logindeaktivieren") { (kundeId, personId) =>
-        (post)(disableLogin(kundeId, personId))
+        post(disableLogin(kundeId, personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "loginaktivieren") { (kundeId, personId) =>
-        (post)(enableLogin(kundeId, personId))
+        post(enableLogin(kundeId, personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "einladungsenden") { (kundeId, personId) =>
-        (post)(sendEinladung(kundeId, personId))
+        post(sendEinladung(kundeId, personId))
+      } ~
+      path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "reset_otp") { (kundeId, personId) =>
+        post(resetOtp(kundeId, personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "rollewechseln") { (kundeId, personId) =>
         post {
@@ -790,7 +793,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def deleteAbwesenheit(abwesenheitId: AbwesenheitId)(implicit idPersister: Persister[AuslieferungId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.DeleteAbwesenheitCommand(subject.personId, abwesenheitId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.DeleteAbwesenheitCommand(subject.personId, abwesenheitId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die Abwesenheit kann nicht gelöscht werden. Die Lieferung ist bereits abgeschlossen.")
       case _ =>
@@ -799,7 +802,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def createAnzahlLieferungenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate)(implicit idPersister: Persister[AboId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.CreateAnzahlLieferungenRechnungsPositionenCommand(subject.personId, rechnungCreate))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateAnzahlLieferungenRechnungsPositionenCommand(subject.personId, rechnungCreate)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen AboIds erstellt werden.")
       case _ =>
@@ -808,7 +811,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def createBisGuthabenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisGuthabenCreate)(implicit idPersister: Persister[AboId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.CreateBisGuthabenRechnungsPositionenCommand(subject.personId, rechnungCreate))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateBisGuthabenRechnungsPositionenCommand(subject.personId, rechnungCreate)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen AboIds erstellt werden.")
       case _ =>
@@ -817,7 +820,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def disableLogin(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.LoginDeaktivierenCommand(subject.personId, kundeId, personId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.LoginDeaktivierenCommand(subject.personId, kundeId, personId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Das Login konnte nicht deaktiviert werden.")
       case _ =>
@@ -826,7 +829,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def enableLogin(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.LoginAktivierenCommand(subject.personId, kundeId, personId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.LoginAktivierenCommand(subject.personId, kundeId, personId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Das Login konnte nicht aktiviert werden.")
       case _ =>
@@ -835,9 +838,18 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def sendEinladung(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.EinladungSendenCommand(subject.personId, kundeId, personId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.EinladungSendenCommand(subject.personId, kundeId, personId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die Einladung konnte nicht gesendet werden.")
+      case _ =>
+        complete("")
+    }
+  }
+
+  private def resetOtp(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.OtpResetCommand(subject.personId, kundeId, personId)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"OTP konnte nicht zurückgesetzt werden.")
       case _ =>
         complete("")
     }

@@ -39,7 +39,9 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.buchhaltung.models.RechnungsPositionCreate
 import ch.openolitor.buchhaltung.models.RechnungsPositionId
+import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
+
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalikejdbc.DBSession
@@ -60,6 +62,7 @@ object StammdatenCommandHandler {
   case class SammelbestellungenAlsAbgerechnetMarkierenCommand(originator: PersonId, datum: DateTime, ids: Seq[SammelbestellungId]) extends UserCommand
   case class PasswortResetCommand(originator: PersonId, personId: PersonId) extends UserCommand
   case class RolleWechselnCommand(originator: PersonId, kundeId: KundeId, personId: PersonId, rolle: Rolle) extends UserCommand
+  case class OtpResetCommand(originator: PersonId, kundeId: KundeId, personId: PersonId) extends UserCommand
   case class UpdateKundeCommand(originator: PersonId, kundeId: KundeId, kunde: KundeModify) extends UserCommand
   case class CreateKundeCommand(originator: PersonId, kunde: KundeModify) extends UserCommand
 
@@ -93,6 +96,7 @@ object StammdatenCommandHandler {
   case class SammelbestellungAlsAbgerechnetMarkierenEvent(meta: EventMetadata, datum: DateTime, id: SammelbestellungId) extends PersistentEvent with JSONSerializable
   case class PasswortResetGesendetEvent(meta: EventMetadata, einladung: EinladungCreate) extends PersistentEvent with JSONSerializable
   case class RolleGewechseltEvent(meta: EventMetadata, kundeId: KundeId, personId: PersonId, rolle: Rolle) extends PersistentEvent with JSONSerializable
+  case class OtpResetEvent(meta: EventMetadata, kundeId: KundeId, personId: PersonId, otpSecret: String) extends PersistentEvent with JSONSerializable
 
   case class AboAktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
   case class AboDeaktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
@@ -289,9 +293,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
       DB readOnly { implicit session =>
         stammdatenReadRepository.getById(lieferplanungMapping, lieferplanungPositionenModify.id) map { lieferplanung =>
           lieferplanung.status match {
-            case _ @ Offen =>
+            case _@ Offen =>
               Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, Set.empty, lieferplanungPositionenModify.lieferungen))) :: Nil)
-            case _ @ Abgeschlossen =>
+            case _@ Abgeschlossen =>
               val allLieferpositionen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPositionenModify =>
                 lieferungPositionenModify.lieferpositionen.lieferpositionen
               }
@@ -420,6 +424,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
     case RolleWechselnCommand(originator, kundeId, personId, rolle) if originator.id != personId => idFactory => meta =>
       changeRolle(idFactory, meta, kundeId, personId, rolle)
+    case OtpResetCommand(_, kundeId, personId) => _ => _ =>
+      Success(Seq(DefaultResultingEvent(factory => OtpResetEvent(factory.newMetadata(), kundeId, personId, OtpUtil.generateOtpSecretString))))
 
     case AboAktivierenCommand(aboId, _) => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => AboAktiviertEvent(factory.newMetadata(), aboId))))
