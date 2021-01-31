@@ -139,9 +139,8 @@ trait LoginService extends LazyLogging
     for {
       einladung <- validateEinladung(form.token)
       person <- personById(einladung.personId)
-      projekt <- getProjekt()
       _ <- validateNewPassword(form.neu)
-      result <- processOrRequestSecondFactor(projekt, person, form.secondFactorAuth)(changePassword(person.id, person.id, form.neu, Some(einladung.id)))(secondFactor => FormResult(SecondFactorRequired, Some(secondFactor.token)))
+      result <- changePassword(person.id, person.id, form.neu, Some(einladung.id))
     } yield result
   }
 
