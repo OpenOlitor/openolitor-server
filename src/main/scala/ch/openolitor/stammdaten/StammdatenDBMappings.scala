@@ -112,6 +112,17 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         s"${frist.wert}$einheit"
     }
   })
+  implicit val optionalSecondFactorTypeBinders: Binders[Option[SecondFactorType]] = Binders.string.xmap(_ match {
+    case "otp"   => Some(OtpSecondFactorType)
+    case "email" => Some(EmailSecondFactorType)
+    case _       => None
+  }, {
+    _ match {
+      case Some(OtpSecondFactorType)   => "otp"
+      case Some(EmailSecondFactorType) => "email"
+      case _                           => null
+    }
+  })
   implicit val secondFactorTypeBinders: Binders[SecondFactorType] = Binders.string.xmap(_ match {
     case "otp"   => OtpSecondFactorType
     case "email" => EmailSecondFactorType
@@ -121,7 +132,6 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
       case EmailSecondFactorType => "email"
     }
   })
-  implicit val optionalSecondFactorTypeBinders: Binders[Option[SecondFactorType]] = Binders.option[SecondFactorType]
 
   implicit val baseProduktekategorieIdSetBinders: Binders[Set[BaseProduktekategorieId]] = setBaseStringIdBinders(BaseProduktekategorieId.apply _)
   implicit val baseProduzentIdSetBinders: Binders[Set[BaseProduzentId]] = setBaseStringIdBinders(BaseProduzentId.apply _)
