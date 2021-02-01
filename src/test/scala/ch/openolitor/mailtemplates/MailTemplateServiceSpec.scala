@@ -2,7 +2,7 @@ package ch.openolitor.mailtemplates
 
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
-import org.mockito.Matchers.{ eq => eqz}
+import org.mockito.Matchers.{ eq => eqz }
 import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.mailtemplates.model._
 import org.specs2.matcher._

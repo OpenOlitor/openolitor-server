@@ -24,7 +24,7 @@ package ch.openolitor.util.jsonpath.functions
 
 import org.specs2.matcher.Matchers
 import org.specs2.mutable.Specification
-import spray.json.{JsArray, JsNumber, JsObject, JsString}
+import spray.json.{ JsArray, JsNumber, JsObject, JsString }
 
 class GroupByJsonPathFunctionSpec extends Specification with Matchers {
   "Group by of json elements" should {
@@ -41,8 +41,10 @@ class GroupByJsonPathFunctionSpec extends Specification with Matchers {
       result.get must containTheSameElementsAs(
         Vector(
           JsArray(JsObject("id" -> JsNumber(1), "productId" -> JsString("product1"))),
-          JsArray(JsObject("id" -> JsNumber(2), "productId" -> JsString("product2")),
-            JsObject("id" -> JsNumber(3), "productId" -> JsString("product2"))),
+          JsArray(
+            JsObject("id" -> JsNumber(2), "productId" -> JsString("product2")),
+            JsObject("id" -> JsNumber(3), "productId" -> JsString("product2"))
+          ),
           JsArray(JsObject("id" -> JsNumber(4), "productId" -> JsString("product3")))
         )
       )
@@ -51,9 +53,9 @@ class GroupByJsonPathFunctionSpec extends Specification with Matchers {
     "Group elements by same nested property" in {
       val input = Vector(
         JsObject("id" -> JsNumber(1), "product" -> JsObject("productId" -> JsString("product1"))),
-        JsObject("id" -> JsNumber(2),  "product" -> JsObject("productId" -> JsString("product2"))),
-        JsObject("id" -> JsNumber(3),  "product" -> JsObject("productId" -> JsString("product2"))),
-        JsObject("id" -> JsNumber(4),  "product" -> JsObject( "productId" -> JsString("product3")))
+        JsObject("id" -> JsNumber(2), "product" -> JsObject("productId" -> JsString("product2"))),
+        JsObject("id" -> JsNumber(3), "product" -> JsObject("productId" -> JsString("product2"))),
+        JsObject("id" -> JsNumber(4), "product" -> JsObject("productId" -> JsString("product3")))
       )
       val result = JsonPathFunctions.GroupBy.evaluate("product.productId", input)
       result shouldNotEqual None
@@ -61,8 +63,10 @@ class GroupByJsonPathFunctionSpec extends Specification with Matchers {
       result.get must containTheSameElementsAs(
         Vector(
           JsArray(JsObject("id" -> JsNumber(1), "product" -> JsObject("productId" -> JsString("product1")))),
-          JsArray(JsObject("id" -> JsNumber(2), "product" -> JsObject("productId" -> JsString("product2"))),
-            JsObject("id" -> JsNumber(3), "product" -> JsObject("productId" -> JsString("product2")))),
+          JsArray(
+            JsObject("id" -> JsNumber(2), "product" -> JsObject("productId" -> JsString("product2"))),
+            JsObject("id" -> JsNumber(3), "product" -> JsObject("productId" -> JsString("product2")))
+          ),
           JsArray(JsObject("id" -> JsNumber(4), "product" -> JsObject("productId" -> JsString("product3"))))
         )
       )
@@ -81,8 +85,10 @@ class GroupByJsonPathFunctionSpec extends Specification with Matchers {
       result.get must containTheSameElementsAs(
         Vector(
           JsArray(JsObject("id" -> JsNumber(1), "productId" -> JsString("product1"))),
-          JsArray(JsObject("id" -> JsNumber(2), "productId" -> JsString("product2")),
-            JsObject("id" -> JsNumber(3), "productId" -> JsString("product2")))
+          JsArray(
+            JsObject("id" -> JsNumber(2), "productId" -> JsString("product2")),
+            JsObject("id" -> JsNumber(3), "productId" -> JsString("product2"))
+          )
         )
       )
     }
