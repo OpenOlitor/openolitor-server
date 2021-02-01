@@ -24,10 +24,10 @@ package ch.openolitor.core.security
 
 import java.util.Locale
 import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
-import akka.testkit.TestActorRef
+import akka.testkit.{ TestActorRef, TestProbe }
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
-import ch.openolitor.core.domain.DefaultSystemEventStore
+import ch.openolitor.core.domain.SystemEvents.PersonChangedOtpSecret
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.mailservice.MailServiceMock
 import ch.openolitor.core.models.PersonId
@@ -68,6 +68,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
   val personAdminInactive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, false, Some(pwdHashed.toCharArray), None,
     false, Some(AdministratorZugang), Set.empty, None, otpSecret, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), EmailSecondFactorType, Locale.GERMAN, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, None, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+  val adminSubject = Subject("someToken", personId, KundeId(1), None, None)
 
   implicit val ctx = MultipleAsyncConnectionPoolContext()
   val timeout = 5 seconds
@@ -406,6 +407,126 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       result2.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
     }
   }
+
+  "OTP Reset Request" should {
+    "Request new secret with current otp code" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+      implicit val subject = adminSubject
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateOtpResetRequest(OtpSecretResetRequest(String.valueOf(code))).run
+
+      result.map { _.toEither must beRight }.await(3, timeout)
+    }
+
+    "Fail request new secret with wrong otp code" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      implicit val subject = adminSubject
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateOtpResetRequest(OtpSecretResetRequest("1234")).run
+
+      result.map { _.toEither must beLeft }.await(3, timeout)
+    }
+
+    "Fail request new secret with subject not matching a person" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+      implicit val subject = adminSubject.copy(personId = PersonId(100))
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(PersonId(100)))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(None)
+
+      val result = service.validateOtpResetRequest(OtpSecretResetRequest(String.valueOf(code))).run
+
+      result.map { _.toEither must beLeft }.await(3, timeout)
+    }
+  }
+
+  "OTP Reset Confirmation" should {
+    "Successfully store new secret" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val newOtpSecret = OtpUtil.generateOtpSecretString
+      val newOtpSecretKey = new SecretKeySpec(
+        new Base32().decode(newOtpSecret.getBytes(StandardCharsets.US_ASCII)),
+        OtpUtil.Totp.getAlgorithm
+      )
+      val code = OtpUtil.Totp.generateOneTimePassword(newOtpSecretKey, Instant.now())
+      implicit val subject = adminSubject
+
+      //store token in cache
+      service.secondFactorResetTokenCache(token)(newOtpSecret)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateOtpResetConfirm(OtpSecretResetConfirm(token, String.valueOf(code))).run
+
+      result.map { _.toEither must beRight(true) }.await(3, timeout)
+
+      // expect event
+      service.eventStoreProbe.expectMsg(PersonChangedOtpSecret(personId, newOtpSecret))
+
+      // ensure token was cleaned
+      service.secondFactorTokenCache.get(token) must beNone
+    }
+
+    "Fail storing if secret mismatch" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val newOtpSecret = OtpUtil.generateOtpSecretString
+      // use old secret key
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+      implicit val subject = adminSubject
+
+      //store token in cache
+      service.secondFactorResetTokenCache(token)(newOtpSecret)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateOtpResetConfirm(OtpSecretResetConfirm(token, String.valueOf(code))).run
+
+      result.map { _.toEither must beLeft }.await(3, timeout)
+    }
+
+    "Fail if token mismatch" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val newOtpSecret = OtpUtil.generateOtpSecretString
+      val newOtpSecretKey = new SecretKeySpec(
+        new Base32().decode(newOtpSecret.getBytes(StandardCharsets.US_ASCII)),
+        OtpUtil.Totp.getAlgorithm
+      )
+      val code = OtpUtil.Totp.generateOneTimePassword(newOtpSecretKey, Instant.now())
+      implicit val subject = adminSubject
+
+      //store token in cache
+      service.secondFactorResetTokenCache(token)(newOtpSecret)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateOtpResetConfirm(OtpSecretResetConfirm("someOtherToken", String.valueOf(code))).run
+
+      result.map { _.toEither must beLeft }.await(3, timeout)
+    }
+  }
 }
 
 class MockLoginRouteService(
@@ -413,13 +534,16 @@ class MockLoginRouteService(
 )
   extends LoginRouteService
   with MockStammdatenReadRepositoryComponent {
+
   override val entityStore: ActorRef = null
   override val reportSystem: ActorRef = null
   override val jobQueueService: ActorRef = null
   override val dbEvolutionActor: ActorRef = null
   implicit val system = ActorSystem("test")
+  val eventStoreProbe = TestProbe()
   override val sysConfig: SystemConfig = SystemConfig(null, null, MultipleAsyncConnectionPoolContext())
-  override val eventStore: ActorRef = TestActorRef(new DefaultSystemEventStore(sysConfig, dbEvolutionActor))
+  //override val eventStore: ActorRef = TestActorRef(new DefaultSystemEventStore(sysConfig, dbEvolutionActor))
+  override val eventStore: ActorRef = eventStoreProbe.ref
   override val mailService: ActorRef = TestActorRef(new MailServiceMock)
   override val fileStore: FileStore = null
   override val actorRefFactory: ActorRefFactory = null
