@@ -2,7 +2,7 @@ package ch.openolitor.mailtemplates
 
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
-import org.mockito.Matchers.{ eq => eqz}
+import org.mockito.Matchers.{ eq => eqz }
 import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.mailtemplates.model._
 import org.specs2.matcher._
@@ -103,7 +103,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
         BigDecimal(10), new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0),
         new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0)),
       Projekt(ProjektId(0), "my project", None, None, None, None, None, false, false, false, CHF, 1, 1,
-        Map(Rolle("AdministratorZugang").get -> false, Rolle("KundenZugang").get -> false),EmailSecondFactorType,
+        Map(Rolle("AdministratorZugang").get -> false, Rolle("KundenZugang").get -> false), EmailSecondFactorType,
         Locale.GERMAN, None, None, false, false, Stunden, 3, true, false, new DateTime(2017, 1, 15, 0, 0, 0),
         PersonId(0), new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0)),
       Produzent(ProduzentId(0), "TestProduzent", Some("Hans"), "PRZ", None, None, None, "1234", "Bern", None,

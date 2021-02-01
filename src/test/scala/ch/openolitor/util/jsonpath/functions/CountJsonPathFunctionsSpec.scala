@@ -24,7 +24,7 @@ package ch.openolitor.util.jsonpath.functions
 
 import org.specs2.matcher.Matchers
 import org.specs2.mutable._
-import spray.json.{JsNull, JsNumber, JsObject, JsString}
+import spray.json.{ JsNull, JsNumber, JsObject, JsString }
 
 class CountJsonPathFunctionsSpec extends Specification with Matchers {
   "Count of values" should {

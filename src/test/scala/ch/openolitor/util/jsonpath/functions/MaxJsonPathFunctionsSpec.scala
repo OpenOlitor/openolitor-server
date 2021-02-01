@@ -24,7 +24,7 @@ package ch.openolitor.util.jsonpath.functions
 
 import org.specs2.matcher.Matchers
 import org.specs2.mutable._
-import spray.json.{JsNull, JsNumber, JsObject, JsString}
+import spray.json.{ JsNull, JsNumber, JsObject, JsString }
 
 class MaxJsonPathFunctionsSpec extends Specification with Matchers {
   "Max of values" should {
@@ -39,7 +39,7 @@ class MaxJsonPathFunctionsSpec extends Specification with Matchers {
     "max only valid numbers" in {
       JsonPathFunctions.Max.evaluate(Vector(JsString("NoString"), JsNumber(3), JsString("4"), JsObject(), JsNull)) shouldEqual Some(Vector(JsNumber(4)))
     }
-    
+
     "evaluate to None for empty lists" in {
       JsonPathFunctions.Max.evaluate(Vector()) shouldEqual None
     }

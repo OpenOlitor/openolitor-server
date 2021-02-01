@@ -24,7 +24,7 @@ package ch.openolitor.util.jsonpath.functions
 
 import org.specs2.matcher.Matchers
 import org.specs2.mutable._
-import spray.json.{JsArray, JsNull, JsNumber, JsObject, JsString}
+import spray.json.{ JsArray, JsNull, JsNumber, JsObject, JsString }
 
 class MkStringJsonPathFunctionsSpec extends Specification with Matchers {
   "MKString of values" should {
