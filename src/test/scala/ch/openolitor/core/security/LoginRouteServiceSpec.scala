@@ -163,7 +163,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(OtpSecondFactorType)) }.await(3, timeout)
     }
 
-    "be enabled by project settings, overriden type otp" in {
+    "be enabled by project settings, overridden type otp" in {
       val service = new MockLoginRouteService(true)
 
       service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
@@ -177,7 +177,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(OtpSecondFactorType)) }.await(3, timeout)
     }
 
-    "be enabled by project settings, overriden type email" in {
+    "be enabled by project settings, overridden type email" in {
       val service = new MockLoginRouteService(true)
 
       service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
@@ -189,6 +189,18 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
       result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(EmailSecondFactorType)) }.await(3, timeout)
+    }
+
+    "be enabled by project settings, default type otp, otpReset required" in {
+      val service = new MockLoginRouteService(true)
+
+      service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(projekt.copy(defaultSecondFactorType = OtpSecondFactorType)))
+      service.stammdatenReadRepository.getPersonByEmail(any[String])(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive.copy(otpReset = true)))
+
+      val result = service.validateLogin(LoginForm(email, pwd)).run
+
+      result.map { _.toOption.flatMap(_.otpSecret) must beSome(otpSecret) }.await(3, timeout)
     }
   }
 
