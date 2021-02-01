@@ -24,7 +24,7 @@ package ch.openolitor.core.security
 
 import java.util.Locale
 
-import akka.actor.{ActorRef, ActorRefFactory, ActorSystem}
+import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
 import akka.testkit.TestActorRef
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
@@ -37,14 +37,14 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
-import org.mockito.Matchers.{eq => isEq}
+import org.mockito.Matchers.{ eq => isEq }
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
-import spray.caching.{Cache, LruCache}
+import spray.caching.{ Cache, LruCache }
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
 class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConversions {
@@ -77,7 +77,8 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       result.map { x =>
         x.toEither.right.map(_.status) must beRight(Ok)
         val token = x.toEither.right.map(_.token).right.get
-        service.loginTokenCache.get(token) must beSome
+        token must beSome
+        service.loginTokenCache.get(token.get) must beSome
       }.await(3, timeout)
     }
 
