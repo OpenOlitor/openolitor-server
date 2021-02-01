@@ -23,7 +23,6 @@
 package ch.openolitor.core.security
 
 import java.util.Locale
-
 import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
 import akka.testkit.TestActorRef
 import ch.openolitor.core.SystemConfig
@@ -35,6 +34,7 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.MockStammdatenReadRepositoryComponent
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.util.OtpUtil
+import org.apache.commons.codec.binary.Base32
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
 import org.mockito.Matchers.{ eq => isEq }
@@ -43,6 +43,9 @@ import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
 import spray.caching.{ Cache, LruCache }
 
+import java.nio.charset.StandardCharsets
+import java.time.Instant
+import javax.crypto.spec.SecretKeySpec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
@@ -52,12 +55,18 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
   val pwd = "pwd"
   val pwdHashed = BCrypt.hashpw(pwd, BCrypt.gensalt())
   val personId = PersonId(1);
+  val otpSecret = OtpUtil.generateOtpSecretString
+  val otpSecretKey =
+    new SecretKeySpec(
+      new Base32().decode(otpSecret.getBytes(StandardCharsets.US_ASCII)),
+      OtpUtil.Totp.getAlgorithm
+    )
   val personKundeActive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, true, Some(pwdHashed.toCharArray), None,
-    false, Some(KundenZugang), Set.empty, None, OtpUtil.generateOtpSecretString, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+    false, Some(KundenZugang), Set.empty, None, otpSecret, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val personAdminActive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, true, Some(pwdHashed.toCharArray), None,
-    false, Some(AdministratorZugang), Set.empty, None, OtpUtil.generateOtpSecretString, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+    false, Some(AdministratorZugang), Set.empty, None, otpSecret, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val personAdminInactive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, false, Some(pwdHashed.toCharArray), None,
-    false, Some(AdministratorZugang), Set.empty, None, OtpUtil.generateOtpSecretString, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+    false, Some(AdministratorZugang), Set.empty, None, otpSecret, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), EmailSecondFactorType, Locale.GERMAN, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, None, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
 
   implicit val ctx = MultipleAsyncConnectionPoolContext()
@@ -128,19 +137,62 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
     }
 
-    "be enabled by project settings" in {
+    "be enabled by project settings, default type email" in {
       val service = new MockLoginRouteService(true)
 
-      service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(projekt))
+      service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(projekt.copy(defaultSecondFactorType = EmailSecondFactorType)))
       service.stammdatenReadRepository.getPersonByEmail(any[String])(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
       result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(EmailSecondFactorType)) }.await(3, timeout)
+    }
+
+    "be enabled by project settings, default type otp" in {
+      val service = new MockLoginRouteService(true)
+
+      service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(projekt.copy(defaultSecondFactorType = OtpSecondFactorType)))
+      service.stammdatenReadRepository.getPersonByEmail(any[String])(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateLogin(LoginForm(email, pwd)).run
+
+      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(OtpSecondFactorType)) }.await(3, timeout)
+    }
+
+    "be enabled by project settings, overriden type otp" in {
+      val service = new MockLoginRouteService(true)
+
+      service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(projekt.copy(defaultSecondFactorType = EmailSecondFactorType)))
+      service.stammdatenReadRepository.getPersonByEmail(any[String])(any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(personAdminActive.copy(secondFactorType = Some(OtpSecondFactorType))))
+
+      val result = service.validateLogin(LoginForm(email, pwd)).run
+
+      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(OtpSecondFactorType)) }.await(3, timeout)
+    }
+
+    "be enabled by project settings, overriden type email" in {
+      val service = new MockLoginRouteService(true)
+
+      service.stammdatenReadRepository.getProjekt(any[ExecutionContext], any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(projekt.copy(defaultSecondFactorType = OtpSecondFactorType)))
+      service.stammdatenReadRepository.getPersonByEmail(any[String])(any[MultipleAsyncConnectionPoolContext]) returns
+        Future.successful(Some(personAdminActive.copy(secondFactorType = Some(EmailSecondFactorType))))
+
+      val result = service.validateLogin(LoginForm(email, pwd)).run
+
+      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
+      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(EmailSecondFactorType)) }.await(3, timeout)
     }
   }
 
-  "Second factor login" should {
+  "Email Second factor login" should {
     "Succeed" in {
       val service = new MockLoginRouteService(true)
       val token = "asdasad"
@@ -238,6 +290,107 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       //second try
       val result2 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
+      result2.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
+    }
+  }
+
+  "OTP Second factor login" should {
+    "Succeed" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
+
+      result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+    }
+
+    "Fail when login not active" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminInactive))
+
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
+
+      result.map { _.toEither must beLeft(RequestFailed("Login wurde deaktiviert")) }.await(3, timeout)
+    }
+
+    "Fail when code does not match" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, "1234")).run
+
+      result.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
+    }
+
+    "Fail when token does not match" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication("anyToken", String.valueOf(code))).run
+
+      result.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
+    }
+
+    "Fail when person not found" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(None)
+
+      val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
+
+      result.map { _.toEither must beLeft(RequestFailed("Person konnte nicht gefunden werden")) }.await(3, timeout)
+    }
+
+    "Ensure token gets deleted after successful login" in {
+      val service = new MockLoginRouteService(true)
+      val token = "asdasad"
+      val secondFactor = OtpSecondFactor(token, personId)
+      val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
+
+      //store token in cache
+      service.secondFactorTokenCache(token)(secondFactor)
+
+      service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
+      val result1 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
+      result1.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+
+      service.secondFactorTokenCache.get(token) must beNone
+
+      //second try
+      val result2 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
       result2.map { _.toEither must beLeft(RequestFailed("Code stimmt nicht überein")) }.await(3, timeout)
     }
   }
