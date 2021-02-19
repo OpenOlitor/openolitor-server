@@ -182,11 +182,11 @@ trait DocumentProcessor extends LazyLogging {
           case Vector() =>
             // an empty vectors indicates that the property was not found
             None
-          case values: Any =>
+          case _ =>
             // flatten value because query might be a list of JsValue or a single value from a JsArray proprty
             val flattenedValues: Vector[JsValue] = values.flatMap {
               case JsArray(elements) => elements
-              case x: Any            => Vector(x)
+              case x                 => Vector(x)
             }
             Some(flattenedValues)
         }
@@ -523,7 +523,7 @@ trait DocumentProcessor extends LazyLogging {
           logger.debug(s"-----------------processTextbox with static value:$text | formats:$formats | name:$name")
           applyFormats(t, formats, text, locale, paths)
         case noFillTextPattern() => // do nothing
-        case property: Any =>
+        case property =>
           logger.debug(s"-----------------processTextbox: $property | formats:$formats | name:$name")
 
           // resolve textbox content from properties, otherwise only apply formats to current content
@@ -537,7 +537,7 @@ trait DocumentProcessor extends LazyLogging {
               applyFormats(t, formats, value, locale, paths)
             case Vector(JsNumber(value)) =>
               applyFormats(t, formats, value.toString, locale, paths)
-            case _: Any =>
+            case _ =>
               applyFormats(t, formats, "", locale, paths)
           } getOrElse {
             if (paths.nonEmpty) {
@@ -664,8 +664,8 @@ trait DocumentProcessor extends LazyLogging {
         case fullName                   => fullName
       }
       propertyName.split('|').toList match {
-        case name :: Nil  => (correctPropertyName(propertyName.trim), Nil)
-        case name :: tail => (correctPropertyName(propertyName.trim), tail.map(_.trim))
+        case name :: Nil  => (correctPropertyName(name.trim), Nil)
+        case name :: tail => (correctPropertyName(name.trim), tail.map(_.trim))
         case _            => (correctPropertyName(propertyName), Nil)
       }
     }
@@ -679,11 +679,11 @@ trait DocumentProcessor extends LazyLogging {
           case Vector(JsString(value)) =>
             resolveColor(value, paths)
           case Vector() => None
-          case x: Any =>
+          case x =>
             logger.warn(s"Unable to resolve color from property: $x")
             None
         }
-      case color: Any =>
+      case color =>
         if (Color.isValid(color)) {
           Some(Color.valueOf(color))
         } else {
@@ -732,7 +732,7 @@ trait DocumentProcessor extends LazyLogging {
         val convertedDate = dateFormatter.parseDateTime(value).toString(libreOfficeDateFormat)
         Map(prefix -> Value(j, convertedDate))
       case j @ JsString(value) => Map(prefix -> Value(j, value))
-      case value: Any          => Map(prefix -> Value(value, value.toString))
+      case value               => Map(prefix -> Value(value, value.toString))
     }
   }
 }
