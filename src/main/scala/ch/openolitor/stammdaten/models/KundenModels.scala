@@ -627,6 +627,33 @@ case class PersonEmailData(
   modifikator: PersonId
 ) extends BaseEntity[PersonId]
 
+// Subset of infos used to store in related events
+// Be ware that changing the fields of PersonData object would need a proper
+// persistent event evolution for all related events
+case class PersonData(
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String],
+  sort: Int,
+  // security data
+  loginAktiv: Boolean,
+  letzteAnmeldung: Option[DateTime],
+  rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends JSONSerializable
+
 case class PersonSummary(
   anrede: Option[Anrede],
   name: String,

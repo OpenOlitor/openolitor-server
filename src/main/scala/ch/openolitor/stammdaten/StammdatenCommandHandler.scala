@@ -136,6 +136,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (checkTemplateKunden(body, subject, ids)) {
           val events = ids flatMap { kundeId =>
             stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
+              val personData = copyTo[Person, PersonData](person)
               stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
                 val personEmailData = copyTo[Person, PersonEmailData](person)
                 val mailContext = KundeMailContext(personEmailData, kunde)
@@ -170,6 +171,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (checkTemplateAbotyp(body, subject, ids)) {
           val events = ids flatMap { abotypId =>
             stammdatenReadRepository.getPersonenForAbotyp(abotypId) flatMap { person =>
+              val personData = copyTo[Person, PersonData](person)
               stammdatenReadRepository.getAbotypById(abotypId) map { abotypId =>
                 val personEmailData = copyTo[Person, PersonEmailData](person)
                 val mailContext = AbotypMailContext(personEmailData, abotypId)
@@ -188,6 +190,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (checkTemplateAbotyp(body, subject, ids)) {
           val events = ids flatMap { abotypId =>
             stammdatenReadRepository.getPersonenForZusatzabotyp(abotypId) flatMap { person =>
+              val personData = copyTo[Person, PersonData](person)
               stammdatenReadRepository.getAbotypById(abotypId) map { abotypId =>
                 val personEmailData = copyTo[Person, PersonEmailData](person)
                 val mailContext = AbotypMailContext(personEmailData, abotypId)
@@ -206,6 +209,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (checkTemplateTour(body, subject, ids)) {
           val events = ids flatMap { tourId =>
             stammdatenReadRepository.getPersonen(tourId) flatMap { person =>
+              val personData = copyTo[Person, PersonData](person)
               stammdatenReadRepository.getById(tourMapping, tourId) map { tour =>
                 val personEmailData = copyTo[Person, PersonEmailData](person)
                 val mailContext = TourMailContext(personEmailData, tour)
@@ -224,6 +228,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (checkTemplateDepot(body, subject, ids)) {
           val events = ids flatMap { depotId =>
             stammdatenReadRepository.getPersonen(depotId) flatMap { person =>
+              val personData = copyTo[Person, PersonData](person)
               stammdatenReadRepository.getById(depotMapping, depotId) map { depot =>
                 val personEmailData = copyTo[Person, PersonEmailData](person)
                 val mailContext = DepotMailContext(personEmailData, depot)
@@ -1105,6 +1110,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   private def checkTemplateKunden(body: String, subject: String, ids: Seq[KundeId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { kundeId: KundeId =>
       stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
+        val personData = copyTo[Person, PersonData](person)
         stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
           val personEmailData = copyTo[Person, PersonEmailData](person)
           val mailContext = KundeMailContext(personEmailData, kunde)
@@ -1121,6 +1127,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   private def checkTemplateAbotyp(body: String, subject: String, ids: Seq[AbotypId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { abotypId: AbotypId =>
       stammdatenReadRepository.getPersonenForAbotyp(abotypId) flatMap { person =>
+        val personData = copyTo[Person, PersonData](person)
         stammdatenReadRepository.getAbotypById(abotypId) map { abotyp =>
           val personEmailData = copyTo[Person, PersonEmailData](person)
           val mailContext = AbotypMailContext(personEmailData, abotyp)
@@ -1137,6 +1144,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   private def checkTemplateZusatzabotyp(body: String, subject: String, ids: Seq[AbotypId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { abotypId: AbotypId =>
       stammdatenReadRepository.getPersonenForZusatzabotyp(abotypId) flatMap { person =>
+        val personData = copyTo[Person, PersonData](person)
         stammdatenReadRepository.getAbotypById(abotypId) map { abotyp =>
           val personEmailData = copyTo[Person, PersonEmailData](person)
           val mailContext = AbotypMailContext(personEmailData, abotyp)
@@ -1153,6 +1161,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   private def checkTemplateTour(body: String, subject: String, ids: Seq[TourId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { tourId: TourId =>
       stammdatenReadRepository.getPersonen(tourId) flatMap { person =>
+        val personData = copyTo[Person, PersonData](person)
         stammdatenReadRepository.getById(tourMapping, tourId) map { tour =>
           val personEmailData = copyTo[Person, PersonEmailData](person)
           val mailContext = TourMailContext(personEmailData, tour)
@@ -1169,6 +1178,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   private def checkTemplateDepot(body: String, subject: String, ids: Seq[DepotId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { depotId: DepotId =>
       stammdatenReadRepository.getPersonen(depotId) flatMap { person =>
+        val personData = copyTo[Person, PersonData](person)
         stammdatenReadRepository.getById(depotMapping, depotId) map { depot =>
           val personEmailData = copyTo[Person, PersonEmailData](person)
           val mailContext = DepotMailContext(personEmailData, depot)
