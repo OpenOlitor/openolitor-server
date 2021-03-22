@@ -41,6 +41,7 @@ import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, Zahlungs
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
+import ch.openolitor.core.Macros.copyTo
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
