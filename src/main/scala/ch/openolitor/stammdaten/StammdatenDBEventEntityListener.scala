@@ -125,11 +125,12 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     case e @ EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Storniert && entity.status == RechnungsPositionStatus.Storniert) =>
       handleRechnungsPositionStorniert(entity, orig)(personId)
 
-    case EntityCreated(personId, entity: Lieferplanung)        => handleLieferplanungCreated(entity)(personId)
+    case EntityCreated(personId, entity: Lieferplanung)            => handleLieferplanungCreated(entity)(personId)
 
-    case EntityDeleted(personId, entity: Lieferplanung)        => handleLieferplanungDeleted(entity)(personId)
-    case PersonLoggedIn(personId, timestamp, secondFactorType) => handlePersonLoggedIn(personId, timestamp, secondFactorType)
-    case PersonChangedOtpSecret(personId, secret)              => handlePersonChangedOtpSecret(personId, secret)
+    case EntityDeleted(personId, entity: Lieferplanung)            => handleLieferplanungDeleted(entity)(personId)
+    case PersonLoggedIn(personId, timestamp, secondFactorType)     => handlePersonLoggedIn(personId, timestamp, secondFactorType)
+    case PersonChangedOtpSecret(personId, secret)                  => handlePersonChangedOtpSecret(personId, secret)
+    case PersonChangedSecondFactorType(personId, secondFactorType) => handlePersonChangedSecondFactorType(personId, secondFactorType)
 
     case EntityModified(personId, entity: Lieferplanung, orig: Lieferplanung) =>
       handleLieferplanungModified(entity, orig)(personId)
@@ -1015,6 +1016,15 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       stammdatenUpdateRepository.getById(personMapping, personId) map { person =>
         implicit val pid = SystemEvents.SystemPersonId
         stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(personMapping.column.otpSecret -> secret)
+      }
+    }
+  }
+
+  private def handlePersonChangedSecondFactorType(personId: PersonId, secondFactorType: Option[SecondFactorType]) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenUpdateRepository.getById(personMapping, personId) map { person =>
+        implicit val pid = SystemEvents.SystemPersonId
+        stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(personMapping.column.secondFactorType -> secondFactorType)
       }
     }
   }
