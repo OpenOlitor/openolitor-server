@@ -5,7 +5,6 @@ import ch.openolitor.core.ActorReferences
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
-import ch.openolitor.core.domain.SystemEvents.{ PersonChangeSecondFactorType, PersonChangedOtpSecret, PersonLoggedIn }
 import ch.openolitor.core.mailservice.Mail
 import ch.openolitor.core.mailservice.MailService.{ SendMailCommand, SendMailEvent }
 import ch.openolitor.core.models.PersonId
@@ -158,7 +157,7 @@ trait LoginService extends LazyLogging
       person <- personById(subject.personId)
       _ <- validatePassword(form.alt, person)
       _ <- validateNewPassword(form.neu)
-      result <- processOrRequestSecondFactor(projekt, person, form.secondFactorAuth)(changePassword(person, form.neu, None))(secondFactor => FormResult(SecondFactorRequired, Some(secondFactor.token)))
+      result <- processOrRequestSecondFactor(projekt, person, form.secondFactorAuth)(changePassword(person, form.neu, None))(secondFactor => FormResult(SecondFactorRequired, Some(secondFactor.token), Some(secondFactor.`type`)))
     } yield result
   }
 
@@ -187,7 +186,7 @@ trait LoginService extends LazyLogging
     for {
       person <- personById(personId)
       projekt <- getProjekt()
-      result <- processOrRequestSecondFactor(projekt, person, form.secondFactorAuth)(updateLoginSettings(personId, form))(secondFactor => FormResult(SecondFactorRequired, Some(secondFactor.token)))
+      result <- processOrRequestSecondFactor(projekt, person, form.secondFactorAuth)(updateLoginSettings(personId, form))(secondFactor => FormResult(SecondFactorRequired, Some(secondFactor.token), Some(secondFactor.`type`)))
     } yield result
   }
 
@@ -240,7 +239,7 @@ trait LoginService extends LazyLogging
     val hash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
 
     (entityStore ? PasswortWechselCommand(subjectPersonId, targetPersonId, hash.toCharArray, einladung)) map {
-      case _: PasswortGewechseltEvent => FormResult(Ok, None).right
+      case _: PasswortGewechseltEvent => FormResult(Ok, None, None).right
       case _                          => RequestFailed(s"Das Passwort konnte nicht gewechselt werden").left
     }
   }
@@ -368,7 +367,11 @@ trait LoginService extends LazyLogging
       requireSecondFactorAuthentication match {
         case false                          => false.right
         case true if (person.rolle.isEmpty) => true.right
-        case true                           => projekt.twoFactorAuthentication.get(person.rolle.get).map(_.right).getOrElse(true.right)
+        case true => projekt.twoFactorAuthentication.get(person.rolle.get).map {
+          case true => true.right
+          case false if person.secondFactorType.isDefined => true.right
+          case _ => false.right
+        }.getOrElse(true.right)
       }
     }
   }
@@ -415,11 +418,11 @@ trait LoginService extends LazyLogging
 
   private def updateLoginSettings(personId: PersonId, form: LoginSettingsForm): EitherFuture[FormResult] = EitherT {
     Future {
-      eventStore ! PersonChangeSecondFactorType(personId, form.secondFactorEnabled match {
+      eventStore ! PersonChangedSecondFactorType(personId, form.secondFactorEnabled match {
         case false => None
         case true  => Some(form.secondFactorType)
       })
-      FormResult(status = Ok, None).right
+      FormResult(status = Ok, None, None).right
     }
   }
 
