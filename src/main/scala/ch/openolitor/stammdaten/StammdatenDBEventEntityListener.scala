@@ -122,6 +122,8 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     case e @ EntityDeleted(personId, entity: RechnungsPosition)           => handleRechnungsPositionDeleted(entity)(personId)
     case e @ EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Bezahlt && entity.status == RechnungsPositionStatus.Bezahlt) =>
       handleRechnungsPositionBezahlt(entity, orig)(personId)
+    case e @ EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Storniert && entity.status == RechnungsPositionStatus.Storniert) =>
+      handleRechnungsPositionStorniert(entity, orig)(personId)
 
     case e @ EntityCreated(personId, entity: Lieferplanung) => handleLieferplanungCreated(entity)(personId)
 
@@ -829,6 +831,33 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
             heimlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen),
             heimlieferungAboMapping.column.guthaben -> (abo.guthaben + anzahlLieferungen),
             heimlieferungAboMapping.column.guthabenVertraglich -> (abo.guthabenVertraglich map (_ - anzahlLieferungen) orElse (None))
+          )
+        }
+      }
+    }
+  }
+
+  def handleRechnungsPositionStorniert(rechnungsPosition: RechnungsPosition, orig: RechnungsPosition)(implicit personId: PersonId) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      for {
+        aboId <- rechnungsPosition.aboId
+        anzahlLieferungen <- rechnungsPosition.anzahlLieferungen
+      } yield {
+        stammdatenUpdateRepository.modifyEntity[DepotlieferungAbo, AboId](aboId) { abo =>
+          Map(
+            depotlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen)
+          )
+        }
+
+        stammdatenUpdateRepository.modifyEntity[PostlieferungAbo, AboId](aboId) { abo =>
+          Map(
+            postlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen)
+          )
+        }
+
+        stammdatenUpdateRepository.modifyEntity[HeimlieferungAbo, AboId](aboId) { abo =>
+          Map(
+            heimlieferungAboMapping.column.guthabenInRechnung -> (abo.guthabenInRechnung - anzahlLieferungen)
           )
         }
       }
