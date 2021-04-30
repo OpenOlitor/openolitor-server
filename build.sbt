@@ -97,6 +97,9 @@ val buildSettings = Seq(
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
     "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/openolitor-legacy-dependencies/raw/master/de.zalando/beard_2.11/jars/beard_2.11-0.2.0.jar",
+    // transitive dependencies of legacy de.zalando.beard
+    "org.antlr"                    % "antlr4"                                 % "4.5.2",
+    "io.monix"                     %% "monix"                                 % "2.1.0",
     "net.codecrete.qrbill"         % "qrbill-generator"                       % "2.4.3",
     "io.nayuki"                    % "qrcodegen"                              % "1.6.0",
     "org.apache.pdfbox"            % "pdfbox"                                 % "2.0.20",
