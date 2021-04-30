@@ -228,6 +228,27 @@ case class ProjektPublik(
   sendEmailToBcc: Boolean
 ) extends JSONSerializable
 
+case class ProjektKundenportal(
+  id: ProjektId,
+  bezeichnung: String,
+  strasse: Option[String],
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: Option[String],
+  ort: Option[String],
+  preiseSichtbar: Boolean,
+  waehrung: Waehrung,
+  geschaeftsjahrMonat: Int,
+  geschaeftsjahrTag: Int,
+  welcomeMessage1: Option[String],
+  welcomeMessage2: Option[String],
+  maintenanceMode: Boolean,
+  einsatzEinheit: EinsatzEinheit,
+  einsatzAbsageVorlaufTage: Int,
+  einsatzShowListeKunde: Boolean,
+  sendEmailToBcc: Boolean
+) extends JSONSerializable
+
 case class ProjektReport(
   id: ProjektId,
   bezeichnung: String,
