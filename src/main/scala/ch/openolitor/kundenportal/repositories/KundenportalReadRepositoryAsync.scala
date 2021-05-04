@@ -40,7 +40,7 @@ import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.models.PersonId
 
 trait KundenportalReadRepositoryAsync {
-  def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
+  def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektKundenportal]]
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
 
   def getHauptabos(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[AboDetail]]
@@ -58,8 +58,8 @@ trait KundenportalReadRepositoryAsync {
 }
 
 class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsync with LazyLogging with KundenportalRepositoryQueries {
-  def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]] = {
-    getProjektQuery.future map (_ map (projekt => copyTo[Projekt, ProjektPublik](projekt)))
+  def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektKundenportal]] = {
+    getProjektQuery.future map (_ map (projekt => copyTo[Projekt, ProjektKundenportal](projekt)))
   }
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
