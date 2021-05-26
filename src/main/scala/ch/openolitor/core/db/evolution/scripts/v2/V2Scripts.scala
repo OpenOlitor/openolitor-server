@@ -246,5 +246,6 @@ object V2Scripts {
     OO302_Add_Bcc_field.scripts ++
     OO_sunu_adding_bic_to_account.scripts ++
     OO_github_39_adding_mandantId_DateOfSignature.scripts ++
-    OO_gitlab_373_ZahlungsEingang_teilnehmer_nummer.scripts
+    OO_gitlab_373_ZahlungsEingang_teilnehmer_nummer.scripts ++
+    OO_distribution_date_time_should_not_consider_time.scripts
 }

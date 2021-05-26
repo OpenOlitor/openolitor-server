@@ -22,12 +22,27 @@
 \*                                                                           */
 package ch.openolitor.core.db.evolution.scripts.v2
 
-import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAbosCounter
-import ch.openolitor.core.db.evolution.scripts.recalculations.RecalculateAnzahlAktiveAbosCounter
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-object OOBetrieb2_recalculate_aktive_inaktive_accounts {
-  val scripts = Seq(
-    RecalculateAnzahlAbosCounter.scripts,
-    RecalculateAnzahlAktiveAbosCounter.scripts
-  )
+import scala.util.{ Success, Try }
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+
+object OO_distribution_date_time_should_not_consider_time {
+
+  val removeTimeFromDistribution = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""ALTER TABLE Lieferung MODIFY COLUMN datum DATE NOT NULL;""".execute.apply()
+      sql"""ALTER TABLE DepotAuslieferung MODIFY COLUMN datum DATE NOT NULL;""".execute.apply()
+      sql"""ALTER TABLE TourAuslieferung MODIFY COLUMN datum DATE NOT NULL;""".execute.apply()
+      sql"""ALTER TABLE PostAuslieferung MODIFY COLUMN datum DATE NOT NULL;""".execute.apply()
+
+      Success(true)
+    }
+  }
+
+  val scripts = Seq(removeTimeFromDistribution)
 }
