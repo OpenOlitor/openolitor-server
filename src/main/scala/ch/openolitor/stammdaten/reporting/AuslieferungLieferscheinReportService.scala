@@ -55,11 +55,11 @@ trait AuslieferungLieferscheinReportService extends AsyncConnectionPoolContextAw
 
   def name(fileType: FileType)(auslieferung: AuslieferungReport) = {
     fileType match {
-      case VorlageDepotLieferschein => s"depot_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
-      case VorlageTourLieferschein  => s"tour_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
-      case VorlagePostLieferschein  => s"post_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}"
+      case VorlageDepotLieferschein => s"depot_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}".replace(":", "")
+      case VorlageTourLieferschein  => s"tour_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}".replace(":", "")
+      case VorlagePostLieferschein  => s"post_lieferschein_nr_${auslieferung.id.id}_${auslieferung.datum}".replace(":", "")
 
-      case _                        => s"auslieferung_nr_${auslieferung.id.id}_${auslieferung.datum}"
+      case _                        => s"auslieferung_nr_${auslieferung.id.id}_${auslieferung.datum}".replace(":", "")
     }
   }
 
