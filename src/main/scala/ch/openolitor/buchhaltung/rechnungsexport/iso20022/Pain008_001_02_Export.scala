@@ -33,6 +33,7 @@ import javax.xml.datatype.{ DatatypeConstants, DatatypeFactory, XMLGregorianCale
 import scalaxb.DataRecord
 import java.util.GregorianCalendar
 
+import java.text.Normalizer
 import scala.xml.{ NamespaceBinding, TopScope }
 
 class Pain008_001_02_Export extends LazyLogging {
@@ -160,7 +161,11 @@ class Pain008_001_02_Export extends LazyLogging {
     val UltmtCdtr = None
     val DbtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), bic)))
     val DbtrAgtAcct = None
-    val Dbtr = pain008_001_02.PartyIdentificationSEPA2(kontoDaten.nameAccountHolder.getOrElse("accountHolder subscriptor").slice(0, 70), None)
+    //solution found here: https://stackoverflow.com/questions/3322152/is-there-a-way-to-get-rid-of-accents-and-convert-a-whole-string-to-regular-lette
+    val nameAccountHolder = kontoDaten.nameAccountHolder.getOrElse("accountHolder subscriptor").slice(0, 70)
+    val normalizedNameAccountHolder = Normalizer.normalize(nameAccountHolder, Normalizer.Form.NFD)
+    val nameAccountHolderWithoutAccents = normalizedNameAccountHolder.replaceAll("[^\\p{ASCII}]", "");
+    val Dbtr = pain008_001_02.PartyIdentificationSEPA2(nameAccountHolderWithoutAccents, None)
     val DbtrAcct = pain008_001_02.CashAccountSEPA2(pain008_001_02.AccountIdentificationSEPA(kontoDaten.iban.getOrElse("Iban subscriptor")))
     val UltmtDbtr = None
     val Purp = None
