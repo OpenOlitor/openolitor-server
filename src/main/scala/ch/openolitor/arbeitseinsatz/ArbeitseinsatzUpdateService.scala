@@ -95,6 +95,15 @@ class ArbeitseinsatzUpdateService(override val sysConfig: SystemConfig) extends 
         //map all updatable fields
         val copy = copyFrom(arbeitseinsatz, update, "modifidat" -> meta.timestamp, "modifikator" -> personId)
         arbeitseinsatzWriteRepository.updateEntityFully[Arbeitseinsatz, ArbeitseinsatzId](copy)
+        arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, arbeitseinsatz.arbeitsangebotId) match {
+          case Some(arbeitsangebot) =>
+            //update arbeitsangebot
+            val anzPersonen = arbeitsangebot.anzahlEingeschriebene - (arbeitseinsatz.anzahlPersonen - update.anzahlPersonen)
+            arbeitseinsatzWriteRepository.updateEntity[Arbeitsangebot, ArbeitsangebotId](arbeitseinsatz.arbeitsangebotId)(
+              arbeitsangebotMapping.column.anzahlEingeschriebene -> anzPersonen
+            )
+          case None =>
+        }
       }
     }
   }
