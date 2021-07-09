@@ -89,15 +89,19 @@ trait KorbHandler extends KorbStatusHandler
   private def calculateStatusGuthaben(abo: Abo, lieferung: Lieferung, abotyp: IAbotyp)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): (KorbStatus, Int) = {
     abo match {
       case zusatzAbo: ZusatzAbo =>
-        val mainAbo = stammdatenWriteRepository.getHauptAbo(zusatzAbo.id)
-        val hauptabotyp = stammdatenWriteRepository.getAbotypDetail(zusatzAbo.hauptAbotypId)
-        val abwCount = stammdatenWriteRepository.countAbwesend(mainAbo.get.id, lieferung.datum.toLocalDate)
-        val guthabenVorLieferung = stammdatenWriteRepository.getKorbLatestWirdGeliefert(zusatzAbo.id, lieferung.datum) match {
-          case Some(korb) =>
-            (korb.guthabenVorLieferung - 1)
-          case None => mainAbo.get.guthaben
+        stammdatenWriteRepository.getHauptAbo(zusatzAbo.id) match {
+          case Some(mainAbo) =>
+            val hauptabotyp = stammdatenWriteRepository.getAbotypDetail(zusatzAbo.hauptAbotypId)
+            val abwCount = stammdatenWriteRepository.countAbwesend(mainAbo.id, lieferung.datum.toLocalDate)
+            val guthabenVorLieferung = stammdatenWriteRepository.getKorbLatestWirdGeliefert(zusatzAbo.id, lieferung.datum) match {
+              case Some(korb) => (korb.guthabenVorLieferung - 1)
+              case None       => mainAbo.guthaben
+            }
+            (calculateKorbStatus(abwCount, mainAbo.guthaben, hauptabotyp.get.guthabenMindestbestand), guthabenVorLieferung)
+          case None =>
+            logger.error(s"There is no main subscription for the  : ${abo.id}")
+            throw new InvalidStateException(s"calculateStatusGuthaben: There is no main subscription for the  ${abo.id}")
         }
-        (calculateKorbStatus(abwCount, mainAbo.get.guthaben, hauptabotyp.get.guthabenMindestbestand), guthabenVorLieferung)
       case abo: HauptAbo =>
         val abwCount = stammdatenWriteRepository.countAbwesend(lieferung.id, abo.id)
         abotyp match {
