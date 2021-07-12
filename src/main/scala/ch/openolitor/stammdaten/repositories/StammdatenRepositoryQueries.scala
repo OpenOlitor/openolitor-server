@@ -808,11 +808,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           sqls.eq(vertrieb.id, lieferung.vertriebId)
             .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
         )
-        .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .leftJoin(lieferplanungMapping as lieferplanung).on(
+          sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(depotlieferungAbo.aktiv, false))
+          ))
+        )
         .where.eq(depotlieferungAbo.id, id)
-        .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(depotlieferungAbo.aktiv, false))
-        ))
     }
       .one(depotlieferungAboMapping(depotlieferungAbo))
       .toManies(
