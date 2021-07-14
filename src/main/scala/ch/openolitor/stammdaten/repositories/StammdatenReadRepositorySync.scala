@@ -66,7 +66,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getLastGeplanteLieferung(abotypId: AbotypId)(implicit session: DBSession): Option[Lieferung]
   def getLieferplanung(id: LieferplanungId)(implicit session: DBSession): Option[Lieferplanung]
   def getLieferpositionenByLieferplan(id: LieferplanungId)(implicit session: DBSession): List[Lieferposition]
-  def getLieferpositionenByLieferplanAndProduzent(id: LieferplanungId, produzentId: ProduzentId)(implicit session: DBSession): List[Lieferposition]
+  def getLieferpositionenByLieferplanAndProduzent(id: LieferplanungId, produzentId: ProduzentId, datum: DateTime)(implicit session: DBSession): List[Lieferposition]
   def getLieferpositionenByLieferung(id: LieferungId)(implicit session: DBSession): List[Lieferposition]
   def getUngeplanteLieferungen(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung]
   def getProduktProduzenten(id: ProduktId)(implicit session: DBSession): List[ProduktProduzent]
@@ -339,8 +339,8 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getLieferpositionenByLieferplanQuery(id).apply()
   }
 
-  def getLieferpositionenByLieferplanAndProduzent(id: LieferplanungId, produzentId: ProduzentId)(implicit session: DBSession): List[Lieferposition] = {
-    getLieferpositionenByLieferplanAndProduzentQuery(id, produzentId).apply()
+  def getLieferpositionenByLieferplanAndProduzent(id: LieferplanungId, produzentId: ProduzentId, datum: DateTime)(implicit session: DBSession): List[Lieferposition] = {
+    getLieferpositionenByLieferplanAndProduzentQuery(id, produzentId, datum).apply()
   }
 
   def getLieferpositionenByLieferung(id: LieferungId)(implicit session: DBSession): List[Lieferposition] = {

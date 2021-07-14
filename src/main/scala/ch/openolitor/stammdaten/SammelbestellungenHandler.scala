@@ -92,7 +92,7 @@ trait SammelbestellungenHandler extends StammdatenDBMappings {
             newBestellung
           }
 
-          val positionen = stammdatenWriteRepository.getLieferpositionenByLieferplanAndProduzent(create.lieferplanungId, create.produzentId).
+          val positionen = stammdatenWriteRepository.getLieferpositionenByLieferplanAndProduzent(create.lieferplanungId, create.produzentId, create.datum).
             //group by same produkt, menge and preis
             groupBy(x => (x.produktId, x.menge, x.preis)).map {
               case ((produktId, menge, preis), positionen) =>
