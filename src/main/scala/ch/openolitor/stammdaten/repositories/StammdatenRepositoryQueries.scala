@@ -810,12 +810,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         )
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
-            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(depotlieferungAbo.aktiv, false))
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(depotlieferungAbo.aktiv, false))
           ))
         )
         .where.eq(depotlieferungAbo.id, id)
-    }
-      .one(depotlieferungAboMapping(depotlieferungAbo))
+    }.one(depotlieferungAboMapping(depotlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
         rs => abotypMapping.opt(aboTyp)(rs),
@@ -849,11 +850,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           sqls.eq(vertrieb.id, lieferung.vertriebId)
             .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
         )
-        .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .leftJoin(lieferplanungMapping as lieferplanung).on(
+          sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(heimlieferungAbo.aktiv, false))
+          ))
+        )
         .where.eq(heimlieferungAbo.id, id)
-        .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(heimlieferungAbo.aktiv, false))
-        ))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
@@ -888,11 +892,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           sqls.eq(vertrieb.id, lieferung.vertriebId)
             .and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
         )
-        .leftJoin(lieferplanungMapping as lieferplanung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .leftJoin(lieferplanungMapping as lieferplanung).on(
+          sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(postlieferungAbo.aktiv, false))
+          ))
+        )
         .where.eq(postlieferungAbo.id, id)
-        .and(sqls.toAndConditionOpt(
-          ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen).or.eq(postlieferungAbo.aktiv, false))
-        ))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toManies(
         rs => abwesenheitMapping.opt(abwesenheit)(rs),
