@@ -801,15 +801,24 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
-        .leftJoin(abwesenheitMapping as abwesenheit).on(depotlieferungAbo.id, abwesenheit.aboId)
-        .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
-        .leftJoin(lieferungMapping as lieferung).on(
-          sqls.eq(vertrieb.id, lieferung.vertriebId)
-            .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
-        )
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.abotypId, depotlieferungAbo.abotypId)
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(depotlieferungAbo.aktiv, false))
+          ))
+        )
+        .leftJoin(abwesenheitMapping as abwesenheit).on(
+          sqls.eq(depotlieferungAbo.id, abwesenheit.aboId).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(depotlieferungAbo.aktiv, false))
+          ))
+        )
+        .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
+        .leftJoin(vertriebMapping as vertrieb).on(
+          sqls.eq(depotlieferungAbo.vertriebId, vertrieb.id).and(sqls.toAndConditionOpt(
             ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
               .or.eq(lieferplanung.status, Offen)
               .or.eq(depotlieferungAbo.aktiv, false))
@@ -843,15 +852,24 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
-        .leftJoin(abwesenheitMapping as abwesenheit).on(heimlieferungAbo.id, abwesenheit.aboId)
-        .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(heimlieferungAbo.vertriebId, vertrieb.id)
-        .leftJoin(lieferungMapping as lieferung).on(
-          sqls.eq(vertrieb.id, lieferung.vertriebId)
-            .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
-        )
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.abotypId, heimlieferungAbo.abotypId)
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(heimlieferungAbo.aktiv, false))
+          ))
+        )
+        .leftJoin(abwesenheitMapping as abwesenheit).on(
+          sqls.eq(heimlieferungAbo.id, abwesenheit.aboId).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(heimlieferungAbo.aktiv, false))
+          ))
+        )
+        .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
+        .leftJoin(vertriebMapping as vertrieb).on(
+          sqls.eq(heimlieferungAbo.vertriebId, vertrieb.id).and(sqls.toAndConditionOpt(
             ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
               .or.eq(lieferplanung.status, Offen)
               .or.eq(heimlieferungAbo.aktiv, false))
@@ -885,15 +903,24 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
-        .leftJoin(abwesenheitMapping as abwesenheit).on(postlieferungAbo.id, abwesenheit.aboId)
-        .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(postlieferungAbo.vertriebId, vertrieb.id)
-        .leftJoin(lieferungMapping as lieferung).on(
-          sqls.eq(vertrieb.id, lieferung.vertriebId)
-            .and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
-        )
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.abotypId, postlieferungAbo.abotypId)
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(postlieferungAbo.aktiv, false))
+          ))
+        )
+        .leftJoin(abwesenheitMapping as abwesenheit).on(
+          sqls.eq(postlieferungAbo.id, abwesenheit.aboId).and(sqls.toAndConditionOpt(
+            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
+              .or.eq(lieferplanung.status, Offen)
+              .or.eq(postlieferungAbo.aktiv, false))
+          ))
+        )
+        .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
+        .leftJoin(vertriebMapping as vertrieb).on(
+          sqls.eq(postlieferungAbo.vertriebId, vertrieb.id).and(sqls.toAndConditionOpt(
             ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
               .or.eq(lieferplanung.status, Offen)
               .or.eq(postlieferungAbo.aktiv, false))
