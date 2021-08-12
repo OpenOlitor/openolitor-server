@@ -40,6 +40,7 @@ import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.DatatypeConstants
 
 import com.typesafe.scalalogging.LazyLogging
+import java.text.Normalizer
 
 class Pain008_001_07_Export extends LazyLogging {
 
@@ -129,7 +130,8 @@ class Pain008_001_07_Export extends LazyLogging {
     val UltmtCdtr = None
     val DbtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, Some(pain008_001_07.GenericFinancialIdentification1("NOTPROVIDED", None, None))))
     val DbtrAgtAcct = None
-    val Dbtr = pain008_001_07.PartyIdentification43(Option(nameAccountHolder), None, None)
+    val normalizedNameAccountHolder = Normalizer.normalize(nameAccountHolder, Normalizer.Form.NFD)
+    val Dbtr = pain008_001_07.PartyIdentification43(Option(normalizedNameAccountHolder), None, None)
     val DbtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord(None, Some("IBAN"), iban)))
     val UltmtDbtr = None
     val InstrForCdtrAgt = None
