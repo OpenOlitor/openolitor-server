@@ -801,7 +801,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
-        .leftJoin(lieferungMapping as lieferung).on(lieferung.abotypId, depotlieferungAbo.abotypId)
+        .leftJoin(vertriebMapping as vertrieb).on(
+          sqls.eq(depotlieferungAbo.vertriebId, vertrieb.id)
+        )
+        .leftJoin(lieferungMapping as lieferung).on(
+          sqls.eq(lieferung.vertriebId, vertrieb.id).and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
             ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
@@ -817,13 +822,6 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           ))
         )
         .leftJoin(abotypMapping as aboTyp).on(depotlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(
-          sqls.eq(depotlieferungAbo.vertriebId, vertrieb.id).and(sqls.toAndConditionOpt(
-            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
-              .or.eq(lieferplanung.status, Offen)
-              .or.eq(depotlieferungAbo.aktiv, false))
-          ))
-        )
         .where.eq(depotlieferungAbo.id, id)
     }.one(depotlieferungAboMapping(depotlieferungAbo))
       .toManies(
@@ -852,7 +850,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
-        .leftJoin(lieferungMapping as lieferung).on(lieferung.abotypId, heimlieferungAbo.abotypId)
+        .leftJoin(vertriebMapping as vertrieb).on(
+          sqls.eq(heimlieferungAbo.vertriebId, vertrieb.id)
+        )
+        .leftJoin(lieferungMapping as lieferung).on(
+          sqls.eq(lieferung.vertriebId, vertrieb.id).and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
             ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
@@ -868,13 +871,6 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           ))
         )
         .leftJoin(abotypMapping as aboTyp).on(heimlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(
-          sqls.eq(heimlieferungAbo.vertriebId, vertrieb.id).and(sqls.toAndConditionOpt(
-            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
-              .or.eq(lieferplanung.status, Offen)
-              .or.eq(heimlieferungAbo.aktiv, false))
-          ))
-        )
         .where.eq(heimlieferungAbo.id, id)
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toManies(
@@ -903,7 +899,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
-        .leftJoin(lieferungMapping as lieferung).on(lieferung.abotypId, postlieferungAbo.abotypId)
+        .leftJoin(vertriebMapping as vertrieb).on(
+          sqls.eq(postlieferungAbo.vertriebId, vertrieb.id)
+        )
+        .leftJoin(lieferungMapping as lieferung).on(
+          sqls.eq(lieferung.vertriebId, vertrieb.id).and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
+        )
         .leftJoin(lieferplanungMapping as lieferplanung).on(
           sqls.eq(lieferung.lieferplanungId, lieferplanung.id).and(sqls.toAndConditionOpt(
             ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
@@ -919,13 +920,6 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           ))
         )
         .leftJoin(abotypMapping as aboTyp).on(postlieferungAbo.abotypId, aboTyp.id)
-        .leftJoin(vertriebMapping as vertrieb).on(
-          sqls.eq(postlieferungAbo.vertriebId, vertrieb.id).and(sqls.toAndConditionOpt(
-            ausstehend map (_ => sqls.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant)
-              .or.eq(lieferplanung.status, Offen)
-              .or.eq(postlieferungAbo.aktiv, false))
-          ))
-        )
         .where.eq(postlieferungAbo.id, id)
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toManies(
