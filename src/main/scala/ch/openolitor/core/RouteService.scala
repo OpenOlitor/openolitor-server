@@ -327,6 +327,12 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           val sheet = dataDocument.getSheetByIndex(0)
           sheet.setCellStyleInheritance(false)
 
+          def createNewSheet(name: String): Table = {
+            val newSheet = dataDocument.appendSheet(name)
+            newSheet.setCellStyleInheritance(false)
+            newSheet
+          }
+
           def writeToRow(row: Row, element: Any, cellIndex: Int): Unit = {
             element match {
               case null                        =>
@@ -343,62 +349,69 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           }
 
           result match {
-            case genericList: List[Any] =>
+            case genericList: List[Any] => {
               if (genericList.nonEmpty) {
-                genericList.head match {
-                  case firstMapEntry: Map[_, _] =>
-                    val listOfMaps = genericList.asInstanceOf[List[Map[String, Any]]]
-                    val row = sheet.getRowByIndex(0);
+                genericList.groupBy(_.getClass) map {
+                  case (clazz, clazzSortedList) => {
+                    var clazzSheet = createNewSheet(clazz.getName())
+                    clazzSortedList.head match {
+                      case firstMapEntry: Map[_, _] =>
+                        val listOfMaps = clazzSortedList.asInstanceOf[List[Map[String, Any]]]
+                        val row = clazzSheet.getRowByIndex(0);
 
-                    listOfMaps.head.zipWithIndex foreach {
-                      case ((fieldName, value), index) =>
-                        row.getCellByIndex(index).setStringValue(fieldName)
-                        val font = row.getCellByIndex(index).getFont
-                        font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
-                        font.setSize(10)
-                        row.getCellByIndex(index).setFont(font)
-                    }
+                        listOfMaps.head.zipWithIndex foreach {
+                          case ((fieldName, value), index) =>
+                            row.getCellByIndex(index).setStringValue(fieldName)
+                            val font = row.getCellByIndex(index).getFont
+                            font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
+                            font.setSize(10)
+                            row.getCellByIndex(index).setFont(font)
+                        }
 
-                    listOfMaps.zipWithIndex foreach {
-                      case (entry, index) =>
-                        val row = sheet.getRowByIndex(index + 1);
+                        listOfMaps.zipWithIndex foreach {
+                          case (entry, index) =>
+                            val row = clazzSheet.getRowByIndex(index + 1);
 
-                        entry.zipWithIndex foreach {
-                          case ((fieldName, value), colIndex) =>
-                            fieldName match {
-                              case "passwort" => writeToRow(row, "Not available", colIndex)
-                              case _          => writeToRow(row, value, colIndex)
+                            entry.zipWithIndex foreach {
+                              case ((fieldName, value), colIndex) =>
+                                fieldName match {
+                                  case "passwort" => writeToRow(row, "Not available", colIndex)
+                                  case _          => writeToRow(row, value, colIndex)
+                                }
+                            }
+                        }
+
+                      case firstProductEntry: Product =>
+                        val listOfProducts = clazzSortedList.asInstanceOf[List[Product]]
+                        val row = clazzSheet.getRowByIndex(0);
+
+                        def getCCParams(cc: Product) = cc.getClass.getDeclaredFields.map(_.getName) // all field names
+                          .zip(cc.productIterator.to).toMap // zipped with all values
+
+                        getCCParams(listOfProducts.head).zipWithIndex foreach {
+                          case ((fieldName, value), index) =>
+                            row.getCellByIndex(index).setStringValue(fieldName)
+                            val font = row.getCellByIndex(index).getFont
+                            font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
+                            font.setSize(10)
+                            row.getCellByIndex(index).setFont(font)
+                        }
+
+                        listOfProducts.zipWithIndex foreach {
+                          case (entry, index) =>
+                            val row = clazzSheet.getRowByIndex(index + 1);
+
+                            getCCParams(entry).zipWithIndex foreach {
+                              case ((fieldName, value), colIndex) =>
+                                writeToRow(row, value, colIndex)
                             }
                         }
                     }
-
-                  case firstProductEntry: Product =>
-                    val listOfProducts = genericList.asInstanceOf[List[Product]]
-                    val row = sheet.getRowByIndex(0);
-
-                    def getCCParams(cc: Product) = cc.getClass.getDeclaredFields.map(_.getName) // all field names
-                      .zip(cc.productIterator.to).toMap // zipped with all values
-
-                    getCCParams(listOfProducts.head).zipWithIndex foreach {
-                      case ((fieldName, value), index) =>
-                        row.getCellByIndex(index).setStringValue(fieldName)
-                        val font = row.getCellByIndex(index).getFont
-                        font.setFontStyle(StyleTypeDefinitions.FontStyle.BOLD)
-                        font.setSize(10)
-                        row.getCellByIndex(index).setFont(font)
-                    }
-
-                    listOfProducts.zipWithIndex foreach {
-                      case (entry, index) =>
-                        val row = sheet.getRowByIndex(index + 1);
-
-                        getCCParams(entry).zipWithIndex foreach {
-                          case ((fieldName, value), colIndex) =>
-                            writeToRow(row, value, colIndex)
-                        }
-                    }
+                  }
                 }
               }
+              dataDocument.removeSheet(0)
+            }
             case x => sheet.getRowByIndex(0).getCellByIndex(0).setStringValue("Data of type" + x.toString + " could not be transfered to ODS file.")
           }
 
