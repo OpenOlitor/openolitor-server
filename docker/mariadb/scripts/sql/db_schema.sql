@@ -1,4 +1,4 @@
-ALTER DATABASE CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
+ALTER DATABASE CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci';
 
 CREATE TABLE IF NOT EXISTS persistence_metadata (
   persistence_key BIGINT NOT NULL AUTO_INCREMENT,
@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS persistence_metadata (
   sequence_nr BIGINT NOT NULL,
   PRIMARY KEY (persistence_key),
   UNIQUE (persistence_id)
-) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
+) CHARACTER SET utf8 COLLATE = 'utf8mb4_unicode_ci';
 
 CREATE TABLE IF NOT EXISTS persistence_journal (
   persistence_key BIGINT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS persistence_journal (
   message MEDIUMBLOB NOT NULL,
   PRIMARY KEY (persistence_key, sequence_nr),
   FOREIGN KEY (persistence_key) REFERENCES persistence_metadata (persistence_key)
-) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
+) CHARACTER SET utf8 COLLATE = 'utf8mb4_unicode_ci';
 
 CREATE TABLE IF NOT EXISTS persistence_snapshot (
   persistence_key BIGINT NOT NULL,
@@ -23,18 +23,18 @@ CREATE TABLE IF NOT EXISTS persistence_snapshot (
   snapshot MEDIUMBLOB NOT NULL,
   PRIMARY KEY (persistence_key, sequence_nr),
   FOREIGN KEY (persistence_key) REFERENCES persistence_metadata (persistence_key)
-) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
+) CHARACTER SET utf8 COLLATE = 'utf8mb4_unicode_ci';
 
 CREATE TABLE IF NOT EXISTS DBSchema (
   id BIGINT NOT NULL,
   revision BIGINT NOT NULL,
   status varchar(50) NOT NULL,
   erstelldat DATETIME NOT NULL,
-  ersteller BIGINT NOT NULL, 
-  modifidat DATETIME NOT NULL, 
+  ersteller BIGINT NOT NULL,
+  modifidat DATETIME NOT NULL,
   modifikator BIGINT NOT NULL,
   PRIMARY KEY (id)
-) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
+) CHARACTER SET utf8 COLLATE = 'utf8mb4_unicode_ci';
 
 CREATE TABLE IF NOT EXISTS PersistenceEventState  (
   id BIGINT not null,
@@ -45,5 +45,4 @@ CREATE TABLE IF NOT EXISTS PersistenceEventState  (
   ersteller BIGINT not null,
   modifidat datetime not null,
   modifikator BIGINT not null
-) CHARACTER SET utf8 COLLATE = 'utf8_unicode_ci';
-
+) CHARACTER SET utf8 COLLATE = 'utf8mb4_unicode_ci';
