@@ -353,7 +353,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
               if (genericList.nonEmpty) {
                 genericList.groupBy(_.getClass) map {
                   case (clazz, clazzSortedList) => {
-                    var clazzSheet = createNewSheet(clazz.getName())
+                    var clazzSheet = createNewSheet(clazz.getSimpleName())
                     clazzSortedList.head match {
                       case firstMapEntry: Map[_, _] =>
                         val listOfMaps = clazzSortedList.asInstanceOf[List[Map[String, Any]]]
