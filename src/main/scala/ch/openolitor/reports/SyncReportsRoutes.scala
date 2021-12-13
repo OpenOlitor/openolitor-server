@@ -67,7 +67,7 @@ trait SyncReportsRoutes extends HttpService with ActorReferences
             entity(as[ReportExecute]) { reportExecute =>
               try {
                 val result = DB readOnly {
-                  implicit session => reportsReadRepository.executeReport(reportExecute)
+                  implicit session => reportsReadRepository.executeReport(reportExecute, exportFormat)
                 }
                 list(Future.successful { result }, exportFormat)
               } catch {
