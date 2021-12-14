@@ -26,6 +26,8 @@ import scalikejdbc.async._
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
+import ch.openolitor.core.ws.ExportFormat
+
 import scala.concurrent._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.reports.models._
@@ -38,7 +40,7 @@ trait ReportsReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getReports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Report]]
   def getReport(id: ReportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Report]]
 
-  def executeReport(reportExecute: ReportExecute)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Map[String, Any]]]
+  def executeReport(reportExecute: ReportExecute, exportFormat: Option[ExportFormat])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Map[String, Any]]]
 }
 
 class ReportsReadRepositoryAsyncImpl extends ReportsReadRepositoryAsync with LazyLogging with ReportsRepositoryQueries {
@@ -50,8 +52,8 @@ class ReportsReadRepositoryAsyncImpl extends ReportsReadRepositoryAsync with Laz
     getReportQuery(id).future
   }
 
-  def executeReport(reportExecute: ReportExecute)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Map[String, Any]]] = {
-    executeReportQuery(reportExecute).future
+  def executeReport(reportExecute: ReportExecute, exportFormat: Option[ExportFormat])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Map[String, Any]]] = {
+    executeReportQuery(reportExecute, exportFormat).future
   }
 
 }

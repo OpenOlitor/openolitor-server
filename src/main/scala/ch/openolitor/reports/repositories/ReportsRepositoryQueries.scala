@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.reports.repositories
 
+import ch.openolitor.core.ws.ExportFormat
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.reports.models._
@@ -29,6 +30,8 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.reports.ReportsDBMappings
+
+import scala.collection.immutable.ListMap
 
 trait ReportsRepositoryQueries extends LazyLogging with ReportsDBMappings with StammdatenDBMappings {
   lazy val report = reportMapping.syntax("report")
@@ -50,15 +53,22 @@ trait ReportsRepositoryQueries extends LazyLogging with ReportsDBMappings with S
     }.map(reportMapping(report)).single
   }
 
-  protected def executeReportQuery(reportExecute: ReportExecute) = {
+  protected def executeReportQuery(reportExecute: ReportExecute, exportFormat: Option[ExportFormat]) = {
     val query = SQL(reportExecute.query)
-    query.map(rs => toMap(rs)).list
+    query.map(rs => toMap(rs, exportFormat)).list
   }
 
-  def toMap(rs: WrappedResultSet): Map[String, Any] = {
-    (1 to rs.underlying.getMetaData.getColumnCount).foldLeft(Map[String, Any]()) { (result, i) =>
+  def toMap(rs: WrappedResultSet, exportFormat: Option[ExportFormat]): Map[String, Any] = {
+    (1 to rs.underlying.getMetaData.getColumnCount).foldLeft(ListMap[String, Any]()) { (result, i) =>
       val label = rs.underlying.getMetaData.getColumnLabel(i)
-      Some(rs.any(label)).map { nullableValue => result + (label -> nullableValue) }.getOrElse(result)
+      exportFormat match {
+        case None => {
+          Some(rs.any(label)).map { nullableValue => result + (i.toString -> (label, nullableValue)) }.getOrElse(result)
+        }
+        case Some(x) => {
+          Some(rs.any(label)).map { nullableValue => result + (label -> nullableValue) }.getOrElse(result)
+        }
+      }
     }
   }
 

@@ -24,12 +24,13 @@ package ch.openolitor.reports.repositories
 
 import scalikejdbc._
 import ch.openolitor.core.repositories._
+import ch.openolitor.core.ws.ExportFormat
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.reports.models._
 
 trait ReportsReadRepositorySync extends BaseReadRepositorySync {
   def getReport(id: ReportId)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[Report]
-  def executeReport(reportExecute: ReportExecute)(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Map[String, Any]]
+  def executeReport(reportExecute: ReportExecute, exportFormat: Option[ExportFormat])(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Map[String, Any]]
 }
 
 trait ReportsReadRepositorySyncImpl extends ReportsReadRepositorySync with LazyLogging with ReportsRepositoryQueries {
@@ -38,7 +39,7 @@ trait ReportsReadRepositorySyncImpl extends ReportsReadRepositorySync with LazyL
     getReportQuery(id).apply()
   }
 
-  def executeReport(reportExecute: ReportExecute)(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Map[String, Any]] = {
-    executeReportQuery(reportExecute).apply()
+  def executeReport(reportExecute: ReportExecute, exportFormat: Option[ExportFormat])(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Map[String, Any]] = {
+    executeReportQuery(reportExecute, exportFormat).apply()
   }
 }
