@@ -2272,9 +2272,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .from(zusatzAboMapping as zusatzAbo)
         .where.eq(zusatzAbo.hauptAboId, hauptaboId)
     }.map(zusatzAboMapping(zusatzAbo)).list
-
   }
 
+  protected def getZusatzAbosByZusatzabotypQuery(zusatzabotyp: AbotypId) = {
+    withSQL {
+      select
+        .from(zusatzAboMapping as zusatzAbo)
+        .where.eq(zusatzAbo.abotypId, zusatzabotyp)
+    }.map(zusatzAboMapping(zusatzAbo)).list
+  }
   // MODIFY and DELETE Queries
 
   protected def deleteLieferpositionenQuery(id: LieferungId) = {

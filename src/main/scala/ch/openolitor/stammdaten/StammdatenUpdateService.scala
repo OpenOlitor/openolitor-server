@@ -171,11 +171,23 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       val iabotyp = stammdatenWriteRepository.getAbotypById(id)
       iabotyp match {
         case Some(zusatzabotyp: ZusatzAbotyp) => {
+          if (!update.name.equals(zusatzabotyp.name)) {
+            updateZusatzabosWithNewName(meta, update.name, zusatzabotyp.id)
+          }
           //map all updatable fields
           val copy = copyFrom(zusatzabotyp, update)
           stammdatenWriteRepository.updateEntityFully[ZusatzAbotyp, AbotypId](copy)
         }
         case _ => throw new IllegalArgumentException("The type of subscription is not known")
+      }
+    }
+  }
+  def updateZusatzabosWithNewName(meta: EventMetadata, newName: String, id: AbotypId)(implicit personId: PersonId = meta.originator) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      val zusatzabos = stammdatenWriteRepository.getZusatzAbosByZusatzabotyp(id)
+      zusatzabos map { zusatzabo =>
+        val copy = copyFrom(zusatzabo, zusatzabo, "abotypName" -> newName, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+        stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)
       }
     }
   }
