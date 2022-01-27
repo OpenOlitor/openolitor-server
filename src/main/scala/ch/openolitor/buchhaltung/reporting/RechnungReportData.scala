@@ -117,7 +117,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
 
           // Set creditor
           val creditor = new Address();
-          creditor.setName(projekt.bezeichnung)
+          creditor.setName(kontoDaten.nameAccountHolder.getOrElse(projekt.bezeichnung))
           creditor.setStreet(projekt.strasse.getOrElse(""));
           creditor.setHouseNo(projekt.hausNummer.getOrElse(""));
           creditor.setPostalCode(projekt.plz.getOrElse(""));
