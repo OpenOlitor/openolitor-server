@@ -208,8 +208,20 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
               newName
             } else element
           }
-          val copy = copyFrom(mainAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
-          stammdatenWriteRepository.updateEntityFully[HauptAbo, AboId](copy)
+          mainAbo match {
+            case copyDepotAbo: DepotlieferungAbo => {
+              val copy = copyFrom(copyDepotAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+              stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+            }
+            case copyHeimAbo: HeimlieferungAbo => {
+              val copy = copyFrom(copyHeimAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+              stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+            }
+            case copyPostAbo: PostlieferungAbo => {
+              val copy = copyFrom(copyPostAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+              stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
+            }
+          }
         }
       }
     }
