@@ -248,5 +248,6 @@ object V2Scripts {
     OO_github_39_adding_mandantId_DateOfSignature.scripts ++
     OO_gitlab_373_ZahlungsEingang_teilnehmer_nummer.scripts ++
     OO_distribution_date_time_should_not_consider_time.scripts ++
-    Operations465_EnlargeKundeBez.scripts
+    Operations465_EnlargeKundeBez.scripts ++
+    OO411_adding_person_contact_permission.scripts
 }
