@@ -29,7 +29,7 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
 
-import scala.util.{Success, Try}
+import scala.util.{ Success, Try }
 
 object OO411_adding_person_contact_permission {
 
@@ -39,6 +39,13 @@ object OO411_adding_person_contact_permission {
       Success(true)
     }
   }
+  val contactPermissionDefaultValue = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""UPDATE Person SET contact_permission = '0';""".execute.apply()
 
-  val scripts = Seq(addingPersonContactPermission)
+      Success(true)
+    }
+  }
+
+  val scripts = Seq(addingPersonContactPermission, contactPermissionDefaultValue)
 }

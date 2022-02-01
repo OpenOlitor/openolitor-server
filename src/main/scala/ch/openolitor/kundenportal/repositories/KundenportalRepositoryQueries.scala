@@ -35,10 +35,10 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
-import ch.openolitor.core.models.PersonId
 
 trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings with ArbeitseinsatzDBMappings {
 
+  val True = true
   //Stammdaten
   lazy val projekt = projektMapping.syntax("projekt")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
@@ -290,7 +290,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
       )
       .map { (arbeitseinsatz, arbeitsangebot) =>
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get, "coworkers" -> Seq.empty)
       }.single
   }
 
@@ -355,15 +355,20 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
-        .where.eq(arbeitseinsatz.kundeId, owner.kundeId)
+        .join(personMapping as person).on(sqls.eq(person.contactPermission, true))
+        .where.eq(arbeitseinsatz.personId, owner.personId)
         .orderBy(arbeitseinsatz.zeitVon)
     }.one(arbeitseinsatzMapping(arbeitseinsatz))
-      .toOne(
-        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
+      .toManies(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs),
+        rs => personMapping.opt(person)(rs)
       )
-      .map { (arbeitseinsatz, arbeitsangebote) =>
-        val arbeitsangebot = arbeitsangebote.filter(_.id == arbeitseinsatz.arbeitsangebotId)
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+      .map { (arbeitseinsatz, arbeitsangebote, coworkers) =>
+        val coworkersContact = coworkers map { coworker =>
+          copyTo[Person, PersonContact](coworker)
+        }
+        val arbeitsangebot = arbeitsangebote.filter(_.id == arbeitseinsatz.arbeitsangebotId).head
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> coworkersContact)
       }.list
   }
 

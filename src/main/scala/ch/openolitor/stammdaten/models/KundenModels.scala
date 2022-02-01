@@ -583,6 +583,21 @@ case class PersonModifyV1(
   def fullName = name + ' ' + vorname
 }
 
+case class PersonModifyV2(
+  id: Option[PersonId],
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  categories: Set[PersonCategoryNameId],
+  bemerkungen: Option[String]
+) extends JSONSerializable {
+  def fullName = name + ' ' + vorname
+}
+
 case class PersonModify(
   id: Option[PersonId],
   anrede: Option[Anrede],
@@ -598,7 +613,6 @@ case class PersonModify(
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
-
 case class PersonCreate(
   kundeId: KundeId,
   anrede: Option[Anrede],
@@ -618,6 +632,11 @@ case class PersonCreate(
 
 case class PersonMailContext(
   person: Person
+) extends JSONSerializable
+
+case class PersonContact(
+  name: String,
+  email: Option[String]
 ) extends JSONSerializable
 
 case class PersonMailRequest(

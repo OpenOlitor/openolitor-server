@@ -108,7 +108,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
       .map({ (arbeitseinsatz, arbeitsangebote) =>
         val arbeitsangebot = arbeitsangebote.head
 
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> Seq.empty)
       }).single
   }
 
@@ -229,7 +229,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
       .map({ (arbeitseinsatz, arbeitsangebote) =>
         val arbeitsangebot = arbeitsangebote.head
 
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> Seq.empty)
       }).list
   }
 

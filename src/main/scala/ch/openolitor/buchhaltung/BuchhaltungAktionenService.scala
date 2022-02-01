@@ -70,7 +70,6 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
   with SystemConfigReference {
   self: BuchhaltungWriteRepositoryComponent =>
 
-  val False = false
   val Zero = 0
 
   implicit val timeout = Timeout(config.getStringOption("openolitor.emailTimeOut").getOrElse("15").toInt.seconds)

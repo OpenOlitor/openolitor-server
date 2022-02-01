@@ -186,6 +186,7 @@ case class ArbeitseinsatzDetail(
   telefonMobil: Option[String],
   //additional Detail fields
   arbeitsangebot: Arbeitsangebot,
+  coworkers: Seq[PersonContact],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
