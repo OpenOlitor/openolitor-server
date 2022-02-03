@@ -159,6 +159,7 @@ case class Arbeitseinsatz(
   bemerkungen: Option[String],
   email: Option[String],
   telefonMobil: Option[String],
+  contactPermission: Boolean,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -186,7 +187,7 @@ case class ArbeitseinsatzDetail(
   telefonMobil: Option[String],
   //additional Detail fields
   arbeitsangebot: Arbeitsangebot,
-  coworkers: Seq[PersonContact],
+  coworkers: PersonContact,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,

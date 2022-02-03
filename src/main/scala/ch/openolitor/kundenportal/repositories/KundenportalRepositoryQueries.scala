@@ -290,7 +290,8 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
       )
       .map { (arbeitseinsatz, arbeitsangebot) =>
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get, "coworkers" -> Seq.empty)
+        val coworkersContact = PersonContact(arbeitseinsatz.personName.getOrElse(""), arbeitseinsatz.email)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get, "coworkers" -> coworkersContact)
       }.single
   }
 
@@ -355,19 +356,18 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
-        .join(personMapping as person).on(sqls.eq(person.contactPermission, true))
-        .where.eq(arbeitseinsatz.personId, owner.personId)
+        .where.eq(arbeitseinsatz.contactPermission, True)
+        .and.in(arbeitseinsatz.arbeitsangebotId, select(arbeitseinsatz.arbeitsangebotId)
+          .from(arbeitseinsatzMapping as arbeitseinsatz)
+          .where.eq(arbeitseinsatz.personId, owner.personId))
         .orderBy(arbeitseinsatz.zeitVon)
     }.one(arbeitseinsatzMapping(arbeitseinsatz))
-      .toManies(
-        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs),
-        rs => personMapping.opt(person)(rs)
+      .toMany(
+        rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
       )
-      .map { (arbeitseinsatz, arbeitsangebote, coworkers) =>
-        val coworkersContact = coworkers map { coworker =>
-          copyTo[Person, PersonContact](coworker)
-        }
-        val arbeitsangebot = arbeitsangebote.filter(_.id == arbeitseinsatz.arbeitsangebotId).head
+      .map { (arbeitseinsatz, arbeitsangebote) =>
+        val coworkersContact = PersonContact(arbeitseinsatz.personName.getOrElse(""), arbeitseinsatz.email)
+        val arbeitsangebot = arbeitsangebote.head
         copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> coworkersContact)
       }.list
   }
