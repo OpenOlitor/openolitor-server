@@ -93,7 +93,8 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
               Some(subject.personId),
               None,
               entity.anzahlPersonen,
-              entity.bemerkungen
+              entity.bemerkungen,
+              entity.contactPermission
             )
             handleEntityInsert[ArbeitseinsatzModify, ArbeitseinsatzId](idFactory, meta, entityToInsert, ArbeitseinsatzId.apply)
           } else {

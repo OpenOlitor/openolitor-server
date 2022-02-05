@@ -232,7 +232,8 @@ case class ArbeitseinsatzModify(
   personId: Option[PersonId],
   aboId: Option[AboId],
   anzahlPersonen: Int,
-  bemerkungen: Option[String]
+  bemerkungen: Option[String],
+  contactPermission: Boolean
 ) extends JSONSerializable
 
 case class ArbeitseinsatzCreate(
@@ -240,7 +241,8 @@ case class ArbeitseinsatzCreate(
   kundeId: KundeId,
   personId: Option[PersonId],
   anzahlPersonen: Int,
-  bemerkungen: Option[String]
+  bemerkungen: Option[String],
+  contactPermission: Boolean
 ) extends JSONSerializable
 
 case class ArbeitseinsatzAbrechnung(

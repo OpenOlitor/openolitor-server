@@ -350,17 +350,19 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .orderBy(arbeitsangebot.zeitVon)
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
-
   protected def getArbeitseinsaetzeQuery(implicit owner: Subject) = {
     withSQL {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
-        .where.eq(arbeitseinsatz.contactPermission, True)
-        .and.in(arbeitseinsatz.arbeitsangebotId, select(arbeitseinsatz.arbeitsangebotId)
-          .from(arbeitseinsatzMapping as arbeitseinsatz)
-          .where.eq(arbeitseinsatz.personId, owner.personId))
-        .orderBy(arbeitseinsatz.zeitVon)
+        .where.withRoundBracket {
+          _.eq(arbeitseinsatz.personId, owner.personId)
+        }.or.withRoundBracket {
+          _.in(arbeitseinsatz.arbeitsangebotId, select(arbeitseinsatz.arbeitsangebotId)
+            .from(arbeitseinsatzMapping as arbeitseinsatz)
+            .where.eq(arbeitseinsatz.personId, owner.personId))
+            .and.eq(arbeitseinsatz.contactPermission, True)
+        }.orderBy(arbeitseinsatz.zeitVon)
     }.one(arbeitseinsatzMapping(arbeitseinsatz))
       .toMany(
         rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
