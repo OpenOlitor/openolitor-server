@@ -110,7 +110,8 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
             kundenportalReadRepository.getArbeitsangebot(entity.arbeitsangebotId) map { arbeitsangebot =>
               if (arbeitsangebot.status == Bereit) {
                 if (arbeitsangebot.zeitVon isAfter DateTime.now.plusDays(projekt.einsatzAbsageVorlaufTage)) {
-                  val entityToSave = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](arbeitseinsatz, "anzahlPersonen" -> entity.anzahlPersonen, "bemerkungen" -> entity.bemerkungen)
+                  val entityToSave = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](arbeitseinsatz, "anzahlPersonen" -> entity.anzahlPersonen,
+                    "bemerkungen" -> entity.bemerkungen, "contactPermission" -> entity.contactPermission)
                   Success(Seq(EntityUpdateEvent(id, entityToSave)))
                 } else {
                   Failure(new InvalidStateException(s"Arbeitseinsätze können nur bis ${projekt.einsatzAbsageVorlaufTage} Tage vor Start modifiziert werden."))
