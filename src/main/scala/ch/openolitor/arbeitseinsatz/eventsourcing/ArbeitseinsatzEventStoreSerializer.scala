@@ -27,7 +27,7 @@ import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler.SendEmailToArbe
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import ch.openolitor.stammdaten.models.{ PersonCreate, PersonModify }
+import ch.openolitor.stammdaten.models.PersonContactPermissionModify
 import spray.json.lenses.JsonLenses._
 import stamina.{ V1, V2 }
 import stamina.json._
@@ -48,6 +48,8 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
   implicit val arbeitsangeboteDuplicatePersister = persister[ArbeitsangeboteDuplicate]("arbeitsangebote-duplicate")
   implicit val arbeitsangeboteDuplicatPersister = persister[ArbeitsangebotDuplicate]("arbeitsangebot-duplicate")
 
+  implicit val personContactPermissionModifyPersister = persister[PersonContactPermissionModify]("person-contact-permission-modify")
+
   implicit val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
 
   val arbeitseinsatzPersisters = List(
@@ -59,6 +61,7 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
     arbeitsangebotIdPersister,
     arbeitsangeboteDuplicatePersister,
     arbeitsangeboteDuplicatPersister,
-    sendEmailToArbeitsangebotPersonenEventPersister
+    sendEmailToArbeitsangebotPersonenEventPersister,
+    personContactPermissionModifyPersister
   )
 }

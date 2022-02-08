@@ -26,6 +26,7 @@ import spray.json._
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.{ BaseJsonProtocol, JSONSerializable }
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
+import ch.openolitor.stammdaten.models.PersonContactPermissionModify
 import com.typesafe.scalalogging.LazyLogging
 import zangelo.spray.json.AutoProductFormats
 
@@ -69,4 +70,5 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
   implicit val arbeitsComplexFlagsFormat = jsonFormat1(ArbeitsComplexFlags)
   implicit val optionArbeitsComplexFlagsFormat = new OptionFormat[ArbeitsComplexFlags]
 
+  implicit val personContactPermissionModifyFormat = autoProductFormat[PersonContactPermissionModify]
 }

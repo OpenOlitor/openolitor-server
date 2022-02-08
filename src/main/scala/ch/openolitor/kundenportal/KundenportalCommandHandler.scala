@@ -30,11 +30,10 @@ import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolCo
 import ch.openolitor.core.exceptions.InvalidStateException
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.security.Subject
-import ch.openolitor.kundenportal.repositories._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
-import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, UserCommand, IdFactory }
+import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, IdFactory, UserCommand }
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
-import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId }
+import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Person }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
 
@@ -51,7 +50,12 @@ object KundenportalCommandHandler {
   case class ArbeitseinsatzLoeschenCommand(originator: PersonId, subject: Subject, arbeitseinsatzId: ArbeitseinsatzId) extends UserCommand
 }
 
-trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappings with ArbeitseinsatzDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware with LazyLogging {
+trait KundenportalCommandHandler extends CommandHandler
+  with BuchhaltungDBMappings
+  with ArbeitseinsatzDBMappings
+  with ConnectionPoolContextAware
+  with AsyncConnectionPoolContextAware
+  with LazyLogging {
   self: KundenportalReadRepositorySyncComponent =>
   import KundenportalCommandHandler._
   import EntityStore._
@@ -144,7 +148,6 @@ trait KundenportalCommandHandler extends CommandHandler with BuchhaltungDBMappin
           Failure(new InvalidStateException(s"Projekt konnte nicht geladen werden."))
         }
       }
-
   }
 }
 

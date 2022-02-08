@@ -613,6 +613,11 @@ case class PersonModify(
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
+
+case class PersonContactPermissionModify(
+  contactPermission: Boolean
+) extends JSONSerializable
+
 case class PersonCreate(
   kundeId: KundeId,
   anrede: Option[Anrede],

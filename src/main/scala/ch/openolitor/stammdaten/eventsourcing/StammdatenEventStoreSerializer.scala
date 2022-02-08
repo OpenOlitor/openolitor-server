@@ -67,8 +67,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
-  implicit val personCreatePersister = persister[PersonCreate]("person-create")
-  implicit val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
+  val personCreatePersister = persister[PersonCreate]("person-create")
+  val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
     .to[V2](_.update('categories ! set[Set[PersonModify]](Set()))))
   implicit val personCreateV3Persister = persister[PersonCreate, V3]("person-create", from[V1]
     .to[V2](_.update('categories ! set[Set[PersonModify]](Set())))
