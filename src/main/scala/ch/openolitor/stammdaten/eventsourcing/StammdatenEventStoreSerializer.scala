@@ -60,10 +60,15 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   val kundeModifyV3Persister = persister[KundeModify, V3]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None))))
-  implicit val kundeModifyV4Persister = persister[KundeModify, V4]("kunde-modify", from[V1]
+  val kundeModifyV4Persister = persister[KundeModify, V4]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
     .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None))))
+  implicit val kundeModifyV5Persister = persister[KundeModify, V5]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
+    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
+    .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None)))
+    .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen)))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
@@ -233,7 +238,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAbotypModifyPersister,
     zusatzAboModifyPersister,
     zusatzAboCreatePersister,
-    kundeModifyV3Persister,
+    kundeModifyV5Persister,
     kundeIdPersister,
     personCreateV3Persister,
     personCategoryIdPersister,
@@ -367,12 +372,20 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   }
 
   def fixPersonModifyInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
-    val personenV1 = in.extract[Set[PersonModifyV1]](attribute)
+    val personen = in.extract[Set[PersonModifyV1]](attribute)
     val emptySet = Set[PersonCategoryNameId]()
-    val personenV3 = personenV1 map { person =>
+    val personenV3 = personen map { person =>
       copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet, "contactPermission" -> False)
     }
     in.update(attribute ! set[Set[PersonModify]](personenV3))
   }
 
+  def fixPersonModifyContactPermissionInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
+    val personen = in.extract[Set[PersonModifyV2]](attribute)
+    val emptySet = Set[PersonCategoryNameId]()
+    val personenV3 = personen map { person =>
+      copyTo[PersonModifyV2, PersonModify](person, "contactPermission" -> False)
+    }
+    in.update(attribute ! set[Set[PersonModify]](personenV3))
+  }
 }
