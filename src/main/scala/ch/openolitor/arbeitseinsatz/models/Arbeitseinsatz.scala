@@ -139,6 +139,7 @@ trait IArbeitseinsatz extends BaseEntity[ArbeitseinsatzId] {
   val bemerkungen: Option[String]
   val email: Option[String]
   val telefonMobil: Option[String]
+  val contactPermission: Boolean
 }
 
 case class Arbeitseinsatz(
@@ -159,6 +160,7 @@ case class Arbeitseinsatz(
   bemerkungen: Option[String],
   email: Option[String],
   telefonMobil: Option[String],
+  contactPermission: Boolean,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -184,8 +186,10 @@ case class ArbeitseinsatzDetail(
   bemerkungen: Option[String],
   email: Option[String],
   telefonMobil: Option[String],
+  contactPermission: Boolean,
   //additional Detail fields
   arbeitsangebot: Arbeitsangebot,
+  coworkers: PersonContact,
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -230,7 +234,8 @@ case class ArbeitseinsatzModify(
   personId: Option[PersonId],
   aboId: Option[AboId],
   anzahlPersonen: Int,
-  bemerkungen: Option[String]
+  bemerkungen: Option[String],
+  contactPermission: Boolean
 ) extends JSONSerializable
 
 case class ArbeitseinsatzCreate(
@@ -238,7 +243,8 @@ case class ArbeitseinsatzCreate(
   kundeId: KundeId,
   personId: Option[PersonId],
   anzahlPersonen: Int,
-  bemerkungen: Option[String]
+  bemerkungen: Option[String],
+  contactPermission: Boolean
 ) extends JSONSerializable
 
 case class ArbeitseinsatzAbrechnung(

@@ -35,10 +35,10 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
-import ch.openolitor.core.models.PersonId
 
 trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings with ArbeitseinsatzDBMappings {
 
+  val True = true
   //Stammdaten
   lazy val projekt = projektMapping.syntax("projekt")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
@@ -290,7 +290,8 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
       )
       .map { (arbeitseinsatz, arbeitsangebot) =>
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+        val coworkersContact = PersonContact(arbeitseinsatz.personName.getOrElse(""), arbeitseinsatz.email)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get, "coworkers" -> coworkersContact)
       }.single
   }
 
@@ -349,21 +350,27 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .orderBy(arbeitsangebot.zeitVon)
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
-
   protected def getArbeitseinsaetzeQuery(implicit owner: Subject) = {
     withSQL {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
-        .where.eq(arbeitseinsatz.kundeId, owner.kundeId)
-        .orderBy(arbeitseinsatz.zeitVon)
+        .where.withRoundBracket {
+          _.eq(arbeitseinsatz.personId, owner.personId)
+        }.or.withRoundBracket {
+          _.in(arbeitseinsatz.arbeitsangebotId, select(arbeitseinsatz.arbeitsangebotId)
+            .from(arbeitseinsatzMapping as arbeitseinsatz)
+            .where.eq(arbeitseinsatz.personId, owner.personId))
+            .and.eq(arbeitseinsatz.contactPermission, True)
+        }.orderBy(arbeitseinsatz.zeitVon)
     }.one(arbeitseinsatzMapping(arbeitseinsatz))
-      .toOne(
+      .toMany(
         rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
       )
       .map { (arbeitseinsatz, arbeitsangebote) =>
-        val arbeitsangebot = arbeitsangebote.filter(_.id == arbeitseinsatz.arbeitsangebotId)
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot.get)
+        val coworkersContact = PersonContact(arbeitseinsatz.personName.getOrElse(""), arbeitseinsatz.email)
+        val arbeitsangebot = arbeitsangebote.head
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> coworkersContact)
       }.list
   }
 

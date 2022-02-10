@@ -38,6 +38,7 @@ import ch.openolitor.mailtemplates.eventsourcing._
 import spray.json._
 
 trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with MailTemplateEventStoreSerializer {
+  val False = false
   //V1 persisters
   implicit val depotModifyPersister = persister[DepotModify]("depot-modify")
   implicit val depotIdPersister = persister[DepotId]("depot-id")
@@ -59,16 +60,24 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   val kundeModifyV3Persister = persister[KundeModify, V3]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None))))
-  implicit val kundeModifyV4Persister = persister[KundeModify, V4]("kunde-modify", from[V1]
+  val kundeModifyV4Persister = persister[KundeModify, V4]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
     .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None))))
+  implicit val kundeModifyV5Persister = persister[KundeModify, V5]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
+    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
+    .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None)))
+    .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen)))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
-  implicit val personCreatePersister = persister[PersonCreate]("person-create")
-  implicit val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
+  val personCreatePersister = persister[PersonCreate]("person-create")
+  val personCreateV2Persister = persister[PersonCreate, V2]("person-create", from[V1]
     .to[V2](_.update('categories ! set[Set[PersonModify]](Set()))))
+  implicit val personCreateV3Persister = persister[PersonCreate, V3]("person-create", from[V1]
+    .to[V2](_.update('categories ! set[Set[PersonModify]](Set())))
+    .to[V3](_.update('contactPermission ! set[Boolean](false))))
 
   implicit val personCategoryIdPersister = persister[PersonCategoryId]("personCategory-id")
   implicit val personCategoryCreatePersister = persister[PersonCategoryCreate]("personCategory-create")
@@ -229,9 +238,9 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAbotypModifyPersister,
     zusatzAboModifyPersister,
     zusatzAboCreatePersister,
-    kundeModifyV3Persister,
+    kundeModifyV5Persister,
     kundeIdPersister,
-    personCreateV2Persister,
+    personCreateV3Persister,
     personCategoryIdPersister,
     personCategoryCreatePersister,
     personCategoryModifyPersister,
@@ -365,10 +374,18 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   def fixPersonModifyInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
     val personen = in.extract[Set[PersonModifyV1]](attribute)
     val emptySet = Set[PersonCategoryNameId]()
-    val personenV2 = personen map { person =>
-      copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet)
+    val personenV3 = personen map { person =>
+      copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet, "contactPermission" -> False)
     }
-    in.update(attribute ! set[Set[PersonModify]](personenV2))
+    in.update(attribute ! set[Set[PersonModify]](personenV3))
   }
 
+  def fixPersonModifyContactPermissionInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
+    val personen = in.extract[Set[PersonModifyV2]](attribute)
+    val emptySet = Set[PersonCategoryNameId]()
+    val personenV3 = personen map { person =>
+      copyTo[PersonModifyV2, PersonModify](person, "contactPermission" -> False)
+    }
+    in.update(attribute ! set[Set[PersonModify]](personenV3))
+  }
 }

@@ -106,9 +106,10 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         rs => arbeitsangebotMapping.opt(arbeitsangebot)(rs)
       )
       .map({ (arbeitseinsatz, arbeitsangebote) =>
+        val coworkersContact = PersonContact(arbeitseinsatz.personName.getOrElse(""), arbeitseinsatz.email)
         val arbeitsangebot = arbeitsangebote.head
 
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> coworkersContact)
       }).single
   }
 
@@ -228,8 +229,9 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
       )
       .map({ (arbeitseinsatz, arbeitsangebote) =>
         val arbeitsangebot = arbeitsangebote.head
+        val coworkersContact = PersonContact(arbeitseinsatz.personName.getOrElse(""), arbeitseinsatz.email)
 
-        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot)
+        copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> coworkersContact)
       }).list
   }
 

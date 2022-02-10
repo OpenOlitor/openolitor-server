@@ -587,6 +587,7 @@ object V1Scripts {
         passwortWechselErforderlich = true,
         rolle = Some(AdministratorZugang),
         categories = Set.empty[PersonCategoryNameId],
+        contactPermission = false,
         // modification flags
         erstelldat = DateTime.now,
         ersteller = personId,
