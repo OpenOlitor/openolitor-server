@@ -195,6 +195,7 @@ trait MailService extends AggregateRoot
       .to(InternetAddress.parse(mail.to): _*)
       .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
       .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
+      .replyTo(InternetAddress.parse(mail.replyTo.getOrElse(""))(0))
       .subject(mail.subject)
   }
 

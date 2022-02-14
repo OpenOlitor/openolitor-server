@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.eventsourcing
 
-import spray.json.DefaultJsonProtocol
+import spray.json.{ DefaultJsonProtocol, JsValue }
 import stamina._
 import stamina.json._
 import ch.openolitor.buchhaltung._
@@ -32,10 +32,14 @@ import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import zangelo.spray.json.AutoProductFormats
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.Macros.copyTo
+import ch.openolitor.stammdaten.models.{ Person, PersonV1 }
+import spray.json.lenses.JsonLenses._
 
 trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
   import ch.openolitor.core.eventsourcing.events._
 
+  val False = false;
   object MigrationToEmpty extends DefaultJsonProtocol {
     case class Empty() extends JSONSerializable
 
@@ -73,7 +77,8 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
 
   implicit val rechnungPDFStoreEventPersister = persister[RechnungPDFStoredEvent, V2]("rechnung-pdf-stored-event", V1toV2metaDataMigration)
   implicit val mahnungPDFStoreEventPersister = persister[MahnungPDFStoredEvent, V2]("mahnung-pdf-stored-event", V1toV2metaDataMigration)
-  implicit val SendEmailToInvoiceSubscribersEventPersister = persister[SendEmailToInvoiceSubscribersEvent]("send-email-to-invoice-subscribers")
+  implicit val SendEmailToInvoiceSubscribersEventV2Persister = persister[SendEmailToInvoiceSubscribersEvent, V2]("send-email-to-invoice-subscribers", from[V1]
+    .to[V2](fixPersonContactPermissionInABuchaltungMail(_, 'person)))
 
   val buchhaltungPersisters = List(
     rechnungCreatePersisterV1,
@@ -98,6 +103,12 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
     zahlungsExportCreatedEventPersister,
     rechnungPDFStoreEventPersister,
     mahnungPDFStoreEventPersister,
-    SendEmailToInvoiceSubscribersEventPersister
+    SendEmailToInvoiceSubscribersEventV2Persister
   )
+
+  def fixPersonContactPermissionInABuchaltungMail(in: JsValue, attribute: Symbol): JsValue = {
+    val person = in.extract[PersonV1](attribute)
+    val p = copyTo[PersonV1, Person](person, "contactPermission" -> False)
+    in.update(attribute ! set[Person](p))
+  }
 }

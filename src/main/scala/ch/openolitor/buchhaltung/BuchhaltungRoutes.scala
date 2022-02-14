@@ -246,7 +246,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       post {
         requestInstance { request =>
           entity(as[RechnungMailRequest]) { rechnungMailRequest =>
-            sendEmailsToInvoicesSubscribers(rechnungMailRequest.subject, rechnungMailRequest.body, rechnungMailRequest.ids, rechnungMailRequest.attachInvoice)
+            sendEmailsToInvoicesSubscribers(rechnungMailRequest.subject, rechnungMailRequest.body, rechnungMailRequest.replyTo, rechnungMailRequest.ids, rechnungMailRequest.attachInvoice)
           }
         }
       }
@@ -415,8 +415,8 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToInvoicesSubscribers(emailSubject: String, body: String, ids: Seq[RechnungId], attachInvoice: Boolean)(implicit subject: Subject) = {
-    onSuccess((entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, ids, attachInvoice))) {
+  private def sendEmailsToInvoicesSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[RechnungId], attachInvoice: Boolean)(implicit subject: Subject) = {
+    onSuccess((entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids, attachInvoice))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>

@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.eventsourcing
 
+import ch.openolitor.buchhaltung.BuchhaltungCommandHandler.SendEmailToInvoiceSubscribersEvent
 import stamina._
 import stamina.json._
 import spray.json.lenses.JsonLenses._
@@ -31,6 +32,7 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.stammdaten.StammdatenCommandHandler._
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+
 import java.util.Locale
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
@@ -219,12 +221,26 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val rolleGewechseltEventPersister = persister[RolleGewechseltEvent, V2]("rolle-gewechselt-gesendet", V1toV2metaDataMigration)
 
   implicit val sendEmailToPersonEventPersister = persister[SendEmailToPersonEvent]("send-email-person")
+  implicit val sendEmailToPersonEventV2Persister = persister[SendEmailToPersonEvent, V2]("send-email-person", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
   implicit val sendEmailToKundeEventPersister = persister[SendEmailToKundeEvent]("send-email-kunde")
+  implicit val sendEmailToKundeEventV2Persister = persister[SendEmailToKundeEvent, V2]("send-email-kunde", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
   implicit val sendEmailToAboSubscriberEventPersister = persister[SendEmailToAboSubscriberEvent]("send-email-abo-subscriber")
+  implicit val sendEmailToAboSubscriberEventV2Persister = persister[SendEmailToAboSubscriberEvent, V2]("send-email-abo-subscriber", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
   implicit val sendEmailToAbotypSubscriberEventPersister = persister[SendEmailToAbotypSubscriberEvent]("send-email-abotyp-subscriber")
+  implicit val sendEmailToAbotypSubscriberEventV2Persister = persister[SendEmailToAbotypSubscriberEvent, V2]("send-email-abotyp-subscriber", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
   implicit val sendEmailToZusatzabotypSubscriberEventPersister = persister[SendEmailToZusatzabotypSubscriberEvent]("send-email-zusatzabotyp-subscriber")
+  implicit val sendEmailToZusatzabotypSubscriberEventV2Persister = persister[SendEmailToZusatzabotypSubscriberEvent, V2]("send-email-zusatzabotyp-subscriber", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
   implicit val sendEmailToTourSubscriberEventPersister = persister[SendEmailToTourSubscriberEvent]("send-email-tour-subscriber")
+  implicit val sendEmailToTourSubscriberEventV2Persister = persister[SendEmailToTourSubscriberEvent, V2]("send-email-tour-subscriber", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
   implicit val sendEmailToDepotSubscriberEventPersister = persister[SendEmailToDepotSubscriberEvent]("send-email-depot-subscriber")
+  implicit val sendEmailToDepotSubscriberEventV2Persister = persister[SendEmailToDepotSubscriberEvent, V2]("send-email-depot-subscriber", from[V1]
+    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
 
   implicit val aboAktiviertEventPersister = persister[AboAktiviertEvent, V2]("abo-aktiviert-event", V1toV2metaDataMigration)
   implicit val aboDeaktiviertEventPersister = persister[AboDeaktiviertEvent, V2]("abo-deaktiviert-event", V1toV2metaDataMigration)
@@ -332,13 +348,13 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     einladungGesendetEventPersister,
     passwortResetGesendetEventPersister,
     rolleGewechseltEventPersister,
-    sendEmailToPersonEventPersister,
-    sendEmailToKundeEventPersister,
-    sendEmailToAboSubscriberEventPersister,
-    sendEmailToAbotypSubscriberEventPersister,
-    sendEmailToZusatzabotypSubscriberEventPersister,
-    sendEmailToTourSubscriberEventPersister,
-    sendEmailToDepotSubscriberEventPersister,
+    sendEmailToPersonEventV2Persister,
+    sendEmailToKundeEventV2Persister,
+    sendEmailToAboSubscriberEventV2Persister,
+    sendEmailToAbotypSubscriberEventV2Persister,
+    sendEmailToZusatzabotypSubscriberEventV2Persister,
+    sendEmailToTourSubscriberEventV2Persister,
+    sendEmailToDepotSubscriberEventV2Persister,
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
     korbIdPersister
@@ -387,5 +403,11 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
       copyTo[PersonModifyV2, PersonModify](person, "contactPermission" -> False)
     }
     in.update(attribute ! set[Set[PersonModify]](personenV3))
+  }
+
+  def fixPersonContactPermissionInMail(in: JsValue, attribute: Symbol): JsValue = {
+    val person = in.extract[PersonV1](attribute)
+    val p = copyTo[PersonV1, Person](person, "contactPermission" -> False)
+    in.update(attribute ! set[Person](p))
   }
 }

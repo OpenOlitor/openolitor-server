@@ -26,14 +26,21 @@ import ch.openolitor.arbeitseinsatz._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenEvent
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import ch.openolitor.stammdaten.models.PersonContactPermissionModify
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
+import ch.openolitor.mailtemplates.eventsourcing.MailTemplateEventStoreSerializer
+import ch.openolitor.stammdaten.StammdatenJsonProtocol
+import ch.openolitor.stammdaten.models.{ Person, PersonContactPermissionModify, PersonV1 }
+import spray.json.JsValue
 import spray.json.lenses.JsonLenses._
-import stamina.{ V1, V2 }
+import stamina.{ V1, V2, V3 }
 import stamina.json._
 import zangelo.spray.json.AutoProductFormats
+import spray.json.lenses.JsonLenses._
 
-trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
+  val False = false
   // V1 persisters
   implicit val arbeitskategorieModifyPersister = persister[ArbeitskategorieModify]("arbeitskategorie-modify")
   implicit val arbeitskategorieIdPersister = persister[ArbeitskategorieId]("arbeitskategorie-id")
@@ -50,7 +57,12 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
 
   implicit val personContactPermissionModifyPersister = persister[PersonContactPermissionModify]("person-contact-permission-modify")
 
-  implicit val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
+  val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
+  val sendEmailToArbeitsangebotPersonenEventV2Persister = persister[SendEmailToArbeitsangebotPersonenEvent, V2]("send-email-arbeitsangebot", from[V1]
+    .to[V2](fixPersonContactPermissionInArbeitseinsatzMailModify(_, 'person)))
+  implicit val sendEmailToArbeitsangebotPersonenEventV3Persister = persister[SendEmailToArbeitsangebotPersonenEvent, V3]("send-email-arbeitsangebot", from[V1]
+    .to[V2](fixPersonContactPermissionInArbeitseinsatzMailModify(_, 'person))
+    .to[V3](_.update('replyTo ! set[Option[String]](None))))
 
   val arbeitseinsatzPersisters = List(
     arbeitskategorieModifyPersister,
@@ -61,7 +73,13 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
     arbeitsangebotIdPersister,
     arbeitsangeboteDuplicatePersister,
     arbeitsangeboteDuplicatPersister,
-    sendEmailToArbeitsangebotPersonenEventPersister,
+    sendEmailToArbeitsangebotPersonenEventV3Persister,
     personContactPermissionModifyPersister
   )
+
+  def fixPersonContactPermissionInArbeitseinsatzMailModify(in: JsValue, attribute: Symbol): JsValue = {
+    val person = in.extract[PersonV1](attribute)
+    val p = copyTo[PersonV1, Person](person, "contactPermission" -> False)
+    in.update(attribute ! set[Person](p))
+  }
 }

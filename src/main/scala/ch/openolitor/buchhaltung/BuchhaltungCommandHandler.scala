@@ -23,12 +23,11 @@
 package ch.openolitor.buchhaltung
 
 import ch.openolitor.core.domain._
-import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.stammdaten.models.{ KundeId, Person, PersonV1 }
 import ch.openolitor.core.models._
-import ch.openolitor.stammdaten.models.KundeId
 import ch.openolitor.mailtemplates.engine.MailTemplateService
-
 import ch.openolitor.core.RouteServiceActor._
+
 import scala.util._
 import scalikejdbc.DB
 import scalikejdbc.DBSession
@@ -39,10 +38,8 @@ import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.filestore._
-
 import ch.openolitor.buchhaltung.zahlungsimport.{ ZahlungsImportRecord, ZahlungsImportRecordResult }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
 
@@ -74,7 +71,7 @@ object BuchhaltungCommandHandler {
   case class ZahlungsEingangErledigenCommand(originator: PersonId, entity: ZahlungsEingangModifyErledigt) extends UserCommand
   case class ZahlungsEingaengeErledigenCommand(originator: PersonId, entities: Seq[ZahlungsEingangModifyErledigt]) extends UserCommand
 
-  case class SendEmailToInvoicesSubscribersCommand(originator: PersonId, subject: String, body: String, ids: Seq[RechnungId], invoice: Boolean) extends UserCommand
+  case class SendEmailToInvoicesSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[RechnungId], invoice: Boolean) extends UserCommand
 
   case class ZahlungsImportCreatedEvent(meta: EventMetadata, entity: ZahlungsImportCreate) extends PersistentEvent with JSONSerializable
   case class ZahlungsEingangErledigtEvent(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt) extends PersistentEvent with JSONSerializable
@@ -84,7 +81,7 @@ object BuchhaltungCommandHandler {
 
   case class RechnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
   case class MahnungPDFStoredEvent(meta: EventMetadata, id: RechnungId, fileStoreId: String) extends PersistentEvent with JSONSerializable
-  case class SendEmailToInvoiceSubscribersEvent(meta: EventMetadata, subject: String, body: String, person: Person, invoiceReference: Option[String], context: RechnungMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToInvoiceSubscribersEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: Person, invoiceReference: Option[String], context: RechnungMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
 trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware
@@ -236,7 +233,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
         Success(successfuls flatMap (_.get))
       }
 
-    case SendEmailToInvoicesSubscribersCommand(personId, subject, body, ids, attachInvoice) => idFactory => meta =>
+    case SendEmailToInvoicesSubscribersCommand(personId, subject, body, replyTo, ids, attachInvoice) => idFactory => meta =>
       DB readOnly { implicit session =>
         if (checkTemplateInvoice(body, subject, ids)) {
           val events = ids flatMap { rechnungId: RechnungId =>
@@ -244,9 +241,9 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
               buchhaltungReadRepository.getPerson(rechnung.id) map { person =>
                 val mailContext = RechnungMailContext(person, rechnung)
                 if (attachInvoice) {
-                  DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, person, rechnung.fileStoreId, mailContext))
+                  DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, person, rechnung.fileStoreId, mailContext))
                 } else {
-                  DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, person, None, mailContext))
+                  DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, person, None, mailContext))
                 }
               }
             }

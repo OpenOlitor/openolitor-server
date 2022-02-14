@@ -422,6 +422,33 @@ object Rolle {
     AlleRollen.find(_.toString == value)
   }
 }
+case class PersonV1(
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  bemerkungen: Option[String],
+  sort: Int,
+  // security data
+  loginAktiv: Boolean,
+  passwort: Option[Array[Char]],
+  letzteAnmeldung: Option[DateTime],
+  passwortWechselErforderlich: Boolean,
+  rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonId] {
+  def fullName = name + ' ' + vorname
+}
 
 case class Person(
   id: PersonId,
