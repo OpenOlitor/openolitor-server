@@ -78,7 +78,7 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
   implicit val rechnungPDFStoreEventPersister = persister[RechnungPDFStoredEvent, V2]("rechnung-pdf-stored-event", V1toV2metaDataMigration)
   implicit val mahnungPDFStoreEventPersister = persister[MahnungPDFStoredEvent, V2]("mahnung-pdf-stored-event", V1toV2metaDataMigration)
   implicit val SendEmailToInvoiceSubscribersEventV2Persister = persister[SendEmailToInvoiceSubscribersEvent, V2]("send-email-to-invoice-subscribers", from[V1]
-    .to[V2](fixPersonContactPermissionInABuchaltungMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
 
   val buchhaltungPersisters = List(
     rechnungCreatePersisterV1,
