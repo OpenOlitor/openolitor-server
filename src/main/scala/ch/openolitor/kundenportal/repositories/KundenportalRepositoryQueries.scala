@@ -183,7 +183,6 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(vertriebMapping as vertrieb).on(zusatzAbo.vertriebId, vertrieb.id)
         .where.eq(zusatzAbo.kundeId, owner.kundeId).and.eq(zusatzAbo.hauptAboId, aboId)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo))
-        .and.withRoundBracket(_.isNull(lieferung.lieferplanungId).or.eq(lieferplanung.status, Ungeplant).or.eq(lieferplanung.status, Offen))
     }
       .one(zusatzAboMapping(zusatzAbo))
       .toManies(
