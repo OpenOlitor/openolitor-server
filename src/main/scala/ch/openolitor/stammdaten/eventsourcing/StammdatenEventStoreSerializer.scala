@@ -222,25 +222,25 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   implicit val sendEmailToPersonEventPersister = persister[SendEmailToPersonEvent]("send-email-person")
   implicit val sendEmailToPersonEventV2Persister = persister[SendEmailToPersonEvent, V2]("send-email-person", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToKundeEventPersister = persister[SendEmailToKundeEvent]("send-email-kunde")
   implicit val sendEmailToKundeEventV2Persister = persister[SendEmailToKundeEvent, V2]("send-email-kunde", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToAboSubscriberEventPersister = persister[SendEmailToAboSubscriberEvent]("send-email-abo-subscriber")
   implicit val sendEmailToAboSubscriberEventV2Persister = persister[SendEmailToAboSubscriberEvent, V2]("send-email-abo-subscriber", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToAbotypSubscriberEventPersister = persister[SendEmailToAbotypSubscriberEvent]("send-email-abotyp-subscriber")
   implicit val sendEmailToAbotypSubscriberEventV2Persister = persister[SendEmailToAbotypSubscriberEvent, V2]("send-email-abotyp-subscriber", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToZusatzabotypSubscriberEventPersister = persister[SendEmailToZusatzabotypSubscriberEvent]("send-email-zusatzabotyp-subscriber")
   implicit val sendEmailToZusatzabotypSubscriberEventV2Persister = persister[SendEmailToZusatzabotypSubscriberEvent, V2]("send-email-zusatzabotyp-subscriber", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToTourSubscriberEventPersister = persister[SendEmailToTourSubscriberEvent]("send-email-tour-subscriber")
   implicit val sendEmailToTourSubscriberEventV2Persister = persister[SendEmailToTourSubscriberEvent, V2]("send-email-tour-subscriber", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToDepotSubscriberEventPersister = persister[SendEmailToDepotSubscriberEvent]("send-email-depot-subscriber")
   implicit val sendEmailToDepotSubscriberEventV2Persister = persister[SendEmailToDepotSubscriberEvent, V2]("send-email-depot-subscriber", from[V1]
-    .to[V2](fixPersonContactPermissionInMail(_, 'person)))
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
 
   implicit val aboAktiviertEventPersister = persister[AboAktiviertEvent, V2]("abo-aktiviert-event", V1toV2metaDataMigration)
   implicit val aboDeaktiviertEventPersister = persister[AboDeaktiviertEvent, V2]("abo-deaktiviert-event", V1toV2metaDataMigration)
@@ -405,9 +405,4 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     in.update(attribute ! set[Set[PersonModify]](personenV3))
   }
 
-  def fixPersonContactPermissionInMail(in: JsValue, attribute: Symbol): JsValue = {
-    val person = in.extract[PersonV1](attribute)
-    val p = copyTo[PersonV1, Person](person, "contactPermission" -> False)
-    in.update(attribute ! set[Person](p))
-  }
 }
