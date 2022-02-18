@@ -231,9 +231,9 @@ trait KundenportalRoutes extends HttpService with ActorReferences
           list(kundenportalReadRepository.getLieferungenDetails(abotypId, vertriebId))
         }
       } ~
-      path("abos" / abotypIdPath / "lieferungen") { (abotypId) =>
+      path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "abo" / aboIdPath / "lieferungenMainAndAdditional") { (abotypId, vertriebId, aboId) =>
         get {
-          list(kundenportalReadRepository.getLieferungenDetails(abotypId))
+          list(kundenportalReadRepository.getLieferungenMainAndAdditionalDetails(abotypId, vertriebId, aboId))
         }
       } ~
       path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / lieferungIdPath) { (abotypId, vertriebId, lieferungId) =>

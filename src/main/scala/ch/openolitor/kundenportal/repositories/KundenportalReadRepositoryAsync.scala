@@ -23,13 +23,14 @@
 package ch.openolitor.kundenportal.repositories
 
 import scalikejdbc.async._
+
 import scala.concurrent.ExecutionContext
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
+
 import scala.concurrent._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.core.security.Subject
@@ -37,7 +38,10 @@ import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.buchhaltung.models.Rechnung
 import ch.openolitor.buchhaltung.models.RechnungDetail
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.core.models.PersonId
+import org.joda.time.DateTime
+
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
 
 trait KundenportalReadRepositoryAsync {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektKundenportal]]
@@ -48,6 +52,7 @@ trait KundenportalReadRepositoryAsync {
 
   def getLieferungenDetails(aboId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]]
   def getLieferungenDetails(aboId: AbotypId, vertriebId: VertriebId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]]
+  def getLieferungenMainAndAdditionalDetails(aboTypId: AbotypId, vertriebId: VertriebId, aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]]
   def getLieferungenDetail(lieferungId: LieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[LieferungDetail]]
 
   def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Rechnung]]
@@ -98,6 +103,14 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
 
   def getLieferungenDetails(abotypId: AbotypId, vertriebId: VertriebId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]] = {
     getLieferungenDetailsQuery(abotypId, vertriebId, filter).list.future
+  }
+
+  def getLieferungenMainAndAdditionalDetails(abotypId: AbotypId, vertriebId: VertriebId, aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]] = {
+    for {
+      zusatzabos <- getZusatzAbosByHauptAbo(aboId)
+      mainLieferungen <- getLieferungenDetailsQuery(abotypId, vertriebId, filter).list().future()
+      zusatzaboLieferungen <- Future.sequence(zusatzabos.map(z => getLieferungenByAbotypQuery(z.abotypId, None).list().future()))
+    } yield mainLieferungen ++ zusatzaboLieferungen.flatten
   }
 
   def getLieferungenDetail(lieferungId: LieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[LieferungDetail]] = {
