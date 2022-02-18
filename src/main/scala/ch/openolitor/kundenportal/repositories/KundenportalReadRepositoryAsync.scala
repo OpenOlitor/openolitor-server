@@ -38,10 +38,6 @@ import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.buchhaltung.models.Rechnung
 import ch.openolitor.buchhaltung.models.RechnungDetail
 import ch.openolitor.arbeitseinsatz.models._
-import org.joda.time.DateTime
-
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.Duration
 
 trait KundenportalReadRepositoryAsync {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektKundenportal]]
