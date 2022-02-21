@@ -467,8 +467,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(stammdatenReadRepository.getPersonenAboAktivByTouren))
       } ~
       path("touren" / tourIdPath) { id =>
-        parameter('aktiveOnly.?.as[Boolean]) { aktiveOnly: Boolean =>
-          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOnly)))
+        parameter('aktiveOrPlanned.?.as[Boolean]) { aktiveOrPlanned: Boolean =>
+          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOrPlanned)))
         } ~
           (put | post)(update[TourModify, TourId](id)) ~
           delete(remove(id))
