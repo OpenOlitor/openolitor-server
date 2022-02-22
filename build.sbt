@@ -93,7 +93,7 @@ val buildSettings = Seq(
     // s3
     "com.amazonaws"                %   "aws-java-sdk-s3"                      % "1.11.807",
     "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
-    "com.github.daddykotex"        %% "courier"                                % "2.0.0",
+    "com.github.daddykotex"        %% "courier"                                % "3.0.1",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
     "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/openolitor-legacy-dependencies/raw/master/de.zalando/beard_2.11/jars/beard_2.11-0.2.0.jar",
