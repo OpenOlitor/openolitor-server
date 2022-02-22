@@ -43,7 +43,7 @@ import scala.concurrent.ExecutionContext
 
 trait EmailHandler extends MailTemplateService with AsyncConnectionPoolContextAware with StammdatenEventStoreSerializer with LazyLogging {
 
-  def sendEmail(meta: EventMetadata, emailSubject: String, body: String, replyTo: Option[String], bcc: Option[String], person: Person, docReference: Option[String], mailContext: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator, timeout: Timeout, executionContext: ExecutionContext, eventStream: EventStream): Unit = {
+  def sendEmail(meta: EventMetadata, emailSubject: String, body: String, replyTo: Option[String], bcc: Option[String], person: PersonEmailData, docReference: Option[String], mailContext: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator, timeout: Timeout, executionContext: ExecutionContext, eventStream: EventStream): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       generateMail(emailSubject, body, mailContext) match {
         case Success(mailPayload) =>

@@ -120,7 +120,7 @@ case class AboMailRequest(
 ) extends JSONSerializable
 
 case class AboMailContext(
-  person: Person,
+  person: PersonEmailData,
   abo: Abo
 ) extends JSONSerializable
 

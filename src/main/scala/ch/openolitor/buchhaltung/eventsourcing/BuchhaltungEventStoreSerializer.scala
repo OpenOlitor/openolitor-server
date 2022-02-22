@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.eventsourcing
 
-import spray.json.{ DefaultJsonProtocol, JsString, JsValue }
+import spray.json._
 import stamina._
 import stamina.json._
 import ch.openolitor.buchhaltung._
@@ -32,7 +32,6 @@ import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import zangelo.spray.json.AutoProductFormats
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.stammdaten.models.{ Person, PersonDetail, PersonModify, PersonSummary, PersonUebersicht }
 import spray.json.lenses.JsonLenses._
 
 trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
@@ -76,14 +75,7 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
 
   implicit val rechnungPDFStoreEventPersister = persister[RechnungPDFStoredEvent, V2]("rechnung-pdf-stored-event", V1toV2metaDataMigration)
   implicit val mahnungPDFStoreEventPersister = persister[MahnungPDFStoredEvent, V2]("mahnung-pdf-stored-event", V1toV2metaDataMigration)
-  implicit val SendEmailToInvoiceSubscribersEventV2Persister = persister[SendEmailToInvoiceSubscribersEvent, V2]("send-email-to-invoice-subscribers", from[V1]
-    .to[V2](fixPersonContactPermissionInABuchaltungMail(_, 'person)))
-  //.to[V2] {
-  // x =>
-  //    fixPersonContactPermissionInABuchaltungMail(_, 'contactPermission)
-  //     val x2 = x.update('person / 'contactPermission ! set[Boolean](false))
-  //    x2
-  // })
+  implicit val SendEmailToInvoiceSubscribersEventPersister = persister[SendEmailToInvoiceSubscribersEvent]("send-email-to-invoice-subscribers")
 
   val buchhaltungPersisters = List(
     rechnungCreatePersisterV1,
@@ -108,37 +100,6 @@ trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with Entit
     zahlungsExportCreatedEventPersister,
     rechnungPDFStoreEventPersister,
     mahnungPDFStoreEventPersister,
-    SendEmailToInvoiceSubscribersEventV2Persister
+    SendEmailToInvoiceSubscribersEventPersister
   )
-
-  def fixPersonContactPermissionInABuchaltungMail(in: JsValue, attribute: Symbol): JsValue = {
-    val jsString = new JsString(
-      """{"anrede":"Herr",
-        |"bemerkungen":"test",
-        |"categories":[],
-        |"contactPermission":false,
-        |"email":"ps@clients.ch",
-        |"erstelldat":"2016-01-01T00:00:00.000Z",
-        |"ersteller":100,
-        |"id":131,
-        |"kundeId":2029,
-        |"letzteAnmeldung":"2020-09-13T19:43:29.000Z",
-        |"loginAktiv":true,
-        |"modifidat":"2020-09-13T19:43:29.000Z",
-        |"modifikator":0,
-        |"name":"Schwander",
-        |"passwort":["$","2","a","$","1","0","$","i","i","s","j","s","J","E","u","Q","d","c","v","J","6","F","Z","I","s","l","c","/","O","m","8","M","9","0","3","r","7","d","b","t","d","t","B","d","l","g","A","6","z","I","7","m","E","/","w","w","M","L","o","6"],
-        |"passwortWechselErforderlich":false,
-        |"rolle":"Administrator",
-        |"sort":1,
-        |"telefonMobil":"078 699 06 99",
-        |"vorname":"Philipp"}""".stripMargin
-    )
-    jsString
-    val test = jsString.convertTo[PersonModify]
-    logger.debug(s" here we have a parsed person: $test")
-    //val person = in.extract[PersonV1](attribute)
-    //val p = copyTo[PersonV1, Person](person, "contactPermission" -> False)
-    in.update(attribute ! set[PersonModify](test))
-  }
 }

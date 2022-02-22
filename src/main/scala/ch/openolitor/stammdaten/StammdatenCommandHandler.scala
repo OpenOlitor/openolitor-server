@@ -95,13 +95,13 @@ object StammdatenCommandHandler {
 
   case class AboAktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
   case class AboDeaktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToPersonEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: PersonMailContext) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToKundeEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: KundeMailContext) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToAboSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: AboMailContext) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToAbotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: AbotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToZusatzabotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: ZusatzabotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToTourSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: TourMailContext) extends PersistentGeneratedEvent with JSONSerializable
-  case class SendEmailToDepotSubscriberEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: DepotMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToPersonEvent(meta: EventMetadata, subject: String, body: String, context: PersonMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToKundeEvent(meta: EventMetadata, subject: String, body: String, context: KundeMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToAboSubscriberEvent(meta: EventMetadata, subject: String, body: String, context: AboMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToAbotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, context: AbotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToZusatzabotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, context: ZusatzabotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToTourSubscriberEvent(meta: EventMetadata, subject: String, body: String, context: TourMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToDepotSubscriberEvent(meta: EventMetadata, subject: String, body: String, context: DepotMailContext) extends PersistentGeneratedEvent with JSONSerializable
   case class UpdateKundeEvent(meta: EventMetadata, kundeId: KundeId, kunde: KundeModify) extends PersistentGeneratedEvent with JSONSerializable
 }
 
@@ -132,8 +132,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           val events = ids flatMap { kundeId =>
             stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
               stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
-                val mailContext = KundeMailContext(person, kunde)
-                DefaultResultingEvent(factory => SendEmailToKundeEvent(factory.newMetadata(), subject, body, person, mailContext))
+                val personEmailData = copyTo[Person, PersonEmailData](person)
+                val mailContext = KundeMailContext(personEmailData, kunde)
+                DefaultResultingEvent(factory => SendEmailToKundeEvent(factory.newMetadata(), subject, body, mailContext))
               }
             }
           }
@@ -148,8 +149,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         if (checkTemplatePersonen(body, subject, ids)) {
           val events = ids flatMap { id =>
             stammdatenReadRepository.getById(personMapping, id) map { person =>
-              val mailContext = PersonMailContext(person)
-              DefaultResultingEvent(factory => SendEmailToPersonEvent(factory.newMetadata(), subject, body, person, mailContext))
+              val personEmailData = copyTo[Person, PersonEmailData](person)
+              val mailContext = PersonMailContext(personEmailData)
+              DefaultResultingEvent(factory => SendEmailToPersonEvent(factory.newMetadata(), subject, body, mailContext))
             }
           }
           Success(events)
@@ -164,8 +166,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           val events = ids flatMap { abotypId =>
             stammdatenReadRepository.getPersonenForAbotyp(abotypId) flatMap { person =>
               stammdatenReadRepository.getAbotypById(abotypId) map { abotypId =>
-                val mailContext = AbotypMailContext(person, abotypId)
-                DefaultResultingEvent(factory => SendEmailToAbotypSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                val personEmailData = copyTo[Person, PersonEmailData](person)
+                val mailContext = AbotypMailContext(personEmailData, abotypId)
+                DefaultResultingEvent(factory => SendEmailToAbotypSubscriberEvent(factory.newMetadata(), subject, body, mailContext))
               }
             }
           }
@@ -181,8 +184,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           val events = ids flatMap { abotypId =>
             stammdatenReadRepository.getPersonenForZusatzabotyp(abotypId) flatMap { person =>
               stammdatenReadRepository.getAbotypById(abotypId) map { abotypId =>
-                val mailContext = AbotypMailContext(person, abotypId)
-                DefaultResultingEvent(factory => SendEmailToAbotypSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                val personEmailData = copyTo[Person, PersonEmailData](person)
+                val mailContext = AbotypMailContext(personEmailData, abotypId)
+                DefaultResultingEvent(factory => SendEmailToAbotypSubscriberEvent(factory.newMetadata(), subject, body, mailContext))
               }
             }
           }
@@ -198,8 +202,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           val events = ids flatMap { tourId =>
             stammdatenReadRepository.getPersonen(tourId) flatMap { person =>
               stammdatenReadRepository.getById(tourMapping, tourId) map { tour =>
-                val mailContext = TourMailContext(person, tour)
-                DefaultResultingEvent(factory => SendEmailToTourSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                val personEmailData = copyTo[Person, PersonEmailData](person)
+                val mailContext = TourMailContext(personEmailData, tour)
+                DefaultResultingEvent(factory => SendEmailToTourSubscriberEvent(factory.newMetadata(), subject, body, mailContext))
               }
             }
           }
@@ -215,8 +220,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           val events = ids flatMap { depotId =>
             stammdatenReadRepository.getPersonen(depotId) flatMap { person =>
               stammdatenReadRepository.getById(depotMapping, depotId) map { depot =>
-                val mailContext = DepotMailContext(person, depot)
-                DefaultResultingEvent(factory => SendEmailToDepotSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                val personEmailData = copyTo[Person, PersonEmailData](person)
+                val mailContext = DepotMailContext(personEmailData, depot)
+                DefaultResultingEvent(factory => SendEmailToDepotSubscriberEvent(factory.newMetadata(), subject, body, mailContext))
               }
             }
           }
@@ -235,8 +241,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
               stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
               stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
                 stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
-                  val mailContext = AboMailContext(person, abo)
-                  DefaultResultingEvent(factory => SendEmailToAboSubscriberEvent(factory.newMetadata(), subject, body, person, mailContext))
+                  val personEmailData = copyTo[Person, PersonEmailData](person)
+                  val mailContext = AboMailContext(personEmailData, abo)
+                  DefaultResultingEvent(factory => SendEmailToAboSubscriberEvent(factory.newMetadata(), subject, body, mailContext))
                 }
               }
           }
@@ -1074,7 +1081,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
         stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
         stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
           stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
-            val mailContext = AboMailContext(person, abo)
+            val personEmailData = copyTo[Person, PersonEmailData](person)
+            val mailContext = AboMailContext(personEmailData, abo)
             generateMail(subject, body, mailContext) match {
               case Success(mailPayload) => true
               case Failure(e)           => false
@@ -1089,7 +1097,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val templateCorrect = ids flatMap { kundeId: KundeId =>
       stammdatenReadRepository.getPersonen(kundeId) flatMap { person =>
         stammdatenReadRepository.getById(kundeMapping, kundeId) map { kunde =>
-          val mailContext = KundeMailContext(person, kunde)
+          val personEmailData = copyTo[Person, PersonEmailData](person)
+          val mailContext = KundeMailContext(personEmailData, kunde)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
             case Failure(e)           => false
@@ -1104,7 +1113,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val templateCorrect = ids flatMap { abotypId: AbotypId =>
       stammdatenReadRepository.getPersonenForAbotyp(abotypId) flatMap { person =>
         stammdatenReadRepository.getAbotypById(abotypId) map { abotyp =>
-          val mailContext = AbotypMailContext(person, abotyp)
+          val personEmailData = copyTo[Person, PersonEmailData](person)
+          val mailContext = AbotypMailContext(personEmailData, abotyp)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
             case Failure(e)           => false
@@ -1119,7 +1129,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val templateCorrect = ids flatMap { abotypId: AbotypId =>
       stammdatenReadRepository.getPersonenForZusatzabotyp(abotypId) flatMap { person =>
         stammdatenReadRepository.getAbotypById(abotypId) map { abotyp =>
-          val mailContext = AbotypMailContext(person, abotyp)
+          val personEmailData = copyTo[Person, PersonEmailData](person)
+          val mailContext = AbotypMailContext(personEmailData, abotyp)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
             case Failure(e)           => false
@@ -1134,7 +1145,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val templateCorrect = ids flatMap { tourId: TourId =>
       stammdatenReadRepository.getPersonen(tourId) flatMap { person =>
         stammdatenReadRepository.getById(tourMapping, tourId) map { tour =>
-          val mailContext = TourMailContext(person, tour)
+          val personEmailData = copyTo[Person, PersonEmailData](person)
+          val mailContext = TourMailContext(personEmailData, tour)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
             case Failure(e)           => false
@@ -1149,7 +1161,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     val templateCorrect = ids flatMap { depotId: DepotId =>
       stammdatenReadRepository.getPersonen(depotId) flatMap { person =>
         stammdatenReadRepository.getById(depotMapping, depotId) map { depot =>
-          val mailContext = DepotMailContext(person, depot)
+          val personEmailData = copyTo[Person, PersonEmailData](person)
+          val mailContext = DepotMailContext(personEmailData, depot)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
             case Failure(e)           => false
@@ -1163,7 +1176,8 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
   private def checkTemplatePersonen(body: String, subject: String, ids: Seq[PersonId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { personId: PersonId =>
       stammdatenReadRepository.getById(personMapping, personId) map { person =>
-        val mailContext = PersonMailContext(person)
+        val personEmailData = copyTo[Person, PersonEmailData](person)
+        val mailContext = PersonMailContext(personEmailData)
         generateMail(subject, body, mailContext) match {
           case Success(mailPayload) => true
           case Failure(e)           => false

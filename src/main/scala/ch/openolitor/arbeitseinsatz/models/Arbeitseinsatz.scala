@@ -117,7 +117,7 @@ case class ArbeitsangebotMailRequest(
 ) extends JSONSerializable
 
 case class ArbeitsangebotMailContext(
-  person: Person,
+  person: PersonEmailData,
   arbeitsangebot: Arbeitsangebot
 ) extends JSONSerializable
 

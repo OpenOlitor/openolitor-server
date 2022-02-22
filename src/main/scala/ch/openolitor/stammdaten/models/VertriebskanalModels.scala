@@ -252,7 +252,7 @@ case class DepotMailRequest(
 ) extends JSONSerializable
 
 case class DepotMailContext(
-  person: Person,
+  person: PersonEmailData,
   depot: Depot
 ) extends JSONSerializable
 
@@ -304,6 +304,6 @@ case class TourMailRequest(
 ) extends JSONSerializable
 
 case class TourMailContext(
-  person: Person,
+  person: PersonEmailData,
   tour: Tour
 ) extends JSONSerializable

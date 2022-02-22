@@ -229,7 +229,7 @@ case class AbotypMailRequest(
 ) extends JSONSerializable
 
 case class AbotypMailContext(
-  person: Person,
+  person: PersonEmailData,
   abotyp: IAbotyp
 ) extends JSONSerializable
 
@@ -322,6 +322,6 @@ case class ZusatzabotypMailRequest(
 ) extends JSONSerializable
 
 case class ZusatzabotypMailContext(
-  person: Person,
+  person: PersonEmailData,
   zusatzabotyp: ZusatzAbotyp
 ) extends JSONSerializable

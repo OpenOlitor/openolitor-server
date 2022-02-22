@@ -298,7 +298,7 @@ case class RechnungMailRequest(
 ) extends JSONSerializable
 
 case class RechnungMailContext(
-  person: Person,
+  person: PersonEmailData,
   rechnung: Rechnung
 ) extends JSONSerializable
 

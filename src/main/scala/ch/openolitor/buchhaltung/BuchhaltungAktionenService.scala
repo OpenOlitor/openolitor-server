@@ -26,7 +26,7 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.stammdaten.models.{ Person, PersonEmailData, Projekt }
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
@@ -43,7 +43,6 @@ import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponen
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.stammdaten.EmailHandler
-import ch.openolitor.stammdaten.models.Projekt
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -96,8 +95,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
       rechnungPDFStored(meta, rechnungId, fileStoreId)
     case MahnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
       mahnungPDFStored(meta, rechnungId, fileStoreId)
-    case SendEmailToInvoiceSubscribersEvent(meta, subject, body, replyTo, person, invoice, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, person, invoice, context, mailService)
+    case SendEmailToInvoiceSubscribersEvent(meta, subject, body, replyTo, invoice, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, invoice, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -274,7 +273,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
     }
   }
 
-  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: Person, invoiceReference: Option[String], context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
+  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, invoiceReference: Option[String], context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       lazy val bccAddress = config.getString("smtp.bcc")
       buchhaltungWriteRepository.getProjekt map { projekt: Projekt =>
