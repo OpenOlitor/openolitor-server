@@ -446,8 +446,8 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     getTourenQuery.future
   }
 
-  def getTourDetail(id: TourId, aktiveOnly: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]] = {
-    getTourDetailQuery(id, aktiveOnly).future
+  def getTourDetail(id: TourId, aktiveOrPlanned: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]] = {
+    getTourDetailQuery(id, aktiveOrPlanned).future
   }
 
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]] = {

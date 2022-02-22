@@ -1096,13 +1096,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(tourMapping(tour)).list
   }
 
-  protected def getTourDetailQuery(id: TourId, aktiveOnly: Boolean) = {
+  protected def getTourDetailQuery(id: TourId, aktiveOrPlanned: Boolean) = {
+    val today = LocalDate.now.toDateTimeAtStartOfDay
     withSQL {
       select
         .from(tourMapping as tour)
         .leftJoin(tourlieferungMapping as tourlieferung).on(tour.id, tourlieferung.tourId)
-        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(sqls"${tourlieferung.id} = ${heimlieferungAbo.id} and ${heimlieferungAbo.aktiv} IN (${aktiveOnly}, true)")
-        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${tourlieferung.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} IN (${aktiveOnly}, true)")
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(sqls"${tourlieferung.id} = ${heimlieferungAbo.id} and (${heimlieferungAbo.aktiv} IN (${aktiveOrPlanned}, true) or (${heimlieferungAbo.start} > ${today})) ")
+        .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${tourlieferung.id} = ${zusatzAbo.hauptAboId} and (${zusatzAbo.aktiv} IN (${aktiveOrPlanned}, true) or (${zusatzAbo.start} > ${today}))")
         .where.eq(tour.id, id).and.not.isNull(heimlieferungAbo.id)
         .orderBy(tourlieferung.sort)
     }.one(tourMapping(tour))
