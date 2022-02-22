@@ -248,7 +248,8 @@ case class DepotSummary(
 case class DepotMailRequest(
   ids: Seq[DepotId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class DepotMailContext(
@@ -300,7 +301,8 @@ case class TourModify(
 case class TourMailRequest(
   ids: Seq[TourId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class TourMailContext(

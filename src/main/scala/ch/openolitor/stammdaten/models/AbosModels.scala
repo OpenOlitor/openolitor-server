@@ -116,7 +116,9 @@ sealed trait AboModify extends JSONSerializable {
 case class AboMailRequest(
   ids: Seq[AboId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
+
 ) extends JSONSerializable
 
 case class AboMailContext(

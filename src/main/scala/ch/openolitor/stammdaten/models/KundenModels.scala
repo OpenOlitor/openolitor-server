@@ -391,7 +391,8 @@ case class KundeModify(
 case class KundeMailRequest(
   ids: Seq[KundeId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class KundeMailContext(
@@ -693,8 +694,10 @@ case class PersonContact(
 case class PersonMailRequest(
   ids: Seq[PersonId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
+
 case class PersonCategoryNameId(id: String) extends BaseStringId
 case class PersonCategoryId(id: Long) extends BaseId
 case class PersonCategory(
