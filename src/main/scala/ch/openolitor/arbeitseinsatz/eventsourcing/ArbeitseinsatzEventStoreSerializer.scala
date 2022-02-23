@@ -31,7 +31,7 @@ import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.mailtemplates.eventsourcing.MailTemplateEventStoreSerializer
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
-import ch.openolitor.stammdaten.models.{ Person, PersonContactPermissionModify, PersonV1 }
+import ch.openolitor.stammdaten.models.{ Person, PersonContactPermissionModify }
 import spray.json.JsValue
 import spray.json.lenses.JsonLenses._
 import stamina.{ V1, V2, V3 }
@@ -58,11 +58,6 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
   implicit val personContactPermissionModifyPersister = persister[PersonContactPermissionModify]("person-contact-permission-modify")
 
   val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
-  val sendEmailToArbeitsangebotPersonenEventV2Persister = persister[SendEmailToArbeitsangebotPersonenEvent, V2]("send-email-arbeitsangebot", from[V1]
-    .to[V2](fixPersonContactPermissionInArbeitseinsatzMailModify(_, 'person)))
-  implicit val sendEmailToArbeitsangebotPersonenEventV3Persister = persister[SendEmailToArbeitsangebotPersonenEvent, V3]("send-email-arbeitsangebot", from[V1]
-    .to[V2](fixPersonContactPermissionInArbeitseinsatzMailModify(_, 'person))
-    .to[V3](_.update('replyTo ! set[Option[String]](None))))
 
   val arbeitseinsatzPersisters = List(
     arbeitskategorieModifyPersister,
@@ -73,13 +68,7 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
     arbeitsangebotIdPersister,
     arbeitsangeboteDuplicatePersister,
     arbeitsangeboteDuplicatPersister,
-    sendEmailToArbeitsangebotPersonenEventV3Persister,
+    sendEmailToArbeitsangebotPersonenEventPersister,
     personContactPermissionModifyPersister
   )
-
-  def fixPersonContactPermissionInArbeitseinsatzMailModify(in: JsValue, attribute: Symbol): JsValue = {
-    val person = in.extract[PersonV1](attribute)
-    val p = copyTo[PersonV1, Person](person, "contactPermission" -> False)
-    in.update(attribute ! set[Person](p))
-  }
 }
