@@ -28,9 +28,9 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
 
-import scala.util.{ Success, Try }
+import scala.util.{Success, Try}
 
-object OO86_enlarge_login_message {
+object OO86_enlarge_login_message_size {
   val EnlargeLoginMessage = new Script with LazyLogging with StammdatenDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       sql"""ALTER TABLE ${projektMapping.table} MODIFY welcome_Message1 MEDIUMTEXT""".execute.apply()
