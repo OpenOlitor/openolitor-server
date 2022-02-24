@@ -30,7 +30,7 @@ import scalikejdbc._
 
 import scala.util.{ Success, Try }
 
-object OO86_EnlargeLoginMessage {
+object OO86_enlarge_login_message {
   val EnlargeLoginMessage = new Script with LazyLogging with StammdatenDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       sql"""ALTER TABLE ${projektMapping.table} MODIFY welcome_Message1 MEDIUMTEXT""".execute.apply()
