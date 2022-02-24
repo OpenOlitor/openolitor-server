@@ -29,9 +29,9 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
 
-import scala.util.{ Success, Try }
+import scala.util.{Success, Try}
 
-object OO86_CreateKundenSpecificMessage {
+object OO86_create_kunden_specific_message {
   val CreateKundenSpecificMessage = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       alterTableAddColumnIfNotExists(projektMapping, "message_for_members", "MEDIUMTEXT", "welcome_Message2")
