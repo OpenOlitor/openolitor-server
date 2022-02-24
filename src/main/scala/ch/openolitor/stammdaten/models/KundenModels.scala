@@ -391,11 +391,12 @@ case class KundeModify(
 case class KundeMailRequest(
   ids: Seq[KundeId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class KundeMailContext(
-  person: Person,
+  person: PersonEmailData,
   kunde: Kunde
 ) extends JSONSerializable
 
@@ -527,6 +528,25 @@ case class PersonDetail(
   modifikator: PersonId
 ) extends BaseEntity[PersonId]
 
+case class PersonEmailData(
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonId]
+
 case class PersonSummary(
   anrede: Option[Anrede],
   name: String,
@@ -636,7 +656,7 @@ case class PersonCreate(
 }
 
 case class PersonMailContext(
-  person: Person
+  person: PersonEmailData
 ) extends JSONSerializable
 
 case class PersonContact(
@@ -647,8 +667,10 @@ case class PersonContact(
 case class PersonMailRequest(
   ids: Seq[PersonId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
+
 case class PersonCategoryNameId(id: String) extends BaseStringId
 case class PersonCategoryId(id: Long) extends BaseId
 case class PersonCategory(

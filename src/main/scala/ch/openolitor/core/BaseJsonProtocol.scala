@@ -27,8 +27,11 @@ import spray.json._
 import org.joda.time._
 import org.joda.time.format._
 import ch.openolitor.core.models._
+import ch.openolitor.stammdaten.models.PersonContactPermissionModify
+
 import java.util.UUID
 import zangelo.spray.json.AutoProductFormats
+
 import java.util.Locale
 
 trait JSONSerializable extends Product
@@ -145,6 +148,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
   implicit val idResponseFormat = jsonFormat1(BaseJsonProtocol.IdResponse)
 
   implicit val rejectionMessageFormat = jsonFormat2(RejectionMessage)
+  implicit val personContactPermissionModifyFormat = autoProductFormat[PersonContactPermissionModify]
 }
 
 object BaseJsonProtocol {

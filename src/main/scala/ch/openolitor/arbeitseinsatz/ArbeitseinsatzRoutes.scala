@@ -139,14 +139,14 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[ArbeitsangebotMailRequest]) { arbeitsangebotMailRequest =>
-              sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.ids)
+              sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.replyTo, arbeitsangebotMailRequest.ids)
             }
           }
         }
       }
 
-  private def sendEmailToArbeitsangebotPersonen(emailSubject: String, body: String, ids: Seq[ArbeitsangebotId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailToArbeitsangebotPersonen(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>

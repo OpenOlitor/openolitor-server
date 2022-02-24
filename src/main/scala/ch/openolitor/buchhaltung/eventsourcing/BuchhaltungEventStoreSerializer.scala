@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.eventsourcing
 
-import spray.json.DefaultJsonProtocol
+import spray.json._
 import stamina._
 import stamina.json._
 import ch.openolitor.buchhaltung._
@@ -32,6 +32,7 @@ import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
 import zangelo.spray.json.AutoProductFormats
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.core.JSONSerializable
+import spray.json.lenses.JsonLenses._
 
 trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
   import ch.openolitor.core.eventsourcing.events._

@@ -112,11 +112,12 @@ case class ArbeitsangebotModify(
 case class ArbeitsangebotMailRequest(
   ids: Seq[ArbeitsangebotId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class ArbeitsangebotMailContext(
-  person: Person,
+  person: PersonEmailData,
   arbeitsangebot: Arbeitsangebot
 ) extends JSONSerializable
 

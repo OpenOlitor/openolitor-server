@@ -27,13 +27,15 @@ import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler.SendEmailToArbe
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
+import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.stammdaten.models.PersonContactPermissionModify
 import spray.json.lenses.JsonLenses._
 import stamina.{ V1, V2 }
 import stamina.json._
 import zangelo.spray.json.AutoProductFormats
+import spray.json.lenses.JsonLenses._
 
-trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
   // V1 persisters
   implicit val arbeitskategorieModifyPersister = persister[ArbeitskategorieModify]("arbeitskategorie-modify")
   implicit val arbeitskategorieIdPersister = persister[ArbeitskategorieId]("arbeitskategorie-id")
@@ -50,7 +52,7 @@ trait ArbeitseinsatzEventStoreSerializer extends ArbeitseinsatzJsonProtocol with
 
   implicit val personContactPermissionModifyPersister = persister[PersonContactPermissionModify]("person-contact-permission-modify")
 
-  implicit val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
+  val sendEmailToArbeitsangebotPersonenEventPersister = persister[SendEmailToArbeitsangebotPersonenEvent]("send-email-arbeitsangebot")
 
   val arbeitseinsatzPersisters = List(
     arbeitskategorieModifyPersister,

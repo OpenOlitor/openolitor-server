@@ -34,10 +34,11 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ ActorRef, ActorSystem }
-import ch.openolitor.stammdaten.models.{ Person, Projekt }
+import ch.openolitor.stammdaten.models.{ Person, PersonEmailData, Projekt }
 import scalikejdbc.DB
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+
 import scala.concurrent.ExecutionContext.Implicits._
 
 object ArbeitseinsatzAktionenService {
@@ -58,19 +59,19 @@ class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, overri
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
   val handle: Handle = {
-    case SendEmailToArbeitsangebotPersonenEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
+    case SendEmailToArbeitsangebotPersonenEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
 
-  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, person: Person, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
+  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       lazy val bccAddress = config.getString("smtp.bcc")
       arbeitseinsatzWriteRepository.getProjekt map { projekt: Projekt =>
         projekt.sendEmailToBcc match {
-          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, None, context, mailService)
-          case false => sendEmail(meta, subject, body, None, person, None, context, mailService)
+          case true  => sendEmail(meta, subject, body, replyTo, Some(bccAddress), person, None, context, mailService)
+          case false => sendEmail(meta, subject, body, replyTo, None, person, None, context, mailService)
         }
       }
     }

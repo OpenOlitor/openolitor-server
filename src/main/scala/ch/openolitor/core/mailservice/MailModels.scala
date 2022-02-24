@@ -29,13 +29,31 @@ import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
 
 case class MailPayload(subject: String, content: String) {
-  def toMail(priority: Int, to: String, cc: Option[String], bcc: Option[String], attachmentReference: Option[String]): Mail =
-    Mail(priority, to, cc, bcc, subject, content, attachmentReference)
+  def toMail(priority: Int, to: String, cc: Option[String], bcc: Option[String], replyTo: Option[String], attachmentReference: Option[String]): Mail =
+    Mail(priority, to, cc, bcc, replyTo, subject, content, attachmentReference)
 }
 
-case class Mail(priority: Int, to: String, cc: Option[String], bcc: Option[String], subject: String, content: String, attachmentReference: Option[String]) extends JSONSerializable
+case class Mail(
+  priority: Int,
+  to: String,
+  cc: Option[String],
+  bcc: Option[String],
+  replyTo: Option[String],
+  subject: String,
+  content: String,
+  attachmentReference: Option[String]
+)
+  extends JSONSerializable
 
-case class MailEnqueued(meta: EventMetadata, uid: String, mail: Mail, commandMeta: Option[AnyRef], nextTry: DateTime, expires: DateTime, retries: Int)
+case class MailEnqueued(
+  meta: EventMetadata,
+  uid: String,
+  mail: Mail,
+  commandMeta: Option[AnyRef],
+  nextTry: DateTime,
+  expires: DateTime,
+  retries: Int
+)
   extends Ordered[MailEnqueued] {
   import scala.math.Ordered.orderingToOrdered
   implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)

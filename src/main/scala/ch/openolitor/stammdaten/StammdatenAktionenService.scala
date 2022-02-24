@@ -106,20 +106,20 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
       sendPasswortReset(meta, einladung)
     case RolleGewechseltEvent(meta, _, personId, rolle) =>
       changeRolle(meta, personId, rolle)
-    case SendEmailToPersonEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
-    case SendEmailToKundeEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
-    case SendEmailToAbotypSubscriberEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
-    case SendEmailToZusatzabotypSubscriberEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
-    case SendEmailToTourSubscriberEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
-    case SendEmailToDepotSubscriberEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
-    case SendEmailToAboSubscriberEvent(meta, subject, body, person, context) =>
-      checkBccAndSend(meta, subject, body, person, context, mailService)
+    case SendEmailToPersonEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
+    case SendEmailToKundeEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
+    case SendEmailToAbotypSubscriberEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
+    case SendEmailToZusatzabotypSubscriberEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
+    case SendEmailToTourSubscriberEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
+    case SendEmailToDepotSubscriberEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
+    case SendEmailToAboSubscriberEvent(meta, subject, body, replyTo, context) =>
+      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -197,7 +197,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
                 case Some(template: MailTemplate) => {
                   generateMail(template.subject, template.body, mailContext) match {
                     case Success(mailPayload) =>
-                      val mail = mailPayload.toMail(1, produzent.email, None, None, None)
+                      val mail = mailPayload.toMail(1, produzent.email, None, None, None, None)
                       mailService ? SendMailCommandWithCallback(personId, mail, Some(5 minutes), id) map
                         {
                           case _: SendMailEvent =>
@@ -253,13 +253,13 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     sendEinladung(meta, einladungCreate, BaseZugangLink, InvitationMailTemplateType)
   }
 
-  def checkBccAndSend(meta: EventMetadata, subject: String, body: String, person: Person, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
+  def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       lazy val bccAddress = config.getString("smtp.bcc")
       stammdatenWriteRepository.getProjekt map { projekt =>
         projekt.sendEmailToBcc match {
-          case true  => sendEmail(meta, subject, body, Some(bccAddress), person, None, context, mailService)
-          case false => sendEmail(meta, subject, body, None, person, None, context, mailService)
+          case true  => sendEmail(meta, subject, body, replyTo, Some(bccAddress), person, None, context, mailService)
+          case false => sendEmail(meta, subject, body, replyTo, None, person, None, context, mailService)
         }
       }
     }
@@ -289,7 +289,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
               val mailContext = EinladungMailContext(person, einladung, baseLink)
               generateMail(template.subject, template.body, mailContext) match {
                 case Success(mailPayload) =>
-                  val mail = mailPayload.toMail(1, person.email.get, None, None, None)
+                  val mail = mailPayload.toMail(1, person.email.get, None, None, None, None)
                   mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), einladung.id) map
                     {
                       case _: SendMailEvent =>
