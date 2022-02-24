@@ -56,7 +56,6 @@ class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, overri
   with ArbeitseinsatzDBMappings with MailServiceReference with ArbeitseinsatzEventStoreSerializer {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
-  override val False = false
   implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
 
   val handle: Handle = {

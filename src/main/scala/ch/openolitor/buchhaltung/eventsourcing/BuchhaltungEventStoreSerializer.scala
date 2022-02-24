@@ -37,7 +37,6 @@ import spray.json.lenses.JsonLenses._
 trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
   import ch.openolitor.core.eventsourcing.events._
 
-  val False = false;
   object MigrationToEmpty extends DefaultJsonProtocol {
     case class Empty() extends JSONSerializable
 
