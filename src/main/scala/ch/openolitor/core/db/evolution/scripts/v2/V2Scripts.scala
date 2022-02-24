@@ -249,5 +249,6 @@ object V2Scripts {
     OO_gitlab_373_ZahlungsEingang_teilnehmer_nummer.scripts ++
     OO_distribution_date_time_should_not_consider_time.scripts ++
     Operations465_EnlargeKundeBez.scripts ++
-    OO411_adding_person_contact_permission.scripts
+    OO411_adding_person_contact_permission.scripts ++
+    OO86_enlarge_login_message_size.scripts
 }
