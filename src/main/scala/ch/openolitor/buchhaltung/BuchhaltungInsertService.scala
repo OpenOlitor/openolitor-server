@@ -32,7 +32,6 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import ch.openolitor.core.Macros._
-import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
 import ch.openolitor.stammdaten.models.KontoDaten
 import ch.openolitor.util.ConfigUtil._

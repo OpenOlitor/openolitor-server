@@ -25,6 +25,7 @@ package ch.openolitor.stammdaten
 import ch.openolitor.buchhaltung.models.{ RechnungsPositionStatus, RechnungsPositionTyp }
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
+import ch.openolitor.util.ConfigUtil._
 
 import scala.util._
 import scalikejdbc.DB
@@ -706,7 +707,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             idFactory.newId(EinladungId.apply),
             personId,
             UUID.randomUUID.toString,
-            DateTime.now.plusDays(90),
+            DateTime.now.plusDays(config.getIntOption(s"mail.invite-expiration-time-in-days").getOrElse(90)),
             None
           )))))
         } getOrElse {
@@ -726,7 +727,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             idFactory.newId(EinladungId.apply),
             personId,
             UUID.randomUUID.toString,
-            DateTime.now.plusMinutes(120),
+            DateTime.now.plusMinutes(config.getIntOption(s"mail.password-reset-message-expiration-time-in-minutes").getOrElse(120)),
             None
           )))))
         } getOrElse {
