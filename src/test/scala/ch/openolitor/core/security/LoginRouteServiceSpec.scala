@@ -59,7 +59,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
     false, Some(AdministratorZugang), Set.empty, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val personAdminInactive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, false, Some(pwdHashed.toCharArray), None,
     false, Some(AdministratorZugang), Set.empty, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
-  val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), Locale.GERMAN, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
+  val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), Locale.GERMAN, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, None, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
 
   implicit val ctx = MultipleAsyncConnectionPoolContext()
   val timeout = 5 seconds

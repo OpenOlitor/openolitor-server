@@ -250,5 +250,6 @@ object V2Scripts {
     OO_distribution_date_time_should_not_consider_time.scripts ++
     Operations465_EnlargeKundeBez.scripts ++
     OO411_adding_person_contact_permission.scripts ++
-    OO86_enlarge_login_message_size.scripts
+    OO86_enlarge_login_message_size.scripts ++
+    OO86_create_kunden_specific_message.scripts
 }

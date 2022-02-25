@@ -71,6 +71,7 @@ object ProjektParser extends EntityParser {
           einsatzAbsageVorlaufTage = row.value[Int](indexEinsatzAbsageVorlaufTage),
           einsatzShowListeKunde = row.value[Boolean](indexEinsatzShowListeKunde),
           sendEmailToBcc = row.value[Boolean](indexSendEmailToBcc),
+          messageForMembers = None,
           //modification flags
           erstelldat = row.value[DateTime](indexErstelldat),
           ersteller = PersonId(row.value[Long](indexErsteller)),
