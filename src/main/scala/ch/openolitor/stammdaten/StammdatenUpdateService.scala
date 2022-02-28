@@ -198,11 +198,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     DB localTxPostPublish { implicit session => implicit publisher =>
       val zusatzabos = stammdatenWriteRepository.getZusatzAbosByZusatzabotyp(id)
       zusatzabos map { zusatzabo =>
-
-        val mainAbos = stammdatenWriteRepository.getDepotAbosByZusatzAboId(zusatzabo.id) ++
-          stammdatenWriteRepository.getPostAbosByZusatzAboId(zusatzabo.id) ++
-          stammdatenWriteRepository.getHeimAbosByZusatzAboId(zusatzabo.id)
-        mainAbos map { mainAbo =>
+        stammdatenWriteRepository.getAbosByZusatzAboId(zusatzabo.id) map { mainAbo =>
           val seqNames = mainAbo.zusatzAbotypNames.map { element =>
             if (element.equals(oldName)) {
               newName
