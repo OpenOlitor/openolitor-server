@@ -71,6 +71,7 @@ trait JobQueueRoutes extends HttpService with DefaultRouteService with JobQueueJ
                 download(file.fileType, file.id.id)
               case JobResult(_, _, _, _, Some(result: FileStoreResultPayload)) =>
                 downloadAsZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", result.fileStoreReferences)
+                downloadMergedZips("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".pdf", result.fileStoreReferences)
               case result: JobResultUnavailable =>
                 complete(StatusCodes.NotFound, s"No job found for id:${result.jobId}")
               case x =>

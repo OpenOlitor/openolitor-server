@@ -499,6 +499,25 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     }
   }
 
+  protected def downloadMergedZips(zipFileName: String, fileReferences: Seq[FileStoreFileReference]): Route = {
+    val builder = new ZipBuilderWithFile()
+    onComplete(Future.sequence(fileReferences map { ref =>
+      fileStore.getFile(ref.fileType.bucket, ref.id.id) map {
+        case Left(e) =>
+          logger.warn(s"Couldn't download file from fileStore '${ref.fileType.bucket}-${ref.id.id}':$e")
+        case Right(file) =>
+          val name = if (file.metaData.name.isEmpty) ref.id.id else file.metaData.name
+          logger.debug(s"Add zip entry:${ref.id.id} => $name")
+          builder.addZipEntry(name, file.file)
+      }
+    })) {
+      case Success(result) =>
+        builder.close().map(result => streamZip(zipFileName, result)) getOrElse complete(StatusCodes.NotFound)
+      case Failure(_) =>
+        complete(StatusCodes.NotFound)
+    }
+  }
+
   protected def stream(input: File, deleteAfterStreaming: Boolean = false) = {
     val byteStream = new FileInputStream(input)
     val streamResponse = byteStream.toByteArrayStream(DefaultChunkSize).map(ByteString(_))
