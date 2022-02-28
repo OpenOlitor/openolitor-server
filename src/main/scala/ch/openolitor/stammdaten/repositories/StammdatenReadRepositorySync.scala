@@ -200,9 +200,9 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
   }
 
   def getAbosByZusatzAboId(zusatzaboId: AboId)(implicit session: DBSession): List[HauptAbo] = {
-    getDepotAbosByZusatzAboIdQuery(zusatzaboId) :::
-      getPostAbosByZusatzAboIdQuery(zusatzaboId) :::
-      getHeimAbosByZusatzAboIdQuery(zusatzaboId)
+    getDepotAbosByZusatzAboId(zusatzaboId) :::
+      getPostAbosByZusatzAboId(zusatzaboId) :::
+      getHeimAbosByZusatzAboId(zusatzaboId)
   }
 
   def getDepotAbosByZusatzAboId(zusatzaboId: AboId)(implicit session: DBSession): List[HauptAbo] = {
