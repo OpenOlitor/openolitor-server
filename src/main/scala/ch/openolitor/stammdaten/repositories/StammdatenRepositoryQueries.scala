@@ -2273,7 +2273,38 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .from(zusatzAboMapping as zusatzAbo)
         .where.eq(zusatzAbo.hauptAboId, hauptaboId)
     }.map(zusatzAboMapping(zusatzAbo)).list
+  }
 
+  protected def getZusatzAbosByZusatzabotypQuery(zusatzabotyp: AbotypId) = {
+    withSQL {
+      select
+        .from(zusatzAboMapping as zusatzAbo)
+        .where.eq(zusatzAbo.abotypId, zusatzabotyp)
+    }.map(zusatzAboMapping(zusatzAbo)).list
+  }
+
+  protected def getDepotAbosByZusatzAboIdQuery(zusatzaboId: AboId) = {
+    withSQL {
+      select
+        .from(depotlieferungAboMapping as depotlieferungAbo)
+        .where.in(depotlieferungAbo.zusatzAboIds, Seq(zusatzaboId))
+    }.map(depotlieferungAboMapping(depotlieferungAbo)).list
+  }
+
+  protected def getPostAbosByZusatzAboIdQuery(zusatzaboId: AboId) = {
+    withSQL {
+      select
+        .from(postlieferungAboMapping as postlieferungAbo)
+        .where.in(postlieferungAbo.zusatzAboIds, Seq(zusatzaboId))
+    }.map(postlieferungAboMapping(postlieferungAbo)).list
+  }
+
+  protected def getHeimAbosByZusatzAboIdQuery(zusatzaboId: AboId) = {
+    withSQL {
+      select
+        .from(heimlieferungAboMapping as heimlieferungAbo)
+        .where.in(heimlieferungAbo.zusatzAboIds, Seq(zusatzaboId))
+    }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
   // MODIFY and DELETE Queries
