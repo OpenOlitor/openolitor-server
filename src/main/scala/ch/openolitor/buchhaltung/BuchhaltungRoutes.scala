@@ -100,7 +100,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.fileStoreId.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download rechnungen with filestoreRefs:$fileStoreIds")
-                downloadAll("Rechnungen_" + System.currentTimeMillis + ".zip", GeneriertRechnung, fileStoreIds)
+                downloadAll("Rechnungen_" + System.currentTimeMillis + ".pdf", GeneriertRechnung, fileStoreIds)
               }
             }
           }
@@ -113,7 +113,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.mahnungFileStoreIds.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download mahnungen with filestoreRefs:$fileStoreIds")
-                downloadAll("Mahnungen_" + System.currentTimeMillis + ".zip", GeneriertMahnung, fileStoreIds)
+                downloadAll("Mahnungen_" + System.currentTimeMillis + ".pdf", GeneriertMahnung, fileStoreIds)
               }
             }
           }
