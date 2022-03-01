@@ -36,8 +36,8 @@ import spray.httpx.marshalling._
 import spray.http._
 import spray.util._
 import spray.caching._
-import java.util.UUID
 
+import java.util.UUID
 import ch.openolitor.core.domain._
 import ch.openolitor.core.domain.EntityStore._
 import akka.pattern.ask
@@ -52,8 +52,8 @@ import ch.openolitor.core.BaseJsonProtocol._
 import scala.util._
 import stamina.Persister
 import ch.openolitor.core.system._
-import java.io.ByteArrayInputStream
 
+import java.io.ByteArrayInputStream
 import ch.openolitor.core.filestore._
 import akka.util.ByteString
 
@@ -61,8 +61,8 @@ import scala.reflect.ClassTag
 import ch.openolitor.buchhaltung._
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing.RequestContext
-import java.io.InputStream
 
+import java.io.InputStream
 import ch.openolitor.core.security._
 import ch.openolitor.stammdaten.models.{ AdministratorZugang, KundenZugang }
 import ch.openolitor.core.reporting._
@@ -80,9 +80,9 @@ import ch.openolitor.core.ws.ODS
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.SpreadsheetDocument
+
 import java.io.ByteArrayOutputStream
 import java.util.Locale
-
 import org.odftoolkit.simple.style.StyleTypeDefinitions
 
 import scala.None
@@ -90,13 +90,15 @@ import scala.collection.Iterable
 import collection.JavaConverters._
 import java.io.File
 import java.io.FileInputStream
-
+import java.nio.file.Files
 import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution
 import ch.openolitor.mailtemplates.{ DefaultMailTemplateRoutes, MailTemplateRoutes }
 
 import scala.concurrent.ExecutionContext
 import ch.openolitor.util.ZipBuilderWithFile
 import com.tegonal.CFEnvConfigLoader.ConfigLoader
+import org.apache.pdfbox.multipdf.PDFMergerUtility
+import org.apache.pdfbox.pdmodel.PDDocument
 
 sealed trait ResponseType
 case object Download extends ResponseType
@@ -445,13 +447,13 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     }
   }
 
-  protected def downloadAll(zipFileName: String, fileType: FileType, ids: Seq[FileStoreFileId]) = {
+  protected def downloadAll(pdfFileName: String, fileType: FileType, ids: Seq[FileStoreFileId]) = {
     ids match {
       case Seq()            => complete(StatusCodes.BadRequest)
       case Seq(fileStoreId) => download(fileType, fileStoreId.id)
       case list =>
         val refs = ids.map(id => FileStoreFileReference(fileType, id))
-        downloadAsZip(zipFileName, refs)
+        downloadMergedPDFs(pdfFileName, refs)
     }
   }
 
@@ -499,20 +501,23 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     }
   }
 
-  protected def downloadMergedZips(zipFileName: String, fileReferences: Seq[FileStoreFileReference]): Route = {
-    val builder = new ZipBuilderWithFile()
+  protected def downloadMergedPDFs(pdfFileName: String, fileReferences: Seq[FileStoreFileReference]): Route = {
+    val PDFmerged = new PDFMergerUtility
+    val mergedFile = new PDDocument
     onComplete(Future.sequence(fileReferences map { ref =>
       fileStore.getFile(ref.fileType.bucket, ref.id.id) map {
         case Left(e) =>
           logger.warn(s"Couldn't download file from fileStore '${ref.fileType.bucket}-${ref.id.id}':$e")
         case Right(file) =>
           val name = if (file.metaData.name.isEmpty) ref.id.id else file.metaData.name
-          logger.debug(s"Add zip entry:${ref.id.id} => $name")
-          builder.addZipEntry(name, file.file)
+          logger.debug(s"merge pdf file:${ref.id.id} => $name")
+          PDFmerged.appendDocument(mergedFile, PDDocument.load(file.file))
       }
     })) {
       case Success(result) =>
-        builder.close().map(result => streamZip(zipFileName, result)) getOrElse complete(StatusCodes.NotFound)
+        val file = File.createTempFile(pdfFileName, ".pdf")
+        mergedFile.save(file)
+        streamPdf(pdfFileName, Files.readAllBytes(file.toPath))
       case Failure(_) =>
         complete(StatusCodes.NotFound)
     }
