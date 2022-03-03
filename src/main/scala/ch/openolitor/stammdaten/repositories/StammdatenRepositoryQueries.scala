@@ -1954,6 +1954,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(zusatzAboTyp.id, zusatzAbo.abotypId)
         .leftJoin(pendenzMapping as pendenz).on(sqls"${pendenz.kundeId} = ${kunde.id} AND ${pendenz.status} = 'Lieferinformation'")
         .where.eq(depotAuslieferung.id, auslieferungId)
+        .orderBy(kunde.bezeichnung)
     }.one(depotAuslieferungMapping(depotAuslieferung))
       .toManies(
         rs => depotMapping.opt(depot)(rs),
