@@ -351,7 +351,7 @@ trait LoginService extends LazyLogging
 
   private def sendEmail(secondFactor: EmailSecondFactor, person: Person): EitherFuture[Boolean] = EitherT {
     // if an email can be sent has to be validated by the corresponding command handler
-    val mail = Mail(1, person.email.get, None, None, "OpenOlitor Second Factor",
+    val mail = Mail(1, person.email.get, None, None, None, "OpenOlitor Second Factor",
       s"""Code: ${secondFactor.code}""", None)
     mailService ? SendMailCommand(SystemEvents.SystemPersonId, mail, Some(5 minutes)) map {
       case _: SendMailEvent =>
