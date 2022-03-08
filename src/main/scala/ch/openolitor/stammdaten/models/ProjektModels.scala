@@ -30,7 +30,7 @@ import java.util.Locale
 
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models._
-import ch.openolitor.core.scalax.Tuple28
+import ch.openolitor.core.scalax.Tuple29
 import org.joda.time.{ DateTime, LocalDate }
 
 sealed trait EinsatzEinheit extends Product
@@ -125,7 +125,7 @@ case class Projekt(
 
 object Projekt {
   def unapply(o: Projekt) = {
-    Some(Tuple28(
+    Some(Tuple29(
       o.id,
       o.bezeichnung,
       o.strasse,

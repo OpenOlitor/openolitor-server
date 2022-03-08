@@ -599,6 +599,8 @@ case class PersonDetail(
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
   contactPermission: Boolean,
+  secondFactorType: Option[SecondFactorType],
+  otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -618,8 +620,6 @@ case class PersonEmailData(
   telefonFestnetz: Option[String],
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-  secondFactorType: Option[SecondFactorType],
-  otpReset: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -724,7 +724,8 @@ case class PersonModifyV2(
   bemerkungen: Option[String]
 ) extends JSONSerializable
 
-case class PersonModifyV2(
+@Deprecated
+case class PersonModifyV3(
   id: Option[PersonId],
   anrede: Option[Anrede],
   name: String,
@@ -734,10 +735,9 @@ case class PersonModifyV2(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   categories: Set[PersonCategoryNameId],
+  contactPermission: Boolean,
   bemerkungen: Option[String]
-) extends JSONSerializable {
-  def fullName = name + ' ' + vorname
-}
+) extends JSONSerializable
 
 case class PersonModify(
   id: Option[PersonId],

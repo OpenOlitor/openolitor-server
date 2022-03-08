@@ -28,7 +28,7 @@ import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
 
-import scala.util.{Success, Try}
+import scala.util.{ Success, Try }
 
 object OO86_enlarge_login_message_size {
   val EnlargeLoginMessage = new Script with LazyLogging with StammdatenDBMappings {
