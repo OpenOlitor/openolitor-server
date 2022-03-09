@@ -455,7 +455,9 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]] = {
-    getProjektQuery.future map (_ map (projekt => copyTo[Projekt, ProjektPublik](projekt)))
+    getProjektQuery.future map (_ map (projekt => {
+      copyTo[Projekt, ProjektPublik](projekt)
+    }))
   }
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {

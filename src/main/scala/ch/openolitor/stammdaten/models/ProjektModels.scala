@@ -260,7 +260,9 @@ case class ProjektKundenportal(
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
   sendEmailToBcc: Boolean,
-  messageForMembers: Option[String]
+  messageForMembers: Option[String],
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  defaultSecondFactorType: SecondFactorType
 ) extends JSONSerializable
 
 case class ProjektReport(
