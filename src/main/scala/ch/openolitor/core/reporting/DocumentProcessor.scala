@@ -468,11 +468,7 @@ trait DocumentProcessor extends LazyLogging {
       p <- cont.getParagraphIterator
       t <- new NestedImageIterator(p.getFrameContainerElement)
     } {
-      val propertyName = t.getName match {
-        case propertyPattern(imageName) => imageName
-        case fullName: Any              => fullName
-      }
-      val (name, formats) = parseFormats(propertyName)
+      val (name, formats) = parseFormats(t.getName)
       logger.debug(s"--------------------processImage: $name | formats:$formats")
 
       // resolve textbox content from properties, otherwise only apply formats to current content
@@ -535,11 +531,7 @@ trait DocumentProcessor extends LazyLogging {
       p <- cont.getParagraphIterator
       t <- new NestedTextboxIterator(p.getFrameContainerElement)
     } {
-      val propertyName = t.getName match {
-        case propertyPattern(textboxName) => textboxName
-        case fullName: Any                => fullName
-      }
-      val (name, formats) = parseFormats(propertyName)
+      val (name, formats) = parseFormats(t.getName)
       name match {
         case staticTextPattern(text) =>
           logger.debug(s"-----------------processTextbox with static value:$text | formats:$formats | name:$name")
