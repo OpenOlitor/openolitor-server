@@ -664,8 +664,8 @@ trait DocumentProcessor extends LazyLogging {
         case fullName                   => fullName
       }
       propertyName.split('|').toList match {
-        case name :: Nil  => (correctPropertyName(propertyName.trim), Nil)
-        case name :: tail => (correctPropertyName(propertyName.trim), tail.map(_.trim))
+        case name :: Nil  => (correctPropertyName(name.trim), Nil)
+        case name :: tail => (correctPropertyName(name.trim), tail.map(_.trim))
         case _            => (correctPropertyName(propertyName), Nil)
       }
     }
