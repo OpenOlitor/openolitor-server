@@ -654,13 +654,17 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           case b @ BodyPart(entity, headers) if b.name == Some("pdfDownloaden") =>
             entity.asString.toBoolean
         }.getOrElse(false))
+        pdfMerge <- Try(!pdfAblegen || formData.fields.collectFirst {
+          case b @ BodyPart(entity, headers) if b.name == Some("pdfMerge") =>
+            entity.asString.toBoolean
+        }.getOrElse(false))
         ids <- id.map(id => Success(Seq(id))).getOrElse(Try(formData.fields.collectFirst {
           case b @ BodyPart(entity, headers) if b.name == Some("ids") =>
             entity.asString.split(",").map(id => idFactory(id.toLong))
         }.getOrElse(Seq())))
       } yield {
-        logger.debug(s"generateReport: ids: $ids, pdfGenerieren: $pdfGenerieren, pdfAblegen: $pdfAblegen, downloadFile: $downloadFile")
-        val config = ReportConfig[I](ids, vorlage, pdfGenerieren, pdfAblegen, downloadFile)
+        logger.debug(s"generateReport: ids: $ids, pdfGenerieren: $pdfGenerieren, pdfAblegen: $pdfAblegen, downloadFile: $downloadFile, pdfMerge: $pdfMerge")
+        val config = ReportConfig[I](ids, vorlage, pdfGenerieren, pdfAblegen, downloadFile, pdfMerge)
 
         onSuccess(reportFunction(config)) {
           case Left(serviceError) =>

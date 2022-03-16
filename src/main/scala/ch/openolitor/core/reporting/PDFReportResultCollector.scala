@@ -26,13 +26,11 @@ import akka.actor._
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
 import ch.openolitor.core.reporting.ReportSystem._
-import ch.openolitor.util.{ ZipBuilder, ZipBuilderWithFile }
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import spray.http.MediaTypes
 
 import java.io.File
-import java.nio.file.Files
 import scala.util._
 
 object PDFReportResultCollector {
