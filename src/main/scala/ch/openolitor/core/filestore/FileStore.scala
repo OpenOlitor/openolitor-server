@@ -165,6 +165,7 @@ trait FileStore {
 class S3FileStore(override val mandant: String, mandantConfiguration: MandantConfiguration, actorSystem: ActorSystem) extends FileStore with FileStoreBucketLifeCycleConfiguration with LazyLogging {
   val opts = new ClientConfiguration
   opts.setSignerOverride("S3SignerType")
+  opts.setMaxConnections(1000)
 
   lazy val client = {
     val c = new AmazonS3Client(new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key")), opts)
