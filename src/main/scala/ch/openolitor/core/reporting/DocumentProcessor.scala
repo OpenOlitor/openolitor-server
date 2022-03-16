@@ -264,11 +264,7 @@ trait DocumentProcessor extends LazyLogging {
    * duplicate all rows except header rows. Try to replace textbox values with value from property map
    */
   protected def processTable(table: Table, locale: Locale, paths: Seq[JsValue], withinContainer: Boolean): Unit = {
-    val propertyName = table.getDotTableName match {
-      case propertyPattern(tableName) => tableName
-      case fullName: Any              => fullName
-    }
-    val (name, structuring) = parseFormats(propertyName)
+    val (name, structuring) = parseFormats(table.getDotTableName)
 
     resolvePropertyFromJson(name, paths) map { values =>
       val valuesStruct = applyStructure(values, structuring)
@@ -375,11 +371,7 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   private def processSection(doc: TextDocument, section: Section, locale: Locale, paths: Seq[JsValue]): Unit = {
-    val propertyName = section.getName match {
-      case propertyPattern(sectionName) => sectionName
-      case fullName: Any                => fullName
-    }
-    val (name, structuring) = parseFormats(propertyName)
+    val (name, structuring) = parseFormats(section.getName)
     resolvePropertyFromJson(name, paths) map { values =>
       val valuesStruct = applyStructure(values, structuring)
       processSectionWithValues(doc, section, valuesStruct, locale, paths, name)
@@ -426,13 +418,7 @@ trait DocumentProcessor extends LazyLogging {
     // <draw:frame><draw:text-box><p:text></p:text><p:text></p:text></draw:text-box></draw:frame>
     // just have multiple paragraphs as we want to replace multiple values
     if (frame.getDrawFrameElement.getFirstChild.getChildNodes.getLength > 1) {
-
-      val propertyName = frame.getName match {
-        case propertyPattern(frameName) => frameName
-        case fullName: Any              => fullName
-      }
-
-      val (name, structuring) = parseFormats(propertyName)
+      val (name, structuring) = parseFormats(frame.getName)
       resolvePropertyFromJson(name, paths) map { values =>
         val valuesStruct = applyStructure(values, structuring)
         processFrameWithValues(p, frame, valuesStruct, locale, paths, name)
@@ -468,11 +454,7 @@ trait DocumentProcessor extends LazyLogging {
       p <- cont.getParagraphIterator
       t <- new NestedImageIterator(p.getFrameContainerElement)
     } {
-      val propertyName = t.getName match {
-        case propertyPattern(imageName) => imageName
-        case fullName: Any              => fullName
-      }
-      val (name, formats) = parseFormats(propertyName)
+      val (name, formats) = parseFormats(t.getName)
       logger.debug(s"--------------------processImage: $name | formats:$formats")
 
       // resolve textbox content from properties, otherwise only apply formats to current content
@@ -535,11 +517,7 @@ trait DocumentProcessor extends LazyLogging {
       p <- cont.getParagraphIterator
       t <- new NestedTextboxIterator(p.getFrameContainerElement)
     } {
-      val propertyName = t.getName match {
-        case propertyPattern(textboxName) => textboxName
-        case fullName: Any                => fullName
-      }
-      val (name, formats) = parseFormats(propertyName)
+      val (name, formats) = parseFormats(t.getName)
       name match {
         case staticTextPattern(text) =>
           logger.debug(s"-----------------processTextbox with static value:$text | formats:$formats | name:$name")
@@ -681,10 +659,14 @@ trait DocumentProcessor extends LazyLogging {
     if (name == null || name.trim.isEmpty) {
       ("", Nil)
     } else {
-      name.split('|').toList match {
+      val propertyName = name match {
+        case propertyPattern(frameName) => frameName
+        case fullName                   => fullName
+      }
+      propertyName.split('|').toList match {
         case name :: Nil  => (correctPropertyName(name.trim), Nil)
         case name :: tail => (correctPropertyName(name.trim), tail.map(_.trim))
-        case _            => (correctPropertyName(name), Nil)
+        case _            => (correctPropertyName(propertyName), Nil)
       }
     }
   }
