@@ -48,7 +48,7 @@ object JobQueueService {
 
   sealed trait ResultPayload extends JSONSerializable
   case class FileResultPayload(fileName: String, mediaType: MediaType, file: File) extends ResultPayload
-  case class FileStoreResultPayload(fileStoreReferences: Seq[FileStoreFileReference]) extends ResultPayload
+  case class FileStoreResultPayload(pdfMerge: Boolean, fileStoreReferences: Seq[FileStoreFileReference]) extends ResultPayload
 
   case class JobResult(personId: PersonId, jobId: JobId, numberOfSuccess: Int, numberOfFailures: Int, payload: Option[ResultPayload]) extends PersonReference with ClientMessage {
     def toNotificatication =

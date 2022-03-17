@@ -29,13 +29,13 @@ import ch.openolitor.core.filestore.FileStoreFileReference
 import ch.openolitor.core.jobs.JobQueueService.FileStoreResultPayload
 
 object FileStoreReportResultCollector {
-  def props(reportSystem: ActorRef, jobQueueService: ActorRef, downloadFile: Boolean): Props = Props(classOf[FileStoreReportResultCollector], reportSystem, jobQueueService, downloadFile)
+  def props(reportSystem: ActorRef, jobQueueService: ActorRef, downloadFile: Boolean, pdfMerge: Boolean): Props = Props(classOf[FileStoreReportResultCollector], reportSystem, jobQueueService, downloadFile, pdfMerge)
 }
 
 /**
  * Collect all results filestore id results
  */
-class FileStoreReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef, downloadFile: Boolean) extends ResultCollector {
+class FileStoreReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef, downloadFile: Boolean, pdfMerge: Boolean) extends ResultCollector {
 
   var storeResults: Seq[FileStoreFileReference] = Seq()
   var errors: Seq[ReportError] = Seq()
@@ -59,7 +59,7 @@ class FileStoreReportResultCollector(reportSystem: ActorRef, override val jobQue
       log.debug(s"Job finished: $result, downloadFile:$downloadFile")
       //finished, send collected result to jobQueue
       if (downloadFile) {
-        val payload = FileStoreResultPayload(storeResults)
+        val payload = FileStoreResultPayload(pdfMerge, storeResults)
         jobFinished(result, Some(payload))
       } else {
         jobFinished(result, None)

@@ -654,10 +654,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           case b @ BodyPart(entity, headers) if b.name == Some("pdfDownloaden") =>
             entity.asString.toBoolean
         }.getOrElse(false))
-        pdfMerge <- Try(!pdfAblegen || formData.fields.collectFirst {
-          case b @ BodyPart(entity, headers) if b.name == Some("pdfMerge") =>
-            entity.asString.toBoolean
-        }.getOrElse(false))
+        pdfMerge <- Try(pdfGenerieren && formData.fields.exists(b => b.name == Some("pdfMerge")))
         ids <- id.map(id => Success(Seq(id))).getOrElse(Try(formData.fields.collectFirst {
           case b @ BodyPart(entity, headers) if b.name == Some("ids") =>
             entity.asString.split(",").map(id => idFactory(id.toLong))
