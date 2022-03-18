@@ -89,6 +89,8 @@ case class ZahlungsEingang(
   id: ZahlungsEingangId,
   zahlungsImportId: ZahlungsImportId,
   rechnungId: Option[RechnungId],
+  kundeBezeichnung: Option[String],
+  kundeId: Option[KundeId],
   transaktionsart: String,
   teilnehmerNummer: Option[String],
   iban: Option[String],
@@ -102,8 +104,6 @@ case class ZahlungsEingang(
   status: ZahlungsEingangStatus,
   erledigt: Boolean,
   bemerkung: Option[String],
-  kundeBemerkung: String,
-  kundeId: KundeId,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -115,6 +115,8 @@ case class ZahlungsEingangCreate(
   id: ZahlungsEingangId,
   zahlungsImportId: ZahlungsImportId,
   rechnungId: Option[RechnungId],
+  kundeBezeichnung: Option[String],
+  kundeId: Option[KundeId],
   transaktionsart: String,
   teilnehmerNummer: Option[String],
   iban: Option[String],
@@ -125,9 +127,7 @@ case class ZahlungsEingangCreate(
   aufgabeDatum: DateTime,
   verarbeitungsDatum: DateTime,
   gutschriftsDatum: DateTime,
-  status: ZahlungsEingangStatus,
-  kundeBemerkung: String,
-  kundeId: KundeId
+  status: ZahlungsEingangStatus
 ) extends JSONSerializable
 
 case class ZahlungsEingangModifyErledigt(

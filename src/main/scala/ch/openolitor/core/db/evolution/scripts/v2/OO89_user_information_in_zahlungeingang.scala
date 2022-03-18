@@ -36,6 +36,11 @@ object OO89_user_information_in_zahlungeingang {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       alterTableAddColumnIfNotExists(zahlungsEingangMapping, "kunde_id", "BIGINT", "rechnung_id")
       alterTableAddColumnIfNotExists(zahlungsEingangMapping, "kunde_bezeichnung", "VARCHAR(200)", "kunde_id")
+
+      sql"""UPDATE ZahlungsEingang AS z
+            JOIN Rechnung AS r ON (z.rechnung_id = r.id)
+            JOIN Kunde AS k ON (r.kunde_id = k.id)
+            SET z.kunde_id = k.id , z.kunde_bezeichnung = k.bezeichnung""".execute.apply()
       Success(true)
     }
   }
