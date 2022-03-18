@@ -504,7 +504,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
   protected def downloadMergedPDFs(pdfFileName: String, fileReferences: Seq[FileStoreFileReference]): Route = {
     val PDFmerged = new PDFMergerUtility
     val mergedFile = new PDDocument
-    onComplete(Future.sequence(fileReferences map { ref =>
+    onComplete(Future.sequence(fileReferences.sortBy(_.id) map { ref =>
       fileStore.getFile(ref.fileType.bucket, ref.id.id) map {
         case Left(e) =>
           logger.warn(s"Couldn't download file from fileStore '${ref.fileType.bucket}-${ref.id.id}':$e")
