@@ -26,7 +26,7 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.stammdaten.models.{ Person, PersonEmailData, Projekt }
+import ch.openolitor.stammdaten.models.{ KundeId, Person, PersonEmailData, Projekt }
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
@@ -232,7 +232,9 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
                 } else {
                   Ok
                 }
-                createZahlungsEingang(eingang.copy(rechnungId = Some(rechnung.id), status = state))
+                buchhaltungWriteRepository.getById(kundeMapping, rechnung.kundeId) map { kunde =>
+                  createZahlungsEingang(eingang.copy(rechnungId = Some(rechnung.id), kundeId = Some(kunde.id), kundeBezeichnung = Some(kunde.bezeichnung), status = state))
+                }
               case None =>
                 createZahlungsEingang(eingang.copy(status = ReferenznummerNichtGefunden))
             }
