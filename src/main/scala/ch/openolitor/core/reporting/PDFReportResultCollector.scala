@@ -23,6 +23,7 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
+import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
 import ch.openolitor.core.reporting.ReportSystem._
@@ -38,14 +39,15 @@ object PDFReportResultCollector {
 }
 
 /**
- * Collect all results into a zip file. Send back the zip result when all reports got generated.
- * This ResultCollector stores the generated documents in a local zip which will eventually cause out of disk space errors.
+ * Collect all results into a pdf file. Send back the pdf result when all reports got generated.
+ * This ResultCollector stores the generated documents in a local pdf which will eventually cause out of disk space errors.
  */
 class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector with DateFormats {
 
   var origSender: Option[ActorRef] = None
   val PDFmerged = new PDFMergerUtility
   val mergedFile = new PDDocument()
+  var pdfFiles: List[(RechnungId, PDDocument)] = List()
   var errors: Seq[ReportError] = Seq()
 
   val receive: Receive = {
@@ -59,12 +61,14 @@ class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
     case SingleReportResult(_, stats, Left(error)) =>
       errors = errors :+ error
       notifyProgress(stats)
-    case SingleReportResult(id, stats, Right(result: ReportResultWithDocument)) =>
-      log.debug(s"Add Zip Entry:${result.name}")
-      PDFmerged.appendDocument(mergedFile, PDDocument.load(result.document))
-      //zipBuilder.addZipEntry(result.name, result.document) match {
+    case SingleReportResult(id: RechnungId, stats, Right(result: ReportResultWithDocument)) =>
+      log.debug(s"Add Pdf Entry:${result.name}")
+      pdfFiles = pdfFiles :+ (id, PDDocument.load(result.document))
       notifyProgress(stats)
     case result: GenerateReportsStats if result.numberOfReportsInProgress == 0 =>
+      pdfFiles.sortBy(_._1) map { file =>
+        PDFmerged.appendDocument(mergedFile, file._2)
+      }
       val fileName = "Report_" + filenameDateFormat.print(System.currentTimeMillis())
       val file = File.createTempFile(fileName, ".pdf");
       mergedFile.save(file)

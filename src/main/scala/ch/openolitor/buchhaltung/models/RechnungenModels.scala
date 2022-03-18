@@ -86,7 +86,11 @@ object RechnungsPositionTyp {
   }
 }
 
-case class RechnungId(id: Long) extends BaseId
+case class RechnungId(id: Long) extends BaseId with Ordered[RechnungId] {
+  import scala.math.Ordered.orderingToOrdered
+  def compare(that: RechnungId): Int = (this.id) compare (that.id)
+}
+
 case class RechnungsPositionId(id: Long) extends BaseId
 
 case class RechnungsPosition(

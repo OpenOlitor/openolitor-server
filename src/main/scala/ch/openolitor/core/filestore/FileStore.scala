@@ -43,7 +43,10 @@ case class FileStoreSuccess()
 
 case class FileStoreFileMetadata(name: String, fileType: FileType)
 case class FileStoreFile(metaData: FileStoreFileMetadata, file: InputStream)
-case class FileStoreFileId(id: String) extends BaseStringId
+case class FileStoreFileId(id: String) extends BaseStringId with Ordered[FileStoreFileId] {
+  import scala.math.Ordered.orderingToOrdered
+  def compare(that: FileStoreFileId): Int = (this.id) compare (that.id)
+}
 case class FileStoreFileReference(fileType: FileType, id: FileStoreFileId) extends JSONSerializable
 case class FileStoreChunkedUploadMetaData(key: String, uploadId: String, bucket: FileStoreBucket, metadata: FileStoreFileMetadata)
 case class FileStoreChunkedUploadPartEtag(partNumber: Int, etag: String)
