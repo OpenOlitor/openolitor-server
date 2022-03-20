@@ -89,6 +89,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
       createZahlungsImport(meta, entity)
     case ZahlungsEingangErledigtEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
       zahlungsEingangErledigen(meta, entity)
+    case ZahlungsEingangIgnoreEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
+      zahlungsEingangIgnore(meta, entity)
     case ZahlungsExportCreatedEvent(meta, entity: ZahlungsExportCreate) =>
       createZahlungsExport(meta, entity)
     case RechnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
@@ -265,6 +267,17 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
           }
         }
 
+        Map(
+          zahlungsEingangMapping.column.erledigt -> true,
+          zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
+        )
+      }
+    }
+  }
+
+  private def zahlungsEingangIgnore(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt)(implicit personId: PersonId = meta.originator) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.modifyEntity[ZahlungsEingang, ZahlungsEingangId](entity.id) { eingang =>
         Map(
           zahlungsEingangMapping.column.erledigt -> true,
           zahlungsEingangMapping.column.bemerkung -> entity.bemerkung

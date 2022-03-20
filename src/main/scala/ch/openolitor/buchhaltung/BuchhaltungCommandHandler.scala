@@ -70,11 +70,13 @@ object BuchhaltungCommandHandler {
   case class ZahlungsImportCreateCommand(originator: PersonId, file: String, zahlungsEingaenge: Seq[ZahlungsImportRecordResult]) extends UserCommand
   case class ZahlungsEingangErledigenCommand(originator: PersonId, entity: ZahlungsEingangModifyErledigt) extends UserCommand
   case class ZahlungsEingaengeErledigenCommand(originator: PersonId, entities: Seq[ZahlungsEingangModifyErledigt]) extends UserCommand
+  case class ZahlungsEingangIgnoreCommand(originator: PersonId, entity: ZahlungsEingangModifyErledigt) extends UserCommand
 
   case class SendEmailToInvoicesSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[RechnungId], invoice: Boolean) extends UserCommand
 
   case class ZahlungsImportCreatedEvent(meta: EventMetadata, entity: ZahlungsImportCreate) extends PersistentEvent with JSONSerializable
   case class ZahlungsEingangErledigtEvent(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt) extends PersistentEvent with JSONSerializable
+  case class ZahlungsEingangIgnoreEvent(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt) extends PersistentEvent with JSONSerializable
 
   case class ZahlungsExportCreateCommand(originator: PersonId, rechnungen: List[Rechnung], file: String) extends UserCommand
   case class ZahlungsExportCreatedEvent(meta: EventMetadata, entity: ZahlungsExportCreate) extends PersistentEvent with JSONSerializable
@@ -216,6 +218,17 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
         buchhaltungReadRepository.getById(zahlungsEingangMapping, entity.id) map { eingang =>
           if (!eingang.erledigt) {
             Success(Seq(DefaultResultingEvent(factory => ZahlungsEingangErledigtEvent(factory.newMetadata(), entity))))
+          } else {
+            Success(Seq())
+          }
+        } getOrElse (Failure(new InvalidStateException(s"Kein Zahlungseingang mit der Nr. ${entity.id} gefunden")))
+      }
+
+    case ZahlungsEingangIgnoreCommand(personId, entity) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        buchhaltungReadRepository.getById(zahlungsEingangMapping, entity.id) map { eingang =>
+          if (!eingang.erledigt) {
+            Success(Seq(DefaultResultingEvent(factory => ZahlungsEingangIgnoreEvent(factory.newMetadata(), entity))))
           } else {
             Success(Seq())
           }
