@@ -1148,6 +1148,17 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(tourlieferungMapping(tourlieferung)).list
   }
 
+  protected def getGeschaeftsjahreQuery = {
+    sql"""WITH RECURSIVE seq AS (SELECT 1990 AS value UNION ALL SELECT value + 1 FROM seq WHERE value < YEAR(CURDATE()))
+         SELECT p.geschaeftsjahr_tag as tag, p.geschaeftsjahr_monat as monat, s.value as jahr FROM seq as s, Projekt p where s.value >= (
+         select
+         if(month(min(abos.start)) < p.geschaeftsjahr_monat, year(min(abos.start)) - 1, year(min(abos.start)))
+         from (select da.start as start from DepotlieferungAbo da UNION select ha.start as start from HeimlieferungAbo ha UNION select pa.start as start from PostlieferungAbo pa) as abos
+        );""".map(rs => {
+      GeschaeftsjahrStart(rs.int(1), rs.int(2), rs.int(3))
+    }).list
+  }
+
   protected def getProjektQuery = {
     withSQL {
       select

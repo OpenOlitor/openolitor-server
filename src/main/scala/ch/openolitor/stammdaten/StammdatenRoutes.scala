@@ -53,8 +53,7 @@ import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser}
 
 trait StammdatenRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -78,10 +77,14 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def stammdatenRoute(implicit subject: Subject): Route =
-    parameters('f.?) { (f) =>
+    parameters('f.?, 'g.?) { (f, g) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
+      implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
+        UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
+      }
+
       kontoDatenRoute ~ aboTypenRoute ~ vertriebeRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
         kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
@@ -504,6 +507,9 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           (put | post)(uploadStored(ProjektStammdaten, Some("style-kundenportal")) { (id, metadata) =>
             complete("Style 'style-kundenportal' uploaded")
           })
+      } ~
+      path("projekt" / projektIdPath / "geschaeftsjahre") { id =>
+        get(list(stammdatenReadRepository.getGeschaeftsjahre))
       }
 
   private def lieferplanungRoute(implicit subject: Subject): Route =
