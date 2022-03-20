@@ -48,7 +48,9 @@ case object Punkte extends EinsatzEinheit
 
 case class ProjektId(id: Long) extends BaseId
 
-case class Geschaeftsjahr(monat: Int, tag: Int) {
+case class GeschaeftsjahrStart(tag: Int, monat: Int, jahr: Int) extends JSONSerializable
+
+case class Geschaeftsjahr(monat: Int, tag: Int) extends JSONSerializable {
 
   /**
    * Errechnet den Start des Geschäftsjahres aufgrund eines Datums
