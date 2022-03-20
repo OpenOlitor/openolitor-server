@@ -237,6 +237,9 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "erledigen") { (_, zahlungsEingangId) =>
         post(entity(as[ZahlungsEingangModifyErledigt]) { entity => zahlungsEingangErledigen(entity) })
       } ~
+      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "ignore") { (_, zahlungsEingangId) =>
+        post(entity(as[ZahlungsEingangModifyErledigt]) { entity => zahlungsEingangIgnore(entity) })
+      } ~
       path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / "aktionen" / "automatischerledigen") { id =>
         post(entity(as[Seq[ZahlungsEingangModifyErledigt]]) { entities => zahlungsEingaengeErledigen(entities) })
       }
@@ -342,6 +345,14 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+  def zahlungsEingangIgnore(entity: ZahlungsEingangModifyErledigt)(implicit idPersister: Persister[ZahlungsEingangId, _], subject: Subject) = {
+    onSuccess((entityStore ? BuchhaltungCommandHandler.ZahlungsEingangIgnoreCommand(subject.personId, entity))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Der Zahlungseingang konnte nicht erledigt werden")
+      case _ =>
+        complete("")
+    }
+  }
   def rechnungBericht(id: RechnungId)(implicit idPersister: Persister[ZahlungsEingangId, _], subject: Subject) = {
     implicit val personId = subject.personId
     generateReport[RechnungId](Some(id), generateRechnungReports _)(RechnungId.apply)
