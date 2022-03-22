@@ -31,7 +31,7 @@ import org.joda.time.DateTime
 import com.github.nscala_time.time.Imports._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ DatumVonBisFilter, FilterExpr }
 import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
@@ -456,7 +456,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
-  protected def getZusatzAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getZusatzAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
@@ -628,7 +628,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
@@ -748,7 +748,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
@@ -773,7 +773,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getPostlieferungAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getPostlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
@@ -1253,7 +1253,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(produktMapping(produkt)).list
   }
 
-  protected def getLieferplanungenQuery = {
+  protected def getLieferplanungenQuery(datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(lieferplanungMapping as lieferplanung)
@@ -1879,7 +1879,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .list
   }
 
-  protected def getDepotAuslieferungenQuery(filter: Option[FilterExpr]) = {
+  protected def getDepotAuslieferungenQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(depotAuslieferungMapping as depotAuslieferung)
@@ -1887,7 +1887,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(depotAuslieferungMapping(depotAuslieferung)).list
   }
 
-  protected def getTourAuslieferungenQuery(filter: Option[FilterExpr]) = {
+  protected def getTourAuslieferungenQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(tourAuslieferungMapping as tourAuslieferung)
@@ -1895,7 +1895,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(tourAuslieferungMapping(tourAuslieferung)).list
   }
 
-  protected def getPostAuslieferungenQuery(filter: Option[FilterExpr]) = {
+  protected def getPostAuslieferungenQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
     withSQL {
       select
         .from(postAuslieferungMapping as postAuslieferung)
