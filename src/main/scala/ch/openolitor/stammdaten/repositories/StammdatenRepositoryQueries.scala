@@ -462,7 +462,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo))
+        .join(projektMapping as projekt)
+        .where.append(
+          getAboDatumFilterQuery[ZusatzAbo](zusatzAbo, datumsFilter)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+          )
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
@@ -1933,7 +1938,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(depotAuslieferungMapping as depotAuslieferung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, depotAuslieferung))
+        .join(projektMapping as projekt)
+        .where.append(
+          getEntityDatumFilterQuery[DepotAuslieferung](depotAuslieferung, "datum", datumsFilter)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, depotAuslieferung)
+          )
     }.map(depotAuslieferungMapping(depotAuslieferung)).list
   }
 
@@ -1941,7 +1951,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(tourAuslieferungMapping as tourAuslieferung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, tourAuslieferung))
+        .join(projektMapping as projekt)
+        .where.append(
+          getEntityDatumFilterQuery[TourAuslieferung](tourAuslieferung, "datum", datumsFilter)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, tourAuslieferung)
+          )
     }.map(tourAuslieferungMapping(tourAuslieferung)).list
   }
 
@@ -1949,7 +1964,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(postAuslieferungMapping as postAuslieferung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, postAuslieferung))
+        .join(projektMapping as projekt)
+        .where.append(
+          getEntityDatumFilterQuery[PostAuslieferung](postAuslieferung, "datum", datumsFilter)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, postAuslieferung)
+          )
     }.map(postAuslieferungMapping(postAuslieferung)).list
   }
 
