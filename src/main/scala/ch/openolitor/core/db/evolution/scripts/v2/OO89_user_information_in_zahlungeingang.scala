@@ -34,8 +34,8 @@ import scala.util.{ Success, Try }
 object OO89_user_information_in_zahlungeingang {
   val AddUserInformationInZahlungEingang = new Script with LazyLogging with BuchhaltungDBMappings with DefaultDBScripts {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      alterTableAddColumnIfNotExists(zahlungsEingangMapping, "kunde_id", "BIGINT", "rechnung_id")
-      alterTableAddColumnIfNotExists(zahlungsEingangMapping, "kunde_bezeichnung", "VARCHAR(200)", "kunde_id")
+      alterTableAddColumnIfNotExists(zahlungsEingangMapping, "kunde_bezeichnung", "VARCHAR(200)", "rechnung_id")
+      alterTableAddColumnIfNotExists(zahlungsEingangMapping, "kunde_id", "BIGINT", "kunde_bezeichnung")
 
       sql"""UPDATE ZahlungsEingang AS z
             JOIN Rechnung AS r ON (z.rechnung_id = r.id)
