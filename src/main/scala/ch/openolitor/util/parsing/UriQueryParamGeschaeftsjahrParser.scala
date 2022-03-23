@@ -26,9 +26,9 @@ import com.typesafe.scalalogging.LazyLogging
 
 object UriQueryParamGeschaeftsjahrParser extends LazyLogging {
 
-  def parse(input: String): Option[DatumVonBisFilter] = {
+  def parse(input: String): Option[GeschaeftsjahrFilter] = {
     if (input.length == 4) {
-      Some(DatumVonBisFilter(input.toInt))
+      Some(GeschaeftsjahrFilter(input.toInt))
     } else {
       return None
     }

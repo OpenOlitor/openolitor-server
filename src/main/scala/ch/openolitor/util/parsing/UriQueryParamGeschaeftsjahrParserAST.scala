@@ -24,4 +24,4 @@ package ch.openolitor.util.parsing
 
 import org.joda.time.DateTime
 
-case class DatumVonBisFilter(inGeschaeftsjahr: Int)
+case class GeschaeftsjahrFilter(inGeschaeftsjahr: Int)
