@@ -644,18 +644,6 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
-    import scalikejdbc._
-    GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
-      enabled = true,
-      singleLineMode = false,
-      printUnprocessedStackTrace = false,
-      stackTraceDepth = 15,
-      logLevel = 'info,
-      warningEnabled = false,
-      warningThresholdMillis = 3000L,
-      warningLogLevel = 'warn
-    )
-
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
