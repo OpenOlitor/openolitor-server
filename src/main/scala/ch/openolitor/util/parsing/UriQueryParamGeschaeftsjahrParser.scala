@@ -23,12 +23,15 @@
 package ch.openolitor.util.parsing
 
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
 
 object UriQueryParamGeschaeftsjahrParser extends LazyLogging {
 
   def parse(input: String): Option[DatumVonBisFilter] = {
-    Some(DatumVonBisFilter(new DateTime(), new DateTime()))
+    if (input.length == 4) {
+      Some(DatumVonBisFilter(input.toInt))
+    } else {
+      return None
+    }
   }
 
 }

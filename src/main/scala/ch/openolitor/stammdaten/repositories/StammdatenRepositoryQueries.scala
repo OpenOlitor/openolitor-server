@@ -628,11 +628,44 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
+  private def getDatumFilterQuery[A <: Abo](abo: QuerySQLSyntaxProvider[SQLSyntaxSupport[A], A], datumsFilter: Option[DatumVonBisFilter]) = {
+    datumsFilter match {
+      case Some(datum) => sqls"""(
+        ${abo.start} < STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr + 1},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
+        AND
+          (
+            ${abo.ende} IS NULL
+            OR
+            ${abo.ende} >= STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
+          )
+      )"""
+      case None => sqls"""1=1"""
+    }
+  }
+
   protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[DatumVonBisFilter]) = {
+    import scalikejdbc._
+    GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
+      enabled = true,
+      singleLineMode = false,
+      printUnprocessedStackTrace = false,
+      stackTraceDepth = 15,
+      logLevel = 'info,
+      warningEnabled = false,
+      warningThresholdMillis = 3000L,
+      warningLogLevel = 'warn
+    )
+
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
+        .join(projektMapping as projekt)
+        .where.append(
+          getDatumFilterQuery[DepotlieferungAbo](depotlieferungAbo, datumsFilter)
+
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo)
+          )
     }.map(depotlieferungAboMapping(depotlieferungAbo)).list
   }
 

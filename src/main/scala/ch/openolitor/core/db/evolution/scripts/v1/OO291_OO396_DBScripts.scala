@@ -30,16 +30,6 @@ import com.typesafe.scalalogging.LazyLogging
 
 object OO291_OO396_DBScripts {
   import scalikejdbc._
-  GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
-    enabled = true,
-    singleLineMode = false,
-    printUnprocessedStackTrace = false,
-    stackTraceDepth = 15,
-    logLevel = 'debug,
-    warningEnabled = false,
-    warningThresholdMillis = 3000L,
-    warningLogLevel = 'warn
-  )
 
   val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
