@@ -253,5 +253,6 @@ object V2Scripts {
     OO86_enlarge_login_message_size.scripts ++
     OO86_create_kunden_specific_message.scripts ++
     OO_add_otp_second_factor.scripts ++
-    OO89_user_information_in_zahlungeingang.scripts
+    OO89_user_information_in_zahlungeingang.scripts ++
+    OO69_kunde_aktiv.scripts
 }

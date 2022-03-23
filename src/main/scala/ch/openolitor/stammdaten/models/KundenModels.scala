@@ -25,7 +25,7 @@ package ch.openolitor.stammdaten.models
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models._
-import ch.openolitor.core.scalax.{ Tuple24, Tuple28 }
+import ch.openolitor.core.scalax.{ Tuple24, Tuple29 }
 import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
 
@@ -46,6 +46,7 @@ object PaymentType {
 
 trait IKunde extends BaseEntity[KundeId] {
   val id: KundeId
+  val aktiv: Boolean
   val bezeichnung: String
   val strasse: String
   val hausNummer: Option[String]
@@ -74,6 +75,40 @@ trait IKunde extends BaseEntity[KundeId] {
 }
 
 case class Kunde(
+  id: KundeId,
+  aktiv: Boolean,
+  bezeichnung: String,
+  strasse: String,
+  hausNummer: Option[String],
+  adressZusatz: Option[String],
+  plz: String,
+  ort: String,
+  bemerkungen: Option[String],
+  abweichendeLieferadresse: Boolean,
+  bezeichnungLieferung: Option[String],
+  strasseLieferung: Option[String],
+  hausNummerLieferung: Option[String],
+  adressZusatzLieferung: Option[String],
+  plzLieferung: Option[String],
+  ortLieferung: Option[String],
+  zusatzinfoLieferung: Option[String],
+  latLieferung: Option[BigDecimal],
+  longLieferung: Option[BigDecimal],
+  typen: Set[KundentypId],
+  //Zusatzinformationen
+  anzahlAbos: Int,
+  anzahlAbosAktiv: Int,
+  anzahlPendenzen: Int,
+  anzahlPersonen: Int,
+  paymentType: Option[PaymentType],
+  //modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[KundeId]
+
+case class KundeV1(
   id: KundeId,
   bezeichnung: String,
   strasse: String,
@@ -151,6 +186,7 @@ trait IKundeReport extends IKunde {
 
 case class KundeReport(
   id: KundeId,
+  aktiv: Boolean,
   bezeichnung: String,
   strasse: String,
   hausNummer: Option[String],
@@ -185,6 +221,7 @@ case class KundeReport(
 
 case class KundeDetailReport(
   id: KundeId,
+  aktiv: Boolean,
   bezeichnung: String,
   strasse: String,
   hausNummer: Option[String],
@@ -223,6 +260,7 @@ case class KundeDetailReport(
 
 case class KundeDetailArbeitseinsatzReport(
   id: KundeId,
+  aktiv: Boolean,
   bezeichnung: String,
   strasse: String,
   hausNummer: Option[String],
@@ -260,8 +298,9 @@ case class KundeDetailArbeitseinsatzReport(
 ) extends BaseEntity[KundeId] with IKundeReport
 
 object Kunde {
-  def unapply(k: Kunde) = Some(Tuple28(
+  def unapply(k: Kunde) = Some(Tuple29(
     k.id: KundeId,
+    k.aktiv: Boolean,
     k.bezeichnung: String,
     k.strasse: String,
     k.hausNummer: Option[String],
@@ -296,6 +335,7 @@ object Kunde {
 
 case class KundeUebersicht(
   id: KundeId,
+  aktiv: Boolean,
   bezeichnung: String,
   strasse: String,
   hausNummer: Option[String],
@@ -329,6 +369,7 @@ case class KundeUebersicht(
 
 case class KundeDetail(
   id: KundeId,
+  aktiv: Boolean,
   bezeichnung: String,
   strasse: String,
   hausNummer: Option[String],
@@ -365,6 +406,7 @@ case class KundeDetail(
 ) extends JSONSerializable
 
 case class KundeModify(
+  aktiv: Boolean,
   bezeichnung: Option[String],
   strasse: String,
   hausNummer: Option[String],
@@ -435,33 +477,6 @@ object Rolle {
   def apply(value: String): Option[Rolle] = {
     AlleRollen.find(_.toString == value)
   }
-}
-
-case class PersonV1(
-  id: PersonId,
-  kundeId: KundeId,
-  anrede: Option[Anrede],
-  name: String,
-  vorname: String,
-  email: Option[String],
-  emailAlternative: Option[String],
-  telefonMobil: Option[String],
-  telefonFestnetz: Option[String],
-  bemerkungen: Option[String],
-  sort: Int,
-  // security data
-  loginAktiv: Boolean,
-  passwort: Option[Array[Char]],
-  letzteAnmeldung: Option[DateTime],
-  passwortWechselErforderlich: Boolean,
-  rolle: Option[Rolle],
-  categories: Set[PersonCategoryNameId],
-  // modification flags
-  erstelldat: DateTime,
-  ersteller: PersonId,
-  modifidat: DateTime,
-  modifikator: PersonId
-) extends BaseEntity[PersonId] {
 }
 
 case class Person(

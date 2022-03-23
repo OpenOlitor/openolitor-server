@@ -242,6 +242,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     val kunde = copyTo[KundeModify, Kunde](
       create,
       "id" -> id,
+      "aktiv" -> TRUE,
       "bezeichnung" -> bez,
       "anzahlPersonen" -> create.ansprechpersonen.length,
       "anzahlAbos" -> ZERO,
