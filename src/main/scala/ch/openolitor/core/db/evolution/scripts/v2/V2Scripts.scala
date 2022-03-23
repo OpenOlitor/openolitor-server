@@ -252,5 +252,6 @@ object V2Scripts {
     OO411_adding_person_contact_permission.scripts ++
     OO86_enlarge_login_message_size.scripts ++
     OO86_create_kunden_specific_message.scripts ++
-    OO_add_otp_second_factor.scripts
+    OO_add_otp_second_factor.scripts ++
+    OO89_user_information_in_zahlungeingang.scripts
 }

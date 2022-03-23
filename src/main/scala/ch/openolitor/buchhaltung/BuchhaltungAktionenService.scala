@@ -26,7 +26,7 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.stammdaten.models.{ Person, PersonEmailData, Projekt }
+import ch.openolitor.stammdaten.models.{ KundeId, Person, PersonEmailData, Projekt }
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
@@ -89,6 +89,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
       createZahlungsImport(meta, entity)
     case ZahlungsEingangErledigtEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
       zahlungsEingangErledigen(meta, entity)
+    case ZahlungsEingangIgnoreEvent(meta, entity: ZahlungsEingangModifyErledigt) =>
+      zahlungsEingangIgnore(meta, entity)
     case ZahlungsExportCreatedEvent(meta, entity: ZahlungsExportCreate) =>
       createZahlungsExport(meta, entity)
     case RechnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
@@ -145,7 +147,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
 
   private def rechnungBezahlenUpdate(id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-      buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](r => Verschickt == r.status || MahnungVerschickt == r.status)(id) { rechnung =>
+      buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](r => (Verschickt == r.status) || (Erstellt == r.status) || MahnungVerschickt == r.status)(id) { rechnung =>
         Map(
           rechnungMapping.column.status -> Bezahlt,
           rechnungMapping.column.einbezahlterBetrag -> Option(entity.einbezahlterBetrag),
@@ -232,7 +234,9 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
                 } else {
                   Ok
                 }
-                createZahlungsEingang(eingang.copy(rechnungId = Some(rechnung.id), status = state))
+                buchhaltungWriteRepository.getById(kundeMapping, rechnung.kundeId) map { kunde =>
+                  createZahlungsEingang(eingang.copy(rechnungId = Some(rechnung.id), kundeBezeichnung = Some(kunde.bezeichnung), kundeId = Some(kunde.id), status = state))
+                }
               case None =>
                 createZahlungsEingang(eingang.copy(status = ReferenznummerNichtGefunden))
             }
@@ -265,6 +269,17 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
           }
         }
 
+        Map(
+          zahlungsEingangMapping.column.erledigt -> true,
+          zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
+        )
+      }
+    }
+  }
+
+  private def zahlungsEingangIgnore(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt)(implicit personId: PersonId = meta.originator) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      buchhaltungWriteRepository.modifyEntity[ZahlungsEingang, ZahlungsEingangId](entity.id) { eingang =>
         Map(
           zahlungsEingangMapping.column.erledigt -> true,
           zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
