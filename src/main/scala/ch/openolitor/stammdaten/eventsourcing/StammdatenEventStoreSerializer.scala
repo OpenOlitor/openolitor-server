@@ -56,12 +56,13 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val zusatzAboModifyPersister = persister[ZusatzAboModify]("zusatzabo-modify")
   implicit val zusatzAboCreatePersister = persister[ZusatzAboCreate]("zusatzabo-create")
 
-  implicit val kundeModifyPersister = persister[KundeModify, V6]("kunde-modify", from[V1]
+  implicit val kundeModifyPersister = persister[KundeModify, V7]("kunde-modify", from[V1]
     .to[V2](fixPersonModifyInKundeModifyV2(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
     .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None)))
     .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen))
-    .to[V6](fixPersonModifyInKundeModifyV3(_, 'ansprechpersonen)))
+    .to[V6](fixPersonModifyInKundeModifyV3(_, 'ansprechpersonen))
+    .to[V7](_.update('aktiv ! set[Boolean](true))))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
@@ -215,8 +216,10 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val sendEmailToPersonEventV2Persister = persister[SendEmailToPersonEvent, V2]("send-email-person", from[V1]
     .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToKundeEventPersister = persister[SendEmailToKundeEvent]("send-email-kunde")
-  implicit val sendEmailToKundeEventV2Persister = persister[SendEmailToKundeEvent, V2]("send-email-kunde", from[V1]
-    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
+  implicit val sendEmailToKundeEventV2Persister = persister[SendEmailToKundeEvent, V3]("send-email-kunde", from[V1]
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false)))
+    .to[V3](_.update('context / 'kunde / 'aktiv ! set[Boolean](true))))
+
   implicit val sendEmailToAboSubscriberEventPersister = persister[SendEmailToAboSubscriberEvent]("send-email-abo-subscriber")
   implicit val sendEmailToAboSubscriberEventV2Persister = persister[SendEmailToAboSubscriberEvent, V2]("send-email-abo-subscriber", from[V1]
     .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))

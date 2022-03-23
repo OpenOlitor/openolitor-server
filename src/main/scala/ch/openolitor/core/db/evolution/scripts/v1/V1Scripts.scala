@@ -187,6 +187,7 @@ object V1Scripts {
 
       sql"""create table ${kundeMapping.table} (
         id BIGINT not null,
+        aktiv varchar(1) not null default 1,
         bezeichnung varchar(50),
         strasse varchar(50) not null,
         haus_nummer varchar(10),
@@ -542,6 +543,7 @@ object V1Scripts {
       val kid = sysConfig.mandantConfiguration.dbSeeds.get(classOf[KundeId]).getOrElse(1L)
       val kunde = Kunde(
         id = KundeId(kid),
+        aktiv = true,
         bezeichnung = "System Administator",
         strasse = "",
         hausNummer = None,

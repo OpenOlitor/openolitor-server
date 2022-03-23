@@ -47,6 +47,7 @@ object KundeParser extends EntityParser {
 
       val kundeId = KundeId(id)
       val personenByKundeId = personen filter (_.kundeId == kundeId)
+      val aktiv = true
 
       if (personenByKundeId.isEmpty) {
         throw ParseException(s"Kunde id $kundeId does not reference any person. At least one person is required")
@@ -56,6 +57,7 @@ object KundeParser extends EntityParser {
 
       Kunde(
         kundeId,
+        aktiv,
         bezeichnung = bez,
         strasse = row.value[String](indexStrasse),
         hausNummer = row.value[Option[String]](indexHausNummer),
