@@ -330,6 +330,8 @@ case class RechnungModifyBezahlt(
   eingangsDatum: DateTime
 ) extends JSONSerializable
 
+case class RechnungenDownloadContainer(ids: Seq[RechnungId], pdfMerge: String) extends JSONSerializable
+
 case class RechnungenContainer(ids: Seq[RechnungId]) extends JSONSerializable
 
 case class RechnungsPositionenCreateRechnungen(
