@@ -1,0 +1,10 @@
+[0m[[0m[0minfo[0m] [0m[0mLoading project definition from /home/mai-bee/tegonal/openolitor/openolitor-server/project/project/project[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading project definition from /home/mai-bee/tegonal/openolitor/openolitor-server/project/project[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading settings for project openolitor-server-build from plugins.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading project definition from /home/mai-bee/tegonal/openolitor/openolitor-server/project[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading settings for project main from build.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading settings for project akka-persistence-sql-async-build from plugins.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading project definition from /home/mai-bee/.sbt/1.0/staging/b3032bab84965b7c64e7/akka-persistence-sql-async/project[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading settings for project root from build.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading settings for project scalikejdbc-async-build from pgp.sbt,plugins.sbt,sonatype.sbt,sbt-updates.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mLoading project definition from /home/mai-bee/.sbt/1.0/staging/ddd311c25fd582ee3304/scalikejdbc-async/project[0m
