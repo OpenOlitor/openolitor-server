@@ -447,13 +447,14 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
     }
   }
 
-  protected def downloadAll(pdfFileName: String, fileType: FileType, ids: Seq[FileStoreFileId]) = {
+  protected def downloadAll(pdfFileName: String, fileType: FileType, ids: Seq[FileStoreFileId], pdfMerge: Boolean) = {
     ids match {
       case Seq()            => complete(StatusCodes.BadRequest)
       case Seq(fileStoreId) => download(fileType, fileStoreId.id)
       case list =>
         val refs = ids.map(id => FileStoreFileReference(fileType, id))
-        downloadMergedPDFs(pdfFileName, refs)
+        if (pdfMerge) downloadMergedPDFs(pdfFileName + ".pdf", refs)
+        else downloadAsZip(pdfFileName + ".zip", refs)
     }
   }
 
@@ -654,7 +655,7 @@ trait DefaultRouteService extends HttpService with ActorReferences with BaseJson
           case b @ BodyPart(entity, headers) if b.name == Some("pdfDownloaden") =>
             entity.asString.toBoolean
         }.getOrElse(false))
-        pdfMerge <- Try(pdfGenerieren && formData.fields.collectFirst {
+        pdfMerge <- Try(downloadFile && formData.fields.collectFirst {
           case b @ BodyPart(entity, headers) if b.name == Some("pdfMerge") =>
             if (entity.asString.equals("pdfMerge")) true else false
         }.getOrElse(false))
