@@ -26,17 +26,18 @@ import scalikejdbc.async._
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
+
 import scala.concurrent._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
 
 /**
  * Asynchronous Repository
  */
 trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
-  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Rechnung]]
+  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Rechnung]]
   def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[RechnungsPosition]]
   def getKundenRechnungen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Rechnung]]
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[RechnungDetail]]
@@ -51,8 +52,8 @@ trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
 }
 
 class BuchhaltungReadRepositoryAsyncImpl extends BuchhaltungReadRepositoryAsync with LazyLogging with BuchhaltungRepositoryQueries {
-  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Rechnung]] = {
-    getRechnungenQuery(filter).future
+  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Rechnung]] = {
+    getRechnungenQuery(filter, gjFilter).future
   }
 
   def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[RechnungsPosition]] = {
