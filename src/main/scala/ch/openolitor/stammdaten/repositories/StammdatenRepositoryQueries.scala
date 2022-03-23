@@ -1305,7 +1305,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 
   protected def getLieferplanungenQuery(datumsFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
-      select
+      select(sqls.distinct(lieferplanung.result.*))
         .from(lieferplanungMapping as lieferplanung)
         .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
         .join(projektMapping as projekt)
