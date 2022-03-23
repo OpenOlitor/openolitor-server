@@ -29,13 +29,11 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.Macros._
 import org.joda.time.DateTime
 import com.github.nscala_time.time.Imports._
-import ch.openolitor.util.StringUtil._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
 import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
-import ch.openolitor.core.models.{ BaseEntity, BaseId }
 
 trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
 
@@ -458,13 +456,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
-  protected def getZusatzAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getZusatzAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
         .join(projektMapping as projekt)
         .where.append(
-          getAboDatumFilterQuery[ZusatzAbo](zusatzAbo, datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
           )
@@ -635,41 +633,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  private def getEntityDatumFilterQuery[E <: BaseEntity[_ <: BaseId]](entity: QuerySQLSyntaxProvider[SQLSyntaxSupport[E], E], attribute: String, datumsFilter: Option[GeschaeftsjahrFilter]) = {
-    datumsFilter match {
-      case Some(datum) => sqls"""(
-        (${entity.column(attribute.toUnderscore)} >= STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
-        AND
-         ${entity.column(attribute.toUnderscore)} < STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr + 1},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e'))
-        OR
-        ${entity.column(attribute.toUnderscore)} IS NULL
-      )"""
-      case None => sqls"""1=1"""
-    }
-  }
-
-  private def getAboDatumFilterQuery[A <: Abo](abo: QuerySQLSyntaxProvider[SQLSyntaxSupport[A], A], datumsFilter: Option[GeschaeftsjahrFilter]) = {
-    datumsFilter match {
-      case Some(datum) => sqls"""(
-        ${abo.start} < STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr + 1},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
-        AND
-          (
-            ${abo.ende} IS NULL
-            OR
-            ${abo.ende} >= STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
-          )
-      )"""
-      case None => sqls"""1=1"""
-    }
-  }
-
-  protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
         .join(projektMapping as projekt)
         .where.append(
-          getAboDatumFilterQuery[DepotlieferungAbo](depotlieferungAbo, datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[DepotlieferungAbo](gjFilter, depotlieferungAbo)
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo)
           )
@@ -788,13 +758,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
         .join(projektMapping as projekt)
         .where.append(
-          getAboDatumFilterQuery[HeimlieferungAbo](heimlieferungAbo, datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[HeimlieferungAbo](gjFilter, heimlieferungAbo)
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo)
           )
@@ -818,13 +788,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getPostlieferungAbosQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getPostlieferungAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .join(projektMapping as projekt)
         .where.append(
-          getAboDatumFilterQuery[PostlieferungAbo](postlieferungAbo, datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[PostlieferungAbo](gjFilter, postlieferungAbo)
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo)
           )
@@ -1303,14 +1273,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(produktMapping(produkt)).list
   }
 
-  protected def getLieferplanungenQuery(datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getLieferplanungenQuery(gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select(sqls.distinct(lieferplanung.result.*))
         .from(lieferplanungMapping as lieferplanung)
         .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
         .join(projektMapping as projekt)
         .where.append(
-          getEntityDatumFilterQuery[Lieferung](lieferung, "datum", datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[Lieferung](gjFilter, lieferung, "datum")
         )
     }.map(lieferplanungMapping(lieferplanung)).list
   }
@@ -1934,39 +1904,39 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .list
   }
 
-  protected def getDepotAuslieferungenQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getDepotAuslieferungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(depotAuslieferungMapping as depotAuslieferung)
         .join(projektMapping as projekt)
         .where.append(
-          getEntityDatumFilterQuery[DepotAuslieferung](depotAuslieferung, "datum", datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[DepotAuslieferung](gjFilter, depotAuslieferung, "datum")
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, depotAuslieferung)
           )
     }.map(depotAuslieferungMapping(depotAuslieferung)).list
   }
 
-  protected def getTourAuslieferungenQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getTourAuslieferungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(tourAuslieferungMapping as tourAuslieferung)
         .join(projektMapping as projekt)
         .where.append(
-          getEntityDatumFilterQuery[TourAuslieferung](tourAuslieferung, "datum", datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[TourAuslieferung](gjFilter, tourAuslieferung, "datum")
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, tourAuslieferung)
           )
     }.map(tourAuslieferungMapping(tourAuslieferung)).list
   }
 
-  protected def getPostAuslieferungenQuery(filter: Option[FilterExpr], datumsFilter: Option[GeschaeftsjahrFilter]) = {
+  protected def getPostAuslieferungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(postAuslieferungMapping as postAuslieferung)
         .join(projektMapping as projekt)
         .where.append(
-          getEntityDatumFilterQuery[PostAuslieferung](postAuslieferung, "datum", datumsFilter)
+          UriQueryParamToSQLSyntaxBuilder.build[PostAuslieferung](gjFilter, postAuslieferung, "datum")
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, postAuslieferung)
           )

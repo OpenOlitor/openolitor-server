@@ -23,6 +23,7 @@
 package ch.openolitor.buchhaltung
 
 import spray.routing._
+import spray.routing.Directive.pimpApply
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
@@ -46,14 +47,12 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.RechnungReportService
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
-import java.io._
-import java.io.ByteArrayInputStream
 
+import java.io.ByteArrayInputStream
 import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
 import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
@@ -77,15 +76,19 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
 
   import EntityStore._
 
-  def buchhaltungRoute(implicit subect: Subject) =
+  def buchhaltungRoute(implicit subect: Subject): Route =
     parameters('f.?) { (f) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
+      val g = None
+      implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
+        UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
+      }
       rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
-  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
+  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) =
     path("rechnungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungen, exportFormat)) ~
         post(create[RechnungCreateFromRechnungsPositionen, RechnungId](RechnungId.apply _))

@@ -51,7 +51,7 @@ trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
 
 trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync with LazyLogging with BuchhaltungRepositoryQueries {
   def getRechnungen(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung] = {
-    getRechnungenQuery(None).apply()
+    getRechnungenQuery(None, None).apply()
   }
 
   def getKundenRechnungen(kundeId: KundeId)(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung] = {
