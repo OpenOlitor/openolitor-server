@@ -43,7 +43,10 @@ case class FileStoreSuccess()
 
 case class FileStoreFileMetadata(name: String, fileType: FileType)
 case class FileStoreFile(metaData: FileStoreFileMetadata, file: InputStream)
-case class FileStoreFileId(id: String) extends BaseStringId
+case class FileStoreFileId(id: String) extends BaseStringId with Ordered[FileStoreFileId] {
+  import scala.math.Ordered.orderingToOrdered
+  def compare(that: FileStoreFileId): Int = (this.id) compare (that.id)
+}
 case class FileStoreFileReference(fileType: FileType, id: FileStoreFileId) extends JSONSerializable
 case class FileStoreChunkedUploadMetaData(key: String, uploadId: String, bucket: FileStoreBucket, metadata: FileStoreFileMetadata)
 case class FileStoreChunkedUploadPartEtag(partNumber: Int, etag: String)
@@ -165,6 +168,7 @@ trait FileStore {
 class S3FileStore(override val mandant: String, mandantConfiguration: MandantConfiguration, actorSystem: ActorSystem) extends FileStore with FileStoreBucketLifeCycleConfiguration with LazyLogging {
   val opts = new ClientConfiguration
   opts.setSignerOverride("S3SignerType")
+  opts.setMaxConnections(1000)
 
   lazy val client = {
     val c = new AmazonS3Client(new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key")), opts)

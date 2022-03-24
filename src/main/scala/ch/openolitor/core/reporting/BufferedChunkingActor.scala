@@ -121,7 +121,7 @@ class BufferedChunkingActor(fileStore: FileStore, fileName: String, chunkSize: I
 
   val waitingForChunkedUploadCompletion: Receive = {
     case ChunkedUploadCompleted =>
-      origSender map (_ ! FileStoreResultPayload(Seq(FileStoreFileReference(metadata.get.metadata.fileType, FileStoreFileId(metadata.get.key)))))
+      origSender map (_ ! FileStoreResultPayload(false, Seq(FileStoreFileReference(metadata.get.metadata.fileType, FileStoreFileId(metadata.get.key)))))
       self ! PoisonPill
 
     case error: FileStoreError =>
