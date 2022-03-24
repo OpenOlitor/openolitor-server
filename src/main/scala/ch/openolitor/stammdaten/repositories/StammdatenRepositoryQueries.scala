@@ -1578,11 +1578,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(sammelbestellungMapping(sammelbestellung)).list
   }
 
-  protected def getSammelbestellungenQuery(filter: Option[FilterExpr]) = {
+  protected def getSammelbestellungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(sammelbestellungMapping as sammelbestellung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
+          )
     }.map(sammelbestellungMapping(sammelbestellung)).list
   }
 
