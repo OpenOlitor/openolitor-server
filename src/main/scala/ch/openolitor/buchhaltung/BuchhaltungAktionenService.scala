@@ -235,7 +235,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
                   Ok
                 }
                 buchhaltungWriteRepository.getById(kundeMapping, rechnung.kundeId) map { kunde =>
-                  createZahlungsEingang(eingang.copy(rechnungId = Some(rechnung.id), kundeBezeichnung = Some(kunde.bezeichnung), kundeId = Some(kunde.id), status = state))
+                  createZahlungsEingang(eingang.copy(rechnungId = Some(rechnung.id), kundeId = Some(kunde.id), kundeBezeichnung = Some(kunde.bezeichnung), status = state))
                 }
               case None =>
                 createZahlungsEingang(eingang.copy(status = ReferenznummerNichtGefunden))

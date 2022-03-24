@@ -86,7 +86,11 @@ object RechnungsPositionTyp {
   }
 }
 
-case class RechnungId(id: Long) extends BaseId
+case class RechnungId(id: Long) extends BaseId with Ordered[RechnungId] {
+  import scala.math.Ordered.orderingToOrdered
+  def compare(that: RechnungId): Int = (this.id) compare (that.id)
+}
+
 case class RechnungsPositionId(id: Long) extends BaseId
 
 case class RechnungsPosition(
@@ -325,6 +329,8 @@ case class RechnungModifyBezahlt(
   einbezahlterBetrag: BigDecimal,
   eingangsDatum: DateTime
 ) extends JSONSerializable
+
+case class RechnungenDownloadContainer(ids: Seq[RechnungId], pdfMerge: String) extends JSONSerializable
 
 case class RechnungenContainer(ids: Seq[RechnungId]) extends JSONSerializable
 

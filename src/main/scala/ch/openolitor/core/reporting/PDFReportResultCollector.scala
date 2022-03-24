@@ -23,47 +23,59 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
+import ch.openolitor.buchhaltung.models.RechnungId
+import ch.openolitor.core.DateFormats
+import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
 import ch.openolitor.core.reporting.ReportSystem._
-import scala.util._
-import ch.openolitor.core.filestore.FileStoreFileReference
-import ch.openolitor.core.jobs.JobQueueService.FileStoreResultPayload
+import org.apache.pdfbox.multipdf.PDFMergerUtility
+import org.apache.pdfbox.pdmodel.PDDocument
+import spray.http.MediaTypes
 
-object FileStoreReportResultCollector {
-  def props(reportSystem: ActorRef, jobQueueService: ActorRef, downloadFile: Boolean, pdfMerge: Boolean): Props = Props(classOf[FileStoreReportResultCollector], reportSystem, jobQueueService, downloadFile, pdfMerge)
+import java.io.File
+import scala.util._
+
+object PDFReportResultCollector {
+  def props(reportSystem: ActorRef, jobQueueService: ActorRef): Props = Props(classOf[PDFReportResultCollector], reportSystem, jobQueueService)
 }
 
 /**
- * Collect all results filestore id results
+ * Collect all results into a pdf file. Send back the pdf result when all reports got generated.
+ * This ResultCollector stores the generated documents in a local pdf which will eventually cause out of disk space errors.
  */
-class FileStoreReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef, downloadFile: Boolean, pdfMerge: Boolean) extends ResultCollector {
+class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector with DateFormats {
 
-  var storeResults: Seq[FileStoreFileReference] = Seq()
+  var origSender: Option[ActorRef] = None
+  val PDFmerged = new PDFMergerUtility
+  val mergedFile = new PDDocument()
+  var pdfFiles: List[(RechnungId, PDDocument)] = List()
   var errors: Seq[ReportError] = Seq()
 
   val receive: Receive = {
     case request: GenerateReports[_] =>
+      origSender = Some(sender)
       reportSystem ! request
       context become waitingForResult
   }
 
   val waitingForResult: Receive = {
     case SingleReportResult(_, stats, Left(error)) =>
-      log.debug(s"Received error:${error}:$stats")
       errors = errors :+ error
       notifyProgress(stats)
-    case SingleReportResult(_, stats, Right(StoredPdfReportResult(_, fileType, id))) =>
-      log.debug(s"Received resukt:${id}:$stats")
-      storeResults = storeResults :+ FileStoreFileReference(fileType, id)
+    case SingleReportResult(id: RechnungId, stats, Right(result: ReportResultWithDocument)) =>
+      log.debug(s"Add Pdf Entry:${result.name}")
+      pdfFiles = pdfFiles :+ (id, PDDocument.load(result.document))
       notifyProgress(stats)
     case result: GenerateReportsStats if result.numberOfReportsInProgress == 0 =>
-      log.debug(s"Job finished: $result, downloadFile:$downloadFile")
-      //finished, send collected result to jobQueue
-      if (downloadFile) {
-        val payload = FileStoreResultPayload(pdfMerge, storeResults)
-        jobFinished(result, Some(payload))
-      } else {
-        jobFinished(result, None)
+      pdfFiles.sortBy(_._1) map { file =>
+        PDFmerged.appendDocument(mergedFile, file._2)
       }
+      val fileName = "Report_" + filenameDateFormat.print(System.currentTimeMillis())
+      val file = File.createTempFile(fileName, ".pdf");
+      mergedFile.save(file)
+      val payload = FileResultPayload(fileName, MediaTypes.`application/pdf`, file)
+      log.debug(s"Send payload as result:${fileName}")
+      jobFinished(result, Some(payload))
+      log.debug(s"Stop collector PoisonPill")
       self ! PoisonPill
     case stats: GenerateReportsStats =>
       notifyProgress(stats)

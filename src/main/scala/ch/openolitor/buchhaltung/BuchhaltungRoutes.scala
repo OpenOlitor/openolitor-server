@@ -93,11 +93,16 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("rechnungen" / "aktionen" / "downloadrechnungen") {
         post {
           requestInstance { request =>
-            entity(as[RechnungenContainer]) { cont =>
+            entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.fileStoreId.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download rechnungen with filestoreRefs:$fileStoreIds")
-                downloadAll("Rechnungen_" + System.currentTimeMillis + ".zip", GeneriertRechnung, fileStoreIds)
+                downloadAll(
+                  "Rechnungen_" + System.currentTimeMillis,
+                  GeneriertRechnung,
+                  fileStoreIds,
+                  if (cont.pdfMerge.equals("pdfMerge")) true else false
+                )
               }
             }
           }
@@ -106,11 +111,16 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("rechnungen" / "aktionen" / "downloadmahnungen") {
         post {
           requestInstance { request =>
-            entity(as[RechnungenContainer]) { cont =>
+            entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.mahnungFileStoreIds.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download mahnungen with filestoreRefs:$fileStoreIds")
-                downloadAll("Mahnungen_" + System.currentTimeMillis + ".zip", GeneriertMahnung, fileStoreIds)
+                downloadAll(
+                  "Mahnungen_" + System.currentTimeMillis,
+                  GeneriertMahnung,
+                  fileStoreIds,
+                  if (cont.pdfMerge.equals("pdfMerge")) true else false
+                )
               }
             }
           }
