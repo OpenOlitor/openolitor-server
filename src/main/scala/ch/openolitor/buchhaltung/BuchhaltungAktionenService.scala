@@ -147,7 +147,7 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
 
   private def rechnungBezahlenUpdate(id: RechnungId, entity: RechnungModifyBezahlt)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
     buchhaltungWriteRepository.getById(rechnungMapping, id) map { rechnung =>
-      buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](r => Verschickt == r.status || MahnungVerschickt == r.status)(id) { rechnung =>
+      buchhaltungWriteRepository.modifyEntityIf[Rechnung, RechnungId](r => (Verschickt == r.status) || (Erstellt == r.status) || MahnungVerschickt == r.status)(id) { rechnung =>
         Map(
           rechnungMapping.column.status -> Bezahlt,
           rechnungMapping.column.einbezahlterBetrag -> Option(entity.einbezahlterBetrag),
