@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
@@ -47,11 +47,16 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   lazy val person = personMapping.syntax("pers")
   lazy val projekt = projektMapping.syntax("projekt")
 
-  protected def getRechnungenQuery(filter: Option[FilterExpr]) = {
+  protected def getRechnungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select
         .from(rechnungMapping as rechnung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+          )
         .orderBy(rechnung.rechnungsDatum)
     }.map(rechnungMapping(rechnung)).list
   }

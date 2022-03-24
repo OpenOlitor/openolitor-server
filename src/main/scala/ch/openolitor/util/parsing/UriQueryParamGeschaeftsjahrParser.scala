@@ -20,44 +20,18 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.db.evolution.scripts.v1
+package ch.openolitor.util.parsing
 
-import scala.util.{ Try, Success }
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.db.evolution.Script
-import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
 
-object OO291_OO396_DBScripts {
-  import scalikejdbc._
+object UriQueryParamGeschaeftsjahrParser extends LazyLogging {
 
-  val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings {
-    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-
-      // insert Kundentypen welche bisher fix im Code waren
-      sql"""INSERT INTO Kundentyp (id, kundentyp, anzahl_verknuepfungen, erstelldat, ersteller, modifidat, modifikator) VALUES
-            (1000, 'Vereinsmitglied', 0, '2016-01-01 00:00:00', 100, '2016-01-01 00:00:00', 100),
-            (1001, 'Goenner', 0, '2016-01-01 00:00:00', 100, '2016-01-01 00:00:00', 100),
-            (1002, 'Genossenschafterin', 0, '2016-01-01 00:00:00', 100, '2016-01-01 00:00:00', 100)""".execute.apply()
-
-      // update der anzahl_verknüpfungen pro Kundentyp
-      val kundentypen: Seq[String] = sql"SELECT kundentyp from Kundentyp".map(rs => rs.string("kundentyp")).list.apply()
-
-      val counts: Seq[Int] = kundentypen.map { kundentyp =>
-        val kundentypUnsafe = SQLSyntax.createUnsafely(s"%$kundentyp%")
-        sql"SELECT COUNT(*) c FROM Kunde WHERE typen LIKE '$kundentypUnsafe'".map(rs => rs.int("c")).single.apply().getOrElse(0)
-      }
-
-      (kundentypen zip counts).foreach {
-        case (typ, count) => {
-          val kundentypUnsafe = SQLSyntax.createUnsafely(s"'$typ'")
-          sql"UPDATE Kundentyp SET anzahl_verknuepfungen = ${count} WHERE kundentyp = $kundentypUnsafe".update.apply()
-        }
-      }
-
-      Success(true)
+  def parse(input: String): Option[GeschaeftsjahrFilter] = {
+    if (input.length == 4) {
+      Some(GeschaeftsjahrFilter(input.toInt))
+    } else {
+      return None
     }
   }
 
-  val scripts = Seq(StammdatenScripts)
 }

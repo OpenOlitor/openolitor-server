@@ -272,7 +272,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     stammdatenWriteRepository.getById(kundeMapping, kundeId) map { kunde =>
       //map all updatable fields
       val bez = update.bezeichnung.getOrElse(update.ansprechpersonen.head.fullName)
-      val copy = copyFrom(kunde, update, "bezeichnung" -> bez, "anzahlPersonen" -> update.ansprechpersonen.length,
+      val copy = copyFrom(kunde, update, "aktiv" -> update.aktiv, "bezeichnung" -> bez, "anzahlPersonen" -> update.ansprechpersonen.length,
         "anzahlPendenzen" -> update.pendenzen.length, "modifidat" -> meta.timestamp, "modifikator" -> personId)
       stammdatenWriteRepository.updateEntityFully[Kunde, KundeId](copy)
     }
