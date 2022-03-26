@@ -198,7 +198,7 @@ object V2Scripts {
         zeit_bis datetime,
         einsatz_zeit DECIMAL(5,2),
         kunde_id BIGINT not null,
-        kunde_bezeichnung varchar(50),
+        kunde_bezeichnung varchar(200),
         person_id BIGINT,
         person_name varchar(50),
         abo_id BIGINT,

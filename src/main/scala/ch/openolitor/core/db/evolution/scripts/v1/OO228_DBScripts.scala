@@ -47,7 +47,7 @@ object OO228_DBScripts {
         kunde_id BIGINT not null,
         vertriebsart_id BIGINT not null,
         vertrieb_id BIGINT not null,
-        kunde_bezeichnung varchar(100),
+        kunde_bezeichnung varchar(200),
         strasse varchar(50) not null,
         haus_nummer varchar(10),
         adress_zusatz varchar(100),
