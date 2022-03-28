@@ -35,6 +35,7 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+import org.joda.time.LocalDate
 
 trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMappings with BuchhaltungDBMappings with ArbeitseinsatzDBMappings {
 
@@ -371,6 +372,38 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         val arbeitsangebot = arbeitsangebote.head
         copyTo[Arbeitseinsatz, ArbeitseinsatzDetail](arbeitseinsatz, "arbeitsangebot" -> arbeitsangebot, "coworkers" -> coworkersContact)
       }.list
+  }
+
+  protected def getLieferplanungQuery(aboId: AboId, abwesenheitId: AbwesenheitId) = {
+    withSQL {
+      select
+        .from(lieferplanungMapping as lieferplanung)
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(
+          sqls.eq(vertrieb.id, lieferung.vertriebId)
+            .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
+        )
+        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
+        .leftJoin(abwesenheitMapping as abwesenheit).on(abwesenheit.datum, lieferung.datum)
+        .where.eq(depotlieferungAbo.id, aboId)
+        .and.eq(abwesenheit.id, abwesenheitId)
+    }.map(lieferplanungMapping(lieferplanung)).single
+  }
+
+  protected def getLieferplanungQuery(aboId: AboId, datum: LocalDate) = {
+    withSQL {
+      select
+        .from(lieferplanungMapping as lieferplanung)
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(
+          sqls.eq(vertrieb.id, lieferung.vertriebId)
+            .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
+        )
+        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
+        .leftJoin(abwesenheitMapping as abwesenheit).on(abwesenheit.datum, lieferung.datum)
+        .where.eq(depotlieferungAbo.id, aboId)
+        .and.eq(lieferung.id, datum)
+    }.map(lieferplanungMapping(lieferplanung)).single
   }
 
 }

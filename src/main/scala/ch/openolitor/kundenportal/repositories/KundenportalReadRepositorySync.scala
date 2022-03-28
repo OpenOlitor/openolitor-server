@@ -28,6 +28,7 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.arbeitseinsatz.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.models.PersonId
+import org.joda.time.LocalDate
 
 /**
  * Synchronous Repository
@@ -38,6 +39,8 @@ trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
   def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
   def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
+  def getLieferplanung(aboId: AboId, abwesenheitId: AbwesenheitId)(implicit session: DBSession): Option[Lieferplanung]
+  def getLieferplanung(aboId: AboId, datum: LocalDate)(implicit session: DBSession): Option[Lieferplanung]
 }
 
 trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync with LazyLogging with KundenportalRepositoryQueries {
@@ -56,5 +59,11 @@ trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync 
   }
   def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail] = {
     getArbeitseinsatzDetailQuery(id).apply()
+  }
+  def getLieferplanung(aboId: AboId, abwesenheitId: AbwesenheitId)(implicit session: DBSession): Option[Lieferplanung] = {
+    getLieferplanungQuery(aboId, abwesenheitId).apply()
+  }
+  def getLieferplanung(aboId: AboId, datum: LocalDate)(implicit session: DBSession): Option[Lieferplanung] = {
+    getLieferplanungQuery(aboId, datum).apply()
   }
 }
