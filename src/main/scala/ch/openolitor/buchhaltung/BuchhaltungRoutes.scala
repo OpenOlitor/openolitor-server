@@ -23,7 +23,6 @@
 package ch.openolitor.buchhaltung
 
 import spray.routing._
-import spray.routing.Directive.pimpApply
 import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
@@ -77,11 +76,10 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def buchhaltungRoute(implicit subect: Subject): Route =
-    parameters('f.?) { (f) =>
+    spray.routing.directives.ParameterDirectives.parameters('f.?, 'g.?) { (f, g) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      val g = None
       implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
         UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
       }
