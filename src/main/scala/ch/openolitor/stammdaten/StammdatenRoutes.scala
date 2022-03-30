@@ -530,7 +530,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath) { (lieferplanungId, lieferungId) =>
         (put | post)(create[LieferungPlanungAdd, LieferungId]((x: Long) => lieferungId)) ~
-          delete(remove(lieferungId.getLieferungOnLieferplanungId()))
+          delete(lieferplanungRemoveAbotyp(lieferungId))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / korbStatusPath / "aboIds") { (lieferplanungId, korbStatus) =>
         get(list(stammdatenReadRepository.getAboIds(lieferplanungId, korbStatus)))
@@ -597,6 +597,15 @@ trait StammdatenRoutes extends HttpService with ActorReferences
 
         complete("")
     }
+  }
+
+  private def lieferplanungRemoveAbotyp(id: LieferungId)(implicit idPersister: Persister[LieferplanungId, _], subject: Subject): Route = {
+    implicit val timeout = Timeout(30.seconds)
+    // create command in commandhandler
+    // remove zusatzabo baskets
+    // update numbers in lieferung for the zusatzabo
+    remove(id.getLieferungOnLieferplanungId());
+
   }
 
   private def lieferplanungModifizieren(lieferplanungModify: LieferplanungPositionenModify)(implicit idPersister: Persister[LieferplanungId, _], subject: Subject): Route = {
