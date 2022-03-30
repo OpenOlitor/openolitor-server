@@ -378,14 +378,24 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
     withSQL {
       select
         .from(lieferplanungMapping as lieferplanung)
-        .leftJoin(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .join(abwesenheitMapping as abwesenheit).on(abwesenheit.datum, lieferung.datum)
+        .join(vertriebMapping as vertrieb).on(lieferung.vertriebId, vertrieb.id)
         .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(
-          sqls.eq(vertrieb.id, lieferung.vertriebId)
+          sqls.eq(vertrieb.id, depotlieferungAbo.vertriebId)
             .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
         )
-        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
-        .leftJoin(abwesenheitMapping as abwesenheit).on(abwesenheit.datum, lieferung.datum)
-        .where.eq(depotlieferungAbo.id, aboId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(
+          sqls.eq(vertrieb.id, heimlieferungAbo.vertriebId)
+            .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
+        )
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(
+          sqls.eq(vertrieb.id, postlieferungAbo.vertriebId)
+            .and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
+        )
+        .where.withRoundBracket {
+          _.eq(depotlieferungAbo.id, aboId)
+        }.or.eq(heimlieferungAbo.id, aboId).or.eq(postlieferungAbo.id, aboId)
         .and.eq(abwesenheit.id, abwesenheitId)
     }.map(lieferplanungMapping(lieferplanung)).single
   }
@@ -394,15 +404,23 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
     withSQL {
       select
         .from(lieferplanungMapping as lieferplanung)
-        .leftJoin(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .join(abwesenheitMapping as abwesenheit).on(abwesenheit.datum, lieferung.datum)
+        .join(vertriebMapping as vertrieb).on(lieferung.vertriebId, vertrieb.id)
         .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(
-          sqls.eq(vertrieb.id, lieferung.vertriebId)
+          sqls.eq(vertrieb.id, depotlieferungAbo.vertriebId)
             .and.eq(lieferung.abotypId, depotlieferungAbo.abotypId)
         )
-        .leftJoin(vertriebMapping as vertrieb).on(depotlieferungAbo.vertriebId, vertrieb.id)
-        .leftJoin(abwesenheitMapping as abwesenheit).on(abwesenheit.datum, lieferung.datum)
-        .where.eq(depotlieferungAbo.id, aboId)
-        .and.eq(lieferung.id, datum)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(
+          sqls.eq(vertrieb.id, heimlieferungAbo.vertriebId)
+            .and.eq(lieferung.abotypId, heimlieferungAbo.abotypId)
+        )
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(
+          sqls.eq(vertrieb.id, postlieferungAbo.vertriebId)
+            .and.eq(lieferung.abotypId, postlieferungAbo.abotypId)
+        )
+        .where.withRoundBracket(_.eq(depotlieferungAbo.id, aboId).or.eq(heimlieferungAbo.id, aboId).or.eq(postlieferungAbo.id, aboId))
+        .and.eq(lieferung.datum, datum)
     }.map(lieferplanungMapping(lieferplanung)).single
   }
 
