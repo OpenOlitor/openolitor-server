@@ -530,7 +530,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath) { (lieferplanungId, lieferungId) =>
         (put | post)(create[LieferungPlanungAdd, LieferungId]((x: Long) => lieferungId)) ~
-          delete(lieferplanungRemoveAbotyp(lieferungId))
+          delete(lieferplanungRemoveLieferung(lieferungId))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / korbStatusPath / "aboIds") { (lieferplanungId, korbStatus) =>
         get(list(stammdatenReadRepository.getAboIds(lieferplanungId, korbStatus)))
@@ -599,13 +599,13 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def lieferplanungRemoveAbotyp(id: LieferungId)(implicit idPersister: Persister[LieferplanungId, _], subject: Subject): Route = {
-    implicit val timeout = Timeout(30.seconds)
-    // create command in commandhandler
-    // remove zusatzabo baskets
-    // update numbers in lieferung for the zusatzabo
-    remove(id.getLieferungOnLieferplanungId());
-
+  private def lieferplanungRemoveLieferung(lieferungId: LieferungId)(implicit subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.RemoveLieferungCommand(subject.personId, lieferungId)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Could not remove the abotyp from the lieferplanung")
+      case _ =>
+        complete("")
+    }
   }
 
   private def lieferplanungModifizieren(lieferplanungModify: LieferplanungPositionenModify)(implicit idPersister: Persister[LieferplanungId, _], subject: Subject): Route = {
