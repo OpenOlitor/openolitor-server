@@ -450,7 +450,7 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getAktiveDepotlieferungAbos(abotypId, vertriebId, lieferdatum) :::
       getAktiveHeimlieferungAbos(abotypId, vertriebId, lieferdatum) :::
       getAktivePostlieferungAbos(abotypId, vertriebId, lieferdatum) :::
-      getAktiveZusatzAbos(abotypId, lieferdatum, lieferplanungId)
+      getAktiveZusatzAbos(abotypId, vertriebId, lieferdatum, lieferplanungId)
   }
 
   def getAktiveDepotlieferungAbos(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime)(implicit session: DBSession): List[DepotlieferungAbo] = {
@@ -465,8 +465,8 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getAktivePostlieferungAbosQuery(abotypId, vertriebId, lieferdatum).apply
   }
 
-  def getAktiveZusatzAbos(abotypId: AbotypId, lieferdatum: DateTime, lieferplanungId: LieferplanungId)(implicit session: DBSession): List[ZusatzAbo] = {
-    getAktiveZusatzAbosQuery(abotypId, lieferdatum, lieferplanungId).apply
+  def getAktiveZusatzAbos(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime, lieferplanungId: LieferplanungId)(implicit session: DBSession): List[ZusatzAbo] = {
+    getAktiveZusatzAbosQuery(abotypId, vertriebId, lieferdatum, lieferplanungId).apply
   }
 
   def countKoerbe(auslieferungId: AuslieferungId)(implicit session: DBSession): Option[Int] = {

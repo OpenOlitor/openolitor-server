@@ -1021,13 +1021,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
-  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
+  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, vertriebId: VertriebId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
     // zusätzlich get haupabo, get all Lieferungen where Lieferplanung is equal
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
         .innerJoin(lieferungMapping as lieferung).on(zusatzAbo.abotypId, lieferung.abotypId)
         .where.eq(zusatzAbo.abotypId, abotypId)
+        .and.eq(zusatzAbo.vertriebId, vertriebId)
         .and.le(zusatzAbo.start, lieferdatum)
         .and.eq(lieferung.lieferplanungId, lieferplanungId)
         .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, lieferdatum.toLocalDate) }
