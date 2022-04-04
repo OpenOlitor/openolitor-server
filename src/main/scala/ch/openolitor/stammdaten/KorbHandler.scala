@@ -192,7 +192,7 @@ trait KorbHandler extends KorbStatusHandler
     val ret: Option[Option[Lieferung]] = stammdatenWriteRepository.getAbotypById(lieferung.abotypId) map { abotyp =>
       lieferung.lieferplanungId.map { lieferplanungId =>
         val abos: List[Abo] = stammdatenWriteRepository.getAktiveAbos(lieferung.abotypId, lieferung.vertriebId, lieferung.datum, lieferplanungId)
-        val koerbe: List[(Option[Korb], Option[Korb])] = abos map { abo =>
+        abos map { abo =>
           if (vertriebList.exists { vertrieb => vertrieb.id == abo.vertriebId }) {
             upsertKorb(lieferung, abo, abotyp)
           } else { (None, None) }
@@ -213,7 +213,7 @@ trait KorbHandler extends KorbStatusHandler
             offenLieferung(lieferplanungId, project, zusatzLieferung)
           }
         }
-        case _ => //macht nichts
+        case Some(zusatzLieferung) => offenLieferung(lieferplanungId, project, zusatzLieferung)
       }
     }
     adjustedLieferung

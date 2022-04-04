@@ -65,7 +65,7 @@ object StammdatenCommandHandler {
   case class OtpResetCommand(originator: PersonId, kundeId: KundeId, personId: PersonId) extends UserCommand
   case class UpdateKundeCommand(originator: PersonId, kundeId: KundeId, kunde: KundeModify) extends UserCommand
   case class CreateKundeCommand(originator: PersonId, kunde: KundeModify) extends UserCommand
-
+  case class RemoveLieferungCommand(originator: PersonId, lieferungId: LieferungId) extends UserCommand
   // TODO person id for calculations
   case class AboAktivierenCommand(aboId: AboId, originator: PersonId = PersonId(100)) extends UserCommand
   case class AboDeaktivierenCommand(aboId: AboId, originator: PersonId = PersonId(100)) extends UserCommand
@@ -444,6 +444,9 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     case CreateKundeCommand(_, kunde) => idFactory => meta =>
       createKunde(idFactory, meta, kunde)
 
+    case RemoveLieferungCommand(_, lieferungId) => idFactory => meta =>
+      removeLieferung(idFactory, meta, lieferungId)
+
     /*
        * Insert command handling
        */
@@ -810,6 +813,12 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
           Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
         }
       }
+    }
+  }
+
+  def removeLieferung(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungId: LieferungId) = {
+    DB readOnly { implicit session =>
+      Success(Seq(EntityDeleteEvent(lieferungId.getLieferungOnLieferplanungId())))
     }
   }
 
