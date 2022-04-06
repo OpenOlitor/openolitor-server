@@ -141,11 +141,11 @@ trait KorbHandler extends KorbStatusHandler
                   case None => {
                     // Using positiveRandomId because the lieferung cannot be created in commandHandler.
                     createLieferungInner(LieferungId(IdUtil.positiveRandomId), LieferungAbotypCreate(zusatzabo.abotypId, lieferung.vertriebId, lieferung.datum), Some(lieferplanung.id)).map { zusatzLieferung =>
-                      offenLieferung(lieferplanung.id, project, zusatzLieferung)
+                      offenLieferung(lieferplanung.id, project, zusatzLieferung, None)
                     }
                   }
                   case Some(zusatzLieferung) => {
-                    offenLieferung(lieferplanung.id, project, zusatzLieferung)
+                    offenLieferung(lieferplanung.id, project, zusatzLieferung, None)
                   }
                 }
               }
@@ -186,12 +186,17 @@ trait KorbHandler extends KorbStatusHandler
     )
   }
 
-  def createKoerbe(lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
+  def createKoerbe(lieferung: Lieferung, vertriebId: Option[VertriebId])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Option[Lieferung] = {
     logger.debug(s"Create Koerbe => lieferung : ${lieferung}")
     val vertriebList = vertriebInDelivery(lieferung.datum)
     val ret: Option[Option[Lieferung]] = stammdatenWriteRepository.getAbotypById(lieferung.abotypId) map { abotyp =>
       lieferung.lieferplanungId.map { lieferplanungId =>
-        val abos: List[Abo] = stammdatenWriteRepository.getAktiveAbos(lieferung.abotypId, lieferung.vertriebId, lieferung.datum, lieferplanungId)
+        val abos = vertriebId match {
+          case Some(vId) =>
+            stammdatenWriteRepository.getAktiveZusatzAbos(lieferung.abotypId, vId, lieferung.datum, lieferplanungId)
+          case None =>
+            stammdatenWriteRepository.getAktiveAbos(lieferung.abotypId, lieferung.vertriebId, lieferung.datum, lieferplanungId)
+        }
         abos map { abo =>
           if (vertriebList.exists { vertrieb => vertrieb.id == abo.vertriebId }) {
             upsertKorb(lieferung, abo, abotyp)
@@ -200,26 +205,36 @@ trait KorbHandler extends KorbStatusHandler
         recalculateNumbersLieferung(lieferung)
       }
     }
-    ret.flatten.getOrElse(lieferung)
+    ret.flatten match {
+      case Some(lieferung) =>
+        if (lieferung.anzahlSaldoZuTief == 0 && lieferung.anzahlAbwesenheiten == 0 && lieferung.anzahlKoerbeZuLiefern == 0) {
+          stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferung.id)
+          None
+        } else Some(lieferung)
+      case None => None
+    }
   }
 
-  def updateLieferungUndZusatzLieferung(lieferplanungId: LieferplanungId, project: Option[Projekt], lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
-    val adjustedLieferung = offenLieferung(lieferplanungId, project, lieferung)
-    stammdatenWriteRepository.getExistingZusatzAbotypen(adjustedLieferung.id).map { zusatzAbotyp =>
-      stammdatenWriteRepository.getExistingZusatzaboLieferung(zusatzAbotyp.id, lieferplanungId, lieferung.datum) match {
-        case None => {
-          // Using positiveRandomId because the lieferung cannot be created in commandHandler.
-          createLieferungInner(LieferungId(IdUtil.positiveRandomId), LieferungAbotypCreate(zusatzAbotyp.id, adjustedLieferung.vertriebId, adjustedLieferung.datum), Some(lieferplanungId)).map { zusatzLieferung =>
-            offenLieferung(lieferplanungId, project, zusatzLieferung)
+  def updateLieferungUndZusatzLieferung(lieferplanungId: LieferplanungId, project: Option[Projekt], hauptAboLieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Option[Lieferung] = {
+    offenLieferung(lieferplanungId, project, hauptAboLieferung, None) match {
+      case Some(adjustedLieferung) =>
+        stammdatenWriteRepository.getExistingZusatzAbotypen(adjustedLieferung.id).map { zusatzAbotyp =>
+          stammdatenWriteRepository.getExistingZusatzaboLieferung(zusatzAbotyp.id, lieferplanungId, hauptAboLieferung.datum) match {
+            case None => {
+              // Using positiveRandomId because the lieferung cannot be created in commandHandler.
+              createLieferungInner(LieferungId(IdUtil.positiveRandomId), LieferungAbotypCreate(zusatzAbotyp.id, adjustedLieferung.vertriebId, adjustedLieferung.datum), Some(lieferplanungId)).map { zusatzLieferung =>
+                offenLieferung(lieferplanungId, project, zusatzLieferung, None)
+              }
+            }
+            case Some(zusatzLieferung) => offenLieferung(lieferplanungId, project, zusatzLieferung, Some(adjustedLieferung.vertriebId))
           }
         }
-        case Some(zusatzLieferung) => offenLieferung(lieferplanungId, project, zusatzLieferung)
-      }
+        Some(adjustedLieferung)
+      case None => None
     }
-    adjustedLieferung
   }
 
-  private def offenLieferung(lieferplanungId: LieferplanungId, project: Option[Projekt], lieferung: Lieferung)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Lieferung = {
+  private def offenLieferung(lieferplanungId: LieferplanungId, project: Option[Projekt], lieferung: Lieferung, hauptAboVertriebId: Option[VertriebId])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Option[Lieferung] = {
     logger.debug(s" offenLieferung : lieferplanungId : $lieferplanungId project : $project lieferung : $lieferung")
     val (newDurchschnittspreis, newAnzahlLieferungen) = stammdatenWriteRepository.getGeplanteLieferungVorher(lieferung.vertriebId, lieferung.abotypId, lieferung.datum) match {
       case Some(lieferungVorher) if project.get.geschaftsjahr.isInSame(lieferungVorher.datum.toLocalDate(), lieferung.datum.toLocalDate()) =>
@@ -246,18 +261,20 @@ trait KorbHandler extends KorbStatusHandler
     )
 
     //create koerbe
-    val adjustedLieferung = createKoerbe(updatedLieferung)
-
-    stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](adjustedLieferung.id)(
-      lieferungMapping.column.status -> adjustedLieferung.status,
-      lieferungMapping.column.durchschnittspreis -> adjustedLieferung.durchschnittspreis,
-      lieferungMapping.column.anzahlLieferungen -> adjustedLieferung.anzahlLieferungen,
-      lieferungMapping.column.anzahlKoerbeZuLiefern -> adjustedLieferung.anzahlKoerbeZuLiefern,
-      lieferungMapping.column.anzahlAbwesenheiten -> adjustedLieferung.anzahlAbwesenheiten,
-      lieferungMapping.column.anzahlSaldoZuTief -> adjustedLieferung.anzahlSaldoZuTief,
-      lieferungMapping.column.lieferplanungId -> lieferplanungId
-    )
-    adjustedLieferung
+    createKoerbe(updatedLieferung, hauptAboVertriebId) match {
+      case Some(adjustedLieferung) =>
+        stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](adjustedLieferung.id)(
+          lieferungMapping.column.status -> adjustedLieferung.status,
+          lieferungMapping.column.durchschnittspreis -> adjustedLieferung.durchschnittspreis,
+          lieferungMapping.column.anzahlLieferungen -> adjustedLieferung.anzahlLieferungen,
+          lieferungMapping.column.anzahlKoerbeZuLiefern -> adjustedLieferung.anzahlKoerbeZuLiefern,
+          lieferungMapping.column.anzahlAbwesenheiten -> adjustedLieferung.anzahlAbwesenheiten,
+          lieferungMapping.column.anzahlSaldoZuTief -> adjustedLieferung.anzahlSaldoZuTief,
+          lieferungMapping.column.lieferplanungId -> lieferplanungId
+        )
+        Some(adjustedLieferung)
+      case None => None
+    }
   }
 
   def createLieferungInner(id: LieferungId, lieferung: LieferungAbotypCreate, lieferplanungId: Option[LieferplanungId])(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Option[Lieferung] = {
@@ -272,6 +289,7 @@ trait KorbHandler extends KorbStatusHandler
 
           val insert = copyTo[LieferungAbotypCreate, Lieferung](lieferung, "id" -> id,
             "abotypBeschrieb" -> atBeschrieb,
+            "vertriebId" -> vertrieb.id,
             "vertriebBeschrieb" -> vBeschrieb,
             "anzahlAbwesenheiten" -> ZERO,
             "durchschnittspreis" -> ZERO,

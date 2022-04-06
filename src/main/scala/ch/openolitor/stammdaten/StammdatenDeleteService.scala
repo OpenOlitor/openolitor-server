@@ -34,7 +34,6 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import org.joda.time.LocalDate
 
 object StammdatenDeleteService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenDeleteService = new DefaultStammdatenDeleteService(sysConfig, system)
