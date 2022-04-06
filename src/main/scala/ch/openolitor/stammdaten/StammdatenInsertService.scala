@@ -692,13 +692,15 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       //create lieferplanung
       stammdatenWriteRepository.insertEntity[Lieferplanung, LieferplanungId](insert) map { lieferplanung =>
         //alle nächsten Lieferungen alle Abotypen (wenn Flag es erlaubt)
-        val abotypDepotTour = stammdatenWriteRepository.getLieferungenNext() map { lieferung =>
+        val abotypDepotTour = stammdatenWriteRepository.getLieferungenNext() map { lieferung: Lieferung =>
           logger.debug("createLieferplanung: Lieferung " + lieferung.id + ": " + lieferung)
-          val adjustedLieferung: Lieferung = updateLieferungUndZusatzLieferung(lieferplanungId, project, lieferung)
-          (dateFormat.print(adjustedLieferung.datum), adjustedLieferung.abotypBeschrieb)
+          updateLieferungUndZusatzLieferung(lieferplanungId, project, lieferung) match {
+            case Some(adjustedLieferung) => Some(dateFormat.print(adjustedLieferung.datum), adjustedLieferung.abotypBeschrieb)
+            case None                    => None
+          }
         }
 
-        val abotypDates = (abotypDepotTour.groupBy(_._1).mapValues(_ map { _._2 }) map {
+        val abotypDates = (abotypDepotTour.flatten.groupBy(_._1).mapValues(_ map { _._2 }) map {
           case (datum, abotypBeschrieb) =>
             datum + ": " + abotypBeschrieb.mkString(", ")
         }).mkString("; ")
