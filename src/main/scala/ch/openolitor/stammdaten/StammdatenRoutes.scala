@@ -530,7 +530,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath) { (lieferplanungId, lieferungId) =>
         (put | post)(create[LieferungPlanungAdd, LieferungId]((x: Long) => lieferungId)) ~
-          delete(remove(lieferungId.getLieferungOnLieferplanungId()))
+          delete(lieferplanungRemoveLieferung(lieferungId))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / korbStatusPath / "aboIds") { (lieferplanungId, korbStatus) =>
         get(list(stammdatenReadRepository.getAboIds(lieferplanungId, korbStatus)))
@@ -595,6 +595,15 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           complete("")
         }
 
+        complete("")
+    }
+  }
+
+  private def lieferplanungRemoveLieferung(lieferungId: LieferungId)(implicit subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.RemoveLieferungCommand(subject.personId, lieferungId)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Could not remove the abotyp from the lieferplanung")
+      case _ =>
         complete("")
     }
   }

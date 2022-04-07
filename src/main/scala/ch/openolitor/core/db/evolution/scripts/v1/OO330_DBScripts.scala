@@ -65,7 +65,7 @@ object OO330_DBScripts {
         select.from(lieferungMapping as lieferung).
           where.not.eq(lieferung.lieferplanungId, None).and.notIn(lieferung.id, (select(korb.lieferungId).from(korbMapping as korb)))
       }.map(lieferungMapping(lieferung)).list.apply() map { lieferung =>
-        insertService.createKoerbe(lieferung)
+        insertService.createKoerbe(lieferung, None)
       }
 
       Success(true)

@@ -98,12 +98,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getExistingZusatzAbotypenQuery(lieferungId: LieferungId) = {
+    val today = LocalDate.now.toDateTimeAtStartOfDay
     withSQL {
       select
         .from(zusatzAbotypMapping as zusatzAboTyp)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.abotypId, zusatzAboTyp.id)
         .leftJoin(korbMapping as korb).on(korb.aboId, zusatzAbo.hauptAboId)
-        .where.eq(korb.lieferungId, lieferungId)
+        .where.eq(korb.lieferungId, lieferungId).and.withRoundBracket {
+          _.isNull(zusatzAboTyp.aktivBis).or.ge(zusatzAboTyp.aktivBis, today)
+        }
     }.map(zusatzAbotypMapping(zusatzAboTyp)).list
   }
 
@@ -1021,13 +1024,21 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
-  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
+  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, hauptAboVertriebId: VertriebId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
     // zusätzlich get haupabo, get all Lieferungen where Lieferplanung is equal
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
         .innerJoin(lieferungMapping as lieferung).on(zusatzAbo.abotypId, lieferung.abotypId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(zusatzAbo.hauptAboId, heimlieferungAbo.id)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(zusatzAbo.hauptAboId, depotlieferungAbo.id)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(zusatzAbo.hauptAboId, postlieferungAbo.id)
         .where.eq(zusatzAbo.abotypId, abotypId)
+        .and.withRoundBracket {
+          _.eq(heimlieferungAbo.vertriebId, hauptAboVertriebId)
+            .or.eq(postlieferungAbo.vertriebId, hauptAboVertriebId)
+            .or.eq(depotlieferungAbo.vertriebId, hauptAboVertriebId)
+        }
         .and.le(zusatzAbo.start, lieferdatum)
         .and.eq(lieferung.lieferplanungId, lieferplanungId)
         .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, lieferdatum.toLocalDate) }
@@ -1525,6 +1536,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 		         SELECT DISTINCT ${lieferung.vertriebId}
 		         FROM ${lieferungMapping as lieferung}
 		         WHERE ${lieferung.lieferplanungId} = ${id.id}
+		            AND ${lieferung.anzahlKoerbeZuLiefern} + ${lieferung.anzahlSaldoZuTief} + ${lieferung.anzahlAbwesenheiten} > 0
 		       )
 		       GROUP BY ${lieferung.abotypId}) groupedLieferung
 		    ON ${lieferung.abotypId} = groupedLieferung.abotypId

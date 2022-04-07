@@ -77,6 +77,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     case EntityDeletedEvent(meta, id: LieferplanungId) => deleteLieferplanung(meta, id)
     case EntityDeletedEvent(meta, id: ProjektVorlageId) => deleteProjektVorlage(meta, id)
     case EntityDeletedEvent(meta, id: LieferungOnLieferplanungId) => removeLieferungPlanung(meta, id)
+    case EntityDeletedEvent(meta, id: KorbId) => deleteKorb(meta, id)
     case e =>
   }
 
@@ -248,18 +249,38 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  def removeLieferungPlanung(meta: EventMetadata, id: LieferungOnLieferplanungId)(implicit personId: PersonId = meta.originator) = {
+  def removeLieferungPlanung(meta: EventMetadata, lieferungId: LieferungOnLieferplanungId)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
-      stammdatenWriteRepository.deleteLieferpositionen(id.getLieferungId())
-
-      stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, id.getLieferungId) map { lieferung =>
+      stammdatenWriteRepository.deleteLieferpositionen(lieferungId.getLieferungId())
+      stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, lieferungId.getLieferungId) map { lieferung =>
+        // remove zusatzabo baskets and update the lieferung numbers
+        lieferung.lieferplanungId match {
+          case Some(lieferplanungId) =>
+            val activeZusatzAbos = stammdatenWriteRepository.getKoerbe(lieferungId.getLieferungId()).map { korb: Korb =>
+              stammdatenWriteRepository.getZusatzAbosByHauptAbo(korb.aboId)
+            }.flatten
+            val koerbeToDelete = activeZusatzAbos.map { zusatzabo =>
+              stammdatenWriteRepository.getLieferungen(lieferplanungId).map { l =>
+                stammdatenWriteRepository.getKorb(l.id, zusatzabo.id)
+              }.flatten
+            }.flatten
+            koerbeToDelete map { korbToDelete =>
+              deleteKorb(meta, korbToDelete.id) match {
+                case Some(deletedKorbLieferung) =>
+                  if (deletedKorbLieferung.anzahlAbwesenheiten == 0 && deletedKorbLieferung.anzahlKoerbeZuLiefern == 0 && deletedKorbLieferung.anzahlSaldoZuTief == 0) {
+                    stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](deletedKorbLieferung.id)
+                  }
+                case None => //do nothing
+              }
+            }
+          case None => // do nothing
+        }
         stammdatenWriteRepository.deleteKoerbe(lieferung.id)
         stammdatenWriteRepository.getAbotypById(lieferung.abotypId) collect {
           case abotyp: ZusatzAbotyp =>
-            stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](id.getLieferungId)
-
+            stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferungId.getLieferungId)
           case _ =>
-            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](id.getLieferungId())(
+            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferungId.getLieferungId())(
               lieferungMapping.column.durchschnittspreis -> ZERO,
               lieferungMapping.column.anzahlLieferungen -> ZERO,
               lieferungMapping.column.anzahlKoerbeZuLiefern -> ZERO,
@@ -273,14 +294,54 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
+  def deleteKorb(meta: EventMetadata, id: KorbId)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      val korb = stammdatenWriteRepository.getById(korbMapping, id)
+      stammdatenWriteRepository.deleteEntity[Korb, KorbId](id)
+      korb match {
+        case Some(k) => {
+          stammdatenWriteRepository.getById(lieferungMapping, k.lieferungId) match {
+            case Some(lieferung) => Some(recalculateNumbersLieferung(lieferung))
+            case None            => None
+          }
+        }
+        case None => None
+      }
+    }
+  }
+
   def deleteLieferung(meta: EventMetadata, id: LieferungId)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       noSessionDeleteLieferung(id)
     }
   }
 
-  def noSessionDeleteLieferung(id: LieferungId)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
-    stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](id, { lieferung: Lieferung => lieferung.lieferplanungId == None })
+  def noSessionDeleteLieferung(lieferungId: LieferungId)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
+    stammdatenWriteRepository.getById(lieferungMapping, lieferungId) match {
+      case Some(lieferung) =>
+        lieferung.lieferplanungId match {
+          case Some(lieferplanungId) =>
+            val activeZusatzAbos = stammdatenWriteRepository.getKoerbe(lieferungId).map { korb: Korb =>
+              stammdatenWriteRepository.getZusatzAbosByHauptAbo(korb.aboId)
+            }.flatten.filter(_.aktiv == true)
+            val koerbeToDelete = activeZusatzAbos.map { zusatzabo =>
+              stammdatenWriteRepository.getLieferungen(lieferplanungId).map { l =>
+                stammdatenWriteRepository.getKorb(l.id, zusatzabo.id)
+              }.flatten
+            }.flatten
+            koerbeToDelete.map(korbToDelete => {
+              stammdatenWriteRepository.getById(lieferungMapping, korbToDelete.lieferungId) match {
+                case Some(lieferung) => recalculateNumbersLieferung(lieferung)
+                case None            => //do nothing
+              }
+              stammdatenWriteRepository.deleteEntity[Korb, KorbId](korbToDelete.id)
+            })
+            stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferungId, { lieferung: Lieferung => lieferung.lieferplanungId == None })
+            recalculateNumbersLieferung(lieferung)
+          case None => // do nothing
+        }
+      case None => // do nothing
+    }
   }
 
   def deleteProdukt(meta: EventMetadata, id: ProduktId)(implicit personId: PersonId = meta.originator) = {
