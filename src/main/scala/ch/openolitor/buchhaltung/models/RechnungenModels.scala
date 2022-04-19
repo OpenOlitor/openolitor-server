@@ -293,11 +293,12 @@ case class RechnungMailRequest(
   ids: Seq[RechnungId],
   attachInvoice: Boolean,
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class RechnungMailContext(
-  person: Person,
+  person: PersonEmailData,
   rechnung: Rechnung
 ) extends JSONSerializable
 

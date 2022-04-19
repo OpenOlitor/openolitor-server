@@ -37,9 +37,9 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.4.19",
-  scalaVersion := "2.11.11",
-  crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8"),
+  version := "2.4.21",
+  scalaVersion := "2.11.12",
+  crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.11"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += Resolver.sonatypeRepo("releases"),
   resolvers += "Spray" at "http://repo.spray.io",
@@ -83,7 +83,7 @@ val buildSettings = Seq(
     "com.h2database"               %   "h2"                                   % "1.4.191"    % "test",
     "org.scalikejdbc" 	           %%  "scalikejdbc-syntax-support-macro"     % scalalikeV,
     "ch.qos.logback"  	           %   "logback-classic"    		  		        % "1.1.7",
-    "org.mariadb.jdbc"	           %   "mariadb-java-client"                  % "1.3.2",
+    "org.mariadb.jdbc"	           %   "mariadb-java-client"                  % "2.7.5",
     // Libreoffice document API
     "org.apache.odftoolkit"        %   "simple-odf"					          % "0.8.2-incubating" withSources(),
     "com.jsuereth"                 %%  "scala-arm"                            % "1.4",
@@ -93,7 +93,7 @@ val buildSettings = Seq(
     // s3
     "com.amazonaws"                %   "aws-java-sdk-s3"                      % "1.11.807",
     "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
-    "com.github.daddykotex"        %% "courier"                                % "2.0.0",
+    "com.github.daddykotex"        %% "courier"                                % "3.0.1",
     "com.github.nscala-time"       %%  "nscala-time"                          % "2.16.0",
     "com.github.blemale"           %% "scaffeine"                             % "2.2.0",
     "de.zalando"                   %% "beard"                                 % "0.2.0" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/openolitor-legacy-dependencies/raw/master/de.zalando/beard_2.11/jars/beard_2.11-0.2.0.jar",

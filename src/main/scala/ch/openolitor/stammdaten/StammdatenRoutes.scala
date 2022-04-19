@@ -467,8 +467,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(stammdatenReadRepository.getPersonenAboAktivByTouren))
       } ~
       path("touren" / tourIdPath) { id =>
-        parameter('aktiveOnly.?.as[Boolean]) { aktiveOnly: Boolean =>
-          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOnly)))
+        parameter('aktiveOrPlanned.?.as[Boolean]) { aktiveOrPlanned: Boolean =>
+          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOrPlanned)))
         } ~
           (put | post)(update[TourModify, TourId](id)) ~
           delete(remove(id))
@@ -914,7 +914,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       post {
         requestInstance { request =>
           entity(as[KundeMailRequest]) { kundeMailRequest =>
-            sendEmailsToKunden(kundeMailRequest.subject, kundeMailRequest.body, kundeMailRequest.ids)
+            sendEmailsToKunden(kundeMailRequest.subject, kundeMailRequest.body, kundeMailRequest.replyTo, kundeMailRequest.ids)
           }
         }
       }
@@ -923,7 +923,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[PersonMailRequest]) { personMailRequest =>
-              sendEmailsToPersonen(personMailRequest.subject, personMailRequest.body, personMailRequest.ids)
+              sendEmailsToPersonen(personMailRequest.subject, personMailRequest.body, personMailRequest.replyTo, personMailRequest.ids)
             }
           }
         }
@@ -932,7 +932,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[AbotypMailRequest]) { abotypMailRequest =>
-              sendEmailsToAbotypSubscribers(abotypMailRequest.subject, abotypMailRequest.body, abotypMailRequest.ids)
+              sendEmailsToAbotypSubscribers(abotypMailRequest.subject, abotypMailRequest.body, abotypMailRequest.replyTo, abotypMailRequest.ids)
             }
           }
         }
@@ -941,7 +941,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[ZusatzabotypMailRequest]) { zusatzabotypMailRequest =>
-              sendEmailsToZuzatzabotypSubscribers(zusatzabotypMailRequest.subject, zusatzabotypMailRequest.body, zusatzabotypMailRequest.ids)
+              sendEmailsToZuzatzabotypSubscribers(zusatzabotypMailRequest.subject, zusatzabotypMailRequest.body, zusatzabotypMailRequest.replyTo, zusatzabotypMailRequest.ids)
             }
           }
         }
@@ -950,7 +950,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[TourMailRequest]) { tourMailRequest =>
-              sendEmailsToTourSubscribers(tourMailRequest.subject, tourMailRequest.body, tourMailRequest.ids)
+              sendEmailsToTourSubscribers(tourMailRequest.subject, tourMailRequest.body, tourMailRequest.replyTo, tourMailRequest.ids)
             }
           }
         }
@@ -959,7 +959,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[DepotMailRequest]) { depotMailRequest =>
-              sendEmailsToDepotSubscribers(depotMailRequest.subject, depotMailRequest.body, depotMailRequest.ids)
+              sendEmailsToDepotSubscribers(depotMailRequest.subject, depotMailRequest.body, depotMailRequest.replyTo, depotMailRequest.ids)
             }
           }
         }
@@ -968,14 +968,14 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[AboMailRequest]) { aboMailRequest =>
-              sendEmailsToAbosSubscribers(aboMailRequest.subject, aboMailRequest.body, aboMailRequest.ids)
+              sendEmailsToAbosSubscribers(aboMailRequest.subject, aboMailRequest.body, aboMailRequest.replyTo, aboMailRequest.ids)
             }
           }
         }
       }
 
-  private def sendEmailsToKunden(emailSubject: String, body: String, ids: Seq[KundeId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToKundenCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToKunden(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[KundeId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToKundenCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -983,8 +983,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToPersonen(emailSubject: String, body: String, ids: Seq[PersonId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToPersonenCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToPersonen(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[PersonId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToPersonenCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -992,8 +992,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToAbotypSubscribers(emailSubject: String, body: String, ids: Seq[AbotypId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToAbotypSubscribersCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToAbotypSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToAbotypSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -1001,8 +1001,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToZuzatzabotypSubscribers(emailSubject: String, body: String, ids: Seq[AbotypId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToZusatzabotypSubscribersCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToZuzatzabotypSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToZusatzabotypSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -1010,8 +1010,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToTourSubscribers(emailSubject: String, body: String, ids: Seq[TourId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToTourSubscribersCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToTourSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[TourId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToTourSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -1019,8 +1019,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToDepotSubscribers(emailSubject: String, body: String, ids: Seq[DepotId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToDepotSubscribersCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToDepotSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[DepotId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToDepotSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -1028,8 +1028,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def sendEmailsToAbosSubscribers(emailSubject: String, body: String, ids: Seq[AboId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToAbosSubscribersCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailsToAbosSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[AboId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToAbosSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>

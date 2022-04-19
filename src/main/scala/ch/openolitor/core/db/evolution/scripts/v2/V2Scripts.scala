@@ -198,7 +198,7 @@ object V2Scripts {
         zeit_bis datetime,
         einsatz_zeit DECIMAL(5,2),
         kunde_id BIGINT not null,
-        kunde_bezeichnung varchar(50),
+        kunde_bezeichnung varchar(200),
         person_id BIGINT,
         person_name varchar(50),
         abo_id BIGINT,
@@ -247,5 +247,9 @@ object V2Scripts {
     OO_sunu_adding_bic_to_account.scripts ++
     OO_github_39_adding_mandantId_DateOfSignature.scripts ++
     OO_gitlab_373_ZahlungsEingang_teilnehmer_nummer.scripts ++
-    OO_distribution_date_time_should_not_consider_time.scripts
+    OO_distribution_date_time_should_not_consider_time.scripts ++
+    Operations465_EnlargeKundeBez.scripts ++
+    OO411_adding_person_contact_permission.scripts ++
+    OO86_enlarge_login_message_size.scripts ++
+    OO86_create_kunden_specific_message.scripts
 }

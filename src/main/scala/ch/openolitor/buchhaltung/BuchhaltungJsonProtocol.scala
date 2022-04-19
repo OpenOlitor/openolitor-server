@@ -28,6 +28,7 @@ import ch.openolitor.stammdaten.StammdatenJsonProtocol
 import ch.openolitor.buchhaltung.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.stammdaten.models.{ PersonContactPermissionModify, PersonModify }
 import zangelo.spray.json.AutoProductFormats
 
 /**
@@ -47,6 +48,7 @@ trait BuchhaltungJsonProtocol extends BaseJsonProtocol with LazyLogging with Aut
   implicit val zahlungsImportIdFormat = baseIdFormat(ZahlungsImportId)
   implicit val zahlungsEingangIdFormat = baseIdFormat(ZahlungsEingangId)
   implicit val zahlungsExportIdFormat = baseIdFormat(ZahlungsExportId)
+  implicit val personModifyFormat = autoProductFormat[PersonModify]
 
   // special report formats
   def enhancedRechnungDetailFormatDef(implicit defaultFormat: JsonFormat[RechnungDetailReport]): RootJsonFormat[RechnungDetailReport] = new RootJsonFormat[RechnungDetailReport] {

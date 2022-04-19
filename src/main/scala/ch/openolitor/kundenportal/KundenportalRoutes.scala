@@ -28,6 +28,7 @@ import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.Directive._
 import ch.openolitor.core._
+import ch.openolitor.core.models._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,7 +47,7 @@ import ch.openolitor.kundenportal.repositories.KundenportalReadRepositoryAsyncCo
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
+import ch.openolitor.arbeitseinsatz.{ ArbeitseinsatzCommandHandler, ArbeitseinsatzJsonProtocol }
 import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryAsyncComponent
 
 trait KundenportalRoutes extends HttpService with ActorReferences
@@ -67,6 +68,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   implicit val lieferungIdPath = long2BaseIdPathMatcher(LieferungId.apply)
   implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
   implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
+  implicit val personIdPath = long2BaseIdPathMatcher(PersonId.apply)
 
   import EntityStore._
 
@@ -76,7 +78,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         UriQueryParamFilterParser.parse(filterString)
       }
       pathPrefix("kundenportal") {
-        abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute ~ kontoDatenRoute
+        abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute ~ kontoDatenRoute ~ personenRoute
       }
     }
 
@@ -94,6 +96,21 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   def kontoDatenRoute(implicit subject: Subject) = {
     path("kontodaten") {
       get(detail(kundenportalReadRepository.getKontoDatenProjekt))
+    }
+  }
+
+  def personenRoute(implicit subject: Subject): Route = {
+    path("personContactVisibility" / personIdPath) { id =>
+      post {
+        requestInstance { request =>
+          onSuccess(entityStore ? ArbeitseinsatzCommandHandler.ChangeContactPermissionForUserCommand(subject.personId, subject, id)) {
+            case UserCommandFailed =>
+              complete(StatusCodes.BadRequest, s"error.")
+            case _ =>
+              complete("")
+          }
+        }
+      }
     }
   }
 
@@ -212,6 +229,11 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen") { (abotypId, vertriebId) =>
         get {
           list(kundenportalReadRepository.getLieferungenDetails(abotypId, vertriebId))
+        }
+      } ~
+      path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "abo" / aboIdPath / "lieferungenMainAndAdditional") { (abotypId, vertriebId, aboId) =>
+        get {
+          list(kundenportalReadRepository.getLieferungenMainAndAdditionalDetails(abotypId, vertriebId, aboId))
         }
       } ~
       path("abos" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / lieferungIdPath) { (abotypId, vertriebId, lieferungId) =>

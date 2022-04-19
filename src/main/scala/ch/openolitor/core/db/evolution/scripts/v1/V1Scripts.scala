@@ -216,7 +216,7 @@ object V1Scripts {
       sql"""create table ${pendenzMapping.table} (
         id BIGINT not null,
         kunde_id varchar(50) not null,
-        kunde_bezeichnung varchar(50),
+        kunde_bezeichnung varchar(200),
         datum datetime default null,
         bemerkung varchar(2000),
         status varchar(50) not null,
@@ -587,6 +587,7 @@ object V1Scripts {
         passwortWechselErforderlich = true,
         rolle = Some(AdministratorZugang),
         categories = Set.empty[PersonCategoryNameId],
+        contactPermission = false,
         // modification flags
         erstelldat = DateTime.now,
         ersteller = personId,
@@ -619,6 +620,7 @@ object V1Scripts {
         einsatzAbsageVorlaufTage = 3,
         einsatzShowListeKunde = true,
         sendEmailToBcc = false,
+        messageForMembers = None,
 
         //modification flags
         erstelldat = DateTime.now,

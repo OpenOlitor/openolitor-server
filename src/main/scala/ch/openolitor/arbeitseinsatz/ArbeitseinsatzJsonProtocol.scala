@@ -26,6 +26,7 @@ import spray.json._
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.{ BaseJsonProtocol, JSONSerializable }
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
+import ch.openolitor.stammdaten.models.PersonContactPermissionModify
 import com.typesafe.scalalogging.LazyLogging
 import zangelo.spray.json.AutoProductFormats
 

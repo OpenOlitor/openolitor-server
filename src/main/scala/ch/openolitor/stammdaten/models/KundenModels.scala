@@ -391,11 +391,12 @@ case class KundeModify(
 case class KundeMailRequest(
   ids: Seq[KundeId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class KundeMailContext(
-  person: Person,
+  person: PersonEmailData,
   kunde: Kunde
 ) extends JSONSerializable
 
@@ -442,6 +443,7 @@ case class Person(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
+  contactPermission: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -470,7 +472,8 @@ object Person {
     letzteAnmeldung: Option[DateTime] = None,
     passwortWechselErforderlich: Boolean = false,
     rolle: Option[Rolle] = None,
-    categories: Set[PersonCategoryNameId] = Set()
+    categories: Set[PersonCategoryNameId] = Set(),
+    contactPermission: Boolean = false
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -490,6 +493,7 @@ object Person {
     passwortWechselErforderlich,
     rolle,
     categories,
+    contactPermission,
     // modification flags
     erstelldat = DateTime.now,
     ersteller = person,
@@ -514,6 +518,26 @@ case class PersonDetail(
   loginAktiv: Boolean,
   letzteAnmeldung: Option[DateTime],
   passwortWechselErforderlich: Boolean,
+  rolle: Option[Rolle],
+  categories: Set[PersonCategoryNameId],
+  contactPermission: Boolean,
+  // modification flags
+  erstelldat: DateTime,
+  ersteller: PersonId,
+  modifidat: DateTime,
+  modifikator: PersonId
+) extends BaseEntity[PersonId]
+
+case class PersonEmailData(
+  id: PersonId,
+  kundeId: KundeId,
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
   // modification flags
@@ -547,6 +571,7 @@ case class PersonUebersicht(
   letzteAnmeldung: Option[DateTime],
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
+  contactPermission: Boolean,
   // kundendaten
   strasse: String,
   hausNummer: Option[String],
@@ -578,7 +603,7 @@ case class PersonModifyV1(
   def fullName = name + ' ' + vorname
 }
 
-case class PersonModify(
+case class PersonModifyV2(
   id: Option[PersonId],
   anrede: Option[Anrede],
   name: String,
@@ -593,6 +618,26 @@ case class PersonModify(
   def fullName = name + ' ' + vorname
 }
 
+case class PersonModify(
+  id: Option[PersonId],
+  anrede: Option[Anrede],
+  name: String,
+  vorname: String,
+  email: Option[String],
+  emailAlternative: Option[String],
+  telefonMobil: Option[String],
+  telefonFestnetz: Option[String],
+  categories: Set[PersonCategoryNameId],
+  contactPermission: Boolean,
+  bemerkungen: Option[String]
+) extends JSONSerializable {
+  def fullName = name + ' ' + vorname
+}
+
+case class PersonContactPermissionModify(
+  contactPermission: Boolean
+) extends JSONSerializable
+
 case class PersonCreate(
   kundeId: KundeId,
   anrede: Option[Anrede],
@@ -603,6 +648,7 @@ case class PersonCreate(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   categories: Set[PersonCategoryNameId],
+  contactPermission: Boolean,
   bemerkungen: Option[String],
   sort: Int
 ) extends JSONSerializable {
@@ -610,14 +656,21 @@ case class PersonCreate(
 }
 
 case class PersonMailContext(
-  person: Person
+  person: PersonEmailData
+) extends JSONSerializable
+
+case class PersonContact(
+  name: String,
+  email: Option[String]
 ) extends JSONSerializable
 
 case class PersonMailRequest(
   ids: Seq[PersonId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
+
 case class PersonCategoryNameId(id: String) extends BaseStringId
 case class PersonCategoryId(id: Long) extends BaseId
 case class PersonCategory(

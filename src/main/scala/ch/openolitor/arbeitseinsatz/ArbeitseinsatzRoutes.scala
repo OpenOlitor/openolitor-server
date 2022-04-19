@@ -110,8 +110,8 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
         get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze, exportFormat)) ~
           post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
       } ~
-      path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) { (kunedId, exportFormat) =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kunedId), exportFormat))
+      path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) { (kundeId, exportFormat) =>
+        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kundeId), exportFormat))
       } ~
       path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
         get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze, exportFormat))
@@ -139,14 +139,14 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
         post {
           requestInstance { request =>
             entity(as[ArbeitsangebotMailRequest]) { arbeitsangebotMailRequest =>
-              sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.ids)
+              sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.replyTo, arbeitsangebotMailRequest.ids)
             }
           }
         }
       }
 
-  private def sendEmailToArbeitsangebotPersonen(emailSubject: String, body: String, ids: Seq[ArbeitsangebotId])(implicit subject: Subject) = {
-    onSuccess((entityStore ? ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenCommand(subject.personId, emailSubject, body, ids))) {
+  private def sendEmailToArbeitsangebotPersonen(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId])(implicit subject: Subject) = {
+    onSuccess((entityStore ? ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>

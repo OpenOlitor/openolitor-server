@@ -225,11 +225,12 @@ case class AbotypModify(
 case class AbotypMailRequest(
   ids: Seq[AbotypId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class AbotypMailContext(
-  person: Person,
+  person: PersonEmailData,
   abotyp: IAbotyp
 ) extends JSONSerializable
 
@@ -318,10 +319,11 @@ case class ZusatzAbotypModify(
 case class ZusatzabotypMailRequest(
   ids: Seq[AbotypId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class ZusatzabotypMailContext(
-  person: Person,
+  person: PersonEmailData,
   zusatzabotyp: ZusatzAbotyp
 ) extends JSONSerializable

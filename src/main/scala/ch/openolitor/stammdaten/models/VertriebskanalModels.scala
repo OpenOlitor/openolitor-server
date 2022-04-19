@@ -248,11 +248,12 @@ case class DepotSummary(
 case class DepotMailRequest(
   ids: Seq[DepotId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class DepotMailContext(
-  person: Person,
+  person: PersonEmailData,
   depot: Depot
 ) extends JSONSerializable
 
@@ -300,10 +301,11 @@ case class TourModify(
 case class TourMailRequest(
   ids: Seq[TourId],
   subject: String,
-  body: String
+  body: String,
+  replyTo: Option[String]
 ) extends JSONSerializable
 
 case class TourMailContext(
-  person: Person,
+  person: PersonEmailData,
   tour: Tour
 ) extends JSONSerializable

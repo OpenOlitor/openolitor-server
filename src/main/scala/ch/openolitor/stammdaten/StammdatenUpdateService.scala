@@ -103,7 +103,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: AuslieferungId, entity: Auslieferung) => updateAuslieferungAusgeliefert(meta, id, entity)
     case EntityUpdatedEvent(meta, id: KorbId, entity: KorbAuslieferungModify) => updateKorbAuslieferungId(meta, id, entity)
     case EntityUpdatedEvent(meta, id: VertriebId, entity: VertriebRecalculationsModify) => updateVertriebRecalculationsModify(meta, id, entity)
-    case EntityUpdatedEvent(meta, id: SammelbestellungId, entity: SammelbestellungStatusModify) => updateSammelbestellungStatusModify(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: PersonId, entity: PersonContactPermissionModify) => updatePersonContactPermissionModify(meta, id, entity)
     case e =>
   }
 
@@ -171,11 +171,54 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       val iabotyp = stammdatenWriteRepository.getAbotypById(id)
       iabotyp match {
         case Some(zusatzabotyp: ZusatzAbotyp) => {
+          if (!update.name.equals(zusatzabotyp.name)) {
+            updateZusatzabosWithNewName(meta, update.name, zusatzabotyp.id)
+            updateMainAbosWithNewZusatzabotypName(meta, zusatzabotyp.name, update.name, zusatzabotyp.id)
+          }
           //map all updatable fields
           val copy = copyFrom(zusatzabotyp, update)
           stammdatenWriteRepository.updateEntityFully[ZusatzAbotyp, AbotypId](copy)
         }
         case _ => throw new IllegalArgumentException("The type of subscription is not known")
+      }
+    }
+  }
+
+  def updateZusatzabosWithNewName(meta: EventMetadata, newName: String, id: AbotypId)(implicit personId: PersonId = meta.originator) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      val zusatzabos = stammdatenWriteRepository.getZusatzAbosByZusatzabotyp(id)
+      zusatzabos map { zusatzabo =>
+        val copy = copyFrom(zusatzabo, zusatzabo, "abotypName" -> newName, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+        stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)
+      }
+    }
+  }
+
+  def updateMainAbosWithNewZusatzabotypName(meta: EventMetadata, oldName: String, newName: String, id: AbotypId)(implicit personId: PersonId = meta.originator) = {
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      val zusatzabos = stammdatenWriteRepository.getZusatzAbosByZusatzabotyp(id)
+      zusatzabos map { zusatzabo =>
+        stammdatenWriteRepository.getAbosByZusatzAboId(zusatzabo.id) map { mainAbo =>
+          val seqNames = mainAbo.zusatzAbotypNames.map { element =>
+            if (element.equals(oldName)) {
+              newName
+            } else element
+          }
+          mainAbo match {
+            case copyDepotAbo: DepotlieferungAbo => {
+              val copy = copyFrom(copyDepotAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+              stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
+            }
+            case copyHeimAbo: HeimlieferungAbo => {
+              val copy = copyFrom(copyHeimAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+              stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
+            }
+            case copyPostAbo: PostlieferungAbo => {
+              val copy = copyFrom(copyPostAbo, mainAbo, "zusatzAbotypNames" -> seqNames, "modifidat" -> meta.timestamp, "modifikator" -> personId)
+              stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
+            }
+          }
+        }
       }
     }
   }
@@ -850,6 +893,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         val copy = copyFrom(vertrieb, entity)
         stammdatenWriteRepository.updateEntityFully[Vertrieb, VertriebId](copy)
       }
+    }
+  }
+  private def updatePersonContactPermissionModify(meta: EventMetadata, id: PersonId, entity: PersonContactPermissionModify)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.updateEntity[Person, PersonId](id)(
+        personMapping.column.contactPermission -> entity.contactPermission
+      )
     }
   }
 

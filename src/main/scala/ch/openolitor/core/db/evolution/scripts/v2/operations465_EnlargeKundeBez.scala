@@ -20,56 +20,23 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.reports.repositories
+package ch.openolitor.core.db.evolution.scripts.v2
 
-import ch.openolitor.core.ws.ExportFormat
-import scalikejdbc._
+import ch.openolitor.core.db.evolution.Script
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.reports.models._
-import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.util.parsing.FilterExpr
-import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.reports.ReportsDBMappings
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.core.SystemConfig
+import scalikejdbc._
+import scala.util.Try
+import scala.util.Success
 
-import scala.collection.immutable.ListMap
-
-trait ReportsRepositoryQueries extends LazyLogging with ReportsDBMappings with StammdatenDBMappings {
-  lazy val report = reportMapping.syntax("report")
-
-  protected def getReportsQuery(filter: Option[FilterExpr]) = {
-    val query = withSQL {
-      select
-        .from(reportMapping as report)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, report))
-    }
-    query.map(reportMapping(report)).list
-  }
-
-  protected def getReportQuery(id: ReportId) = {
-    withSQL {
-      select
-        .from(reportMapping as report)
-        .where.eq(report.id, id)
-    }.map(reportMapping(report)).single
-  }
-
-  protected def executeReportQuery(reportExecute: ReportExecute, exportFormat: Option[ExportFormat]) = {
-    val query = SQL(reportExecute.query)
-    query.map(rs => toMap(rs, exportFormat)).list
-  }
-
-  def toMap(rs: WrappedResultSet, exportFormat: Option[ExportFormat]): Map[String, Any] = {
-    (1 to rs.underlying.getMetaData.getColumnCount).foldLeft(ListMap[String, Any]()) { (result, i) =>
-      val label = rs.underlying.getMetaData.getColumnLabel(i)
-      exportFormat match {
-        case None => {
-          Some(rs.any(label)).map { nullableValue => result + (i.toString -> (label, nullableValue)) }.getOrElse(result)
-        }
-        case Some(x) => {
-          Some(rs.any(label)).map { nullableValue => result + (label -> nullableValue) }.getOrElse(result)
-        }
-      }
+object Operations465_EnlargeKundeBez {
+  val EnlargeKundeBez = new Script with LazyLogging with BuchhaltungDBMappings {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""ALTER TABLE ${kundeMapping.table} MODIFY bezeichnung VARCHAR(200)""".execute.apply()
+      Success(true)
     }
   }
 
+  val scripts = Seq(EnlargeKundeBez)
 }

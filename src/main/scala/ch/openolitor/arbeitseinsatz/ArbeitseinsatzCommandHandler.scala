@@ -30,18 +30,20 @@ import ch.openolitor.core.exceptions.InvalidStateException
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.models.Person
+import ch.openolitor.stammdaten.models.{ Person, PersonContactPermissionModify, PersonEmailData }
 import ch.openolitor.mailtemplates.engine.MailTemplateService
-
 import akka.actor.ActorSystem
+import ch.openolitor.core.security.Subject
 import scalikejdbc._
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util._
 
 object ArbeitseinsatzCommandHandler {
   case class ArbeitsangebotArchivedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
-  case class SendEmailToArbeitsangebotPersonenCommand(originator: PersonId, subject: String, body: String, ids: Seq[ArbeitsangebotId]) extends UserCommand
-  case class SendEmailToArbeitsangebotPersonenEvent(meta: EventMetadata, subject: String, body: String, person: Person, context: ArbeitsangebotMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToArbeitsangebotPersonenCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId]) extends UserCommand
+  case class SendEmailToArbeitsangebotPersonenEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: ArbeitsangebotMailContext) extends PersistentGeneratedEvent with JSONSerializable
+  case class ChangeContactPermissionForUserCommand(originator: PersonId, subject: Subject, personId: PersonId) extends UserCommand
 }
 
 trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware with MailTemplateService {
@@ -67,20 +69,32 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
         } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
       }
 
-    case SendEmailToArbeitsangebotPersonenCommand(personId, subject, body, ids) => idFactory => meta =>
+    case SendEmailToArbeitsangebotPersonenCommand(personId, subject, body, replyTo, ids) => idFactory => meta =>
       DB readOnly { implicit session =>
         if (checkTemplateArbeitsangebot(body, subject, ids)) {
           val events = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
             arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitsangebotId) map { arbeitsangebot =>
               arbeitseinsatzReadRepository.getPersonenByArbeitsangebot(arbeitsangebotId) map { person =>
-                val mailContext = ArbeitsangebotMailContext(person, arbeitsangebot)
-                DefaultResultingEvent(factory => SendEmailToArbeitsangebotPersonenEvent(factory.newMetadata(), subject, body, person, mailContext))
+                val personEmailData = copyTo[Person, PersonEmailData](person)
+                val mailContext = ArbeitsangebotMailContext(personEmailData, arbeitsangebot)
+                DefaultResultingEvent(factory => SendEmailToArbeitsangebotPersonenEvent(factory.newMetadata(), subject, body, replyTo, mailContext))
               }
             }
           }
           Success(events.flatten)
         } else {
           Failure(new InvalidStateException("The template is not valid"))
+        }
+      }
+
+    case ChangeContactPermissionForUserCommand(originator, subject, personId) => idFactory => meta =>
+      DB readOnly { implicit session =>
+        val entityToSave = arbeitseinsatzReadRepository.getById(personMapping, personId) map { user =>
+          copyTo[Person, PersonContactPermissionModify](user, "contactPermission" -> !user.contactPermission)
+        }
+        entityToSave match {
+          case Some(personContactPermissionModify) => Success(Seq(EntityUpdateEvent(personId, personContactPermissionModify)))
+          case _                                   => Failure(new InvalidStateException(s"This person was not found."))
         }
       }
 
@@ -105,7 +119,8 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
     val templateCorrect = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
       arbeitseinsatzReadRepository.getPersonenByArbeitsangebot(arbeitsangebotId) flatMap { person =>
         arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitsangebotId) map { arbeitsangebot =>
-          val mailContext = ArbeitsangebotMailContext(person, arbeitsangebot)
+          val personEmailData = copyTo[Person, PersonEmailData](person)
+          val mailContext = ArbeitsangebotMailContext(personEmailData, arbeitsangebot)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
             case Failure(e)           => false

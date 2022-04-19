@@ -2,6 +2,9 @@
 # openolitor-server
 Server Backend der OpenOlitor Administrationsplattform
 
+## Issues
+Please report issues to the [main project](https://github.com/OpenOlitor/OpenOlitor/issues).
+
 ## Entwicklungs-Setup
 https://github.com/OpenOlitor/OpenOlitor/wiki/Doku-Technisch_Server_Ent-Setup
 
