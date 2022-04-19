@@ -37,6 +37,8 @@ trait KundenportalReadRepositorySync extends BaseReadRepositorySync {
   def getProjekt(implicit session: DBSession): Option[Projekt]
   def getPerson(personId: PersonId)(implicit session: DBSession): Option[Person]
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
+  def getAbwesenheit(id: AbwesenheitId)(implicit session: DBSession): Option[Abwesenheit]
+  def getLieferplanungByLieferung(lieferungId: LieferungId)(implicit session: DBSession): Option[Lieferplanung]
   def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
   def getArbeitseinsatzDetail(id: ArbeitseinsatzId)(implicit session: DBSession): Option[ArbeitseinsatzDetail]
   def getLieferplanung(aboId: AboId, abwesenheitId: AbwesenheitId)(implicit session: DBSession): Option[Lieferplanung]
@@ -53,6 +55,12 @@ trait KundenportalReadRepositorySyncImpl extends KundenportalReadRepositorySync 
 
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo] = {
     getById(depotlieferungAboMapping, id) orElse getById(heimlieferungAboMapping, id) orElse getById(postlieferungAboMapping, id)
+  }
+  def getAbwesenheit(id: AbwesenheitId)(implicit session: DBSession): Option[Abwesenheit] = {
+    getById(abwesenheitMapping, id)
+  }
+  def getLieferplanungByLieferung(lieferungId: LieferungId)(implicit session: DBSession): Option[Lieferplanung] = {
+    getLieferplanungByLieferungQuery(lieferungId).apply()
   }
   def getArbeitsangebot(id: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
     getById(arbeitsangebotMapping, id)
