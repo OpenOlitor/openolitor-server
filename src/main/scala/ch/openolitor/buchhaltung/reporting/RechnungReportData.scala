@@ -62,10 +62,6 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                   case _ =>
                     val projektReport = copyTo[Projekt, ProjektReport](projekt)
                     qrCode match {
-                      case Some("") => {
-                        Left(ValidationError[RechnungId](rechnungId, s"Die Rechnung konnte nicht erstellt werden." +
-                          s"Denken Sie daran, dass für die Initiative eine IBAN registriert sein muss, um Rechnungen erstellen zu können"))
-                      }
                       case Some(error) if error.startsWith("Error: ") => {
                         Left(ValidationError[RechnungId](rechnungId, error))
                       }
@@ -146,8 +142,8 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                 m.getMessageKey: String
               }.mkString("")
               if (message.equals("account_is_ch_li_iban")) {
-                logger.warn(s"Error: Bei der QR-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt")
-                s"Error: Bei der qr-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt"
+                logger.warn(s"Bei der QR-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt")
+                s""
               } else {
                 logger.warn(s"Error: QR-Code-Validierung wurde folgender Problemcode ausgegeben: $message")
                 s"Error: QR-Code-Validierung wurde folgender Problemcode ausgegeben: $message}"
