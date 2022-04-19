@@ -124,10 +124,10 @@ lazy val scalaxbSettings = Seq(
 lazy val akkaPersistenceSqlAsyncUri = uri("https://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version_with_timeout")
 lazy val akkaPersistenceSqlAsync = ProjectRef(akkaPersistenceSqlAsyncUri, "core")
 
-lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/oneToManies21Traversable")
+lazy val scalikejdbcAsyncForkUri = uri("https://github.com/OpenOlitor/scalikejdbc-async.git#dev/oneToManies21Traversable")
 lazy val scalikejdbcAsync = ProjectRef(scalikejdbcAsyncForkUri, "core")
 
-lazy val sprayJsonMacro = RootProject(uri("git://github.com/openolitor/spray-json-macros.git"))
+lazy val sprayJsonMacro = RootProject(uri("https://github.com/openolitor/spray-json-macros.git"))
 
 lazy val macroSub = (project in file("macro")).settings(buildSettings,
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value)
