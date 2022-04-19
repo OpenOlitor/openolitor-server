@@ -255,6 +255,14 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       })
   }
 
+  protected def getLieferplanungByLieferungQuery(lieferungId: LieferungId) = {
+    withSQL {
+      select
+        .from(lieferplanungMapping as lieferplanung)
+        .leftJoin(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+    }.map(lieferplanungMapping(lieferplanung)).single
+  }
+
   protected def getLieferungenDetailQuery(id: LieferungId) = {
     withSQL {
       select

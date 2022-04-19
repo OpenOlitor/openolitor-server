@@ -33,7 +33,7 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, IdFactory, UserCommand }
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
-import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Person }
+import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Offen, Person }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
 
@@ -76,7 +76,15 @@ trait KundenportalCommandHandler extends CommandHandler
       DB readOnly { implicit session =>
         kundenportalReadRepository.getAbo(aboId) map { abo =>
           if (subject.kundeId == abo.kundeId) {
-            Success(Seq(EntityDeleteEvent(abwesenheitId)))
+            kundenportalReadRepository.getAbwesenheit(abwesenheitId) map { abwesenheit =>
+              kundenportalReadRepository.getLieferplanungByLieferung(abwesenheit.lieferungId) map { lieferplanung =>
+                if (lieferplanung.status == Offen) {
+                  Success(Seq(EntityDeleteEvent(abwesenheitId)))
+                } else {
+                  Failure(new InvalidStateException(s"Lieferplanung bereits abgeschlossen."))
+                }
+              } getOrElse (Success(Seq(EntityDeleteEvent(abwesenheitId))))
+            } getOrElse (Failure(new InvalidStateException(s"Die Abwesenheit konnte wurde nicht gefunden.")))
           } else {
             Failure(new InvalidStateException("Es können nur Abwesenheiten eigener Abos entfernt werden."))
           }
