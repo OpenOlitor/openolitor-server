@@ -25,7 +25,7 @@ package ch.openolitor.stammdaten.models
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models._
-import ch.openolitor.core.scalax.{ Tuple24, Tuple29 }
+import ch.openolitor.core.scalax.{ Tuple25, Tuple29 }
 import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
 
@@ -498,10 +498,10 @@ case class Person(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-  contactPermission: Boolean,
   secondFactorType: Option[SecondFactorType],
   otpSecret: String,
   otpReset: Boolean,
+  contactPermission: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -513,7 +513,7 @@ case class Person(
 
 object Person {
   def unapply(p: Person) = {
-    Some(Tuple24(
+    Some(Tuple25(
       p.id,
       p.kundeId,
       p.anrede,
@@ -534,6 +534,7 @@ object Person {
       p.secondFactorType,
       p.otpSecret,
       p.otpReset,
+      p.contactPermission,
       p.erstelldat,
       p.ersteller,
       p.modifidat,
@@ -560,10 +561,10 @@ object Person {
     passwortWechselErforderlich: Boolean = false,
     rolle: Option[Rolle] = None,
     categories: Set[PersonCategoryNameId] = Set(),
-    contactPermission: Boolean = false,
     secondFactorType: Option[SecondFactorType] = None,
     otpSecret: String = OtpUtil.generateOtpSecretString,
-    otpReset: Boolean = false
+    otpReset: Boolean = false,
+    contactPermission: Boolean = false
   )(implicit person: PersonId): Person = Person(
     id,
     kundeId,
@@ -583,10 +584,10 @@ object Person {
     passwortWechselErforderlich,
     rolle,
     categories,
-    contactPermission,
     secondFactorType,
     otpSecret,
     otpReset,
+    contactPermission,
     // modification flags
     erstelldat = DateTime.now,
     ersteller = person,
@@ -613,9 +614,9 @@ case class PersonDetail(
   passwortWechselErforderlich: Boolean,
   rolle: Option[Rolle],
   categories: Set[PersonCategoryNameId],
-  contactPermission: Boolean,
   secondFactorType: Option[SecondFactorType],
   otpReset: Boolean,
+  contactPermission: Boolean,
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -764,9 +765,9 @@ case class PersonModify(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   categories: Set[PersonCategoryNameId],
-  contactPermission: Boolean,
   bemerkungen: Option[String],
-  secondFactorType: Option[SecondFactorType]
+  secondFactorType: Option[SecondFactorType],
+  contactPermission: Boolean
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
@@ -785,10 +786,10 @@ case class PersonCreate(
   telefonMobil: Option[String],
   telefonFestnetz: Option[String],
   categories: Set[PersonCategoryNameId],
-  contactPermission: Boolean,
   bemerkungen: Option[String],
   sort: Int,
-  secondFactorType: Option[SecondFactorType]
+  secondFactorType: Option[SecondFactorType],
+  contactPermission: Boolean
 ) extends JSONSerializable {
   def fullName = name + ' ' + vorname
 }
