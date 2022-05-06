@@ -22,41 +22,42 @@
 \*                                                                           */
 package ch.openolitor.helloworld
 
+import akka.actor.ActorRef
+import akka.http.scaladsl.model.StatusCodes.{ MethodNotAllowed, NotFound }
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.testkit.Specs2RouteTest
+import ch.openolitor.core.filestore.FileStore
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
-import spray.testkit.Specs2RouteTest
-import spray.http._
-import StatusCodes._
 import spray.json._
 
-class RouteServiceSpec extends Specification with Specs2RouteTest with HelloWorldRoutes {
-  def actorRefFactory = system
+import scala.concurrent.ExecutionContext
 
+class RouteServiceSpec(implicit ec: ExecutionEnv) extends Specification with Specs2RouteTest {
   import HelloWorldJsonProtocol._
 
+  private val service = new HelloWorldRoutes {
+    override val fileStore: FileStore = null
+    override implicit protected val executionContext: ExecutionContext = ec.executionContext
+    override val entityStore: ActorRef = null
+  }
+
   "HelloWorldService" should {
-
-    "return a greeting for GET requests to the root path as xml" in {
-      Get("/hello/xml") ~> helloWorldRoute ~> check {
-        responseAs[String] must contain("<h1>Hello World</h1>")
-      }
-
-      "return a greeting for GET requests to the root path as json" in {
-        Get("/hello/json") ~> helloWorldRoute ~> check {
-          responseAs[String].parseJson.convertTo[HelloWorld] must beEqualTo(HelloWorld("Hello World!"))
-        }
+    "return a greeting for GET requests to the root path as json" in {
+      Get("/hello/json") ~> service.helloWorldRoute ~> check {
+        responseAs[String].parseJson.convertTo[HelloWorld] must beEqualTo(HelloWorld("Hello World!"))
       }
     }
 
     "leave GET requests to other paths unhandled" in {
-      Get("/kermit") ~> helloWorldRoute ~> check {
+      Get("/kermit") ~> service.helloWorldRoute ~> check {
         handled must beFalse
       }
     }
 
     "return a MethodNotAllowed error for PUT requests to the root path" in {
-      Put("/hello/xml") ~> sealRoute(helloWorldRoute) ~> check {
-        status === MethodNotAllowed
-        responseAs[String] === "HTTP method not allowed, supported methods: GET"
+      Put("/hello/xml") ~> Route.seal(service.helloWorldRoute) ~> check {
+        status === NotFound
       }
     }
   }

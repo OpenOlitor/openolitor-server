@@ -22,24 +22,22 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung
 
-import spray.routing._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Directives.{ parameters => httpParameters }
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import stamina.Persister
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.stammdaten.models._
-import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
 import akka.actor._
+import akka.http.scaladsl.server.Route
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.core.security.Subject
@@ -56,10 +54,12 @@ import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
 import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
-trait BuchhaltungRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+trait BuchhaltungRoutes
+  extends BaseRouteService
+  with ActorReferences
+  with AsyncConnectionPoolContextAware
   with BuchhaltungJsonProtocol
   with BuchhaltungEventStoreSerializer
   with RechnungReportService
@@ -76,7 +76,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def buchhaltungRoute(implicit subect: Subject): Route =
-    spray.routing.directives.ParameterDirectives.parameters('f.?, 'g.?, 'q.?) { (f, g, q) =>
+    httpParameters("f".?, "g".?, "q".?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
@@ -97,7 +97,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     } ~
       path("rechnungen" / "aktionen" / "downloadrechnungen") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.fileStoreId.map(FileStoreFileId(_))).flatten
@@ -115,7 +115,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       } ~
       path("rechnungen" / "aktionen" / "downloadmahnungen") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.mahnungFileStoreIds.map(FileStoreFileId(_))).flatten
@@ -133,7 +133,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       } ~
       path("rechnungen" / "aktionen" / "pain_008_001_07") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[RechnungenContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 generatePain008(rechnungen) match {
@@ -155,7 +155,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       } ~
       path("rechnungen" / "aktionen" / "verschicken") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[RechnungenContainer]) { cont =>
               verschicken(cont.ids)
             }
@@ -233,9 +233,9 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   def zahlungsImportsRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("zahlungsimports") {
       get(list(buchhaltungReadRepository.getZahlungsImports)) ~
-        (put | post)(upload { (form, content, fileName) =>
+        (put | post)(upload() { (content, fileName) =>
           // read the file once and pass the same content along
-          val uploadData = Iterator continually content.read takeWhile (-1 !=) map (_.toByte) toArray
+          val uploadData = LazyList.continually(content.read).takeWhile(-1 !=).map(_.toByte).toArray
 
           ZahlungsImportParser.parse(uploadData) match {
             case Success(importResult) =>
@@ -262,7 +262,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   private def mailingRoute(implicit subject: Subject): Route =
     path("mailing" / "sendEmailToInvoicesSubscribers") {
       post {
-        requestInstance { request =>
+        extractRequest { request =>
           entity(as[RechnungMailRequest]) { rechnungMailRequest =>
             sendEmailsToInvoicesSubscribers(rechnungMailRequest.subject, rechnungMailRequest.body, rechnungMailRequest.replyTo, rechnungMailRequest.ids, rechnungMailRequest.attachInvoice)
           }
@@ -506,11 +506,12 @@ class DefaultBuchhaltungRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
   extends BuchhaltungRoutes
   with DefaultBuchhaltungReadRepositoryAsyncComponent
   with DefaultStammdatenReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

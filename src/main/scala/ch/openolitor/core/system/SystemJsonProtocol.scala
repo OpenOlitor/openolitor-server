@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
-import spray.json.DefaultJsonProtocol
 import ch.openolitor.core.data.DataImportService.ImportResult
+import ch.openolitor.core.eventsourcing.PersistenceJsonProtocol
 
-trait SystemJsonProtocol extends DefaultJsonProtocol {
+trait SystemJsonProtocol extends PersistenceJsonProtocol {
   implicit val importResultFormat = jsonFormat2(ImportResult)
 }

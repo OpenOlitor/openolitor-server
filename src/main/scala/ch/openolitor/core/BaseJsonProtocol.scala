@@ -22,16 +22,17 @@
 \*                                                                           */
 package ch.openolitor.core
 
+import ch.openolitor.core.domain.EventMetadata
+import ch.openolitor.core.jobs.JobQueueService.JobId
 import spray.json.DefaultJsonProtocol
 import spray.json._
 import org.joda.time._
 import org.joda.time.format._
 import ch.openolitor.core.models._
-import ch.openolitor.stammdaten.models.PersonContactPermissionModify
+import ch.openolitor.core.reporting.AsyncReportServiceResult
+import ch.openolitor.stammdaten.models.{ PersonContactPermissionModify, SecondFactorType }
 
 import java.util.UUID
-import zangelo.spray.json.AutoProductFormats
-
 import java.util.Locale
 
 trait JSONSerializable extends Product
@@ -39,7 +40,7 @@ trait JSONSerializable extends Product
 /**
  * Basis JSON Formatter for spray-json serialisierung/deserialisierung
  */
-trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait BaseJsonProtocol extends DefaultJsonProtocol {
   val defaultConvert: Any => String = x => x.toString
 
   implicit val uuidFormat = new RootJsonFormat[UUID] {
@@ -144,11 +145,18 @@ trait BaseJsonProtocol extends DefaultJsonProtocol with AutoProductFormats[JSONS
 
   implicit val personIdFormat = baseIdFormat(PersonId.apply)
   implicit val vorlageTypeFormat = enumFormat(VorlageTyp.apply)
+  implicit val secondFactorTypeFormat = enumFormat(SecondFactorType.apply)
 
   implicit val idResponseFormat = jsonFormat1(BaseJsonProtocol.IdResponse)
 
   implicit val rejectionMessageFormat = jsonFormat2(RejectionMessage)
-  implicit val personContactPermissionModifyFormat = autoProductFormat[PersonContactPermissionModify]
+  implicit val personContactPermissionModifyFormat = jsonFormat1(PersonContactPermissionModify)
+
+  implicit val jobIdFormat = jsonFormat3(JobId)
+  implicit val asyncReportServiceResultFormat = jsonFormat2(AsyncReportServiceResult)
+
+  // event formats
+  implicit val eventMetadataFormat = jsonFormat6(EventMetadata)
 }
 
 object BaseJsonProtocol {

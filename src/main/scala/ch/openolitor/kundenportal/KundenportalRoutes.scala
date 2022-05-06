@@ -22,36 +22,34 @@
 \*                                                                           */
 package ch.openolitor.kundenportal
 
-import spray.routing._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
-import ch.openolitor.core._
-import ch.openolitor.core.models._
-import ch.openolitor.core.domain._
-import ch.openolitor.core.db._
-import scala.concurrent.ExecutionContext.Implicits.global
-import akka.pattern.ask
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Macros._
-import ch.openolitor.buchhaltung.models._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.filestore._
 import akka.actor._
-import ch.openolitor.core.security.Subject
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.util.parsing.FilterExpr
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.pattern.ask
+import ch.openolitor.arbeitseinsatz.{ ArbeitseinsatzCommandHandler, ArbeitseinsatzJsonProtocol }
+import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.buchhaltung.models._
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
-import ch.openolitor.kundenportal.repositories.KundenportalReadRepositoryAsyncComponent
+import ch.openolitor.core._
+import ch.openolitor.core.db._
+import ch.openolitor.core.domain._
+import ch.openolitor.core.models._
+import ch.openolitor.core.Macros._
+import ch.openolitor.core.filestore._
+import ch.openolitor.core.security.Subject
+import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositoryAsyncComponent, KundenportalReadRepositoryAsyncComponent }
+import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
-import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.arbeitseinsatz.{ ArbeitseinsatzCommandHandler, ArbeitseinsatzJsonProtocol }
-import ch.openolitor.kundenportal.repositories.DefaultKundenportalReadRepositoryAsyncComponent
+import ch.openolitor.util.parsing.{ FilterExpr, UriQueryParamFilterParser }
 
-trait KundenportalRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+import scala.concurrent.ExecutionContext
+
+trait KundenportalRoutes
+  extends BaseRouteService
+  with ActorReferences
+  with AsyncConnectionPoolContextAware
   with StammdatenEventStoreSerializer
   with BuchhaltungJsonProtocol
   with ArbeitseinsatzJsonProtocol
@@ -73,7 +71,7 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def kundenportalRoute(implicit subject: Subject) =
-    parameters('f.?) { (f) =>
+    parameter("f".?) { f =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
@@ -102,13 +100,11 @@ trait KundenportalRoutes extends HttpService with ActorReferences
   def personenRoute(implicit subject: Subject): Route = {
     path("personContactVisibility" / personIdPath) { id =>
       post {
-        requestInstance { request =>
-          onSuccess(entityStore ? ArbeitseinsatzCommandHandler.ChangeContactPermissionForUserCommand(subject.personId, subject, id)) {
-            case UserCommandFailed =>
-              complete(StatusCodes.BadRequest, s"error.")
-            case _ =>
-              complete("")
-          }
+        onSuccess(entityStore ? ArbeitseinsatzCommandHandler.ChangeContactPermissionForUserCommand(subject.personId, subject, id)) {
+          case UserCommandFailed =>
+            complete(StatusCodes.BadRequest, s"error.")
+          case _ =>
+            complete("")
         }
       }
     }
@@ -135,13 +131,13 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         )
       } ~
       path("rechnungen" / rechnungIdPath / "aktionen" / "download" / Segment) { (id, fileStoreId) =>
-        (get)(
+        get {
           onSuccess(kundenportalReadRepository.getRechnungDetail(id)) { detail =>
-            detail map { rechnung =>
+            detail map { _ =>
               download(GeneriertMahnung, fileStoreId)
-            } getOrElse (complete(StatusCodes.BadRequest))
+            } getOrElse complete(StatusCodes.BadRequest)
           }
-        )
+        }
       }
   }
 
@@ -151,14 +147,12 @@ trait KundenportalRoutes extends HttpService with ActorReferences
         list(kundenportalReadRepository.getArbeitsangebote)
       } ~
         post {
-          requestInstance { request =>
-            entity(as[ArbeitseinsatzCreate]) { arbein =>
-              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzErstellenCommand(subject.personId, subject, arbein)) {
-                case UserCommandFailed =>
-                  complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht erstellt werden.")
-                case _ =>
-                  complete("")
-              }
+          entity(as[ArbeitseinsatzCreate]) { arbein =>
+            onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzErstellenCommand(subject.personId, subject, arbein)) {
+              case UserCommandFailed =>
+                complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht erstellt werden.")
+              case _ =>
+                complete("")
             }
           }
         }
@@ -170,14 +164,12 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       } ~
       path("arbeitseinsaetze" / arbeitseinsatzIdPath) { arbeitseinsatzId =>
         post {
-          requestInstance { request =>
-            entity(as[ArbeitseinsatzCreate]) { arbein =>
-              onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzModifizierenCommand(subject.personId, subject, arbeitseinsatzId, arbein)) {
-                case UserCommandFailed =>
-                  complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht modifiziert werden.")
-                case _ =>
-                  complete("")
-              }
+          entity(as[ArbeitseinsatzCreate]) { arbein =>
+            onSuccess(entityStore ? KundenportalCommandHandler.ArbeitseinsatzModifizierenCommand(subject.personId, subject, arbeitseinsatzId, arbein)) {
+              case UserCommandFailed =>
+                complete(StatusCodes.BadRequest, s"Arbeitseinsatz konnte nicht modifiziert werden.")
+              case _ =>
+                complete("")
             }
           }
         } ~
@@ -206,14 +198,12 @@ trait KundenportalRoutes extends HttpService with ActorReferences
       } ~
       path("abos" / aboIdPath / "abwesenheiten") { aboId =>
         post {
-          requestInstance { request =>
-            entity(as[AbwesenheitModify]) { abw =>
-              onSuccess(entityStore ? KundenportalCommandHandler.AbwesenheitErstellenCommand(subject.personId, subject, copyTo[AbwesenheitModify, AbwesenheitCreate](abw, "aboId" -> aboId))) {
-                case UserCommandFailed =>
-                  complete(StatusCodes.BadRequest, s"Abwesenheit konnte nicht erstellt werden.")
-                case _ =>
-                  complete("")
-              }
+          entity(as[AbwesenheitModify]) { abw =>
+            onSuccess(entityStore ? KundenportalCommandHandler.AbwesenheitErstellenCommand(subject.personId, subject, copyTo[AbwesenheitModify, AbwesenheitCreate](abw, "aboId" -> aboId))) {
+              case UserCommandFailed =>
+                complete(StatusCodes.BadRequest, s"Abwesenheit konnte nicht erstellt werden.")
+              case _ =>
+                complete("")
             }
           }
         }
@@ -252,10 +242,11 @@ class DefaultKundenportalRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
   extends KundenportalRoutes
   with DefaultKundenportalReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

@@ -23,13 +23,13 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
+import akka.http.scaladsl.model.MediaTypes
 import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
 import ch.openolitor.core.reporting.ReportSystem._
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
-import spray.http.MediaTypes
 
 import java.io.File
 import scala.util._
@@ -70,7 +70,7 @@ class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
         PDFmerged.appendDocument(mergedFile, file._2)
       }
       val fileName = "Report_" + filenameDateFormat.print(System.currentTimeMillis())
-      val file = File.createTempFile(fileName, ".pdf");
+      val file = File.createTempFile(fileName, ".pdf")
       mergedFile.save(file)
       val payload = FileResultPayload(fileName, MediaTypes.`application/pdf`, file)
       log.debug(s"Send payload as result:${fileName}")

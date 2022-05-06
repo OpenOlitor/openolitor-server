@@ -42,6 +42,9 @@ object AggregateRoot {
   case object Removed extends State
   case object Created extends State
   case object Uninitialized extends State
+
+  case class RestoreViewFromState(originator: PersonId, sequenceNr: Long, state: State) extends Command
+  case class InitializeViewLive(originator: PersonId, fromSequenceNr: Long) extends Command
 }
 
 trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEventStateSupport {
@@ -55,7 +58,7 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
   def updateState(recovery: Boolean = false)(evt: PersistentEvent): Unit
   def restoreFromSnapshot(metadata: SnapshotMetadata, state: State)
 
-  def afterRecoveryCompleted(): Unit = {}
+  def afterRecoveryCompleted(sequenceNr: Long, state: State): Unit = {}
 
   def now = System.currentTimeMillis
 
@@ -90,6 +93,6 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
       restoreFromSnapshot(metadata, state)
       log.debug("recovering aggregate from snapshot")
     case RecoveryCompleted =>
-      afterRecoveryCompleted()
+      afterRecoveryCompleted(lastSequenceNr, state)
   }
 }

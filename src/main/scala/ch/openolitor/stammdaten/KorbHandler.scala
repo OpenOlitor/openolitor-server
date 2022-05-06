@@ -412,7 +412,7 @@ trait KorbHandler extends KorbStatusHandler
     val stati: List[KorbStatus] = stammdatenWriteRepository.getKoerbe(lieferung.id).map(_.status)
     val counts: Map[KorbStatus, Int] = stati.groupBy {
       s => s
-    }.mapValues(_.size)
+    }.view.mapValues(_.size).toMap
 
     val zuLiefern: Int = counts.getOrElse(WirdGeliefert, 0)
     val abwesenheiten: Int = counts.getOrElse(FaelltAusAbwesend, 0)

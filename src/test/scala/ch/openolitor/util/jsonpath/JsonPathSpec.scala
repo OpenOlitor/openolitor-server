@@ -785,7 +785,7 @@ class JsonPathSpec extends Specification with Matchers {
 
   "Incorrect JsonPath expressions" should {
     "be handled properly" in {
-      JsonPath.query("€.$", goessnerJson) === Left(JPError("`$' expected but `€' found"))
+      JsonPath.query("€.$", goessnerJson) === Left(JPError("'$' expected but '€' found"))
     }
   }
 

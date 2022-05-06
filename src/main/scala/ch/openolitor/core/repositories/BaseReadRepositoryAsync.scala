@@ -34,13 +34,13 @@ trait BaseReadRepositoryAsync extends BaseRepositoryQueries {
     asyncCpContext: MultipleAsyncConnectionPoolContext,
     binder: Binders[I]
   ): Future[Option[E]] = {
-    getByIdQuery(syntax, id).future
+    getByIdQuery(syntax, id).future()
   }
 
   def getByIds[E <: BaseEntity[I], I <: BaseId](syntax: BaseEntitySQLSyntaxSupport[E], ids: Seq[I])(implicit
     asyncCpContext: MultipleAsyncConnectionPoolContext,
     binder: Binders[I]
   ): Future[List[E]] = {
-    getByIdsQuery(syntax, ids).future
+    getByIdsQuery(syntax, ids).future()
   }
 }

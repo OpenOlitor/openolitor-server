@@ -22,44 +22,40 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import spray.httpx.unmarshalling._
+import akka.http.scaladsl.server.{ PathMatcher1, PathMatchers }
+import akka.http.scaladsl.unmarshalling.{ FromStringUnmarshaller, Unmarshaller }
+import akka.http.scaladsl.util.FastFuture
+import akka.stream.Materializer
 import ch.openolitor.core.models.BaseId
-import spray.json._
-import spray.routing._
-import spray.httpx.unmarshalling._
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait SprayDeserializers {
-  implicit val string2BooleanConverter = new Deserializer[String, Boolean] {
-    def apply(value: String) = value.toLowerCase match {
-      case "true" | "yes" | "on"  => Right(true)
-      case "false" | "no" | "off" => Right(false)
-      case x                      => Left(MalformedContent("'" + x + "' is not a valid Boolean value"))
+  implicit val stringToBooleanConverter = new FromStringUnmarshaller[Boolean] {
+    override def apply(value: String)(implicit ec: ExecutionContext, materializer: Materializer): Future[Boolean] = {
+      value.toLowerCase match {
+        case "true" | "yes" | "on"  => FastFuture.successful(true)
+        case "false" | "no" | "off" => FastFuture.successful(false)
+        case x                      => FastFuture.failed(new IllegalArgumentException("'" + x + "' is not a valid Boolean value"))
+      }
     }
   }
 
-  def jsonDeserializer[T](implicit read: JsonReader[T]) = new Deserializer[String, T] {
-    def apply(str: String) = {
-      Right(read.read(str.parseJson))
-    }
-  }
-
-  def long2BaseIdPathMatcher[T <: BaseId](implicit f: Long => T): spray.routing.PathMatcher1[T] = {
+  def long2BaseIdPathMatcher[T <: BaseId](implicit f: Long => T): PathMatcher1[T] = {
     PathMatchers.LongNumber.flatMap(id => Some(f(id)))
   }
 
-  def enumPathMatcher[T](implicit f: String => Option[T]): spray.routing.PathMatcher1[T] = {
+  def enumPathMatcher[T](implicit f: String => Option[T]): PathMatcher1[T] = {
     PathMatchers.Segment.flatMap(id => f(id))
   }
 
-  def long2BaseIdConverter[T <: BaseId](implicit f: Long => T) = new Deserializer[Long, T] {
-    def apply(value: Long) = {
+  def longToBaseIdConverter[T <: BaseId](implicit f: Long => T) = new Unmarshaller[Long, T] {
+    override def apply(value: Long)(implicit ec: ExecutionContext, materializer: Materializer): Future[T] =
       try {
-        Right(f(value))
+        FastFuture.successful(f(value))
       } catch {
         case e: Exception =>
-          Left(MalformedContent(s"'$value' is not a valid id:$e"))
+          FastFuture.failed(new IllegalArgumentException(s"'$value' is not a valid id:$e", e))
       }
-    }
-
   }
 }

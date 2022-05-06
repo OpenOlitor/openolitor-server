@@ -36,14 +36,14 @@ final case class JPError(reason: String)
  * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
 object JsonPath {
-  private val JsonPathParser = ThreadLocal.withInitial[Parser](new Supplier[Parser] {
-    override def get(): Parser = new Parser()
+  private val JsonPathParser = ThreadLocal.withInitial[OOJsonPathParser](new Supplier[OOJsonPathParser] {
+    override def get(): OOJsonPathParser = new OOJsonPathParser()
   })
 
   def compile(query: String): Either[JPError, JsonPath] =
     JsonPathParser.get.compile(query) match {
-      case Parser.Success(q, _) => Right(new JsonPath(q))
-      case ns: Parser.NoSuccess => Left(JPError(ns.msg))
+      case OOJsonPathParser.Success(q, _) => Right(new JsonPath(q))
+      case ns: OOJsonPathParser.NoSuccess => Left(JPError(ns.msg))
     }
 
   def query(query: String, jsonObject: JsValue): Either[JPError, Vector[JsValue]] = {

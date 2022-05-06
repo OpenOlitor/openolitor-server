@@ -46,9 +46,6 @@ trait BuchhaltungEntityStoreView extends EntityStoreView
   self: BuchhaltungWriteRepositoryComponent =>
 
   override val module = "buchhaltung"
-
-  def initializeEntityStoreView = {
-  }
 }
 
 /**

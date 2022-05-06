@@ -23,13 +23,11 @@
 package ch.openolitor.core.reporting
 
 import ch.openolitor.core.BaseJsonProtocol
-import zangelo.spray.json.AutoProductFormats
-import ch.openolitor.core.reporting.models._
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.filestore.FileStoreJsonProtocol
 import ch.openolitor.core.jobs.JobQueueJsonProtocol
+import ch.openolitor.core.reporting.models._
+import spray.json.RootJsonFormat
 
-trait ReportJsonProtocol extends BaseJsonProtocol with FileStoreJsonProtocol with JobQueueJsonProtocol
-  with AutoProductFormats[JSONSerializable] {
-  implicit val multiReportIdFormat = baseIdFormat(MultiReportId)
+trait ReportJsonProtocol extends BaseJsonProtocol with FileStoreJsonProtocol with JobQueueJsonProtocol {
+  implicit val multiReportIdFormat: RootJsonFormat[MultiReportId] = baseIdFormat(MultiReportId)
 }

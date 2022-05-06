@@ -22,30 +22,26 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
-import ch.openolitor.core.Macros._
+import akka.actor.{ ActorRef, ActorSystem }
+import akka.http.caching.scaladsl.Cache
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.directives.MarshallingDirectives.{ as, entity }
 import ch.openolitor.core._
-import ch.openolitor.core.filestore.FileStore
+import ch.openolitor.core.Macros._
+import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent }
 import ch.openolitor.stammdaten.models.{ Person, PersonDetail }
 import ch.openolitor.stammdaten.repositories.{ DefaultStammdatenReadRepositoryAsyncComponent, StammdatenReadRepositoryAsyncComponent }
 import com.typesafe.scalalogging.LazyLogging
 import scalaz._
-import spray.caching._
-import spray.http._
-import spray.httpx.SprayJsonSupport._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.routing.Directive._
-import spray.routing._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-trait LoginRouteService extends HttpService
+trait LoginRouteService
+  extends BaseRouteService
   with SprayDeserializers
-  with DefaultRouteService
   with LazyLogging
   with LoginJsonProtocol
   with LoginService {
-  self: StammdatenReadRepositoryAsyncComponent =>
+  self: StammdatenReadRepositoryAsyncComponent with FileStoreComponent =>
 
   lazy val loginRoutes = loginRoute
 
@@ -59,7 +55,7 @@ trait LoginRouteService extends HttpService
     } ~
       path("passwd") {
         post {
-          requestInstance { request =>
+          extractRequest { _ =>
             entity(as[ChangePasswordForm]) { form =>
               logger.debug(s"requested password change")
               onSuccess(validatePasswordChange(form).run) {
@@ -78,7 +74,7 @@ trait LoginRouteService extends HttpService
   def loginRoute = pathPrefix("auth") {
     path("login") {
       post {
-        requestInstance { request =>
+        extractRequest { request =>
           entity(as[LoginForm]) { form =>
             onSuccess(validateLogin(form).run) {
               case -\/(error) =>
@@ -93,7 +89,7 @@ trait LoginRouteService extends HttpService
     } ~
       path("secondFactor") {
         post {
-          requestInstance { _ =>
+          extractRequest { _ =>
             entity(as[SecondFactorAuthentication]) { form =>
               onSuccess(validateSecondFactorLogin(form).run) {
                 case -\/(error) =>
@@ -107,46 +103,48 @@ trait LoginRouteService extends HttpService
         }
       } ~
       pathPrefix("user") {
-        authenticate(openOlitorAuthenticator) { implicit subject =>
-          pathEnd {
-            get {
-              onSuccess(personById(subject.personId).run) {
-                case -\/(error) =>
-                  logger.debug(s"get user failed ${error.msg}")
-                  complete(StatusCodes.Unauthorized)
-                case \/-(person) =>
-                  val personDetail = copyTo[Person, PersonDetail](person)
-                  complete(User(personDetail, subject))
-              }
-            }
-          } ~
-            path("settings") {
+        extractRequestContext { requestContext =>
+          authenticate(requestContext) { implicit subject =>
+            pathEnd {
               get {
-                onSuccess(getLoginSettings(subject.personId).run) {
+                onSuccess(personById(subject.personId).run) {
                   case -\/(error) =>
-                    logger.debug(s"get users login settings failed ${error.msg}")
+                    logger.debug(s"get user failed ${error.msg}")
                     complete(StatusCodes.Unauthorized)
-                  case \/-(settings) =>
-                    complete(settings)
+                  case \/-(person) =>
+                    val personDetail = copyTo[Person, PersonDetail](person)
+                    complete(User(personDetail, subject))
                 }
-              } ~
-                post {
-                  entity(as[LoginSettingsForm]) { settings =>
-                    onSuccess(validateLoginSettings(subject.personId, settings).run) {
-                      case -\/(error) =>
-                        logger.debug(s"update users login settings failed ${error.msg}")
-                        complete(StatusCodes.BadRequest)
-                      case \/-(result) =>
-                        complete(result)
+              }
+            } ~
+              path("settings") {
+                get {
+                  onSuccess(getLoginSettings(subject.personId).run) {
+                    case -\/(error) =>
+                      logger.debug(s"get users login settings failed ${error.msg}")
+                      complete(StatusCodes.Unauthorized)
+                    case \/-(settings) =>
+                      complete(settings)
+                  }
+                } ~
+                  post {
+                    entity(as[LoginSettingsForm]) { settings =>
+                      onSuccess(validateLoginSettings(subject.personId, settings).run) {
+                        case -\/(error) =>
+                          logger.debug(s"update users login settings failed ${error.msg}")
+                          complete(StatusCodes.BadRequest)
+                        case \/-(result) =>
+                          complete(result)
+                      }
                     }
                   }
-                }
-            }
+              }
+          }
         }
       } ~
       path("zugangaktivieren") {
         post {
-          requestInstance { _ =>
+          extractRequest { _ =>
             entity(as[SetPasswordForm]) { form =>
               onSuccess(validateSetPasswordForm(form).run) {
                 case -\/(error) =>
@@ -160,7 +158,7 @@ trait LoginRouteService extends HttpService
       } ~
       path("passwordreset") {
         post {
-          requestInstance { _ =>
+          extractRequest { _ =>
             entity(as[PasswordResetForm]) { form =>
               onSuccess(validatePasswordResetForm(form).run) {
                 case -\/(error) =>
@@ -173,35 +171,37 @@ trait LoginRouteService extends HttpService
         }
       } ~
       pathPrefix("otp") {
-        authenticate(openOlitorAuthenticator) { implicit subject =>
-          path("requestSecret") {
-            post {
-              requestInstance { _ =>
-                entity(as[OtpSecretResetRequest]) { form =>
-                  onSuccess(validateOtpResetRequest(form).run) {
-                    case -\/(error) =>
-                      complete(StatusCodes.BadRequest, error.msg)
-                    case \/-(result) =>
-                      complete(result)
-                  }
-                }
-              }
-            }
-          } ~
-            path("changeSecret") {
+        extractRequestContext { requestContext =>
+          authenticate(requestContext) { implicit subject =>
+            path("requestSecret") {
               post {
-                requestInstance { _ =>
-                  entity(as[OtpSecretResetConfirm]) { form =>
-                    onSuccess(validateOtpResetConfirm(form).run) {
+                extractRequest { _ =>
+                  entity(as[OtpSecretResetRequest]) { form =>
+                    onSuccess(validateOtpResetRequest(form).run) {
                       case -\/(error) =>
                         complete(StatusCodes.BadRequest, error.msg)
-                      case \/-(_) =>
-                        complete("Ok")
+                      case \/-(result) =>
+                        complete(result)
                     }
                   }
                 }
               }
-            }
+            } ~
+              path("changeSecret") {
+                post {
+                  extractRequest { _ =>
+                    entity(as[OtpSecretResetConfirm]) { form =>
+                      onSuccess(validateOtpResetConfirm(form).run) {
+                        case -\/(error) =>
+                          complete(StatusCodes.BadRequest, error.msg)
+                        case \/-(_) =>
+                          complete("Ok")
+                      }
+                    }
+                  }
+                }
+              }
+          }
         }
       }
   }
@@ -215,11 +215,12 @@ class DefaultLoginRouteService(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef,
-  override val loginTokenCache: Cache[Subject]
+  override val loginTokenCache: Cache[String, Subject]
 )
   extends LoginRouteService
   with DefaultStammdatenReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext = system.dispatcher
+}

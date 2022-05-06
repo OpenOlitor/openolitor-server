@@ -39,7 +39,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.jobs.JobQueueService.JobId
 import ch.openolitor.util.IdUtil
 
-trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
+trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol with ReportJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
   def generateAuslieferungKorbUebersichtReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
     generateReports[AuslieferungId, MultiReport[AuslieferungKorbUebersichtReport]](

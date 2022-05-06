@@ -27,8 +27,8 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models.{ EmailSecondFactorType, KundeId, OtpSecondFactorType, PersonDetail, PersonSummary, Rolle, SecondFactorType }
 
 sealed trait SecondFactor {
-  val personId: PersonId;
-  val token: String;
+  val personId: PersonId
+  val token: String
 
   def `type`: SecondFactorType
 }

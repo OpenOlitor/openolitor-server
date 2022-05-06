@@ -103,7 +103,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
   }
 
   protected def getArbeitseinsatzDetailQuery(arbeitseinsatzId: ArbeitseinsatzId) = {
-    withSQL {
+    withSQL[Arbeitseinsatz] {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .leftJoin(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
@@ -158,7 +158,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
   }
 
   protected def getArbeitseinsatzabrechnungQuery(queryString: Option[QueryFilter]) = {
-    withSQL {
+    withSQL[Kunde] {
       select
         .from(kundeMapping as kunde)
         .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
@@ -183,11 +183,10 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
 
         ArbeitseinsatzAbrechnung(kunde.id, kunde.bezeichnung, summeEinsaetzeSoll, summeEinsaetzeIst, summeEinsaetzeDelta)
       }.list
-
   }
 
   protected def getArbeitseinsatzabrechnungOnlyAktivKundenQuery(queryString: Option[QueryFilter]) = {
-    withSQL {
+    withSQL[Kunde] {
       select
         .from(kundeMapping as kunde)
         .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(kunde.id, depotlieferungAbo.kundeId)
@@ -213,7 +212,6 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
 
         ArbeitseinsatzAbrechnung(kunde.id, kunde.bezeichnung, summeEinsaetzeSoll, summeEinsaetzeIst, summeEinsaetzeDelta)
       }.list
-
   }
 
   protected def getArbeitsangebotArchivedQuery = {
@@ -227,7 +225,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
   }
 
   protected def getArbeitseinsatzDetailByArbeitsangebotQuery(arbeitsangebotId: ArbeitsangebotId) = {
-    withSQL {
+    withSQL[Arbeitseinsatz] {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .leftJoin(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)

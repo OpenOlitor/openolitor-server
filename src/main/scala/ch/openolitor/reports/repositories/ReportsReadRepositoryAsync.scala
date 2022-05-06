@@ -45,15 +45,15 @@ trait ReportsReadRepositoryAsync extends BaseReadRepositoryAsync {
 
 class ReportsReadRepositoryAsyncImpl extends ReportsReadRepositoryAsync with LazyLogging with ReportsRepositoryQueries {
   def getReports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Report]] = {
-    getReportsQuery(filter).future
+    getReportsQuery(filter).future()
   }
 
   def getReport(id: ReportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Report]] = {
-    getReportQuery(id).future
+    getReportQuery(id).future()
   }
 
   def executeReport(reportExecute: ReportExecute, exportFormat: Option[ExportFormat])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Map[String, Any]]] = {
-    executeReportQuery(reportExecute, exportFormat).future
+    executeReportQuery(reportExecute, exportFormat).future()
   }
 
 }
