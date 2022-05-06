@@ -312,7 +312,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 
             val aboIds = abos map (_.id)
             val zusatzabosByAbo: Map[RechnungsPositionId, Seq[RechnungsPositionId]] =
-              zusatzabos map (z => (z.id, z.parentRechnungsPositionId.get)) groupBy (_._2) mapValues (_ map (_._1))
+              (zusatzabos map (z => (z.id, z.parentRechnungsPositionId.get)) groupBy (_._2) mapValues (_ map (_._1))).toMap
 
             val abosWithSort = Range(100, Int.MaxValue, 100) zip (aboIds)
             val allAbosWithSort = abosWithSort.flatMap {

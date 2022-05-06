@@ -69,7 +69,7 @@ case class ReportServiceResult[I](jobId: JobId, validationErrors: Seq[Validation
   val hasErrors = !validationErrors.isEmpty
 }
 case class AsyncReportServiceResult(jobId: JobId, validationErrors: Seq[JsValue]) extends JSONSerializable {
-  val hasErrors = !validationErrors.isEmpty
+  def hasErrors = !validationErrors.isEmpty
 }
 
 trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware with FileTypeFilenameMapping with DateFormats {
@@ -78,7 +78,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
   implicit val actorSystem = system
 
   import ReportSystem._
-  type ServiceResult[T] = EitherT[Future, ServiceFailed, T]
+  type ServiceResult[T] = EitherT[ServiceFailed, Future, T]
 
   /**
    *

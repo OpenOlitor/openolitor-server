@@ -289,11 +289,11 @@ case class ProjektReport(
   modifidat: DateTime,
   modifikator: PersonId
 ) extends BaseEntity[ProjektId] {
-  lazy val geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
-  lazy val strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
-  lazy val plzOrt = plz.map(_ + ort.map(" " + _).getOrElse(""))
+  def geschaftsjahr = Geschaeftsjahr(geschaeftsjahrMonat, geschaeftsjahrTag)
+  def strasseUndNummer = strasse.map(_ + hausNummer.map(" " + _).getOrElse(""))
+  def plzOrt = plz.map(_ + ort.map(" " + _).getOrElse(""))
 
-  lazy val adresszeilen = Seq(
+  def adresszeilen = Seq(
     Some(bezeichnung),
     adressZusatz,
     strasseUndNummer,

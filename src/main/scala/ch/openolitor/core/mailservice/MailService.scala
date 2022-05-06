@@ -35,7 +35,6 @@ import ch.openolitor.util.ConfigUtil._
 import courier._
 import javax.mail.internet.InternetAddress
 import org.joda.time.DateTime
-import spray.util._
 import stamina.Persister
 
 import scala.collection.immutable.TreeSet
@@ -81,7 +80,7 @@ trait MailService extends AggregateRoot
   lazy val fromAddress = sysConfig.mandantConfiguration.config.getString("smtp.from")
   lazy val maxNumberOfRetries = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
   lazy val sendEmailOutbound = sysConfig.mandantConfiguration.config.getBooleanOption("smtp.send-email").getOrElse(true)
-  lazy val DefaultChunkSize = sysConfig.mandantConfiguration.config.getIntBytes("smtp.max-chunk-size")
+  lazy val DefaultChunkSize = sysConfig.mandantConfiguration.config.getInt("smtp.max-chunk-size")
   lazy val security = sysConfig.mandantConfiguration.config.getString("smtp.security")
 
   lazy val mailer = security match {
@@ -113,7 +112,7 @@ trait MailService extends AggregateRoot
 
   def checkMailQueue(): Unit = {
     if (!state.mailQueue.isEmpty) {
-      state.mailQueue map { enqueued =>
+      state.mailQueue foreach { enqueued =>
         // sending a mail has to be blocking, otherwise there will be concurrent mail queue access
         sendMail(enqueued.meta, enqueued.uid, enqueued.mail, enqueued.commandMeta) match {
           case Right(event) =>
@@ -146,18 +145,17 @@ trait MailService extends AggregateRoot
         case Some(_) => {
           inputStreamfile match {
             case Right(f) => {
+
               Right(baseEnvelope(mail)
                 .content(Multipart()
-                  .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
+                  .attachBytes(LazyList.continually(f.file.read).takeWhile(-1 !=).map(_.toByte).toArray, "rechnung.pdf", "application/pdf")
                   .text(s"${mail.content}")))
             }
             case Left(e) => Left(e)
           }
         }
         case None =>
-          {
-            Right(baseEnvelope(mail).content(Text(mail.content)))
-          }
+          Right(baseEnvelope(mail).content(Text(mail.content)))
       }
 
       // we have to await the result, maybe switch to standard javax.mail later
@@ -306,7 +304,7 @@ trait MailService extends AggregateRoot
 
   def newId: String = UUID.randomUUID.toString
 
-  override def afterRecoveryCompleted(): Unit = {
+  override def afterRecoveryCompleted(sequenceNr: Long, state: State): Unit = {
     context become created
     initialize()
   }

@@ -22,17 +22,15 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
-import spray.routing._
-import spray.http.MediaTypes._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive.pimpApply
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import ch.openolitor.core._
+
 import scala.util.Properties
 
 case class Status(version: String, buildNr: String)
 
-trait StatusRoutes extends HttpService with DefaultRouteService with StatusJsonProtocol {
+trait StatusRoutes extends BaseRouteService with StatusJsonProtocol {
 
   lazy val version =
     Option(getClass.getPackage.getImplementationVersion)
@@ -48,10 +46,8 @@ trait StatusRoutes extends HttpService with DefaultRouteService with StatusJsonP
   def statusRoutes(): Route =
     path("staticInfo") {
       get {
-        respondWithMediaType(`application/json`) {
-          complete {
-            Status(version getOrElse "dev", Properties.envOrElse("application_buildnr", "dev"))
-          }
+        complete {
+          Status(version getOrElse "dev", Properties.envOrElse("application_buildnr", "dev"))
         }
       }
     }

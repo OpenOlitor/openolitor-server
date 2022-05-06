@@ -23,8 +23,8 @@
 package ch.openolitor.core.mailservice
 
 import ch.openolitor.core.domain.EventMetadata
-import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
+import org.joda.time.DateTime
 
 case class MailPayload(subject: String, content: String) {
   def toMail(priority: Int, to: String, cc: Option[String], bcc: Option[String], replyTo: Option[String], attachmentReference: Option[String]): Mail =

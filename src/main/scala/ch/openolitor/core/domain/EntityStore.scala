@@ -27,14 +27,17 @@ import akka.persistence._
 import ch.openolitor.core.models._
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.Evolution
+
 import scala.util._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.BaseJsonProtocol
 import org.joda.time.DateTime
+
 import scala.reflect._
 import DefaultMessages._
 import ch.openolitor.core.DBEvolutionReference
+import ch.openolitor.core.domain.SystemEvents.{ PersonChangedOtpSecret, PersonChangedSecondFactorType, PersonLoggedIn, SystemStarted }
 
 /**
  * _
@@ -98,6 +101,12 @@ trait EntityStoreJsonProtocol extends BaseJsonProtocol {
 
   implicit val metadataFormat = jsonFormat6(EventMetadata)
   implicit val eventStoreInitializedEventFormat = jsonFormat1(EntityStoreInitialized)
+
+  implicit val personLoggedInFormat = jsonFormat3(PersonLoggedIn)
+  implicit val personChangedOtpSecretFormat = jsonFormat2(PersonChangedOtpSecret)
+  implicit val personChangedSecondFactorTypeFormat = jsonFormat2(PersonChangedSecondFactorType)
+
+  implicit val systemStartedFormat = jsonFormat1(SystemStarted)
 }
 
 trait EntityStore extends AggregateRoot

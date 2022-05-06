@@ -22,17 +22,16 @@
 \*                                                                           */
 package ch.openolitor.core.data
 
+import akka.event.LoggingAdapter
+import ch.openolitor.core.models._
+import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import org.odftoolkit.simple.table._
+
 import java.util.Date
 import scala.collection.immutable.TreeMap
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.reflect.runtime.universe._
-import akka.event.LoggingAdapter
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import org.odftoolkit.simple.table._
-import ch.openolitor.core.models._
 
 trait EntityParser {
   import EntityParser._
@@ -75,7 +74,7 @@ trait EntityParser {
   def parseImpl[E <: BaseEntity[_], P, R](name: String, table: Table, idCol: String, colNames: Seq[String])(entityFactory: Long => Seq[Int] => Row => P)(resultHandler: (Long, P) => Option[R])(implicit loggingAdapter: LoggingAdapter): List[R] = {
     loggingAdapter.debug(s"Parse $name")
     val header = table.getRowByIndex(0)
-    val data = table.getRowIterator().toStream drop (1)
+    val data = table.getRowIterator().asScala.toStream drop (1)
 
     //match column indexes
     val indexes = columnIndexes(header, name, Seq(idCol) ++ colNames)

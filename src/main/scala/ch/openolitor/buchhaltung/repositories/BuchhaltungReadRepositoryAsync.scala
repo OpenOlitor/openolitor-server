@@ -22,16 +22,26 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.repositories
 
-import scalikejdbc.async._
+import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.repositories._
+import ch.openolitor.stammdaten.models._
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc.{ HasExtractor, OneToManies6SQLToOption }
+import scalikejdbc.async.{ makeSQLToListAsync => _, makeSQLToOptionAsync => _, _ }
 
 import scala.concurrent._
-import ch.openolitor.stammdaten.models._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.buchhaltung.models._
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
+
+object BuchhaltungReadRepositoryAsync {
+  import scalikejdbc.async._
+  implicit class SQLToAsync[A, B1, B2, B3, B4, B5, B6, Z](sql: OneToManies6SQLToOption[A, B1, B2, B3, B4, B5, B6, HasExtractor, Z]) {
+    def asyncResult()(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Z]] = {
+      makeOneToManies6SQLToOptionAsync[A, B1, B2, B3, B4, B5, B6, Z](sql).future()
+    }
+  }
+}
 
 /**
  * Asynchronous Repository
@@ -53,43 +63,51 @@ trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
 
 class BuchhaltungReadRepositoryAsyncImpl extends BuchhaltungReadRepositoryAsync with LazyLogging with BuchhaltungRepositoryQueries {
   def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Future[List[Rechnung]] = {
-    getRechnungenQuery(filter, gjFilter, queryString).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getRechnungenQuery(filter, gjFilter, queryString).future()
   }
 
   def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Future[List[RechnungsPosition]] = {
-    getRechnungsPositionQuery(filter, queryString).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getRechnungsPositionQuery(filter, queryString).future()
   }
 
   def getKundenRechnungen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Rechnung]] = {
-    getKundenRechnungenQuery(kundeId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getKundenRechnungenQuery(kundeId).future()
   }
 
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[RechnungDetail]] = {
-    getRechnungDetailQuery(id).future
+    getRechnungDetailQuery(id).future()
   }
 
   def getRechnungByReferenznummer(referenzNummer: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Rechnung]] = {
-    getRechnungByReferenznummerQuery(referenzNummer).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getRechnungByReferenznummerQuery(referenzNummer).future()
   }
 
   def getZahlungsImports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Future[List[ZahlungsImport]] = {
-    getZahlungsImportsQuery(filter, queryString).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getZahlungsImportsQuery(filter, queryString).future()
   }
 
   def getZahlungsImportDetail(id: ZahlungsImportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZahlungsImportDetail]] = {
-    getZahlungsImportDetailQuery(id).future
+    getZahlungsImportDetailQuery(id).future()
   }
 
   def getZahlungsExports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZahlungsExport]] = {
-    getZahlungsExportsQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getZahlungsExportsQuery.future()
   }
 
   def getZahlungsExportDetail(id: ZahlungsExportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZahlungsExport]] = {
-    getZahlungsExportQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getZahlungsExportQuery(id).future()
   }
 
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]] = {
-    getProjektQuery.future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getProjektQuery.future()
   }
 }
 

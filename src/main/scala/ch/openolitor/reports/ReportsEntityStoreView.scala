@@ -46,9 +46,6 @@ trait ReportsEntityStoreView extends EntityStoreView
   self: ReportsWriteRepositoryComponent =>
 
   override val module = "reports"
-
-  def initializeEntityStoreView = {
-  }
 }
 
 /**

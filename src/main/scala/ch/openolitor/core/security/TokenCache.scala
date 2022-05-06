@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import spray.caching.Cache
+import akka.http.caching.scaladsl.Cache
 
 trait TokenCache {
-  val loginTokenCache: Cache[Subject]
+  val loginTokenCache: Cache[String, Subject]
 }

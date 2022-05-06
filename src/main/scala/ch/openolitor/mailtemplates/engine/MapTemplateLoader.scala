@@ -22,16 +22,18 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates.engine
 
-import de.zalando.beard.renderer._
-import scala.io.Source
 import com.typesafe.scalalogging.LazyLogging
+import de.zalando.beard.renderer._
+
+import scala.io.Source
+import scala.util.Try
 
 /**
  * TemplateLoader backed by map of strings to resolve templates from.
  */
 class MapTemplateLoader(templateMap: Map[String, String]) extends TemplateLoader with LazyLogging {
 
-  override def load(templateName: TemplateName): Option[Source] = {
-    templateMap.get(templateName.name).map(template => Source.fromString(template))
+  override def load(templateName: TemplateName): Try[String] = {
+    templateMap.get(templateName.name).map(template => Source.fromString(template).mkString).toRight(new IllegalStateException("unable to build source from map")).toTry
   }
 }

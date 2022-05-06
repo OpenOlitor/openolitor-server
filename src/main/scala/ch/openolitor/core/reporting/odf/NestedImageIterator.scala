@@ -34,8 +34,8 @@ import org.w3c.dom.Node
  */
 class NestedImageIterator(containerElement: OdfElement) extends Iterator[Image] {
 
-  var nextElement: Option[(Node, Image)] = None;
-  var tempElement: Option[(Node, Image)] = None;
+  var nextElement: Option[(Node, Image)] = None
+  var tempElement: Option[(Node, Image)] = None
 
   def hasNext(): Boolean = {
     tempElement = findNext(nextElement)
@@ -53,7 +53,7 @@ class NestedImageIterator(containerElement: OdfElement) extends Iterator[Image] 
     } getOrElse null
   }
 
-  def remove(): Unit = {
+  override def remove(): Unit = {
     throw new IllegalStateException("Unsupported operation")
   }
 

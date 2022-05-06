@@ -22,8 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
+import akka.actor.{ ActorRef, ActorSystem }
 
 trait EntityStoreReference {
   val entityStore: ActorRef

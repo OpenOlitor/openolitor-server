@@ -22,43 +22,29 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import ch.openolitor.core.{ ActorReferences, BaseRouteService, SprayDeserializers, SystemConfig }
+import ch.openolitor.core.db.ConnectionPoolContextAware
+import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent, ProjektStammdaten }
 import com.typesafe.scalalogging.LazyLogging
 
-import ch.openolitor.core.DefaultRouteService
-import ch.openolitor.core.SprayDeserializers
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.core.filestore.FileStoreComponent
-import ch.openolitor.core.filestore.ProjektStammdaten
-import spray.routing.Directive.pimpApply
-import spray.routing.HttpService
-import spray.routing.Route
-import akka.actor.ActorRefFactory
-import ch.openolitor.core.ActorReferences
-import akka.actor.ActorSystem
+import scala.concurrent.ExecutionContext
 
-class DefaultNonAuthRessourcesRouteService(
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: akka.actor.ActorRef,
-  override val jobQueueService: akka.actor.ActorRef
-) extends NonAuthRessourcesRouteService
+trait NonAuthRessourcesRouteService extends BaseRouteService with ActorReferences
+  with ConnectionPoolContextAware with SprayDeserializers with LazyLogging with SystemJsonProtocol with FileStoreComponent {
 
-trait NonAuthRessourcesRouteService extends HttpService with ActorReferences
-  with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging with SystemJsonProtocol {
-  self: FileStoreComponent =>
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
 
-  //NonAuth-Calls shall not interact with any of the following actor-systems
-  val entityStore: akka.actor.ActorRef = null
-  val eventStore: akka.actor.ActorRef = null
-  val mailService: akka.actor.ActorRef = null
-  val reportSystem: akka.actor.ActorRef = null
-  val dbEvolutionActor: akka.actor.ActorRef = null
+  // NonAuth-Calls shall not interact with any of the following actor-systems
+  override val entityStore: akka.actor.ActorRef = null
+  override val eventStore: akka.actor.ActorRef = null
+  override val mailService: akka.actor.ActorRef = null
+  override val reportSystem: akka.actor.ActorRef = null
+  override val dbEvolutionActor: akka.actor.ActorRef = null
 
-  def ressourcesRoutes = pathPrefix("ressource") {
+  def ressourcesRoutes: Route = pathPrefix("ressource") {
     staticFileRoute
   }
 
@@ -75,4 +61,14 @@ trait NonAuthRessourcesRouteService extends HttpService with ActorReferences
       } ~ path("style" / "kundenportal" / "download") {
         get(download(ProjektStammdaten, "style-kundenportal"))
       }
+}
+
+class DefaultNonAuthRessourcesRouteService(
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val airbrakeNotifier: akka.actor.ActorRef,
+  override val jobQueueService: akka.actor.ActorRef
+) extends NonAuthRessourcesRouteService
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext = system.dispatcher
 }

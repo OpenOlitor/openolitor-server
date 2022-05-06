@@ -296,9 +296,9 @@ trait BestellpositionCalculatedFields {
   val anzahl: Int
   val preisEinheit: Option[BigDecimal]
 
-  lazy val mengeTotal = anzahl * menge
-  lazy val preisPos = (preisEinheit.getOrElse(BigDecimal(0)) * menge).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-  lazy val detail = if (preisEinheit.getOrElse(BigDecimal(0)).compare(preisPos) == 0) "" else s""" ≙ ${preisPos}"""
+  def mengeTotal = anzahl * menge
+  def preisPos = (preisEinheit.getOrElse(BigDecimal(0)) * menge).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  def detail = if (preisEinheit.getOrElse(BigDecimal(0)).compare(preisPos) == 0) "" else s""" ≙ ${preisPos}"""
 }
 
 case class Bestellposition(

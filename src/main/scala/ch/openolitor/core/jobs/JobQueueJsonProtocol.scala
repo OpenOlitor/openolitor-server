@@ -23,11 +23,12 @@
 package ch.openolitor.core.jobs
 
 import ch.openolitor.core.BaseJsonProtocol
-import zangelo.spray.json.AutoProductFormats
-import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.jobs.JobQueueService.JobId
+import ch.openolitor.core.jobs.JobQueueService.{ JobFetched, JobProgress, JobResultAvailable, PendingJobResults, PendingJobs }
 
-trait JobQueueJsonProtocol extends BaseJsonProtocol
-  with AutoProductFormats[JSONSerializable] {
-  implicit val jobIdFormat = jsonFormat3(JobId)
+trait JobQueueJsonProtocol extends BaseJsonProtocol {
+  implicit val jobProgressFormat = jsonFormat5(JobProgress)
+  implicit val pendingJobsFormat = jsonFormat2(PendingJobs)
+  implicit val jobResultAvailableFormat = jsonFormat4(JobResultAvailable)
+  implicit val pendingJobResultsFormat = jsonFormat1(PendingJobResults)
+  implicit val jobFetchedFormat = jsonFormat2(JobFetched)
 }

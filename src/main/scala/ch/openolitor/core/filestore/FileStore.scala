@@ -22,9 +22,6 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-import java.io.InputStream
-import java.util.UUID
-
 import akka.actor.ActorSystem
 import ch.openolitor.core.{ JSONSerializable, MandantConfiguration }
 import ch.openolitor.core.models.BaseStringId
@@ -35,8 +32,11 @@ import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 
-import scala.collection.JavaConversions._
+import java.io.InputStream
+import java.util.UUID
+import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 
 case class FileStoreError(message: String)
 case class FileStoreSuccess()
@@ -44,7 +44,6 @@ case class FileStoreSuccess()
 case class FileStoreFileMetadata(name: String, fileType: FileType)
 case class FileStoreFile(metaData: FileStoreFileMetadata, file: InputStream)
 case class FileStoreFileId(id: String) extends BaseStringId with Ordered[FileStoreFileId] {
-  import scala.math.Ordered.orderingToOrdered
   def compare(that: FileStoreFileId): Int = (this.id) compare (that.id)
 }
 case class FileStoreFileReference(fileType: FileType, id: FileStoreFileId) extends JSONSerializable
@@ -165,18 +164,7 @@ trait FileStore {
   }
 }
 
-class S3FileStore(override val mandant: String, mandantConfiguration: MandantConfiguration, actorSystem: ActorSystem) extends FileStore with FileStoreBucketLifeCycleConfiguration with LazyLogging {
-  val opts = new ClientConfiguration
-  opts.setSignerOverride("S3SignerType")
-  opts.setMaxConnections(1000)
-
-  lazy val client = {
-    val c = new AmazonS3Client(new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key")), opts)
-    c.setEndpoint(mandantConfiguration.config.getString("s3.aws-endpoint"))
-    c.setS3ClientOptions(S3ClientOptions.builder.setPathStyleAccess(true).build())
-    c
-  }
-
+class S3FileStore(override val mandant: String, override val client: AmazonS3Client) extends FileStore with FileStoreBucketLifeCycleConfiguration with LazyLogging {
   def getFileSummaries(bucket: FileStoreBucket): Future[Either[FileStoreError, List[FileStoreFileSummary]]] = {
     Future.successful {
       try {
@@ -203,7 +191,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
     Future.successful {
       try {
         val result = client.getObject(new GetObjectRequest(bucketName(bucket), id))
-        Right(FileStoreFile(transform(result.getObjectMetadata.getUserMetadata.toMap), result.getObjectContent))
+        Right(FileStoreFile(transform(result.getObjectMetadata.getUserMetadata.asScala.toMap), result.getObjectContent))
       } catch {
         case e: AmazonClientException =>
           Left(FileStoreError(s"Could not get file. ${e}"))
@@ -291,7 +279,7 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
           bucketName(metadata.bucket),
           metadata.key,
           metadata.uploadId,
-          partEtags
+          partEtags.asJava
         ))
 
         Right(metadata)
@@ -358,6 +346,42 @@ class S3FileStore(override val mandant: String, mandantConfiguration: MandantCon
   }
 
   protected def listObjects(bucket: FileStoreBucket): List[FileStoreFileSummary] = {
-    client.listObjects(new ListObjectsRequest().withBucketName(bucketName(bucket))).getObjectSummaries.toList map (transform)
+    client.listObjects(new ListObjectsRequest().withBucketName(bucketName(bucket))).getObjectSummaries.asScala.toList map transform
+  }
+}
+
+object S3FileStore extends LazyLogging {
+  // map of mandant to client
+  private val mandantClients: TrieMap[String, S3FileStore] = TrieMap()
+
+  private val opts = new ClientConfiguration
+  opts.setSignerOverride("S3SignerType")
+  opts.setMaxConnections(1000)
+
+  def apply(mandantConfiguration: MandantConfiguration, system: ActorSystem): S3FileStore = {
+    mandantClients.getOrElseUpdate(mandantConfiguration.name, {
+      // not initialized for this mandant yet
+      implicit val executionContext = system.dispatcher
+
+      val client = buildClient(mandantConfiguration)
+
+      val fileStore = new S3FileStore(mandantConfiguration.name, client)
+
+      fileStore.createBuckets map {
+        _.fold(
+          error => logger.error(s"Error creating buckets for ${mandantConfiguration.name}: ${error.message}"),
+          _ => logger.debug(s"Created file store buckets for ${mandantConfiguration.name}")
+        )
+      }
+
+      fileStore
+    })
+  }
+
+  private def buildClient(mandantConfiguration: MandantConfiguration): AmazonS3Client = {
+    val client = new AmazonS3Client(new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key")), opts)
+    client.setEndpoint(mandantConfiguration.config.getString("s3.aws-endpoint"))
+    client.setS3ClientOptions(S3ClientOptions.builder.setPathStyleAccess(true).build())
+    client
   }
 }

@@ -45,14 +45,6 @@ trait StammdatenEntityStoreView extends EntityStoreView
   override val module = "stammdaten"
 
   logger.debug(s"Created EntityStoreView:${viewId}")
-
-  def initializeEntityStoreView = {
-    logger.debug(s"Initialize StammdatenEntityStoreView for mandant:${sysConfig.mandantConfiguration.name}")
-  }
-
-  override def startup() = {
-    logger.debug(s"Startup StammdatenEntityStoreView for mandant:${sysConfig.mandantConfiguration.name}")
-  }
 }
 
 /**

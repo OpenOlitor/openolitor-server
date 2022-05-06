@@ -44,7 +44,7 @@ object Macros {
     }
 
     val keys: Map[String, Tree] = mapping.map(_.tree).flatMap {
-      case n @ q"scala.this.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
+      case n @ q"scala.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
         val Literal(Constant(key)) = name
         Some(key.asInstanceOf[String], n)
       case m =>
@@ -55,7 +55,7 @@ object Macros {
     val copyParams = params.map {
       case p if keys.contains(p.name.decodedName.toString) =>
         keys.get(p.name.decodedName.toString).map {
-          case n @ q"scala.this.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
+          case n @ q"scala.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
             //convert to accordingly tree type
             value match {
               case apply: TypeApply =>
@@ -98,7 +98,7 @@ object Macros {
     }
 
     val keys: Map[String, Tree] = mapping.map(_.tree).flatMap {
-      case n @ q"scala.this.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
+      case n @ q"scala.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
         val Literal(Constant(key)) = name
         Some(key.asInstanceOf[String], n)
       case m =>
@@ -109,7 +109,7 @@ object Macros {
     val applyParams = params.map {
       case p if keys.contains(p.name.decodedName.toString) =>
         keys.get(p.name.decodedName.toString).map {
-          case n @ q"scala.this.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
+          case n @ q"scala.Predef.ArrowAssoc[$typ]($name).->[$valueTyp]($value)" =>
             //convert to accordingly tree type
             value match {
               case apply1: TypeApply =>

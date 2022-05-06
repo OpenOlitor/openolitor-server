@@ -20,11 +20,15 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.arbeitseinsatz
+package ch.openolitor.core.filestore
 
-import ch.openolitor.core.SprayDeserializers
-import ch.openolitor.arbeitseinsatz.models._
+import ch.openolitor.core.{ ActorSystemReference, SystemConfigReference }
+import com.typesafe.scalalogging.LazyLogging
 
-trait ArbeitseinsatzPaths extends SprayDeserializers with ArbeitseinsatzJsonProtocol {
-  implicit val ArbeitsComplexFlagsParameter = jsonDeserializer[ArbeitsComplexFlags]
+trait FileStoreComponent extends SystemConfigReference with ActorSystemReference {
+  val fileStore: FileStore
+}
+
+trait DefaultFileStoreComponent extends FileStoreComponent with LazyLogging {
+  override lazy val fileStore = S3FileStore(sysConfig.mandantConfiguration, system)
 }
