@@ -20,46 +20,18 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.stammdaten
+package ch.openolitor.core.filestore
 
-import spray.routing._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
 import ch.openolitor.core._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util._
-import spray.httpx.marshalling._
-import ch.openolitor.core.filestore.FileType
-import ch.openolitor.core.filestore.FileStoreComponent
 import com.typesafe.scalalogging.LazyLogging
-import akka.actor._
 
-trait StreamSupport {
-  def streamIt[T](stream: Stream[T])(implicit marshaller: Marshaller[T], refFactory: ActorRefFactory) =
-    streamThen(stream, () => ())
+import scala.util._
 
-  def streamThen[T](stream: Stream[T], afterStreamAction: () => Unit)(implicit marshaller: Marshaller[T], refFactory: ActorRefFactory) =
-    new StandardRoute {
-      val closingMarshaller = Marshaller[Stream[T]] {
-        (value, ctx) =>
-          if (value.isEmpty) {
-            afterStreamAction()
-            ctx.marshalTo(HttpEntity.Empty)
-          } else refFactory.actorOf(Props(new MetaMarshallers.ChunkingActor(marshaller, ctx) {
-            override def postStop() {
-              afterStreamAction()
-              super.postStop()
-            }
-          })) ! value
-      }
-
-      def apply(ctx: RequestContext): Unit = ctx.complete(stream)(ToResponseMarshaller.fromMarshaller()(closingMarshaller))
-    }
-}
-
-trait FileStoreRoutes extends HttpService with ActorReferences with SprayDeserializers with DefaultRouteService with LazyLogging {
+trait FileStoreRoutes extends BaseRouteService with ActorReferences with SprayDeserializers with LazyLogging {
   self: FileStoreComponent =>
 
   lazy val fileStoreRoute =
@@ -80,11 +52,13 @@ trait FileStoreRoutes extends HttpService with ActorReferences with SprayDeseria
       } ~
         path(Segment) { id =>
           get {
-            onSuccess(fileStore.getFile(fileType.bucket, id)) {
-              case Left(e) => complete(StatusCodes.NotFound, s"File of file type ${fileType} with id ${id} was not found. Error: ${e}")
-              case Right(file) => {
-                logger.debug(s"serving file: $file")
-                stream(file.file)
+            extractRequestContext { requestContext =>
+              implicit val materializer: Materializer = requestContext.materializer
+              onSuccess(fileStore.getFile(fileType.bucket, id)) {
+                case Left(e) => complete(StatusCodes.NotFound, s"File of file type ${fileType} with id ${id} was not found. Error: ${e}")
+                case Right(file) =>
+                  logger.debug(s"serving file: $file")
+                  stream(file.file)
               }
             }
           }

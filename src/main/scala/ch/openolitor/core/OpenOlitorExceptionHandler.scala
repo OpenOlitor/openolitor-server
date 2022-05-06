@@ -22,23 +22,21 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import spray.routing._
-import spray.http._
-import spray.http.StatusCodes._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.ExceptionHandler
-import com.typesafe.scalalogging.LazyLogging
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpResponse, StatusCodes }
+import akka.http.scaladsl.server.ExceptionHandler
 import ch.openolitor.util.AirbrakeNotifier.AirbrakeNotification
+import com.typesafe.scalalogging.LazyLogging
+import spray.json.enrichAny
 
-object OpenOlitorExceptionHandler extends LazyLogging with BaseJsonProtocol {
-  import spray.httpx.marshalling
+object OpenOlitorExceptionHandler extends LazyLogging with BaseJsonProtocol with SprayJsonSupport {
 
   def apply(routeService: CORSSupport with AirbrakeNotifierReference): ExceptionHandler = ExceptionHandler {
     case th => ctx =>
       logger.error(s"The following Exception was thrown ${th.getMessage}")
       routeService.airbrakeNotifier ! AirbrakeNotification(th, Some(ctx.request))
-      ctx.complete(HttpResponse(InternalServerError).withHeaders(
+      ctx.complete(HttpResponse(StatusCodes.InternalServerError).withHeaders(
         routeService.allowCredentialsHeader :: routeService.allowOriginHeader :: routeService.exposeHeaders :: routeService.optionsCorsHeaders
-      ).withEntity(marshalling.marshalUnsafe(RejectionMessage(th.getMessage, s"${th.getCause}"))))
+      ).withEntity(HttpEntity(ContentTypes.`application/json`, RejectionMessage(th.getMessage, s"${th.getCause}").toJson.compactPrint)))
   }
 }

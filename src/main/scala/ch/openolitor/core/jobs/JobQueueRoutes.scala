@@ -22,18 +22,16 @@
 \*                                                                           */
 package ch.openolitor.core.jobs
 
-import spray.routing._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive.pimpApply
-import ch.openolitor.core._
-import ch.openolitor.core.security.Subject
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import ch.openolitor.core.jobs.JobQueueService._
 import akka.util.Timeout
+import ch.openolitor.core._
+import ch.openolitor.core.jobs.JobQueueService._
+import ch.openolitor.core.security.Subject
 
-trait JobQueueRoutes extends HttpService with DefaultRouteService with JobQueueJsonProtocol with JobQueueServiceReference {
+trait JobQueueRoutes extends BaseRouteService with JobQueueJsonProtocol with JobQueueServiceReference with DateFormats {
 
   implicit val timeout: Timeout
 
@@ -63,20 +61,23 @@ trait JobQueueRoutes extends HttpService with DefaultRouteService with JobQueueJ
         } ~
         path("job" / Segment) { jobId =>
           get {
-            onSuccess(jobQueueService ? FetchJobResult(subject.personId, jobId)) {
-              case JobResult(_, _, _, _, Some(result: FileResultPayload)) =>
-                streamFile(result.fileName, result.mediaType, result.file, true)
-              case JobResult(_, _, _, _, Some(result: FileStoreResultPayload)) if result.fileStoreReferences.size == 1 =>
-                val file = result.fileStoreReferences.head
-                download(file.fileType, file.id.id)
-              case JobResult(_, _, _, _, Some(result: FileStoreResultPayload)) =>
-                if (result.pdfMerge) downloadMergedPDFs("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".pdf", result.fileStoreReferences)
-                else downloadAsZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", result.fileStoreReferences)
-              case result: JobResultUnavailable =>
-                complete(StatusCodes.NotFound, s"No job found for id:${result.jobId}")
-              case x =>
-                logger.warn(s"Unexpected result:$x")
-                complete(StatusCodes.BadRequest)
+            extractRequestContext { requestContext =>
+              implicit val materializer = requestContext.materializer
+              onSuccess(jobQueueService ? FetchJobResult(subject.personId, jobId)) {
+                case JobResult(_, _, _, _, Some(result: FileResultPayload)) =>
+                  streamFile(result.fileName, result.mediaType, result.file, true)
+                case JobResult(_, _, _, _, Some(result: FileStoreResultPayload)) if result.fileStoreReferences.size == 1 =>
+                  val file = result.fileStoreReferences.head
+                  download(file.fileType, file.id.id)
+                case JobResult(_, _, _, _, Some(result: FileStoreResultPayload)) =>
+                  if (result.pdfMerge) downloadMergedPDFs("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".pdf", result.fileStoreReferences)
+                  else downloadAsZip("Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip", result.fileStoreReferences)
+                case result: JobResultUnavailable =>
+                  complete(StatusCodes.NotFound, s"No job found for id:${result.jobId}")
+                case x =>
+                  logger.warn(s"Unexpected result:$x")
+                  complete(StatusCodes.BadRequest)
+              }
             }
           }
         }

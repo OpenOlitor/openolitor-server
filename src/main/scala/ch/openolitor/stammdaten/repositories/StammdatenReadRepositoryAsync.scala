@@ -26,7 +26,7 @@ import ch.openolitor.core.models._
 import ch.openolitor.core.repositories.ReportReadRepository
 import ch.openolitor.core.reporting.models._
 import scalikejdbc._
-import scalikejdbc.async._
+import scalikejdbc.async.{ makeSQLToOptionAsync => _, makeSQLToListAsync => _, _ }
 
 import scala.concurrent.ExecutionContext
 import ch.openolitor.core.db._
@@ -169,111 +169,130 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
 
 class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with StammdatenReadRepositoryAsync with LazyLogging with StammdatenRepositoryQueries {
   def getAbotypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[Abotyp]] = {
-    getAbotypenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getAbotypenQuery(filter).future()
   }
 
   def getZusatzAbotypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[ZusatzAbotyp]] = {
-    getZusatzAbotypenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getZusatzAbotypenQuery(filter).future()
   }
 
   def getKunden(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Kunde]] = {
-    getKundenQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getKundenQuery.future()
   }
 
   def getKundenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[KundeUebersicht]] = {
-    getKundenUebersichtQuery(filter).future
+    getKundenUebersichtQuery(filter).future()
   }
 
   def getCustomKundentypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[CustomKundentyp]] = {
-    getCustomKundentypenQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getCustomKundentypenQuery.future()
   }
 
   def getKundeDetail(id: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetail]] = {
-    getKundeDetailQuery(id).future
+    getKundeDetailQuery(id).future()
   }
 
   def getKundeDetailReport(kundeId: KundeId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetailReport]] = {
-    getKundeDetailReportQuery(kundeId, projekt).future
+    getKundeDetailReportQuery(kundeId, projekt).future()
   }
 
   def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]] = {
-    getKundeDetailsArbeitseinsatzReportQuery(projekt).future
+    getKundeDetailsArbeitseinsatzReportQuery(projekt).future()
   }
 
   def getPersonen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Person]] = {
-    getPersonenQuery(kundeId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenQuery(kundeId).future()
   }
 
   def getPersonByEmail(email: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Person]] = {
+    import scalikejdbc.async.makeSQLToOptionAsync
     withSQL {
       select
         .from(personMapping as person)
         .where.eq(person.email, email)
-    }.map(personMapping(person)).single.future
+    }.map(personMapping(person)).single.future()
   }
 
   def getPerson(id: PersonId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Person]] = {
+    import scalikejdbc.async.makeSQLToOptionAsync
     withSQL {
       select
         .from(personMapping as person)
         .where.eq(person.id, id)
-    }.map(personMapping(person)).single.future
+    }.map(personMapping(person)).single.future()
   }
 
   def getPersonenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonUebersicht]] = {
-    getPersonenUebersichtQuery(filter).future
+    getPersonenUebersichtQuery(filter).future()
   }
 
   def getPersonenByDepots(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenByDepotsQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenByDepotsQuery(filter).future()
   }
 
   def getPersonenAboAktivByDepots(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenAboAktivByDepotsQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenAboAktivByDepotsQuery(filter).future()
   }
 
   def getPersonenByTouren(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenByTourenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenByTourenQuery(filter).future()
   }
 
   def getPersonenAboAktivByTouren(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenAboAktivByTourenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenAboAktivByTourenQuery(filter).future()
   }
 
   def getPersonenByAbotypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenByAbotypenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenByAbotypenQuery(filter).future()
   }
 
   def getPersonenAboAktivByAbotypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenAboAktivByAbotypenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenAboAktivByAbotypenQuery(filter).future()
   }
 
   def getPersonenZusatzAboAktivByZusatzAbotypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersonSummary]] = {
-    getPersonenZusatzAboAktivByZusatzAbotypenQuery(filter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonenZusatzAboAktivByZusatzAbotypenQuery(filter).future()
   }
 
   def getPersonCategory(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[PersonCategory]] = {
-    getPersonCategoryQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPersonCategoryQuery.future()
   }
 
   override def getAbotypDetail(id: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Abotyp]] = {
-    getAbotypDetailQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getAbotypDetailQuery(id).future()
   }
 
   override def getZusatzAbotypDetail(id: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZusatzAbotyp]] = {
-    getZusatzAbotypDetailQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getZusatzAbotypDetailQuery(id).future()
   }
 
   def getVertrieb(vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Vertrieb]] = {
-    getVertriebQuery(vertriebId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getVertriebQuery(vertriebId).future()
   }
 
   def getVertriebe(abotypId: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[VertriebVertriebsarten]] = {
-    getVertriebeQuery(abotypId).future
+    getVertriebeQuery(abotypId).future()
   }
 
   def getVertriebe(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Vertrieb]] = {
-    getVertriebeQuery().future
+    import scalikejdbc.async.makeSQLToListAsync
+    getVertriebeQuery().future()
   }
 
   def getVertriebsarten(vertriebId: VertriebId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext) = {
@@ -287,15 +306,16 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getDepotlieferung(vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[DepotlieferungDetail]] = {
-    getDepotlieferungQuery(vertriebId).future
+    getDepotlieferungQuery(vertriebId).future()
   }
 
   def getHeimlieferung(vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[HeimlieferungDetail]] = {
-    getHeimlieferungQuery(vertriebId).future
+    getHeimlieferungQuery(vertriebId).future()
   }
 
   def getPostlieferung(vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[PostlieferungDetail]] = {
-    getPostlieferungQuery(vertriebId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPostlieferungQuery(vertriebId).future()
   }
 
   def getVertriebsart(vertriebsartId: VertriebsartId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext) = {
@@ -309,65 +329,74 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getDepotlieferung(vertriebsartId: VertriebsartId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotlieferungDetail]] = {
-    getDepotlieferungQuery(vertriebsartId).future
+    getDepotlieferungQuery(vertriebsartId).future()
   }
 
   def getHeimlieferung(vertriebsartId: VertriebsartId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[HeimlieferungDetail]] = {
-    getHeimlieferungQuery(vertriebsartId).future
+    getHeimlieferungQuery(vertriebsartId).future()
   }
 
   def getPostlieferung(vertriebsartId: VertriebsartId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[PostlieferungDetail]] = {
-    getPostlieferungQuery(vertriebsartId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getPostlieferungQuery(vertriebsartId).future()
   }
 
   def getUngeplanteLieferungen(abotypId: AbotypId, vertriebId: VertriebId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferung]] = {
-    getUngeplanteLieferungenQuery(abotypId, vertriebId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getUngeplanteLieferungenQuery(abotypId, vertriebId).future()
   }
 
   def getUngeplanteLieferungen(abotypId: AbotypId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferung]] = {
-    getUngeplanteLieferungenQuery(abotypId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getUngeplanteLieferungenQuery(abotypId).future()
   }
 
   def getDepots(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Depot]] = {
-    getDepotsQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getDepotsQuery.future()
   }
 
   def getDepotDetail(id: DepotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Depot]] = {
-    getDepotDetailQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getDepotDetailQuery(id).future()
   }
 
   def getDepotDetailReport(id: DepotId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotDetailReport]] = {
-    getDepotDetailReportQuery(id, projekt).future
+    getDepotDetailReportQuery(id, projekt).future()
   }
 
   def getProduzentDetailReport(id: ProduzentId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProduzentDetailReport]] = {
-    getProduzentDetailReportQuery(id, projekt).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getProduzentDetailReportQuery(id, projekt).future()
   }
 
   def getDepotlieferungAbos(xFlags: Option[AbosComplexFlags], gjFilter: Option[GeschaeftsjahrFilter])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[DepotlieferungAbo]] = {
     xFlags match {
       case Some(acf) if acf.zusatzAbosAktiv =>
-        getDepotlieferungAbosOnlyAktiveZusatzabosQuery(filter).future
+        getDepotlieferungAbosOnlyAktiveZusatzabosQuery(filter).future()
       case _ =>
-        getDepotlieferungAbosQuery(filter, gjFilter).future
+        import scalikejdbc.async.makeSQLToListAsync
+        getDepotlieferungAbosQuery(filter, gjFilter).future()
     }
   }
 
   def getHeimlieferungAbos(xFlags: Option[AbosComplexFlags], gjFilter: Option[GeschaeftsjahrFilter])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[HeimlieferungAbo]] = {
     xFlags match {
       case Some(acf) if acf.zusatzAbosAktiv =>
-        getHeimlieferungAbosOnlyAktiveZusatzabosQuery(filter).future
+        getHeimlieferungAbosOnlyAktiveZusatzabosQuery(filter).future()
       case _ =>
-        getHeimlieferungAbosQuery(filter, gjFilter).future
+        import scalikejdbc.async.makeSQLToListAsync
+        getHeimlieferungAbosQuery(filter, gjFilter).future()
     }
   }
 
   def getPostlieferungAbos(xFlags: Option[AbosComplexFlags], gjFilter: Option[GeschaeftsjahrFilter])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PostlieferungAbo]] = {
     xFlags match {
       case Some(acf) if acf.zusatzAbosAktiv =>
-        getPostlieferungAbosOnlyAktiveZusatzabosQuery(filter).future
+        getPostlieferungAbosOnlyAktiveZusatzabosQuery(filter).future()
       case _ =>
-        getPostlieferungAbosQuery(filter, gjFilter).future
+        import scalikejdbc.async.makeSQLToListAsync
+        getPostlieferungAbosQuery(filter, gjFilter).future()
     }
   }
 
@@ -382,19 +411,20 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getZusatzAbos(xFlags: Option[AbosComplexFlags])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[ZusatzAbo]] = {
-    getZusatzAbosQuery(filter, gjFilter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getZusatzAbosQuery(filter, gjFilter).future()
   }
 
   def getDepotlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotlieferungAboDetail]] = {
-    getDepotlieferungAboAusstehendQuery(id).future
+    getDepotlieferungAboAusstehendQuery(id).future()
   }
 
   def getHeimlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[HeimlieferungAboDetail]] = {
-    getHeimlieferungAboAusstehendQuery(id).future
+    getHeimlieferungAboAusstehendQuery(id).future()
   }
 
   def getPostlieferungAbo(id: AboId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[PostlieferungAboDetail]] = {
-    getPostlieferungAboAusstehendQuery(id).future
+    getPostlieferungAboAusstehendQuery(id).future()
   }
 
   def getAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AboDetail]] = {
@@ -406,89 +436,109 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getZusatzAboDetail(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZusatzAbo]] = {
-    getZusatzAboDetailQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getZusatzAboDetailQuery(id).future()
   }
 
   def getZusatzaboPerAbo(id: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZusatzAbo]] = {
-    getZusatzAboPerAboQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getZusatzAboPerAboQuery(id).future()
   }
 
   def countAbwesend(lieferungId: LieferungId, aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Int]] = {
-    countAbwesendQuery(lieferungId, aboId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    countAbwesendQuery(lieferungId, aboId).future()
   }
 
   def getPendenzen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Pendenz]] = {
-    getPendenzenQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPendenzenQuery.future()
   }
 
   def getPendenzen(id: KundeId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Pendenz]] = {
-    getPendenzenQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPendenzenQuery(id).future()
   }
 
   def getPendenzDetail(id: PendenzId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Pendenz]] = {
-    getPendenzDetailQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getPendenzDetailQuery(id).future()
   }
 
   def getProdukte(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Produkt]] = {
-    getProdukteQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProdukteQuery.future()
   }
 
   def getProduktekategorien(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Produktekategorie]] = {
-    getProduktekategorienQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProduktekategorienQuery.future()
   }
 
   def getProduzenten(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Produzent]] = {
-    getProduzentenQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProduzentenQuery.future()
   }
 
   def getProduzentDetail(id: ProduzentId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Produzent]] = {
-    getProduzentDetailQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getProduzentDetailQuery(id).future()
   }
 
   def getTouren(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Tour]] = {
-    getTourenQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getTourenQuery.future()
   }
 
   def getTourDetail(id: TourId, aktiveOrPlanned: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]] = {
-    getTourDetailQuery(id, aktiveOrPlanned).future
+    getTourDetailQuery(id, aktiveOrPlanned).future()
   }
 
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]] = {
-    getProjektQuery.future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getProjektQuery.future()
   }
 
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]] = {
+    import scalikejdbc.async.makeSQLToOptionAsync
     getProjektQuery.future map (_ map (projekt => {
       copyTo[Projekt, ProjektPublik](projekt)
     }))
   }
 
   def getGeschaeftsjahre(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[GeschaeftsjahrStart]] = {
-    getGeschaeftsjahreQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getGeschaeftsjahreQuery.future()
   }
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
-    getKontoDatenProjektQuery.future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getKontoDatenProjektQuery.future()
   }
 
   def getKontoDatenKunde(kundeId: KundeId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
-    getKontoDatenKundeQuery(kundeId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getKontoDatenKundeQuery(kundeId).future()
   }
 
   def getProduktProduzenten(id: ProduktId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduktProduzent]] = {
-    getProduktProduzentenQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProduktProduzentenQuery(id).future()
   }
 
   def getProduktProduktekategorien(id: ProduktId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduktProduktekategorie]] = {
-    getProduktProduktekategorienQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProduktProduktekategorienQuery(id).future()
   }
 
   def getProduzentDetailByKurzzeichen(kurzzeichen: String)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Produzent]] = {
-    getProduzentDetailByKurzzeichenQuery(kurzzeichen).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getProduzentDetailByKurzzeichenQuery(kurzzeichen).future()
   }
 
   def getProduktekategorieByBezeichnung(bezeichnung: String)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Produktekategorie]] = {
-    getProduktekategorieByBezeichnungQuery(bezeichnung).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getProduktekategorieByBezeichnungQuery(bezeichnung).future()
   }
 
   def getProduzentenabrechnungReport(sammelbestellungIds: Seq[SammelbestellungId], projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduzentenabrechnungReport]] = {
@@ -522,130 +572,153 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getProdukteByProduktekategorieBezeichnung(bezeichnung: String)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Produkt]] = {
-    getProdukteByProduktekategorieBezeichnungQuery(bezeichnung).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProdukteByProduktekategorieBezeichnungQuery(bezeichnung).future()
   }
 
   def getLieferplanungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Lieferplanung]] = {
-    getLieferplanungenQuery(gjFilter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getLieferplanungenQuery(gjFilter).future()
   }
 
   def getLatestLieferplanung(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferplanung]] = {
-    getLatestLieferplanungQuery.future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getLatestLieferplanungQuery.future()
   }
 
   def getLieferplanung(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferplanung]] = {
-    getLieferplanungQuery(id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getLieferplanungQuery(id).future()
   }
 
   def getLieferungenNext()(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferung]] = {
-    getLieferungenNextQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getLieferungenNextQuery.future()
   }
 
   def getLastGeplanteLieferung(abotypId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferung]] = {
-    getLastGeplanteLieferungQuery(abotypId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getLastGeplanteLieferungQuery(abotypId).future()
   }
 
   def getLieferungenDetails(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferungDetail]] = {
-    getLieferungenDetailsQuery(id).future
+    getLieferungenDetailsQuery(id).future()
   }
 
   def getVerfuegbareLieferungen(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferungDetail]] = {
-    getVerfuegbareLieferungenQuery(id).future
+    getVerfuegbareLieferungenQuery(id).future()
   }
 
   def getLieferplanungReport(lieferplanungId: LieferplanungId, projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[LieferplanungReport]] = {
-    getLieferplanungReportQuery(lieferplanungId, projekt).future
+    getLieferplanungReportQuery(lieferplanungId, projekt).future()
   }
 
   def getSammelbestellungDetail(id: SammelbestellungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[SammelbestellungDetail]] = {
-    getSammelbestellungDetailQuery(id).future
+    getSammelbestellungDetailQuery(id).future()
   }
 
   def getSammelbestellungen(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[SammelbestellungDetail]] = {
-    getSammelbestellungDetailsQuery(id).future
+    getSammelbestellungDetailsQuery(id).future()
   }
 
   def getSammelbestellungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Sammelbestellung]] = {
-    getSammelbestellungenQuery(filter, gjFilter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getSammelbestellungenQuery(filter, gjFilter).future()
   }
 
   def getSammelbestellungByProduzentLieferplanungDatum(produzentId: ProduzentId, lieferplanungId: LieferplanungId, datum: DateTime)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Sammelbestellung]] = {
-    getSammelbestellungByProduzentLieferplanungDatumQuery(produzentId, lieferplanungId, datum).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getSammelbestellungByProduzentLieferplanungDatumQuery(produzentId, lieferplanungId, datum).future()
   }
 
   def getBestellpositionen(id: BestellungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Bestellposition]] = {
-    getBestellpositionenQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getBestellpositionenQuery(id).future()
   }
 
   def getLieferpositionen(id: LieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferposition]] = {
-    getLieferpositionenQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getLieferpositionenQuery(id).future()
   }
 
   def getLieferpositionenByLieferant(id: ProduzentId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferposition]] = {
-    getLieferpositionenByLieferantQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getLieferpositionenByLieferantQuery(id).future()
   }
 
   def getAboIds(lieferungId: LieferungId, korbStatus: KorbStatus)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[AboId]] = {
-    getAboIdsQuery(lieferungId, korbStatus).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getAboIdsQuery(lieferungId, korbStatus).future()
   }
 
   def getAboIds(lieferplanungId: LieferplanungId, korbStatus: KorbStatus)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[AboId]] = {
-    getAboIdsQuery(lieferplanungId, korbStatus).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getAboIdsQuery(lieferplanungId, korbStatus).future()
   }
 
   def getZusatzaboIds(lieferungId: LieferungId, korbStatus: KorbStatus)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[AboId]] = {
-    getZusatzaboIdsQuery(lieferungId, korbStatus).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getZusatzaboIdsQuery(lieferungId, korbStatus).future()
   }
 
   def getBestellpositionByBestellungProdukt(bestellungId: BestellungId, produktId: ProduktId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Bestellposition]] = {
-    getBestellpositionByBestellungProduktQuery(bestellungId, produktId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getBestellpositionByBestellungProduktQuery(bestellungId, produktId).future()
   }
 
   def getLieferpositionenByLieferplan(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferposition]] = {
-    getLieferpositionenByLieferplanQuery(id).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getLieferpositionenByLieferplanQuery(id).future()
   }
 
   def getKorb(lieferungId: LieferungId, aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Korb]] = {
-    getKorbQuery(lieferungId, aboId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getKorbQuery(lieferungId, aboId).future()
   }
 
   def getKoerbe(aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KorbLieferung]] = {
-    getKoerbeQuery(aboId).future
+    getKoerbeQuery(aboId).future()
   }
 
   def getDepotAuslieferungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[DepotAuslieferung]] = {
-    getDepotAuslieferungenQuery(filter, gjFilter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getDepotAuslieferungenQuery(filter, gjFilter).future()
   }
   def getTourAuslieferungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[TourAuslieferung]] = {
-    getTourAuslieferungenQuery(filter, gjFilter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getTourAuslieferungenQuery(filter, gjFilter).future()
 
   }
   def getPostAuslieferungen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[PostAuslieferung]] = {
-    getPostAuslieferungenQuery(filter, gjFilter).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPostAuslieferungenQuery(filter, gjFilter).future()
   }
 
   def getDepotAuslieferungDetail(auslieferungId: AuslieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[DepotAuslieferungDetail]] = {
-    getDepotAuslieferungDetailQuery(auslieferungId).future
+    getDepotAuslieferungDetailQuery(auslieferungId).future()
   }
 
   def getTourAuslieferungDetail(auslieferungId: AuslieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourAuslieferungDetail]] = {
-    getTourAuslieferungDetailQuery(auslieferungId).future
+    getTourAuslieferungDetailQuery(auslieferungId).future()
   }
 
   def getPostAuslieferungDetail(auslieferungId: AuslieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[PostAuslieferungDetail]] = {
-    getPostAuslieferungDetailQuery(auslieferungId).future
+    getPostAuslieferungDetailQuery(auslieferungId).future()
   }
 
   def getDepotAuslieferungen(lieferplanungId: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[DepotAuslieferung]] = {
-    getDepotAuslieferungenQuery(lieferplanungId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getDepotAuslieferungenQuery(lieferplanungId).future()
   }
 
   def getTourAuslieferungen(lieferplanungId: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[TourAuslieferung]] = {
-    getTourAuslieferungenQuery(lieferplanungId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getTourAuslieferungenQuery(lieferplanungId).future()
   }
 
   def getPostAuslieferungen(lieferplanungId: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[PostAuslieferung]] = {
-    getPostAuslieferungenQuery(lieferplanungId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getPostAuslieferungenQuery(lieferplanungId).future()
   }
 
   def getAuslieferungen(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Auslieferung]] = {
@@ -722,15 +795,15 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getDepotAuslieferungReport(auslieferungId: AuslieferungId, projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AuslieferungReport]] = {
-    getDepotAuslieferungReportQuery(auslieferungId, projekt).future
+    getDepotAuslieferungReportQuery(auslieferungId, projekt).future()
   }
 
   def getTourAuslieferungReport(auslieferungId: AuslieferungId, projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AuslieferungReport]] = {
-    getTourAuslieferungReportQuery(auslieferungId, projekt).future
+    getTourAuslieferungReportQuery(auslieferungId, projekt).future()
   }
 
   def getPostAuslieferungReport(auslieferungId: AuslieferungId, projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[AuslieferungReport]] = {
-    getPostAuslieferungReportQuery(auslieferungId, projekt).future
+    getPostAuslieferungReportQuery(auslieferungId, projekt).future()
   }
 
   def getDepotAuslieferungReports(auslieferungIds: Seq[AuslieferungId], projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Seq[Option[DepotAuslieferungReport]]] = {
@@ -752,15 +825,18 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getProjektVorlagen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProjektVorlage]] = {
-    getProjektVorlagenQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getProjektVorlagenQuery.future()
   }
 
   def getProjektVorlage(id: ProjektVorlageId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektVorlage]] = {
-    getByIdQuery(projektVorlageMapping, id).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getByIdQuery(projektVorlageMapping, id).future()
   }
 
   def getEinladung(token: String)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Einladung]] = {
-    getEinladungQuery(token).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getEinladungQuery(token).future()
   }
 
   def getLastClosedLieferplanungenDetail(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferplanungOpenDetail]] = {

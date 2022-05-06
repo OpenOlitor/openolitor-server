@@ -33,7 +33,8 @@ object ProductUtil {
     "toString",
     "productArity",
     "productPrefix",
-    "productIterator"
+    "productIterator",
+    "productElementNames"
   )
 
   implicit class Product2MapSupport(self: Product) {
@@ -59,7 +60,7 @@ object ProductUtil {
       val converters = customConverter orElse defaultMapper
       def toVals(x: Any): Any = x match {
         case m: Map[_, _]                     => m.map { case (key, value) => toVals(key).toString -> toVals(value) }
-        case t: Traversable[_]                => t.map(toVals(_))
+        case t: Iterable[_]                   => t.map(toVals(_))
         case i: BaseId                        => i.id
         case s: BaseStringId                  => s.id
         case o: Option[_]                     => o.map(toVals(_)).getOrElse(converters(None))

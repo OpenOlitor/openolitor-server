@@ -57,7 +57,7 @@ class FrameIterator(container: FrameContainer) extends Iterator[Frame] {
     } getOrElse null
   }
 
-  def remove(): Unit = {
+  override def remove(): Unit = {
     throw new IllegalStateException("Unsupported operation")
   }
 

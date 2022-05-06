@@ -22,77 +22,64 @@
 \*                                                                           */
 package ch.openolitor.core.proxy
 
-import spray.routing._
-import spray.http._
 import akka.actor._
-import akka.io.IO
-import spray.can.server.UHttp
-import scalaz.NonEmptyList
+import akka.http.scaladsl.model.{ HttpHeader, HttpRequest, HttpResponse }
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.RequestContext
+import akka.http.scaladsl.Http
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import ch.openolitor.core.Boot.MandantSystem
-import spray.can.Http
 import com.typesafe.scalalogging.LazyLogging
-import scala.concurrent.duration._
+import org.apache.http.HttpHeaders
+import scalaz.NonEmptyList
 
-/**
- * Borrowed from:
- * http://www.cakesolutions.net/teamblogs/http-proxy-with-spray
- */
+import java.net.URI
+import scala.concurrent.Future
+
 trait Proxy extends LazyLogging {
+  protected val mandanten: NonEmptyList[MandantSystem]
+  protected val routeMap = mandanten.list.map(mandantSystem => (mandantSystem.config.key, mandantSystem)).toList.toMap
 
-  private def proxyRequest(updateRequest: RequestContext => HttpRequest)(implicit system: ActorSystem): Route =
-    ctx => IO(UHttp)(system) tell (updateRequest(ctx), ctx.responder)
+  private def connectionFlow(system: ActorSystem)(uri: URI): Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
+    Http(system).outgoingConnection(uri.getHost, uri.getPort)
 
-  private def stripHeader(headers: List[HttpHeader] = Nil) =
+  private def filterHostHeader(header: HttpHeader) = header is HttpHeaders.HOST.toLowerCase
+
+  private def filterContinueHeader(header: HttpHeader) = header is HttpHeaders.EXPECT.toLowerCase
+
+  private def filterHeaders(headers: Seq[HttpHeader] = Seq.empty) =
     headers filterNot (header => filterHostHeader(header) || filterContinueHeader(header))
 
-  private def filterHostHeader(header: HttpHeader) = header is (HttpHeaders.Host.lowercaseName)
+  // TODO: spray-to-akka-http: handle WS as well
+  val routes = pathPrefix(Segment) { mandantName =>
+    routeMap.get(mandantName) match {
+      case Some(mandantSystem) =>
+        (context: RequestContext) => {
+          // rewrite request accordingly
+          val headers = filterHeaders(context.request.headers)
 
-  private def filterContinueHeader(header: HttpHeader) = header.name.toLowerCase == HttpHeaders.Expect.lowercaseName
+          val query = context.request.uri.rawQueryString.map("?" + _).getOrElse("")
+          val path = context.unmatchedPath
+          val uri = mandantSystem.config.uri + path.toString + query
 
-  private val updateUriUnmatchedPath = (ctx: RequestContext, uri: Uri) =>
-    uri.withPath(uri.path ++ ctx.unmatchedPath).withQuery(ctx.request.uri.query)
+          val proxyRequest: HttpRequest = context.request.withHeaders(headers).withUri(uri)
 
-  def updateRequest(uri: Uri, updateUri: (RequestContext, Uri) => Uri): RequestContext => HttpRequest =
-    ctx => ctx.request.copy(
-      uri = updateUri(ctx, uri),
-      headers = stripHeader(ctx.request.headers)
-    )
-
-  def proxyToUnmatchedPath(uri: Uri)(implicit system: ActorSystem): Route = proxyRequest(updateRequest(uri, updateUriUnmatchedPath))
-}
-
-object ProxyServiceActor {
-  def props(mandanten: NonEmptyList[MandantSystem]): Props = Props(classOf[ProxyServiceActor], mandanten)
-}
-
-/**
- * Proxy Service which redirects routes matching a mandant key in first row to either
- * the websocket or service redirect url using their actor system
- */
-class ProxyServiceActor(mandanten: NonEmptyList[MandantSystem])
-  extends Actor
-  with ActorLogging
-  with HttpService {
-
-  // the HttpService trait defines only one abstract member, which
-  // connects the services environment to the enclosing actor or test
-  val actorRefFactory = context
-
-  val routeMap = mandanten.list.map(c => (c.config.key, c)).toList.toMap
-
-  log.debug(s"Configure proxy service for mandanten${routeMap.keySet}")
-
-  val websocketHandler = new WebsocketHandler
-
-  override def receive = {
-    // handle every new connection in an own handler
-    case Http.Connected(remoteAddress, localAddress) =>
-      val serverConnection = sender()
-
-      val conn = context.actorOf(ProxyWorker.props(serverConnection, routeMap, websocketHandler))
-      serverConnection ! Http.Register(conn)
-      //set request timeout to infinite, proxy doesn't read request-timeout property from application.conf correctly
-      serverConnection ! SetRequestTimeout(Duration.Inf)
+          // TODO: spray-to-akka-http: maybe introduce .completionTimeout() infinite to reflect original implementation
+          Source.single(proxyRequest)
+            .via(connectionFlow(mandantSystem.system)(new URI(mandantSystem.config.uri)))
+            .runWith(Sink.head)(context.materializer)
+            .flatMap(context.complete(_))(mandantSystem.system.dispatcher)
+        }
+      case None =>
+        reject
+    }
   }
 }
 
+class DefaultProxy(override val mandanten: NonEmptyList[MandantSystem]) extends Proxy
+
+object Proxy {
+  def apply(mandanten: NonEmptyList[MandantSystem]): Proxy = {
+    new DefaultProxy(mandanten)
+  }
+}

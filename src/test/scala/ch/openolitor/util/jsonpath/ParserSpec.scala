@@ -24,7 +24,7 @@ package ch.openolitor.util.jsonpath
 
 import ch.openolitor.util.jsonpath
 import ch.openolitor.util.jsonpath.AST._
-import ch.openolitor.util.jsonpath.Parser._
+import ch.openolitor.util.jsonpath.OOJsonPathParser._
 import org.specs2.matcher._
 import org.specs2.mutable._
 
@@ -54,7 +54,7 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
 
   "it" should {
     "work with the root object" in {
-      parse(Parser.root, "$") should beParsedAs(RootNode)
+      parse(OOJsonPathParser.root, "$") should beParsedAs(RootNode)
     }
     "work when having multiple fields" in {
       parse(fieldAccessors, "['foo', 'bar', 'baz']") should beParsedAs(MultiField(List("foo", "bar", "baz")))
@@ -92,8 +92,8 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
     }
 
     "work with array access on the root object" in {
-      new Parser().compile("$[1]").get shouldEqual (RootNode :: ArrayRandomAccess(List(1)) :: Nil)
-      new Parser().compile("$[*]").get shouldEqual (RootNode :: ArraySlice.All :: Nil)
+      new OOJsonPathParser().compile("$[1]").get shouldEqual (RootNode :: ArrayRandomAccess(List(1)) :: Nil)
+      new OOJsonPathParser().compile("$[*]").get shouldEqual (RootNode :: ArraySlice.All :: Nil)
     }
 
     "work with array access on fields" in {
@@ -107,11 +107,11 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
     }
 
     "work on the root element" in {
-      new Parser().compile("$.foo").get shouldEqual (RootNode :: Field("foo") :: Nil)
-      new Parser().compile("$['foo']").get shouldEqual (RootNode :: Field("foo") :: Nil)
+      new OOJsonPathParser().compile("$.foo").get shouldEqual (RootNode :: Field("foo") :: Nil)
+      new OOJsonPathParser().compile("$['foo']").get shouldEqual (RootNode :: Field("foo") :: Nil)
 
       // TODO  : how to access childs w/ ['xxx'] notation
-      new Parser().compile("$..foo").get shouldEqual (RootNode :: RecursiveField("foo") :: Nil)
+      new OOJsonPathParser().compile("$..foo").get shouldEqual (RootNode :: RecursiveField("foo") :: Nil)
     }
 
     "work with some predefined comparison operators" in {
@@ -182,21 +182,21 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
         ComparisonFilter(EqOperator, SubQuery(List(CurrentNode)), SubQuery(List(RootNode, Field("foo"))))
       )
 
-      new Parser().compile("$['points'][?(@['y'] >= 3)].id").get shouldEqual (
+      new OOJsonPathParser().compile("$['points'][?(@['y'] >= 3)].id").get shouldEqual (
         RootNode
         :: Field("points")
         :: ComparisonFilter(GreaterOrEqOperator, SubQuery(List(CurrentNode, Field("y"))), FilterDirectValue.long(3))
         :: Field("id") :: Nil
       )
 
-      new Parser().compile("$.points[?(@['id']=='i4')].x").get shouldEqual (
+      new OOJsonPathParser().compile("$.points[?(@['id']=='i4')].x").get shouldEqual (
         RootNode
         :: Field("points")
         :: ComparisonFilter(EqOperator, SubQuery(List(CurrentNode, Field("id"))), FilterDirectValue.string("i4"))
         :: Field("x") :: Nil
       )
 
-      new Parser().compile("""$.points[?(@['id']=="i4")].x""").get shouldEqual (
+      new OOJsonPathParser().compile("""$.points[?(@['id']=="i4")].x""").get shouldEqual (
         RootNode
         :: Field("points")
         :: ComparisonFilter(EqOperator, SubQuery(List(CurrentNode, Field("id"))), FilterDirectValue.string("i4"))
@@ -275,7 +275,7 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
   "Expressions from Goessner specs" should {
     "be correctly parsed" in {
       def shouldParse(query: String, expected: Any) = {
-        new Parser().compile(query).get should beEqualTo(expected)
+        new OOJsonPathParser().compile(query).get should beEqualTo(expected)
       }
 
       shouldParse(
@@ -342,8 +342,8 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
   "Failures" should {
     "be handled gracefully" in {
       def gracefulFailure(query: String) =
-        new Parser().compile(query) match {
-          case Parser.Failure(msg, _) =>
+        new OOJsonPathParser().compile(query) match {
+          case OOJsonPathParser.Failure(msg, _) =>
             println(s"""that's an expected failure for "$query": $msg""")
           case other =>
             failure(s"""a Failure was expected but instead, for "$query" got: $other""")
@@ -371,7 +371,7 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
         HasFilter(SubQuery(List(CurrentNode, Field("foo"))))
       )
 
-      new Parser().compile("$.things[?(@.foo.bar)]").get shouldEqual (
+      new OOJsonPathParser().compile("$.things[?(@.foo.bar)]").get shouldEqual (
         RootNode
         :: Field("things")
         :: HasFilter(SubQuery(CurrentNode :: Field("foo") :: Field("bar") :: Nil))
@@ -384,17 +384,17 @@ class ParserSpec extends Specification with Matchers with ParsingMatchers {
 
 trait ParsingMatchers {
 
-  class SuccessBeMatcher[+T <: AstToken](expected: T) extends Matcher[Parser.ParseResult[AstToken]] {
-    override def apply[S <: jsonpath.Parser.ParseResult[AstToken]](expectable: Expectable[S]): MatchResult[S] = {
+  class SuccessBeMatcher[+T <: AstToken](expected: T) extends Matcher[OOJsonPathParser.ParseResult[AstToken]] {
+    override def apply[S <: jsonpath.OOJsonPathParser.ParseResult[AstToken]](expectable: Expectable[S]): MatchResult[S] = {
       expectable.value match {
-        case Parser.Success(res, _) =>
+        case OOJsonPathParser.Success(res, _) =>
           result(
             expected == res,
             s"$res is equal to expected value: $expected",
             s"$res is not equal to expected value $expected",
             expectable
           )
-        case Parser.NoSuccess(msg, _) =>
+        case OOJsonPathParser.NoSuccess(msg, _) =>
           result(
             false,
             s"parsing issue, $msg",

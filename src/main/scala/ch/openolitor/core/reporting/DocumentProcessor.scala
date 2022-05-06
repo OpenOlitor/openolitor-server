@@ -22,17 +22,12 @@
 \*                                                                           */
 package ch.openolitor.core.reporting
 
-import java.io._
-import java.text.DecimalFormat
-import java.util.Locale
-import java.util.UUID.randomUUID
-
 import ch.openolitor.core.reporting.odf.{ NestedImageIterator, NestedTextboxIterator }
 import ch.openolitor.util.jsonpath.JsonPath
 import ch.openolitor.util.jsonpath.functions.{ JsonPathFunctions, Param1JsonPathFunction, UnaryJsonPathFunction }
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.batik.transcoder.image.PNGTranscoder
 import org.apache.batik.transcoder.{ TranscoderInput, TranscoderOutput }
+import org.apache.batik.transcoder.image.PNGTranscoder
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter, ISODateTimeFormat }
 import org.odftoolkit.odfdom.`type`.Color
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement
@@ -46,8 +41,12 @@ import org.odftoolkit.simple.text._
 import org.odftoolkit.simple.text.list._
 import spray.json._
 
+import java.io._
+import java.text.DecimalFormat
+import java.util.Locale
+import java.util.UUID.randomUUID
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -256,7 +255,7 @@ trait DocumentProcessor extends LazyLogging {
   }
 
   protected def processTables(doc: TableContainer, locale: Locale, paths: Seq[JsValue], withinContainer: Boolean): Unit = {
-    doc.getTableList foreach (table => processTable(table, locale, paths, withinContainer))
+    doc.getTableList.asScala foreach (table => processTable(table, locale, paths, withinContainer))
   }
 
   /**
@@ -290,7 +289,7 @@ trait DocumentProcessor extends LazyLogging {
 
   protected def processLists(doc: ListContainer, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
-      list <- doc.getListIterator
+      list <- doc.getListIterator.asScala
     } processList(list, locale, paths)
   }
 
@@ -300,7 +299,7 @@ trait DocumentProcessor extends LazyLogging {
    */
   protected def processList(list: List, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
-      item <- list.getItems
+      item <- list.getItems.asScala
     } yield {
       val container = new GenericParagraphContainerImpl(item.getOdfElement)
       processTextboxes(container, locale, paths)
@@ -309,7 +308,7 @@ trait DocumentProcessor extends LazyLogging {
 
   protected def processTableWithValues(table: Table, values: Vector[(JsValue, Int)], locale: Locale, paths: Seq[JsValue], withinContainer: Boolean, tableName: String): Unit = {
     val startIndex = Math.max(table.getHeaderRowCount, 0)
-    val rows = table.getRowList.toList
+    val rows = table.getRowList.asScala.toList
     val nonHeaderRows = rows.takeRight(rows.length - startIndex)
 
     logger.debug(s"processTable: $values, $tableName -> Header rows: ${table.getHeaderRowCount}")
@@ -318,11 +317,11 @@ trait DocumentProcessor extends LazyLogging {
       val rowPath = paths :+ index._1
 
       //copy rows
-      val newRows = if (withinContainer) table.appendRow() :: Nil else table.appendRows(nonHeaderRows.length).toList
+      val newRows = if (withinContainer) table.appendRow() :: Nil else table.appendRows(nonHeaderRows.length).asScala.toList
       logger.debug(s"processTable: $index, $tableName $withinContainer -> Appended rows: ${newRows.length}, nonHeaderRows:${nonHeaderRows.length}")
       for (r <- newRows.indices) {
-        val row = nonHeaderRows.get(r)
-        val newRow = newRows.get(r)
+        val row = nonHeaderRows(r)
+        val newRow = newRows(r)
         //replace textfields
         for (cell <- 0 until table.getColumnCount) {
           val origCell = row.getCellByIndex(cell)
@@ -366,7 +365,7 @@ trait DocumentProcessor extends LazyLogging {
    */
   private def processSections(doc: TextDocument, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
-      s <- doc.getSectionIterator
+      s <- doc.getSectionIterator.asScala
     } processSection(doc, s, locale, paths)
   }
 
@@ -403,7 +402,7 @@ trait DocumentProcessor extends LazyLogging {
    */
   private def processFrames(doc: TextDocument, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
-      p <- doc.getParagraphIterator
+      p <- doc.getParagraphIterator.asScala
       f <- p.getFrameIterator()
     } processFrame(p, f, locale, paths)
   }
@@ -451,8 +450,8 @@ trait DocumentProcessor extends LazyLogging {
    */
   private def processImages(cont: TextDocument, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
-      p <- cont.getParagraphIterator
-      t <- new NestedImageIterator(p.getFrameContainerElement)
+      p <- cont.getParagraphIterator.asScala
+      t <- new NestedImageIterator(p.getFrameContainerElement).asScala
     } {
       val (name, formats) = parseFormats(t.getName)
       logger.debug(s"--------------------processImage: $name | formats:$formats")
@@ -514,8 +513,8 @@ trait DocumentProcessor extends LazyLogging {
    */
   private def processTextboxes(cont: ParagraphContainer, locale: Locale, paths: Seq[JsValue]): Unit = {
     for {
-      p <- cont.getParagraphIterator
-      t <- new NestedTextboxIterator(p.getFrameContainerElement)
+      p <- cont.getParagraphIterator.asScala
+      t <- new NestedTextboxIterator(p.getFrameContainerElement).asScala
     } {
       val (name, formats) = parseFormats(t.getName)
       name match {

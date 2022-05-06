@@ -81,7 +81,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr])(implicit owner: Subject) = {
-    withSQL {
+    withSQL[DepotlieferungAbo] {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(depotlieferungAbo.id, abwesenheit.aboId)
@@ -112,7 +112,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr])(implicit owner: Subject) = {
-    withSQL {
+    withSQL[HeimlieferungAbo] {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(heimlieferungAbo.id, abwesenheit.aboId)
@@ -143,7 +143,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getPostlieferungAbosQuery(filter: Option[FilterExpr])(implicit owner: Subject) = {
-    withSQL {
+    withSQL[PostlieferungAbo] {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(postlieferungAbo.id, abwesenheit.aboId)
@@ -174,7 +174,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getZusatzAbosByHauptAboQuery(aboId: AboId, filter: Option[FilterExpr])(implicit owner: Subject) = {
-    withSQL {
+    withSQL[ZusatzAbo] {
       select
         .from(zusatzAboMapping as zusatzAbo)
         .leftJoin(abwesenheitMapping as abwesenheit).on(zusatzAbo.id, abwesenheit.aboId)
@@ -203,7 +203,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getLieferungenByAbotypQuery(id: AbotypId, filter: Option[FilterExpr]) = {
-    withSQL {
+    withSQL[Lieferung] {
       select
         .from(lieferungMapping as lieferung)
         .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
@@ -226,11 +226,11 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
           case x   => x.head.bemerkungen
         }
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
-      })
+      }).list
   }
 
   protected def getLieferungenDetailsQuery(abotypId: AbotypId, vertriebId: VertriebId, filter: Option[FilterExpr]) = {
-    withSQL {
+    withSQL[Lieferung] {
       select
         .from(lieferungMapping as lieferung)
         .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
@@ -253,7 +253,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
           case x   => x.head.bemerkungen
         }
         copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
-      })
+      }).list
   }
 
   protected def getLieferplanungByLieferungQuery(lieferungId: LieferungId) = {
@@ -265,7 +265,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getLieferungenDetailQuery(id: LieferungId) = {
-    withSQL {
+    withSQL[Lieferung] {
       select
         .from(lieferungMapping as lieferung)
         .join(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
@@ -288,7 +288,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getArbeitseinsatzDetailQuery(id: ArbeitseinsatzId) = {
-    withSQL {
+    withSQL[Arbeitseinsatz] {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)
@@ -313,7 +313,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
   }
 
   protected def getRechnungDetailQuery(id: RechnungId)(implicit owner: Subject) = {
-    withSQL {
+    withSQL[Rechnung] {
       select
         .from(rechnungMapping as rechnung)
         .leftJoin(kundeMapping as kunde).on(rechnung.kundeId, kunde.id)
@@ -359,7 +359,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
   protected def getArbeitseinsaetzeQuery(implicit owner: Subject) = {
-    withSQL {
+    withSQL[Arbeitseinsatz] {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
         .join(arbeitsangebotMapping as arbeitsangebot).on(arbeitseinsatz.arbeitsangebotId, arbeitsangebot.id)

@@ -23,52 +23,48 @@
 package ch.openolitor.core
 
 import akka.actor.{ ActorRef, ActorSystem }
+import akka.http.caching.scaladsl.{ Cache, CachingSettings }
+import akka.http.caching.LfuCache
+import akka.http.scaladsl.Http
 import akka.pattern.ask
-import akka.io.IO
-import spray.can.Http
-import spray.can.server.UHttp
+import akka.stream.scaladsl.SourceQueueWithComplete
 import akka.util.Timeout
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import collection.JavaConversions._
+import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
+import ch.openolitor.buchhaltung.{ BuchhaltungDBEventEntityListener, BuchhaltungEntityStoreView, BuchhaltungReportEventListener }
+import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
+import ch.openolitor.core.batch.OpenOlitorBatchJobs
+import ch.openolitor.core.db._
+import ch.openolitor.core.db.evolution.{ DBEvolutionActor, Evolution }
+import ch.openolitor.core.db.evolution.scripts.Scripts
+import ch.openolitor.core.domain._
+import ch.openolitor.core.domain.SystemEvents.SystemStarted
+import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent, S3FileStore }
+import ch.openolitor.core.jobs.JobQueueService
+import ch.openolitor.core.mailservice.MailService
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.reporting._
+import ch.openolitor.core.security.Subject
+import ch.openolitor.core.ws.{ ClientMessagesActor, DefaultClientMessagesRouteService }
+import ch.openolitor.mailtemplates.MailTemplateEntityStoreView
+import ch.openolitor.reports.{ ReportsDBEventEntityListener, ReportsEntityStoreView }
+import ch.openolitor.stammdaten._
+import ch.openolitor.util.AirbrakeNotifier
+import ch.openolitor.util.ConfigUtil._
+import com.tegonal.CFEnvConfigLoader.ConfigLoader
+import com.typesafe.config.Config
+import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
 import scalaz._
 import scalaz.Scalaz._
-import com.typesafe.config.Config
-import ch.openolitor.core.domain._
-import ch.openolitor.util.ConfigUtil._
-import ch.openolitor.stammdaten._
 import scalikejdbc.ConnectionPoolContext
-import ch.openolitor.core.db._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.ws.ClientMessagesServer
-import resource._
-import java.net.ServerSocket
 
-import ch.openolitor.core.proxy.ProxyServiceActor
-import ch.openolitor.core.db.evolution.Evolution
-import ch.openolitor.buchhaltung.BuchhaltungEntityStoreView
-import ch.openolitor.buchhaltung.BuchhaltungDBEventEntityListener
-import ch.openolitor.reports.ReportsEntityStoreView
-import ch.openolitor.reports.ReportsDBEventEntityListener
-import spray.caching.LruCache
-import ch.openolitor.core.security.Subject
-import ch.openolitor.core.reporting._
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.mailservice.MailService
-import ch.openolitor.buchhaltung.BuchhaltungReportEventListener
-import ch.openolitor.core.batch.OpenOlitorBatchJobs
-import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
-import ch.openolitor.util.AirbrakeNotifier
-import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
-import ch.openolitor.core.jobs.JobQueueService
-import ch.openolitor.core.db.evolution.DBEvolutionActor
-import ch.openolitor.core.db.evolution.scripts.Scripts
-import ch.openolitor.core.domain.SystemEvents.SystemStarted
-import ch.openolitor.mailtemplates.MailTemplateEntityStoreView
-import com.tegonal.CFEnvConfigLoader.ConfigLoader
-import org.joda.time.DateTime
+import java.net.ServerSocket
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.io.StdIn
+import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 case class SystemConfig(mandantConfiguration: MandantConfiguration, cpContext: ConnectionPoolContext, asyncCpContext: MultipleAsyncConnectionPoolContext)
 
@@ -78,7 +74,7 @@ trait SystemConfigReference {
   lazy val config = sysConfig.mandantConfiguration.config
 }
 
-case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: Map[Class[_ <: ch.openolitor.core.models.BaseId], Long], config: Config) {
+case class MandantConfiguration(key: String, name: String, interface: String, port: Integer, wsPort: Integer, dbSeeds: scala.collection.Map[Class[_ <: ch.openolitor.core.models.BaseId], Long], config: Config) {
   val configKey = s"openolitor.${key}"
 
   def wsUri = s"ws://$interface:$wsPort"
@@ -89,14 +85,12 @@ object Boot extends App with LazyLogging {
   case class MandantSystem(config: MandantConfiguration, system: ActorSystem)
 
   def freePort: Int = synchronized {
-    managed(new ServerSocket(0)).map { socket =>
+    Using(new ServerSocket(0)) { socket =>
       socket.setReuseAddress(true)
       socket.getLocalPort()
-    }.opt.getOrElse(sys.error(s"Couldn't aquire new free server port"))
+    }.getOrElse(sys.error(s"Couldn't aquire new free server port"))
   }
 
-  logger.info(s"sun.misc.VM.maxDirectMemory(): ${sun.misc.VM.maxDirectMemory() / 1024.0 / 1024.0} MB")
-  logger.info(s"io.netty.util.internal.PlatformDependent.maxDirectMemory(): ${io.netty.util.internal.PlatformDependent.maxDirectMemory() / 1024.0 / 1024.0} MB")
   logger.debug(s"application_name: " + sys.env.get("application_config"))
   logger.debug(s"config-file java prop: " + sys.props.get("config-file"))
   logger.debug(s"port: " + sys.env.get("PORT"))
@@ -112,7 +106,7 @@ object Boot extends App with LazyLogging {
   val configs = getMandantConfiguration(ooConfig)
   implicit val timeout = Timeout(5.seconds)
 
-  val mandanten = startServices(configs)
+  lazy val mandanten = startServices(configs)
 
   val nonConfigPort = Option(System.getenv("PORT")).getOrElse("8080")
 
@@ -129,7 +123,7 @@ object Boot extends App with LazyLogging {
   }
 
   def getMandantConfiguration(ooConfig: Config): NonEmptyList[MandantConfiguration] = {
-    val mandanten = ooConfig.getStringList("mandanten").toList
+    val mandanten = ooConfig.getStringList("mandanten").asScala.toList
 
     mandanten.toNel.map(_.zipWithIndex.map {
       case (mandant, index) =>
@@ -153,10 +147,14 @@ object Boot extends App with LazyLogging {
 
   def startProxyService(mandanten: NonEmptyList[MandantSystem], config: Config) = {
     implicit val proxySystem = ActorSystem("oo-proxy", config)
+    implicit val executionContext = proxySystem.dispatcher
 
-    val proxyService = proxySystem.actorOf(ProxyServiceActor.props(mandanten), "oo-proxy-service")
-    IO(UHttp) ? Http.Bind(proxyService, interface = rootInterface, port = rootPort)
+    Http().newServerAt(rootInterface, rootPort).bind(proxy.Proxy(mandanten).routes)
+
     logger.debug(s"oo-proxy-system: configured proxy listener on port ${rootPort}")
+
+    // TODO: spray-to-akka-http: bind to process
+    StdIn.readLine()
   }
 
   def startAirbrakeService(implicit systemConfig: SystemConfig) = {
@@ -175,16 +173,19 @@ object Boot extends App with LazyLogging {
       implicit val sysCfg = systemConfig(cfg)
 
       // declare token cache used in multiple locations in app
-      val loginTokenCache = LruCache[Subject](
-        maxCapacity = 10000,
-        timeToLive = 1 day,
-        timeToIdle = 4 hours
-      )
+      val defaultCachingSettings = CachingSettings(app)
+      val lfuCachingSettings = defaultCachingSettings.lfuCacheSettings
+        .withMaxCapacity(10000)
+        .withTimeToLive(1 day)
+        .withTimeToIdle(4 hours)
+      val cachingSettings = defaultCachingSettings.withLfuCacheSettings(lfuCachingSettings)
+      val loginTokenCache: Cache[String, Subject] = LfuCache(cachingSettings)
 
       // initialise root actors
-      val duration = Duration.create(1, SECONDS);
+      val duration = Duration.create(1, SECONDS)
       val airbrakeNotifier = startAirbrakeService
-      val fileStoreComponent = new DefaultFileStoreComponent(cfg.name, sysCfg, app)
+
+      val fileStore = S3FileStore(sysCfg.mandantConfiguration, app)
 
       val evolution = new Evolution(sysCfg, Scripts.current(app))
       val system = app.actorOf(SystemActor.props(airbrakeNotifier), "oo-system")
@@ -195,11 +196,11 @@ object Boot extends App with LazyLogging {
       logger.debug(s"oo-system:$system -> entityStore:$entityStore")
       val eventStore = Await.result(system ? SystemActor.Child(SystemEventStore.props(dbEvolutionActor), "event-store"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$eventStore")
-      val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor, fileStoreComponent.fileStore), "mail-service"), duration).asInstanceOf[ActorRef]
+      val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor, fileStore), "mail-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
       val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
-      val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStoreComponent.fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
+      val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
       val jobQueueService = Await.result(system ? SystemActor.Child(JobQueueService.props(cfg), "job-queue"), duration).asInstanceOf[ActorRef]
 
       //start actor listening events
@@ -217,12 +218,14 @@ object Boot extends App with LazyLogging {
       val reportsDBEventListener = Await.result(system ? SystemActor.Child(ReportsDBEventEntityListener.props, "reports-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
 
       //start websocket service
-      val clientMessages = Await.result(system ? SystemActor.Child(ClientMessagesServer.props(loginTokenCache), "ws-client-messages"), duration).asInstanceOf[ActorRef]
+      // create map of users to streams used by the actor and the service
+      val streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]] = TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]]()
+      val clientMessagesActor = Await.result(system ? SystemActor.Child(ClientMessagesActor.props(streamsByUser), "ws-client-messages"), duration).asInstanceOf[ActorRef]
 
       //start actor mapping dbevents to client messages
       val dbEventClientMessageMapper = Await.result(system ? SystemActor.Child(DBEvent2UserMapping.props, "db-event-mapper"), duration).asInstanceOf[ActorRef]
 
-      val batchJobs = Await.result(system ? SystemActor.Child(OpenOlitorBatchJobs.props(entityStore, fileStoreComponent.fileStore), "batch-jobs"), duration).asInstanceOf[ActorRef]
+      val batchJobs = Await.result(system ? SystemActor.Child(OpenOlitorBatchJobs.props(entityStore, fileStore), "batch-jobs"), duration).asInstanceOf[ActorRef]
 
       //initialize global persistentviews
       logger.debug(s"oo-system: send Startup to entityStoreview")
@@ -233,15 +236,17 @@ object Boot extends App with LazyLogging {
       reportsEntityStoreView ? DefaultMessages.Startup
 
       // create and start our service actor
-      val service = Await.result(system ? SystemActor.Child(RouteServiceActor.props(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, fileStoreComponent.fileStore, airbrakeNotifier, jobQueueService, loginTokenCache), "route-service"), duration).asInstanceOf[ActorRef]
-      logger.debug(s"oo-system: route-service:$service")
 
-      // start a new HTTP server on port 9005 with our service actor as the handler
-      IO(UHttp) ? Http.Bind(service, interface = cfg.interface, port = cfg.port)
+      val routeService: RouteService = new DefaultRouteService(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, fileStore, airbrakeNotifier, jobQueueService, sysCfg, app, loginTokenCache)
+      Await.result(routeService.initialize(), 1 minute)
+
+      val clientMessagesRouteService = new DefaultClientMessagesRouteService(entityStore, sysCfg, app, loginTokenCache, streamsByUser)
+
+      Http().newServerAt(cfg.interface, port = cfg.port).bind(routeService.routes)
       logger.debug(s"oo-system: configured listener on port ${cfg.port}")
 
       //start new websocket service
-      IO(UHttp) ? Http.Bind(clientMessages, interface = cfg.interface, port = cfg.wsPort)
+      Http().newServerAt(cfg.interface, port = cfg.wsPort).bind(clientMessagesRouteService.routes)
       logger.debug(s"oo-system: configured ws listener on port ${cfg.wsPort}")
 
       batchJobs ! InitializeBatchJob
@@ -253,12 +258,12 @@ object Boot extends App with LazyLogging {
     }
   }
 
-  def dbSeeds(config: Config): Map[Class[_ <: ch.openolitor.core.models.BaseId], Long] = {
+  def dbSeeds(config: Config): scala.collection.Map[Class[_ <: ch.openolitor.core.models.BaseId], Long] = {
     val models = config.getStringList("db.default.seed.models")
-    val mappings: Seq[(Class[_], Long)] = models.map { model =>
+    val mappings: Seq[(Class[_], Long)] = models.asScala.map { model =>
       Class.forName(model) -> config.getLong(s"db.default.seed.mappings.$model")
-    }
-    mappings.toMap.asInstanceOf[Map[Class[_ <: ch.openolitor.core.models.BaseId], Long]]
+    }.toSeq
+    mappings.toMap.asInstanceOf[scala.collection.Map[Class[_ <: ch.openolitor.core.models.BaseId], Long]]
   }
 
   def systemConfig(mandant: MandantConfiguration) = SystemConfig(mandant, connectionPoolContext(mandant), asyncConnectionPoolContext(mandant))

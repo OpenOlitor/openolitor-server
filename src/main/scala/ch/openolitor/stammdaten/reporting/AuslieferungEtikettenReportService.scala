@@ -64,15 +64,9 @@ trait AuslieferungEtikettenReportService extends AsyncConnectionPoolContextAware
     stammdatenReadRepository.getProjekt flatMap {
       _ map { projekt =>
         val projektReport = copyTo[Projekt, ProjektReport](projekt)
-        val f = stammdatenReadRepository.getMultiAuslieferungReport(auslieferungIds, projektReport) map { result =>
+        stammdatenReadRepository.getMultiAuslieferungReport(auslieferungIds, projektReport) map { result =>
           (Seq(), List(result))
         }
-
-        f.onFailure {
-          case e => e.printStackTrace()
-        }
-
-        f
       } getOrElse Future { (Seq(ValidationError[AuslieferungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }
   }

@@ -33,14 +33,13 @@ import ch.openolitor.core.models.BaseId
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.mailservice._
 import ch.openolitor.core.mailservice.MailService._
+import spray.json.lenses.JsonLenses._
 
 package object events extends DefaultJsonProtocol {
-  import spray.json.lenses.JsonLenses._
-
   val V1toV2metaDataMigration: JsonMigrator[V2] = from[V1].to[V2] { meta1 =>
     // write seqNr to transactionNr, set seqNr to 1
-    val oldSeq = meta1.extract[Long]('meta / 'seqNr)
-    meta1.update('meta / 'transactionNr ! set[Long](oldSeq)).update('meta / 'seqNr ! set[Long](1L))
+    val oldSeq = meta1.extract[Long]("meta" / "seqNr")
+    meta1.update("meta" / "transactionNr" ! set[Long](oldSeq)).update("meta" / "seqNr" ! set[Long](1L))
   }
 }
 

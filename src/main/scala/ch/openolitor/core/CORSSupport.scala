@@ -22,20 +22,20 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import spray.http.{ HttpMethods, HttpMethod, HttpResponse, AllOrigins, HttpOrigin, SomeOrigins }
-import spray.http.HttpHeaders._
-import spray.http.HttpMethods._
-import spray.routing._
-import com.typesafe.scalalogging.LazyLogging
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.Directives._
 import ch.openolitor.util.ConfigUtil._
+import com.typesafe.scalalogging.LazyLogging
 
 // see also https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 trait CORSSupport extends LazyLogging {
-  this: HttpService =>
 
   val sysConfig: SystemConfig
 
-  lazy val allowOrigin = sysConfig.mandantConfiguration.config.getStringListOption(s"security.cors.allow-origin").map(list => SomeOrigins(list.map(HttpOrigin.apply))).getOrElse(AllOrigins)
+  lazy val allowOrigin = sysConfig.mandantConfiguration.config.getStringListOption(s"security.cors.allow-origin").map(list => HttpOriginRange(list.map(HttpOrigin.apply): _*)).getOrElse(HttpOriginRange.*)
 
   val allowOriginHeader = `Access-Control-Allow-Origin`(allowOrigin)
   val allowCredentialsHeader = `Access-Control-Allow-Credentials`(true)
@@ -47,22 +47,33 @@ trait CORSSupport extends LazyLogging {
   )
   logger.debug(s"$this:allowOriginHeader:$allowOriginHeader")
 
-  def corsDirective[T]: Directive0 = mapRequestContext { ctx =>
-    ctx.withRouteResponseHandling({
-      //It is an option requeset for a resource that responds to some other method
-      case Rejected(x) if (ctx.request.method.equals(HttpMethods.OPTIONS) && x.exists(_.isInstanceOf[MethodRejection])) =>
-        val allowedMethods: List[HttpMethod] = x.collect {
-          case rejection: MethodRejection =>
-            rejection.supported
+  protected def corsRejectionHandler(allowOrigin: `Access-Control-Allow-Origin`) = RejectionHandler.newBuilder().handle {
+    case MethodRejection(supported) =>
+      complete(HttpResponse().withHeaders(
+        `Access-Control-Allow-Methods`(OPTIONS, supported) ::
+          allowOrigin ::
+          optionsCorsHeaders
+      ))
+  }.result()
+
+  private def allowedOrigin(origin: Origin) =
+    if (origin.origins.forall(allowOrigin.matches)) origin.origins.headOption.map(`Access-Control-Allow-Origin`.apply) else None
+
+  def corsDirective: Directive0 = mapInnerRoute { route => context =>
+    ((context.request.method, context.request.header[Origin].flatMap(allowedOrigin)) match {
+      case (OPTIONS, Some(allowOrigin)) =>
+        handleRejections(corsRejectionHandler(allowOrigin)) {
+          respondWithHeaders(allowOrigin, allowCredentialsHeader) {
+            route
+          }
         }
-        logger.debug(s"Got cors request:${ctx.request.uri}:$x:$allowedMethods")
-        ctx.complete(HttpResponse().withHeaders(
-          `Access-Control-Allow-Methods`(OPTIONS, allowedMethods: _*) :: allowCredentialsHeader :: allowOriginHeader ::
-            exposeHeaders :: optionsCorsHeaders
-        ))
-    }).withHttpResponseHeadersMapped { headers =>
-      allowCredentialsHeader :: allowOriginHeader :: exposeHeaders :: headers
-    }
+      case (_, Some(allowOrigin)) =>
+        respondWithHeaders(allowOrigin, allowCredentialsHeader) {
+          route
+        }
+      case (_, _) =>
+        route
+    })(context)
   }
 
   private def preflightRequestHandler: Route = options {

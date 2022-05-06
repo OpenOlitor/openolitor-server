@@ -22,14 +22,12 @@
 \*                                                                           */
 package ch.openolitor.reports.eventsourcing
 
-import stamina.json._
+import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.reports._
 import ch.openolitor.reports.models._
-import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import zangelo.spray.json.AutoProductFormats
-import ch.openolitor.core.JSONSerializable
+import stamina.json._
 
-trait ReportsEventStoreSerializer extends ReportsJsonProtocol with EntityStoreJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait ReportsEventStoreSerializer extends ReportsJsonProtocol with EntityStoreJsonProtocol {
 
   // V1 persisters
   implicit val reportCreatePersister = persister[ReportCreate]("report-create")

@@ -41,6 +41,7 @@ import scala.concurrent.Future
 
 trait AuslieferungKorbDetailReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
+
   def generateAuslieferungKorbDetailReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
     generateReports[AuslieferungId, MultiReport[AuslieferungKorbDetailsReport]](
       config,
@@ -73,7 +74,7 @@ trait AuslieferungKorbDetailReportService extends AsyncConnectionPoolContextAwar
                 lp: Lieferposition =>
                   {
                     val numberOfTimes = totalLieferpositionenList.filter(_.id == lp.id).length
-                    val quantity = lp.menge.getOrElse(BigDecimal(1)).doubleValue()
+                    val quantity = lp.menge.getOrElse(BigDecimal(1)).doubleValue
                     KorbTotalComposition(lp.id.toString, lp.produktBeschrieb, Math.round((quantity * numberOfTimes) * 100.0) / 100.0, lp.einheit.toString)
                   }
               }

@@ -56,7 +56,7 @@ class NestedTextboxIterator(containerElement: OdfElement) extends Iterator[Textb
     } getOrElse null
   }
 
-  def remove(): Unit = {
+  override def remove(): Unit = {
     throw new IllegalStateException("Unsupported operation")
   }
 

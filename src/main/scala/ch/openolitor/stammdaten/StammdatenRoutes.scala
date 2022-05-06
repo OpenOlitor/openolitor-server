@@ -22,17 +22,14 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
 import org.joda.time.DateTime
-import spray.routing._
 import spray.json._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util._
 import akka.pattern.ask
 
@@ -47,6 +44,8 @@ import ch.openolitor.stammdaten.reporting._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
 import akka.actor._
+import akka.http.scaladsl.model.headers.{ `Content-Disposition`, ContentDispositionTypes }
+import akka.http.scaladsl.server.Route
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
@@ -55,8 +54,10 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
 
-trait StammdatenRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+import scala.concurrent.ExecutionContext
+
+trait StammdatenRoutes extends BaseRouteService with ActorReferences
+  with AsyncConnectionPoolContextAware with SprayDeserializers with LazyLogging
   with StammdatenJsonProtocol
   with StammdatenEventStoreSerializer
   with BuchhaltungJsonProtocol
@@ -77,7 +78,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def stammdatenRoute(implicit subject: Subject): Route =
-    parameters('f.?, 'g.?) { (f, g) =>
+    parameters("f".?, "g".?) { (f, g) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
@@ -136,7 +137,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "abos") { kundeId =>
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[AboCreate]) {
               case dl: DepotlieferungAboCreate =>
                 created(request)(dl)
@@ -176,7 +177,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "abwesenheiten") { (_, aboId) =>
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[AbwesenheitModify]) { abw =>
               abwesenheitCreate(copyTo[AbwesenheitModify, AbwesenheitCreate](abw, "aboId" -> aboId))
             }
@@ -198,7 +199,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       path("kunden" / kundeIdPath / "pendenzen") { kundeId =>
         get(list(stammdatenReadRepository.getPendenzen(kundeId))) ~
           post {
-            requestInstance { request =>
+            extractRequest { request =>
               entity(as[PendenzModify]) { p =>
                 created(request)(copyTo[PendenzModify, PendenzCreate](p, "kundeId" -> kundeId, "generiert" -> FALSE))
               }
@@ -227,7 +228,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "rollewechseln") { (kundeId, personId) =>
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[Rolle]) { rolle =>
               changeRolle(kundeId, personId, rolle)
             }
@@ -297,7 +298,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "vertriebsarten") { (abotypId, vertriebId) =>
         get(list(stammdatenReadRepository.getVertriebsarten(vertriebId))) ~
           post {
-            requestInstance { request =>
+            extractRequest { request =>
               entity(as[VertriebsartModify]) {
                 case dl: DepotlieferungModify =>
                   created(request)(copyTo[DepotlieferungModify, DepotlieferungAbotypModify](dl, "vertriebId" -> vertriebId))
@@ -326,7 +327,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen") { (abotypId, vertriebId) =>
         get(list(stammdatenReadRepository.getUngeplanteLieferungen(abotypId, vertriebId))) ~
           post {
-            requestInstance { request =>
+            extractRequest { request =>
               entity(as[LieferungAbotypCreate]) { entity =>
                 created(request)(entity)
               }
@@ -335,7 +336,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / "aktionen" / "generieren") { (abotypId, vertriebId) =>
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[LieferungenAbotypCreate]) { entity =>
               created(request)(entity)
             }
@@ -384,8 +385,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
 
   private def aboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Route =
     path("abos" ~ exportFormatPath.?) { exportFormat =>
-      parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
-        get(list(stammdatenReadRepository.getAbos(Option(xFlags)), exportFormat))
+      parameter("x".as[AbosComplexFlags] ?) { xFlags: Option[AbosComplexFlags] =>
+        get(list(stammdatenReadRepository.getAbos(xFlags), exportFormat))
       }
     } ~
       path("abos" / "aktionen" / "anzahllieferungenrechnungspositionen") {
@@ -405,8 +406,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
 
   private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Route =
     path("zusatzabos" ~ exportFormatPath.?) { exportFormat =>
-      parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
-        get(list(stammdatenReadRepository.getZusatzAbos(Option(xFlags)), exportFormat))
+      parameter("x".as[AbosComplexFlags].?) { xFlags: Option[AbosComplexFlags] =>
+        get(list(stammdatenReadRepository.getZusatzAbos(xFlags), exportFormat))
       }
     } ~
       path("zusatzabos" / "aktionen" / "anzahllieferungenrechnungspositionen") {
@@ -473,8 +474,8 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(stammdatenReadRepository.getPersonenAboAktivByTouren))
       } ~
       path("touren" / tourIdPath) { id =>
-        parameter('aktiveOrPlanned.?.as[Boolean]) { aktiveOrPlanned: Boolean =>
-          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOrPlanned)))
+        parameter("aktiveOrPlanned".as[Boolean].?) { aktiveOrPlanned: Option[Boolean] =>
+          get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOrPlanned.getOrElse(false))))
         } ~
           (put | post)(update[TourModify, TourId](id)) ~
           delete(remove(id))
@@ -549,7 +550,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "aktionen" / "modifizieren") { id =>
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[LieferplanungPositionenModify]) { lieferplanungModify =>
               lieferplanungModifizieren(lieferplanungModify)
             }
@@ -623,9 +624,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet.")
       case response: EntityInsertedEvent[_, _] =>
-        respondWithStatus(StatusCodes.Created) {
-          complete(IdResponse(response.id.id).toJson.compactPrint)
-        }
+        complete(StatusCodes.Created, IdResponse(response.id.id).toJson.compactPrint)
       case x =>
         complete(StatusCodes.BadRequest, s"No id generated or CommandHandler not triggered:$x")
     }
@@ -672,7 +671,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     } ~
       path("lieferanten" / "sammelbestellungen" / "aktionen" / "abgerechnet") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[SammelbestellungAusgeliefert]) { entity =>
               sammelbestellungenAlsAbgerechnetMarkieren(entity.datum, entity.ids)
             }
@@ -791,7 +790,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
 
   private def auslieferungenAlsAusgeliefertMarkierenRoute(implicit subject: Subject): Route =
     post {
-      requestInstance { request =>
+      extractRequest { request =>
         entity(as[Seq[AuslieferungId]]) { ids =>
           auslieferungenAlsAusgeliefertMarkieren(ids)
         }
@@ -898,7 +897,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
               complete(StatusCodes.BadRequest, s"Vorlage konnte im folgenden Pfad nicht gefunden werden: $resource")
             case Right(is) => {
               val name = vorlageType.toString
-              respondWithHeader(HttpHeaders.`Content-Disposition`("attachment", Map(("filename", name))))(stream(is))
+              respondWithHeader(`Content-Disposition`(ContentDispositionTypes.attachment, Map(("filename", name))))(stream(is))
             }
           }
         }) ~
@@ -939,7 +938,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   private def mailingRoute(implicit subject: Subject): Route =
     path("mailing" / "sendEmailToKunden") {
       post {
-        requestInstance { request =>
+        extractRequest { request =>
           entity(as[KundeMailRequest]) { kundeMailRequest =>
             sendEmailsToKunden(kundeMailRequest.subject, kundeMailRequest.body, kundeMailRequest.replyTo, kundeMailRequest.ids)
           }
@@ -948,7 +947,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     } ~
       path("mailing" / "sendEmailToPersonen") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[PersonMailRequest]) { personMailRequest =>
               sendEmailsToPersonen(personMailRequest.subject, personMailRequest.body, personMailRequest.replyTo, personMailRequest.ids)
             }
@@ -957,7 +956,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("mailing" / "sendEmailToAbotypSubscribers") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[AbotypMailRequest]) { abotypMailRequest =>
               sendEmailsToAbotypSubscribers(abotypMailRequest.subject, abotypMailRequest.body, abotypMailRequest.replyTo, abotypMailRequest.ids)
             }
@@ -966,7 +965,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("mailing" / "sendEmailToZusatzabotypSubscribers") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[ZusatzabotypMailRequest]) { zusatzabotypMailRequest =>
               sendEmailsToZuzatzabotypSubscribers(zusatzabotypMailRequest.subject, zusatzabotypMailRequest.body, zusatzabotypMailRequest.replyTo, zusatzabotypMailRequest.ids)
             }
@@ -975,7 +974,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("mailing" / "sendEmailToTourSubscribers") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[TourMailRequest]) { tourMailRequest =>
               sendEmailsToTourSubscribers(tourMailRequest.subject, tourMailRequest.body, tourMailRequest.replyTo, tourMailRequest.ids)
             }
@@ -984,7 +983,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("mailing" / "sendEmailToDepotSubscribers") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[DepotMailRequest]) { depotMailRequest =>
               sendEmailsToDepotSubscribers(depotMailRequest.subject, depotMailRequest.body, depotMailRequest.replyTo, depotMailRequest.ids)
             }
@@ -993,7 +992,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("mailing" / "sendEmailToAbosSubscribers") {
         post {
-          requestInstance { request =>
+          extractRequest { request =>
             entity(as[AboMailRequest]) { aboMailRequest =>
               sendEmailsToAbosSubscribers(aboMailRequest.subject, aboMailRequest.body, aboMailRequest.replyTo, aboMailRequest.ids)
             }
@@ -1077,11 +1076,11 @@ class DefaultStammdatenRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
-)
-  extends StammdatenRoutes
+) extends StammdatenRoutes
   with DefaultStammdatenReadRepositoryAsyncComponent
   with DefaultBuchhaltungReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

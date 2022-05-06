@@ -338,7 +338,7 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
   }
 
   def getLieferplanung(abotypName: String)(implicit session: DBSession): List[Lieferplanung] = {
-    getLieferplanungQuery(abotypName).apply()
+    getLieferplanungenQuery(abotypName).apply()
   }
 
   def getLatestLieferplanung(implicit session: DBSession): Option[Lieferplanung] = {

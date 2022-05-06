@@ -22,20 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core.proxy
 
-import spray.routing._
-import akka.actor._
-import spray.can.websocket
-import spray.can.websocket.frame.{ BinaryFrame, TextFrame }
-import spray.http._
-import spray.can.websocket._
-import spray.can.websocket.UpgradedToWebSocket
 import akka.util.ByteString
 import ch.openolitor.core.Boot.MandantSystem
-import org.jfarcand.wcs._
-import spray.http.HttpHeaders.Connection
-
 import scala.util.{ Failure, Success, Try }
 
+/*
 object ProxyWorker {
   case class Push(msg: String)
   case class BinaryPush(msg: Array[Byte])
@@ -220,3 +211,4 @@ class ProxyWorker(val serverConnection: ActorRef, val routeMap: Map[String, Mand
    */
   def businessLogicNoUpgrade: Receive = runRoute(proxyRoute) orElse other
 }
+*/ 
