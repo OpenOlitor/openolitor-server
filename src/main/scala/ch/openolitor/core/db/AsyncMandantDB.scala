@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core.db
 
-import scalikejdbc.config._
-import scalikejdbc._
-import scalikejdbc.async._
 import ch.openolitor.core.MandantConfiguration
 import ch.openolitor.util.ConfigUtil._
+import scalikejdbc._
+import scalikejdbc.async._
+import scalikejdbc.config._
 
 /**
  * Mandant specific dbs for async scalikejdbc framework
@@ -46,7 +46,7 @@ case class AsyncMandantDBs(mandantConfiguration: MandantConfiguration) extends D
 
   implicit def toAsyncConnectionPoolSettings(cpSettings: ConnectionPoolSettings): AsyncConnectionPoolSettings = AsyncConnectionPoolSettings(maxPoolSize = cpSettings.maxSize, maxQueueSize)
 
-  def loadConnectionPool(dbName: Symbol = ConnectionPool.DEFAULT_NAME): AsyncConnectionPool = {
+  def loadConnectionPool(dbName: String = ConnectionPool.DEFAULT_NAME): AsyncConnectionPool = {
     val JDBCSettings(url, user, password, driver) = readJDBCSettings(dbName)
     val cpSettings = readConnectionPoolSettings(dbName)
     Class.forName(driver)
@@ -55,7 +55,7 @@ case class AsyncMandantDBs(mandantConfiguration: MandantConfiguration) extends D
   }
 
   def connectionPoolContext(): MultipleAsyncConnectionPoolContext = {
-    val context = for (dbName <- dbNames) yield (Symbol(dbName), loadConnectionPool(Symbol(dbName)))
+    val context = for (dbName <- dbNames) yield (Symbol(dbName), loadConnectionPool(dbName))
     //: _* converts list into a varargs parameter of type tuple2
     MultipleAsyncConnectionPoolContext(context: _*)
   }

@@ -34,7 +34,7 @@ class MailRetryHandlerSpec extends Specification {
     "return None when nextTry is not yet reached" in {
       val enqueued = MailEnqueued(null, "uid", null, None, DateTime.now().plusSeconds(3), DateTime.now().plusSeconds(50), 1)
 
-      handler.calculateRetryEnqueued(enqueued) must beRight(None)
+      handler.calculateRetryEnqueued(enqueued) must beRight(Option.empty)
     }
 
     "return new MailEnqueued when nextTry is in the past" in {

@@ -43,9 +43,6 @@ trait ArbeitseinsatzEntityStoreView extends EntityStoreView
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
   override val module = "arbeitseinsatz"
-
-  def initializeEntityStoreView = {
-  }
 }
 
 /**

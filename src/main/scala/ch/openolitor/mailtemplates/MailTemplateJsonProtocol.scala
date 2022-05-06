@@ -22,13 +22,14 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
-import spray.json._
 import ch.openolitor.core.BaseJsonProtocol
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.mailtemplates.model._
-import zangelo.spray.json.AutoProductFormats
+import spray.json._
 
-trait MailTemplateJsonProtocol extends BaseJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait MailTemplateJsonProtocol extends BaseJsonProtocol {
   implicit val mailTemplateIdFormat = baseIdFormat(MailTemplateId.apply)
   implicit val mailTemplateTypeFormat: RootJsonFormat[TemplateType] = enumFormat(TemplateType.apply)
+
+  implicit val mailTemplateModifyFormat = jsonFormat5(MailTemplateModify)
+  implicit val mailTemplateFormat = jsonFormat10(MailTemplate)
 }

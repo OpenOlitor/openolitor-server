@@ -22,15 +22,15 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.repositories
 
-import scalikejdbc._
-import ch.openolitor.stammdaten.models._
-import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.Macros._
+import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.parsing.{ FilterAttributeList, FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
 trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMappings with StammdatenDBMappings {
   lazy val rechnung = rechnungMapping.syntax("rechnung")
@@ -124,7 +124,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   }
 
   protected def getRechnungDetailQuery(id: RechnungId) = {
-    withSQL {
+    withSQL[Rechnung] {
       select
         .from(rechnungMapping as rechnung)
         .leftJoin(kundeMapping as kunde).on(rechnung.kundeId, kunde.id)
@@ -192,7 +192,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   }
 
   protected def getZahlungsImportDetailQuery(id: ZahlungsImportId) = {
-    withSQL {
+    withSQL[ZahlungsImport] {
       select
         .from(zahlungsImportMapping as zahlungsImport)
         .leftJoin(zahlungsEingangMapping as zahlungsEingang).on(zahlungsImport.id, zahlungsEingang.zahlungsImportId)

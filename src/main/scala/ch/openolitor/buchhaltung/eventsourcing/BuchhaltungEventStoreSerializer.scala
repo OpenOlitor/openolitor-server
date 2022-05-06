@@ -29,16 +29,16 @@ import ch.openolitor.buchhaltung._
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.buchhaltung.BuchhaltungCommandHandler._
-import zangelo.spray.json.AutoProductFormats
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 import ch.openolitor.core.JSONSerializable
-import spray.json.lenses.JsonLenses._
 
-trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer with AutoProductFormats[JSONSerializable] {
+trait BuchhaltungEventStoreSerializer extends BuchhaltungJsonProtocol with EntityStoreJsonProtocol with CoreEventStoreSerializer {
   import ch.openolitor.core.eventsourcing.events._
 
   object MigrationToEmpty extends DefaultJsonProtocol {
     case class Empty() extends JSONSerializable
+
+    implicit val emptyFormat = jsonFormat0(Empty)
 
     val V1toV2toEmpty: JsonMigrator[V2] = from[V1].to[V2] { _ =>
       Empty().toJson

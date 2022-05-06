@@ -87,7 +87,6 @@ object RechnungsPositionTyp {
 }
 
 case class RechnungId(id: Long) extends BaseId with Ordered[RechnungId] {
-  import scala.math.Ordered.orderingToOrdered
   def compare(that: RechnungId): Int = (this.id) compare (that.id)
 }
 
@@ -142,7 +141,9 @@ case class Rechnung(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
-) extends BaseEntity[RechnungId]
+) extends BaseEntity[RechnungId] with Ordered[Rechnung] {
+  override def compare(that: Rechnung): Int = this.id.compare(that.id)
+}
 
 object Rechnung {
   def unapply(entity: Rechnung) = {

@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.db
 
-import scalikejdbc.config._
-import scalikejdbc._
 import ch.openolitor.core.MandantConfiguration
+import scalikejdbc._
+import scalikejdbc.config._
 
 /**
  * Mandant specific dbs
@@ -64,7 +64,7 @@ case class MandantDBs(mandantConfiguration: MandantConfiguration) extends DBs
     }
   }
 
-  def loadConnectionPool(dbName: Symbol = ConnectionPool.DEFAULT_NAME): ConnectionPool = {
+  def loadConnectionPool(dbName: String = ConnectionPool.DEFAULT_NAME): ConnectionPool = {
     val JDBCSettings(url, user, password, driver) = readJDBCSettings(dbName)
     val cpSettings = readConnectionPoolSettings(dbName)
     Class.forName(driver)
@@ -72,7 +72,7 @@ case class MandantDBs(mandantConfiguration: MandantConfiguration) extends DBs
   }
 
   def connectionPoolContext(): ConnectionPoolContext = {
-    val context = for (dbName <- dbNames) yield (Symbol(dbName), loadConnectionPool(Symbol(dbName)))
+    val context = for (dbName <- dbNames) yield (dbName, loadConnectionPool(dbName))
     //: _* converts list into a varargs parameter of type tuple2
     MultipleConnectionPoolContext(context: _*)
   }

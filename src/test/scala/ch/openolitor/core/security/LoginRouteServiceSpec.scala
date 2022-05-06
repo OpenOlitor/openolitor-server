@@ -22,13 +22,14 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import java.util.Locale
-import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
+import akka.actor.{ ActorRef, ActorSystem }
+import akka.http.caching.scaladsl.Cache
+import akka.http.caching.LfuCache
 import akka.testkit.{ TestActorRef, TestProbe }
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import ch.openolitor.core.domain.SystemEvents.PersonChangedOtpSecret
-import ch.openolitor.core.filestore.FileStore
+import ch.openolitor.core.filestore.MockFileStoreComponent
 import ch.openolitor.core.mailservice.MailServiceMock
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.MockStammdatenReadRepositoryComponent
@@ -37,24 +38,23 @@ import ch.openolitor.util.OtpUtil
 import org.apache.commons.codec.binary.Base32
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
-import org.mockito.Matchers.{ eq => isEq }
+import org.mockito.ArgumentMatchers.{ eq => isEq }
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-import org.specs2.time.NoTimeConversions
-import spray.caching.{ Cache, LruCache }
 
 import java.nio.charset.StandardCharsets
 import java.time.Instant
+import java.util.Locale
 import javax.crypto.spec.SecretKeySpec
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
-class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConversions {
+class LoginRouteServiceSpec(implicit ec: ExecutionEnv) extends Specification with Mockito {
   val email = "info@test.com"
   val pwd = "pwd"
   val pwdHashed = BCrypt.hashpw(pwd, BCrypt.gensalt())
-  val personId = PersonId(1);
+  val personId = PersonId(1)
   val otpSecret = OtpUtil.generateOtpSecretString
   val otpSecretKey =
     new SecretKeySpec(
@@ -85,9 +85,8 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
       result.map { x =>
-        x.toEither.right.map(_.status) must beRight(Ok)
-        val token = x.toEither.right.map(_.token).right.get
-        token must beSome
+        x.toEither.map(_.status).toOption.get === Ok
+        val token = x.toEither.map(_.token).toOption.get
         service.loginTokenCache.get(token.get) must beSome
       }.await(3, timeout)
     }
@@ -135,7 +134,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === Ok }.await(3, timeout)
     }
 
     "be enabled by project settings, default type email" in {
@@ -147,8 +146,8 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
-      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(EmailSecondFactorType)) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === SecondFactorRequired }.await(3, timeout)
+      result.map { _.toEither.map(_.secondFactorType).toOption.get === Some(EmailSecondFactorType) }.await(3, timeout)
     }
 
     "be enabled by project settings, default type otp" in {
@@ -160,8 +159,8 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
-      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(OtpSecondFactorType)) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === SecondFactorRequired }.await(3, timeout)
+      result.map { _.toEither.map(_.secondFactorType).toOption.get === Some(OtpSecondFactorType) }.await(3, timeout)
     }
 
     "be enabled by project settings, overridden type otp" in {
@@ -174,8 +173,8 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
-      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(OtpSecondFactorType)) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === SecondFactorRequired }.await(3, timeout)
+      result.map { _.toEither.map(_.secondFactorType).toOption.get === Some(OtpSecondFactorType) }.await(3, timeout)
     }
 
     "be enabled by project settings, overridden type email" in {
@@ -188,8 +187,8 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
 
       val result = service.validateLogin(LoginForm(email, pwd)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(SecondFactorRequired) }.await(3, timeout)
-      result.map { _.toEither.right.map(_.secondFactorType) must beRight(Some(EmailSecondFactorType)) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === SecondFactorRequired }.await(3, timeout)
+      result.map { _.toEither.map(_.secondFactorType).toOption.get === Some(EmailSecondFactorType) }.await(3, timeout)
     }
 
     "be enabled by project settings, default type otp, otpReset required" in {
@@ -213,13 +212,13 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
       val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === Ok }.await(3, timeout)
     }
 
     "Fail when login not active" in {
@@ -229,7 +228,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminInactive))
 
@@ -245,7 +244,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -261,7 +260,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -277,7 +276,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(None)
 
@@ -293,11 +292,11 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = EmailSecondFactor(token, code, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
       val result1 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, code)).run
-      result1.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+      result1.map { _.toEither.map(_.status).toOption.get === Ok }.await(3, timeout)
 
       service.secondFactorTokenCache.get(token) must beNone
 
@@ -315,13 +314,13 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
       val result = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
 
-      result.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+      result.map { _.toEither.map(_.status).toOption.get === Ok }.await(3, timeout)
     }
 
     "Fail when login not active" in {
@@ -331,7 +330,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminInactive))
 
@@ -346,7 +345,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val secondFactor = OtpSecondFactor(token, personId)
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -362,7 +361,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -378,7 +377,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(None)
 
@@ -394,11 +393,11 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       val code = OtpUtil.Totp.generateOneTimePassword(otpSecretKey, Instant.now())
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
       val result1 = service.validateSecondFactorLogin(SecondFactorAuthentication(token, String.valueOf(code))).run
-      result1.map { _.toEither.right.map(_.status) must beRight(Ok) }.await(3, timeout)
+      result1.map { _.toEither.map(_.status).toOption.get === Ok }.await(3, timeout)
 
       service.secondFactorTokenCache.get(token) must beNone
 
@@ -417,7 +416,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       implicit val subject = adminSubject
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -433,7 +432,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       implicit val subject = adminSubject
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -450,7 +449,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       implicit val subject = adminSubject.copy(personId = PersonId(100))
 
       //store token in cache
-      service.secondFactorTokenCache(token)(secondFactor)
+      service.secondFactorTokenCache(token, () => Future.successful(secondFactor))
 
       service.stammdatenReadRepository.getPerson(isEq(PersonId(100)))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(None)
 
@@ -473,7 +472,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       implicit val subject = adminSubject
 
       //store token in cache
-      service.secondFactorResetTokenCache(token)(newOtpSecret)
+      service.secondFactorResetTokenCache(token, () => Future.successful(newOtpSecret))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -497,7 +496,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       implicit val subject = adminSubject
 
       //store token in cache
-      service.secondFactorResetTokenCache(token)(newOtpSecret)
+      service.secondFactorResetTokenCache(token, () => Future.successful(newOtpSecret))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -518,7 +517,7 @@ class LoginRouteServiceSpec extends Specification with Mockito with NoTimeConver
       implicit val subject = adminSubject
 
       //store token in cache
-      service.secondFactorResetTokenCache(token)(newOtpSecret)
+      service.secondFactorResetTokenCache(token, () => Future.successful(newOtpSecret))
 
       service.stammdatenReadRepository.getPerson(isEq(personId))(any[MultipleAsyncConnectionPoolContext]) returns Future.successful(Some(personAdminActive))
 
@@ -533,6 +532,7 @@ class MockLoginRouteService(
   requireSecondFactorAuthenticationP: Boolean
 )
   extends LoginRouteService
+  with MockFileStoreComponent
   with MockStammdatenReadRepositoryComponent {
 
   override val entityStore: ActorRef = null
@@ -545,10 +545,9 @@ class MockLoginRouteService(
   //override val eventStore: ActorRef = TestActorRef(new DefaultSystemEventStore(sysConfig, dbEvolutionActor))
   override val eventStore: ActorRef = eventStoreProbe.ref
   override val mailService: ActorRef = TestActorRef(new MailServiceMock)
-  override val fileStore: FileStore = null
-  override val actorRefFactory: ActorRefFactory = null
-  override val loginTokenCache: Cache[Subject] = LruCache()
+  override val loginTokenCache: Cache[String, Subject] = LfuCache(system)
   override val airbrakeNotifier: ActorRef = null
 
   override lazy val requireSecondFactorAuthentication = requireSecondFactorAuthenticationP
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
 }

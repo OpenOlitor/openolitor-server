@@ -36,5 +36,5 @@ trait CoreReadRepository {
 
 class CoreReadRepositoryImpl(override val system: ActorSystem) extends CoreReadRepository with CoreRepositoryQueries {
   def queryPersistenceJournal(limit: Int)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersistenceJournal]] =
-    queryPersistenceJournalQuery(limit, filter).future
+    queryPersistenceJournalQuery(limit, filter).future()
 }

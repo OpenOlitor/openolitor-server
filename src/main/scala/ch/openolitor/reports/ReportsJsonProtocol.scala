@@ -26,13 +26,11 @@ import spray.json._
 import ch.openolitor.core.BaseJsonProtocol
 import ch.openolitor.reports.models._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.JSONSerializable
-import zangelo.spray.json.AutoProductFormats
 
 /**
  * JSON Format deklarationen für das Modul Reports
  */
-trait ReportsJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoProductFormats[JSONSerializable] {
+trait ReportsJsonProtocol extends BaseJsonProtocol with LazyLogging {
 
   //id formats
   implicit val reportId = baseIdFormat(ReportId)
@@ -57,4 +55,8 @@ trait ReportsJsonProtocol extends BaseJsonProtocol with LazyLogging with AutoPro
     def read(value: JsValue) = throw new UnsupportedOperationException("Map[String, Any] can not be created out of JSON-Object at the moment")
   }
 
+  implicit val reportCreateFormat = jsonFormat3(ReportCreate)
+  implicit val reportModifyFormat = jsonFormat3(ReportModify)
+  implicit val reportFormat = jsonFormat8(Report)
+  implicit val reportExecuteFormat = jsonFormat2(ReportExecute)
 }

@@ -19,7 +19,6 @@ trait MailTemplateEntityStoreView
   self: MailTemplateWriteRepositoryComponent =>
 
   override val module = "mailtemplate"
-  override def initializeEntityStoreView(): Unit = {}
 }
 
 trait MailTemplateEntityStoreViewComponent extends EntityStoreViewComponent {

@@ -27,7 +27,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.eventsourcing.PersistenceDBMappings
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.core.models.PersistenceMessage
+import ch.openolitor.core.models.{ PersistenceJournal, PersistenceMessage }
 
 trait CoreRepositoryQueries extends LazyLogging with CoreDBMappings with PersistenceDBMappings {
   lazy val persistenceJournal = persistenceJournalMapping.syntax("persistence")

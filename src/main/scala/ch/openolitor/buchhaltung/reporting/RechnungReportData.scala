@@ -22,28 +22,26 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.reporting
 
-import java.time.LocalDate
-import java.util.Locale
-
-import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
-import ch.openolitor.core.ActorReferences
-import ch.openolitor.core.Macros._
+import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.reporting._
+import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models.{ KontoDaten, Projekt, ProjektReport }
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import com.typesafe.scalalogging.LazyLogging
 import net.codecrete.qrbill.generator._
 import org.joda.time.{ DateTime, DateTimeZone }
 
-import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.Implicits.global
+import java.time.LocalDate
+import java.util.Locale
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
-trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging {
+trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging with ExecutionContextAware {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
 
   def rechungenById(rechnungIds: Seq[RechnungId]): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
@@ -86,14 +84,14 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
     kontoDaten.iban match {
       case Some(iban) =>
         val result = stammdatenReadRepository.getPersonen(rechnung.kunde.id) map { personen =>
-          val bill = new Bill();
-          val billFormat = new BillFormat();
+          val bill = new Bill()
+          val billFormat = new BillFormat()
           val language = projekt.sprache match {
-            case Locale.FRENCH  => Language.FR;
-            case Locale.GERMAN  => Language.DE;
-            case Locale.ITALIAN => Language.IT;
-            case Locale.ENGLISH => Language.EN;
-            case _              => Language.DE;
+            case Locale.FRENCH  => Language.FR
+            case Locale.GERMAN  => Language.DE
+            case Locale.ITALIAN => Language.IT
+            case Locale.ENGLISH => Language.EN
+            case _              => Language.DE
           }
           billFormat.setLanguage(language)
           billFormat.setOutputSize(OutputSize.QR_BILL_WITH_HORIZONTAL_LINE)
@@ -101,36 +99,36 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           bill.setFormat(billFormat)
           //this value is mandatory for the qrCode. In case of generating qrCode
           bill.setAccount(iban)
-          bill.setAmount(rechnung.betrag.bigDecimal);
-          bill.setCurrency(projekt.waehrung.toString);
+          bill.setAmount(rechnung.betrag.bigDecimal)
+          bill.setCurrency(projekt.waehrung.toString)
 
           // Set creditor
-          val creditor = new Address();
+          val creditor = new Address()
           creditor.setName(kontoDaten.nameAccountHolder.getOrElse(projekt.bezeichnung))
-          creditor.setStreet(projekt.strasse.getOrElse(""));
-          creditor.setHouseNo(projekt.hausNummer.getOrElse(""));
-          creditor.setPostalCode(projekt.plz.getOrElse(""));
-          creditor.setTown(projekt.ort.getOrElse(""));
-          creditor.setCountryCode("CH");
-          bill.setCreditor(creditor);
+          creditor.setStreet(projekt.strasse.getOrElse(""))
+          creditor.setHouseNo(projekt.hausNummer.getOrElse(""))
+          creditor.setPostalCode(projekt.plz.getOrElse(""))
+          creditor.setTown(projekt.ort.getOrElse(""))
+          creditor.setCountryCode("CH")
+          bill.setCreditor(creditor)
 
           // more bill data
-          bill.setUnstructuredMessage(rechnung.titel);
-          bill.setReference(rechnung.referenzNummer);
-          bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF);
+          bill.setUnstructuredMessage(rechnung.titel)
+          bill.setReference(rechnung.referenzNummer)
+          bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF)
 
           // Set debtor
-          val debtor = new Address();
+          val debtor = new Address()
           val p = personen map { person =>
             person.fullName
           }
-          debtor.setName(p.mkString(","));
-          debtor.setStreet(rechnung.kunde.strasse);
-          debtor.setHouseNo(rechnung.kunde.hausNummer.getOrElse(""));
-          debtor.setPostalCode(rechnung.kunde.plz);
-          debtor.setTown(rechnung.kunde.ort);
-          debtor.setCountryCode("CH");
-          bill.setDebtor(debtor);
+          debtor.setName(p.mkString(","))
+          debtor.setStreet(rechnung.kunde.strasse)
+          debtor.setHouseNo(rechnung.kunde.hausNummer.getOrElse(""))
+          debtor.setPostalCode(rechnung.kunde.plz)
+          debtor.setTown(rechnung.kunde.ort)
+          debtor.setCountryCode("CH")
+          bill.setDebtor(debtor)
 
           try {
             val svg = QRBill.generate(bill)
@@ -138,7 +136,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           } catch {
             case e: QRBillValidationError => {
               val listValidation = e.getValidationResult.getValidationMessages
-              val message: String = listValidation.map { m =>
+              val message: String = listValidation.asScala.map { m =>
                 m.getMessageKey: String
               }.mkString("")
               if (message.equals("account_is_ch_li_iban")) {
@@ -160,7 +158,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
   }
 
   def toLocalDate(dateTime: DateTime) = {
-    val dateTimeUtc = dateTime.withZone(DateTimeZone.UTC);
-    LocalDate.of(dateTimeUtc.getYear(), dateTimeUtc.getMonthOfYear(), dateTimeUtc.getDayOfMonth());
+    val dateTimeUtc = dateTime.withZone(DateTimeZone.UTC)
+    LocalDate.of(dateTimeUtc.getYear(), dateTimeUtc.getMonthOfYear(), dateTimeUtc.getDayOfMonth())
   }
 }

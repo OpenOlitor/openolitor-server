@@ -60,6 +60,4 @@ trait StammdatenPaths extends SprayDeserializers with StammdatenJsonProtocol {
     case UnknownFileType => None
     case x               => Some(x)
   })
-
-  implicit val abosComplexFlagsParameter = jsonDeserializer[AbosComplexFlags]
 }

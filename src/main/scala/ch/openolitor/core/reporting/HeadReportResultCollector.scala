@@ -23,9 +23,9 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
-import ch.openolitor.core.reporting.ReportSystem._
+import akka.http.scaladsl.model.MediaTypes
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
-import spray.http.MediaTypes
+import ch.openolitor.core.reporting.ReportSystem._
 
 object HeadReportResultCollector {
   def props(reportSystem: ActorRef, jobQueueService: ActorRef): Props = Props(classOf[HeadReportResultCollector], reportSystem, jobQueueService)

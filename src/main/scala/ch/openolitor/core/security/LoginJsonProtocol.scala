@@ -22,12 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import spray.json._
-import zangelo.spray.json.AutoProductFormats
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
+import spray.json._
 
-trait LoginJsonProtocol extends StammdatenJsonProtocol with AutoProductFormats[JSONSerializable] {
+trait LoginJsonProtocol extends StammdatenJsonProtocol {
   implicit val loginStatusFormat = new JsonFormat[RequestStatus] {
     def write(obj: RequestStatus): JsValue =
       JsString(obj.productPrefix)
@@ -39,6 +37,23 @@ trait LoginJsonProtocol extends StammdatenJsonProtocol with AutoProductFormats[J
       }
   }
 
-  implicit val subjectFormat = autoProductFormat[Subject]
-  implicit val userFormat = autoProductFormat[User]
+  implicit val emailSecondFactorFormat = jsonFormat3(EmailSecondFactor)
+  implicit val otpSecondFactorFormat = jsonFormat2(OtpSecondFactor)
+  implicit val otpSecretResetRequestFormat = jsonFormat1(OtpSecretResetRequest)
+  implicit val otpSecretResetConfirmFormat = jsonFormat2(OtpSecretResetConfirm)
+
+  implicit val subjectFormat = jsonFormat5(Subject)
+  implicit val userFormat = jsonFormat2(User)
+  implicit val loginFormFormat = jsonFormat2(LoginForm)
+  implicit val secondFactorLoginFormFormat = jsonFormat2(SecondFactorAuthentication)
+  implicit val changePasswordFormFormat = jsonFormat3(ChangePasswordForm)
+  implicit val setPasswordFormFormat = jsonFormat3(SetPasswordForm)
+  implicit val passwordResetFormFormat = jsonFormat1(PasswordResetForm)
+
+  implicit val requestFailedFormat = jsonFormat1(RequestFailed)
+  implicit val loginResultFormat = jsonFormat5(LoginResult)
+  implicit val formResultFormat = jsonFormat3(FormResult)
+  implicit val loginSettingsFormat = jsonFormat3(LoginSettings)
+  implicit val loginSettingsFormFormat = jsonFormat3(LoginSettingsForm)
+  implicit val otpSecretResetResponseFormat = jsonFormat3(OtpSecretResetResponse)
 }

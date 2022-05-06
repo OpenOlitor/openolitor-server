@@ -27,9 +27,9 @@ import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.db._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models.KundeId
-import ch.openolitor.util.parsing.{ QueryFilter }
+import ch.openolitor.util.parsing.QueryFilter
 import com.typesafe.scalalogging.LazyLogging
-import scalikejdbc.async._
+import scalikejdbc.async.{ makeSQLToOptionAsync => _, makeSQLToListAsync => _, _ }
 
 import scala.concurrent._
 
@@ -52,59 +52,69 @@ trait ArbeitseinsatzReadRepositoryAsync extends BaseReadRepositoryAsync {
 
 class ArbeitseinsatzReadRepositoryAsyncImpl extends ArbeitseinsatzReadRepositoryAsync with LazyLogging with ArbeitseinsatzRepositoryQueries {
   def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]] = {
-    getArbeitskategorienQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getArbeitskategorienQuery.future()
   }
 
   def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[Arbeitsangebot]] = {
-    getArbeitsangeboteQuery(queryString).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getArbeitsangeboteQuery(queryString).future()
   }
 
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]] = {
-    getArbeitsangebotQuery(arbeitsangebotId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getArbeitsangebotQuery(arbeitsangebotId).future()
   }
 
   def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]] = {
-    getFutureArbeitsangeboteQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getFutureArbeitsangeboteQuery.future()
   }
 
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[Arbeitseinsatz]] = {
-    getArbeitseinsaetzeQuery(queryString).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getArbeitseinsaetzeQuery(queryString).future()
   }
 
   def getArbeitseinsaetze(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getArbeitseinsaetzeQuery(arbeitsangebotId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getArbeitseinsaetzeQuery(arbeitsangebotId).future()
   }
 
   def getArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getArbeitseinsaetzeQuery(kundeId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getArbeitseinsaetzeQuery(kundeId).future()
   }
 
   def getFutureArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getFutureArbeitseinsaetzeQuery.future
+    import scalikejdbc.async.makeSQLToListAsync
+    getFutureArbeitseinsaetzeQuery.future()
   }
 
   def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitseinsatz]] = {
-    getArbeitseinsatzQuery(arbeitseinsatzId).future
+    import scalikejdbc.async.makeSQLToOptionAsync
+    getArbeitseinsatzQuery(arbeitseinsatzId).future()
   }
 
   def getArbeitseinsatzDetail(arbeitseinsatzId: ArbeitseinsatzId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ArbeitseinsatzDetail]] = {
-    getArbeitseinsatzDetailQuery(arbeitseinsatzId).future
+    getArbeitseinsatzDetailQuery(arbeitseinsatzId).future()
   }
 
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitseinsatz]] = {
-    getFutureArbeitseinsaetzeQuery(kundeId).future
+    import scalikejdbc.async.makeSQLToListAsync
+    getFutureArbeitseinsaetzeQuery(kundeId).future()
   }
 
   def getArbeitseinsatzabrechnung(xFlags: Option[ArbeitsComplexFlags])(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[ArbeitseinsatzAbrechnung]] = {
     xFlags match {
       case Some(acf) if acf.kundeAktiv =>
-        getArbeitseinsatzabrechnungOnlyAktivKundenQuery(queryString).future
+        getArbeitseinsatzabrechnungOnlyAktivKundenQuery(queryString).future()
       case _ =>
-        getArbeitseinsatzabrechnungQuery(queryString).future
+        getArbeitseinsatzabrechnungQuery(queryString).future()
     }
   }
 
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ArbeitseinsatzDetail]] = {
-    getArbeitseinsatzDetailByArbeitsangebotQuery(arbeitsangebotId).future
+    getArbeitseinsatzDetailByArbeitsangebotQuery(arbeitsangebotId).future()
   }
 }

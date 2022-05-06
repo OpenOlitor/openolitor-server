@@ -23,13 +23,13 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
+import akka.http.scaladsl.model.MediaTypes
 import ch.openolitor.core.reporting.ReportSystem._
-import scala.util._
-import ch.openolitor.util.ZipBuilder
-import spray.http.MediaTypes
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
-import ch.openolitor.util.ZipBuilderWithFile
+import ch.openolitor.util.{ ZipBuilder, ZipBuilderWithFile }
+
+import scala.util._
 
 object ZipReportResultCollector {
   def props(reportSystem: ActorRef, jobQueueService: ActorRef): Props = Props(classOf[ZipReportResultCollector], reportSystem, jobQueueService)

@@ -23,15 +23,15 @@
 package ch.openolitor.core.jobs
 
 import akka.actor._
+import akka.http.scaladsl.model.MediaType
 import ch.openolitor.core.models._
 import ch.openolitor.core.JSONSerializable
+
 import java.util.UUID
 import java.io.File
 import org.joda.time.DateTime
-import spray.http.MediaType
 import ch.openolitor.core.filestore.FileStoreFileReference
 import ch.openolitor.core.ws.ClientMessages.ClientMessage
-import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.MandantConfiguration
 
 object JobQueueService {

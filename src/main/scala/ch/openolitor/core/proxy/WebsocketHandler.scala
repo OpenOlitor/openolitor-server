@@ -22,13 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core.proxy
 
-import org.jfarcand.wcs._
-import com.ning.http.client._
-import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
-import com.ning.http.client.ws.WebSocketListener
 import scala.collection.mutable.ListBuffer
 import java.util.concurrent.Executors
 
+/*
 class WebsocketHandler {
 
   val wsOptions = new Options
@@ -68,3 +65,4 @@ class WebsocketHandler {
     new WebSocket(o, None, false, asyncHttpClient, listeners)
   }
 }
+*/ 
