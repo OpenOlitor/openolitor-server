@@ -153,6 +153,25 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       val iabotyp = stammdatenWriteRepository.getAbotypById(id)
       iabotyp match {
         case Some(abotyp: Abotyp) => {
+          if (!abotyp.name.equals(update.name)) {
+            // update abotypName in the lieferplanung description
+            stammdatenWriteRepository.getLieferplanung(abotyp.name) map { lieferplanung =>
+              val abotypDepotTourReplaced = getUpdatedDescriptionLieferplanung(lieferplanung.abotypDepotTour, abotyp.name, update.name)
+              if (!abotypDepotTourReplaced.equals(lieferplanung.abotypDepotTour)) {
+                stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.id)(
+                  lieferplanungMapping.column.abotypDepotTour -> lieferplanung.abotypDepotTour,
+                  lieferplanungMapping.column.modifidat -> meta.timestamp,
+                  lieferplanungMapping.column.modifikator -> personId
+                )
+              }
+            }
+          }
+          // update abotypname in the lieferung
+          stammdatenWriteRepository.getLieferungenByAbotyp(abotyp.id) map { lieferung =>
+            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
+              lieferungMapping.column.abotypBeschrieb -> update.name
+            )
+          }
           //map all updatable fields
           val copy = copyFrom(abotyp, update)
           stammdatenWriteRepository.updateEntityFully[Abotyp, AbotypId](copy)
@@ -920,5 +939,14 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         stammdatenWriteRepository.updateEntityFully[Lieferung, LieferungId](copy)
       }
     }
+  }
+
+  private def getUpdatedDescriptionLieferplanung(abotypDepotTour: String, newName: String, oldName: String): String = {
+    val abotypDepotTourReplaced = abotypDepotTour
+      .replaceAll(oldName + ',', newName)
+      .replaceAll(oldName + ';', newName)
+    if (abotypDepotTourReplaced.endsWith(": " + newName) || abotypDepotTourReplaced.endsWith(", " + newName)) {
+      abotypDepotTourReplaced.substring(0, abotypDepotTourReplaced.length - oldName.length) + newName
+    } else abotypDepotTourReplaced
   }
 }

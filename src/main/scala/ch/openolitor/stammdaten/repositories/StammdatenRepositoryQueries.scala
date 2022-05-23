@@ -1284,6 +1284,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(produktMapping(produkt)).list
   }
 
+  protected def getLieferplanungQuery(abotypName: String) = {
+    withSQL {
+      select
+        .from(lieferplanungMapping as lieferplanung)
+        .where.like(lieferplanung.abotypDepotTour, '%' + abotypName + '%')
+    }.map(lieferplanungMapping(lieferplanung)).list
+  }
+
   protected def getLieferplanungenQuery(gjFilter: Option[GeschaeftsjahrFilter]) = {
     withSQL {
       select(sqls.distinct(lieferplanung.result.*))
@@ -2450,6 +2458,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
               .and.eq(zusatzAbo.aktiv, true)
           )
     }.map(res => AboId(res.long(1))).list
+  }
+
+  protected def getLieferungenByAbotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, abotypId)
+    }.map(lieferungMapping(lieferung)).list
   }
 
   protected def getLieferungenOffenOrAbgeschlossenByAbotypQuery(abotypId: AbotypId) = {
