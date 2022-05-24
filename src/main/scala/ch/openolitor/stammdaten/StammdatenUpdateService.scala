@@ -58,6 +58,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
   with LieferungHandler
+  with LieferplanungHandler
   with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
 
@@ -939,14 +940,5 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         stammdatenWriteRepository.updateEntityFully[Lieferung, LieferungId](copy)
       }
     }
-  }
-
-  private def updatedDescriptionLieferplanung(abotypDepotTour: String, newName: String, oldName: String): String = {
-    val abotypDepotTourReplaced = abotypDepotTour
-      .replaceAll(oldName + ',', newName + ',')
-      .replaceAll(oldName + ';', newName + ';')
-    if (abotypDepotTourReplaced.endsWith(": " + newName) || abotypDepotTourReplaced.endsWith(", " + newName)) {
-      abotypDepotTourReplaced.substring(0, abotypDepotTourReplaced.length - oldName.length) + newName
-    } else abotypDepotTourReplaced
   }
 }
