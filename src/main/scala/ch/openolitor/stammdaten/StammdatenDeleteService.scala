@@ -338,7 +338,8 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
             })
             stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferungId, { lieferung: Lieferung => lieferung.lieferplanungId == None })
             recalculateNumbersLieferung(lieferung)
-          case None => // do nothing
+          case None =>
+            stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferungId)
         }
       case None => // do nothing
     }
