@@ -156,7 +156,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
           if (!abotyp.name.equals(update.name)) {
             // update abotypName in the lieferplanung description
             stammdatenWriteRepository.getLieferplanung(abotyp.name) map { lieferplanung =>
-              val abotypDepotTourReplaced = getUpdatedDescriptionLieferplanung(lieferplanung.abotypDepotTour, abotyp.name, update.name)
+              val abotypDepotTourReplaced = updatedDescriptionLieferplanung(lieferplanung.abotypDepotTour, abotyp.name, update.name)
               if (!abotypDepotTourReplaced.equals(lieferplanung.abotypDepotTour)) {
                 stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.id)(
                   lieferplanungMapping.column.abotypDepotTour -> lieferplanung.abotypDepotTour,
@@ -941,10 +941,10 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def getUpdatedDescriptionLieferplanung(abotypDepotTour: String, newName: String, oldName: String): String = {
+  private def updatedDescriptionLieferplanung(abotypDepotTour: String, newName: String, oldName: String): String = {
     val abotypDepotTourReplaced = abotypDepotTour
-      .replaceAll(oldName + ',', newName)
-      .replaceAll(oldName + ';', newName)
+      .replaceAll(oldName + ',', newName + ',')
+      .replaceAll(oldName + ';', newName + ';')
     if (abotypDepotTourReplaced.endsWith(": " + newName) || abotypDepotTourReplaced.endsWith(", " + newName)) {
       abotypDepotTourReplaced.substring(0, abotypDepotTourReplaced.length - oldName.length) + newName
     } else abotypDepotTourReplaced
