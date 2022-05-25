@@ -32,11 +32,7 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, IdFactory, UserCommand }
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
-<<<<<<< HEAD
-import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Offen, Person }
-=======
-import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Lieferplanung, Verrechnet, Abgeschlossen }
->>>>>>> 3a067b7e... operations#462 check if Abwesenheit is covered by an already closed Lieferplanung
+import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Lieferplanung, Verrechnet, Abgeschlossen, Offen, Person }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
 import akka.actor.ActorSystem
