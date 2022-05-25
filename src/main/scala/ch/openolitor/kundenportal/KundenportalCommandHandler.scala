@@ -88,8 +88,8 @@ trait KundenportalCommandHandler extends CommandHandler
                 } else {
                   Failure(new InvalidStateException(s"Lieferplanung bereits abgeschlossen."))
                 }
-              } getOrElse (Success(Seq(EntityDeleteEvent(abwesenheitId))))
-            } getOrElse (Failure(new InvalidStateException(s"Die Abwesenheit konnte wurde nicht gefunden.")))
+              } getOrElse Success(Seq(EntityDeleteEvent(abwesenheitId)))
+            } getOrElse Failure(new InvalidStateException(s"Die Abwesenheit konnte wurde nicht gefunden."))
           } else {
             Failure(new InvalidStateException("Es können nur Abwesenheiten eigener Abos entfernt werden."))
           }
