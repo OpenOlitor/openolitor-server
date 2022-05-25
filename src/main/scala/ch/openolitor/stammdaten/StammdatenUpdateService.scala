@@ -58,6 +58,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   with AsyncConnectionPoolContextAware
   with StammdatenDBMappings
   with LieferungHandler
+  with LieferplanungHandler
   with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
 
@@ -153,6 +154,25 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       val iabotyp = stammdatenWriteRepository.getAbotypById(id)
       iabotyp match {
         case Some(abotyp: Abotyp) => {
+          if (!abotyp.name.equals(update.name)) {
+            // update abotypName in the lieferplanung description
+            stammdatenWriteRepository.getLieferplanung(abotyp.name) map { lieferplanung =>
+              val abotypDepotTourReplaced = updatedDescriptionLieferplanung(lieferplanung.abotypDepotTour, abotyp.name, update.name)
+              if (!abotypDepotTourReplaced.equals(lieferplanung.abotypDepotTour)) {
+                stammdatenWriteRepository.updateEntity[Lieferplanung, LieferplanungId](lieferplanung.id)(
+                  lieferplanungMapping.column.abotypDepotTour -> lieferplanung.abotypDepotTour,
+                  lieferplanungMapping.column.modifidat -> meta.timestamp,
+                  lieferplanungMapping.column.modifikator -> personId
+                )
+              }
+            }
+          }
+          // update abotypname in the lieferung
+          stammdatenWriteRepository.getLieferungenByAbotyp(abotyp.id) map { lieferung =>
+            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id)(
+              lieferungMapping.column.abotypBeschrieb -> update.name
+            )
+          }
           //map all updatable fields
           val copy = copyFrom(abotyp, update)
           stammdatenWriteRepository.updateEntityFully[Abotyp, AbotypId](copy)
