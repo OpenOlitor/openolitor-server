@@ -39,6 +39,7 @@ import scala.reflect._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.reports.ReportsDBMappings
+import ch.openolitor.reports.models._
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.db.evolution.scripts.Scripts
@@ -96,6 +97,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[ProduktProduzent, ProduktProduzentId](produktProduzentMapping),
           adjustSeed[Produktekategorie, ProduktekategorieId](produktekategorieMapping),
           adjustSeed[Projekt, ProjektId](projektMapping),
+          adjustSeed[Report, ReportId](reportMapping),
           adjustSeed[Tour, TourId](tourMapping),
           adjustSeed[Lieferplanung, LieferplanungId](lieferplanungMapping),
           adjustSeed[Lieferposition, LieferpositionId](lieferpositionMapping),
