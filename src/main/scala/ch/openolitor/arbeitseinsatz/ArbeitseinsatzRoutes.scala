@@ -52,6 +52,7 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   with ArbeitsangebotReportService
   with ArbeitseinsatzReportService
   with ArbeitseinsatzPaths
+  with FileTypeFilenameMapping
   with Defaults {
   self: ArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
@@ -91,10 +92,14 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           }
         }
       } ~
+      path("arbeitsangebote" / "berichte" / "arbeitsangebote") {
+        implicit val personId = subject.personId
+        generateReport[ArbeitsangebotId](None, generateArbeitsangebotReports(VorlageArbeitangebot) _)(ArbeitsangebotId.apply)
+      } ~
       path("arbeitsangebote" / arbeitsangebotIdPath / "berichte" / "arbeitseinsatzbrief") { id =>
         (post) {
           implicit val personId = subject.personId
-          generateReport[ArbeitsangebotId](Some(id), generateArbeitsangebotReports _)(ArbeitsangebotId.apply)
+          generateReport[ArbeitsangebotId](Some(id), generateArbeitsangebotReports(VorlageArbeitangebot) _)(ArbeitsangebotId.apply)
         }
       } ~
       path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze") { id =>
@@ -121,10 +126,14 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
           (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](id)) ~
           delete(remove(id))
       } ~
+      path("arbeitseinsaetze" / "berichte" / "arbeitseinsatzbrief") {
+        implicit val personId = subject.personId
+        generateReport[ArbeitseinsatzId](None, generateArbeitseinsatzReports(VorlageArbeitseinsatz) _)(ArbeitseinsatzId.apply)
+      } ~
       path("arbeitseinsaetze" / arbeitseinsatzIdPath / "berichte" / "arbeitseinsatzbrief") { id =>
         (post) {
           implicit val personId = subject.personId
-          generateReport[ArbeitseinsatzId](Some(id), generateArbeitseinsatzReports _)(ArbeitseinsatzId.apply)
+          generateReport[ArbeitseinsatzId](Some(id), generateArbeitseinsatzReports(VorlageArbeitseinsatz) _)(ArbeitseinsatzId.apply)
         }
       } ~
       path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>

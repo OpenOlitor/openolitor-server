@@ -45,6 +45,7 @@ case object VorlageLieferplanung extends FileType with VorlageTyp { val bucket =
 case object VorlageKorbUebersicht extends VorlageTyp { val bucket = VorlagenBucket }
 case object VorlageKorbDetails extends VorlageTyp { val bucket = VorlagenBucket }
 case object VorlageArbeitseinsatz extends VorlageTyp { val bucket = VorlagenBucket }
+case object VorlageArbeitangebot extends VorlageTyp { val bucket = VorlagenBucket }
 case object GeneriertRechnung extends FileType { val bucket = GeneriertBucket }
 case object GeneriertAuslieferung extends FileType { val bucket = GeneriertBucket }
 case object GeneriertMahnung extends FileType { val bucket = GeneriertBucket }
