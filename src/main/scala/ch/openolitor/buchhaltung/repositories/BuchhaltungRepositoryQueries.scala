@@ -55,7 +55,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         .where.append(
           UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
         ).and(
-            UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+            UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung)
           )
         .orderBy(rechnung.rechnungsDatum)
     }.map(rechnungMapping(rechnung)).list
