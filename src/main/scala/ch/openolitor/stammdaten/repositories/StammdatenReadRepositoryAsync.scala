@@ -112,7 +112,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getProduzentenabrechnungReport(sammelbestellungIds: Seq[SammelbestellungId], projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduzentenabrechnungReport]]
 
   def getTouren(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Tour]]
-  def getTourDetail(id: TourId, aktiveOnly: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]]
+  def getTourDetail(id: TourId, aktiveOrPlanned: Boolean)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[TourDetail]]
 
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Projekt]]
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]]
