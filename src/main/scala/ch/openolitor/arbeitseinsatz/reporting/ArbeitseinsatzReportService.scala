@@ -37,11 +37,11 @@ import ch.openolitor.core.jobs.JobQueueService.JobId
 trait ArbeitseinsatzReportService extends AsyncConnectionPoolContextAware with ReportService with ArbeitseinsatzJsonProtocol with ArbeitsangebotReportData {
   self: ArbeitseinsatzReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
-  def generateArbeitseinsatzReports(config: ReportConfig[ArbeitseinsatzId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ArbeitseinsatzId]]] = {
+  def generateArbeitseinsatzReports(fileType: FileType)(config: ReportConfig[ArbeitseinsatzId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ArbeitseinsatzId]]] = {
     generateReports[ArbeitseinsatzId, ArbeitseinsatzDetailReport](
       config,
       arbeitsangebotByIds,
-      VorlageArbeitseinsatz,
+      fileType,
       None,
       _.id,
       TemporaryData,
