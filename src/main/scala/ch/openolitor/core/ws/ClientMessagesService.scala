@@ -53,16 +53,9 @@ trait ClientMessagesService extends ActorSystemReference {
   implicit private val executionContext = system.dispatcher
   implicit private val materializer = Materializer.matFromSystem(system)
 
-  def handler(implicit subject: Subject): Flow[Message, Message, Any] = {
+  def handler(): Flow[Message, Message, Any] = {
     val messageSource = Source.queue[String](10, OverflowStrategy.dropHead)
     val queue: (SourceQueueWithComplete[String], Source[String, NotUsed]) = messageSource.preMaterialize()
-
-    streamsByUser
-      .getOrElseUpdate(subject.personId, TrieMap())
-      .update(subject.token, queue._1)
-
-    // register on complete disconnection to avoid memory leak
-    queue._1.watchCompletion().onComplete(_ => disconnectStreamOfSubject)
 
     val transformed = queue._2.map(message => TextMessage(message))
 
@@ -80,12 +73,19 @@ trait ClientMessagesService extends ActorSystemReference {
     Flow.fromSinkAndSourceCoupled(incoming, transformed)
   }
 
-  private def handleTextMessage(queue: (SourceQueue[String], Source[String, NotUsed]))(text: String) = {
+  private def handleTextMessage(queue: (SourceQueueWithComplete[String], Source[String, NotUsed]))(text: String) = {
     text match {
       case helloServerPattern(_, _, _) =>
         queue._1.offer("""{"type":"HelloClient","server":"openolitor"}""")
       case loginPattern(_, _, _, token, _) =>
-        loginTokenCache.get(token).map(_.map { subject =>
+        loginTokenCache.get(token).map(_.map { implicit subject =>
+          streamsByUser
+            .getOrElseUpdate(subject.personId, TrieMap())
+            .update(subject.token, queue._1)
+
+          // register on complete disconnection to avoid memory leak
+          queue._1.watchCompletion().onComplete(_ => disconnectStreamOfSubject)
+
           queue._1.offer(s"""{"type":"LoggedIn","personId":"${subject.personId.id}"}""")
         })
       case clientPingPattern(_*) =>

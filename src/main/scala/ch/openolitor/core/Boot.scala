@@ -149,7 +149,7 @@ object Boot extends App with LazyLogging {
     implicit val proxySystem = ActorSystem("oo-proxy", config)
     implicit val executionContext = proxySystem.dispatcher
 
-    Http().newServerAt(rootInterface, rootPort).bind(proxy.Proxy(mandanten).routes)
+    Http().newServerAt(rootInterface, rootPort).bind(proxy.Proxy(mandanten).withWsRoutes)
 
     logger.debug(s"oo-proxy-system: configured proxy listener on port ${rootPort}")
 
