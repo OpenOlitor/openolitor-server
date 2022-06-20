@@ -25,8 +25,9 @@ package ch.openolitor.core.proxy
 import akka.actor._
 import akka.http.scaladsl.model.{ HttpHeader, HttpRequest, HttpResponse }
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.RequestContext
+import akka.http.scaladsl.server.{ RequestContext, Route }
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.ws.WebSocketRequest
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import ch.openolitor.core.Boot.MandantSystem
 import com.typesafe.scalalogging.LazyLogging
@@ -50,7 +51,38 @@ trait Proxy extends LazyLogging {
   private def filterHeaders(headers: Seq[HttpHeader] = Seq.empty) =
     headers filterNot (header => filterHostHeader(header) || filterContinueHeader(header))
 
-  // TODO: spray-to-akka-http: handle WS as well
+  val withWsRoutes = pathPrefix(Segment) { mandantName: String =>
+    routeMap.get(mandantName) match {
+      case Some(mandantSystem) =>
+        path("ws") {
+          extractWebSocketUpgrade { upgrade =>
+            extractRequestContext { context =>
+              val headers = filterHeaders(context.request.headers)
+              val webSocketFlowProxy = Http(mandantSystem.system).webSocketClientFlow(WebSocketRequest(mandantSystem.config.wsUri, extraHeaders = headers))
+              val handleWebSocketProxy = upgrade.handleMessages(webSocketFlowProxy)
+              complete(handleWebSocketProxy)
+            }
+          }
+        } ~ {
+          context =>
+            val headers = filterHeaders(context.request.headers)
+
+            val query = context.request.uri.rawQueryString.map("?" + _).getOrElse("")
+            val path = context.unmatchedPath
+            val uri = mandantSystem.config.uri + path.toString + query
+
+            val proxyRequest = context.request.withHeaders(headers).withUri(uri)
+
+            Source.single(proxyRequest)
+              .via(connectionFlow(mandantSystem.system)(new URI(mandantSystem.config.uri)))
+              .runWith(Sink.head)(context.materializer)
+              .flatMap(context.complete(_))(mandantSystem.system.dispatcher)
+        }
+      case None =>
+        reject
+    }
+  }
+
   val routes = pathPrefix(Segment) { mandantName =>
     routeMap.get(mandantName) match {
       case Some(mandantSystem) =>
