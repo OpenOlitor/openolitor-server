@@ -29,7 +29,7 @@ import DefaultMessages._
 import scala.concurrent.duration._
 import akka.actor._
 import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
-import akka.persistence.query.PersistenceQuery
+import akka.persistence.query.{ EventEnvelope, PersistenceQuery }
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import akka.stream.Materializer
@@ -80,15 +80,18 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
 
   def journalSource(fromSequenceNr: Long): Source[Any, NotUsed] =
     readJournal
-      .currentEventsByPersistenceId(
+      .eventsByPersistenceId(
         persistenceId,
         fromSequenceNr = fromSequenceNr,
         toSequenceNr = Long.MaxValue
       )
 
   def replayJournalSource(fromSequenceNr: Long): Unit = {
+    log.debug(s"replayJournalSource: $fromSequenceNr")
     implicit val materializer = Materializer.matFromSystem(context.system)
-    journalSource(fromSequenceNr).runForeach(event => context.self ! event)
+    journalSource(fromSequenceNr).runForeach {
+      case event: EventEnvelope => context.self ! event.event
+    }
   }
 
   def prepareTerminate(): Unit = {
@@ -138,7 +141,7 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
   }
 
   val processNewEvents: Receive = {
-    case e: EntityStoreInitialized =>
+    case _: EntityStoreInitialized =>
       log.debug(s"Received EntityStoreInitialized")
     case e: EntityInsertedEvent[_, _] =>
       runSafe(insertService.handle, e)
