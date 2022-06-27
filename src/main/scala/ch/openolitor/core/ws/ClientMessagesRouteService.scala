@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext
 trait ClientMessagesRouteService extends BaseRouteService with XSRFTokenSessionAuthenticatorProvider {
   val clientMessagesService: ClientMessagesService
 
-  lazy val routes: Route = {
+  lazy val routes: Route = path("") {
     handleWebSocketMessages(clientMessagesService.handler())
   }
 }
