@@ -27,14 +27,14 @@ import ch.openolitor.core.db._
 import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.util.parsing.FilterExpr
 import scala.concurrent.Future
-import ch.openolitor.core.models.PersistenceJournal
+import ch.openolitor.core.models.PersistenceJournalView
 import akka.actor.ActorSystem
 
 trait CoreReadRepository {
-  def queryPersistenceJournal(limit: Int)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersistenceJournal]]
+  def queryPersistenceJournal(limit: Int)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersistenceJournalView]]
 }
 
 class CoreReadRepositoryImpl(override val system: ActorSystem) extends CoreReadRepository with CoreRepositoryQueries {
-  def queryPersistenceJournal(limit: Int)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersistenceJournal]] =
+  def queryPersistenceJournal(limit: Int)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersistenceJournalView]] =
     queryPersistenceJournalQuery(limit, filter).future()
 }

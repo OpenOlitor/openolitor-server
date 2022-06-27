@@ -27,22 +27,19 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.eventsourcing.PersistenceDBMappings
 import ch.openolitor.util.parsing.FilterExpr
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.core.models.{ PersistenceJournal, PersistenceMessage }
+import ch.openolitor.core.models.{ PersistenceJournalView, PersistenceMessage }
 
 trait CoreRepositoryQueries extends LazyLogging with CoreDBMappings with PersistenceDBMappings {
-  lazy val persistenceJournal = persistenceJournalMapping.syntax("persistence")
-  lazy val persistenceMeta = persistenceMetadataMapping.syntax("persistenceMeta")
+  lazy val persistenceJournal = persistenceJournalViewMapping.syntax("journal_view")
 
   protected def queryPersistenceJournalQuery(limit: Int, filter: Option[FilterExpr]) = {
     withSQL {
       select
-        .from(persistenceJournalMapping as persistenceJournal)
-        .innerJoin(persistenceMetadataMapping as persistenceMeta).on(persistenceJournal.persistenceKey, persistenceMeta.persistenceKey)
+        .from(persistenceJournalViewMapping as persistenceJournal)
         .where(UriQueryParamToSQLSyntaxBuilder.build(filter, persistenceJournal))
-        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, persistenceMeta, Seq("sequence_nr")))
-        .orderBy(persistenceJournal.sequenceNr.desc)
+        .orderBy(persistenceJournal.journalVersion.desc, persistenceJournal.sequenceNr.desc)
         .limit(limit)
-    }.map(persistenceJournalMapping(persistenceJournal)).list
+    }.map(persistenceJournalViewMapping(persistenceJournal)).list
   }
 
   protected def queryLatestPersistenceMessageByPersistenceIdQuery = {
@@ -53,7 +50,6 @@ trait CoreRepositoryQueries extends LazyLogging with CoreDBMappings with Persist
         ON j.persistence_key=l.persistence_key AND j.sequence_nr=l.sequence_nr
           """.map { rs =>
       val persistenceId = rs.string("persistence_id")
-      val persistenceKey = rs.long("persistence_key")
       val seqNr = rs.long("sequence_nr")
       val message = persistentEventBinder.apply(rs.underlying, "message")
       logger.debug(s"Get latest message per persistenceId:$persistenceId, sequenceNr: $seqNr, message:$message")
