@@ -119,7 +119,8 @@ trait SystemRouteService extends BaseRouteService with ActorReferences
               UriQueryParamFilterParser.parse(filterString)
             }
             onSuccess(coreReadRepository.queryPersistenceJournal(limit)) {
-              case result => complete(result)
+              case result =>
+                complete(result)
             }
           }
         }

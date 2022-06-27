@@ -23,9 +23,9 @@
 package ch.openolitor.core.eventsourcing
 
 import ch.openolitor.core.BaseJsonProtocol
-import ch.openolitor.core.models.{ PersistedMessage, PersistenceJournal }
+import ch.openolitor.core.models.{ PersistedMessage, PersistenceJournalView }
 
 trait PersistenceJsonProtocol extends BaseJsonProtocol {
-  implicit val PersistedMessageFormat = jsonFormat3(PersistedMessage)
-  implicit val persistenceJournalFormat = jsonFormat3(PersistenceJournal)
+  implicit val PersistedMessageFormat = jsonFormat1(PersistedMessage)
+  implicit val persistenceJournalFormat = jsonFormat4(PersistenceJournalView)
 }
