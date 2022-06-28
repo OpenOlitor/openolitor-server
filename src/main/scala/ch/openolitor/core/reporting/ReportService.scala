@@ -126,7 +126,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
 
   def generateReport[I, E](vorlage: Array[Byte], data: ReportData[E], pdfGenerieren: Boolean,
     pdfAblage: Option[FileStoreParameters[E]], downloadFile: Boolean, pdfMerge: Boolean, jobId: JobId)(implicit personId: PersonId): ServiceResult[JobId] = EitherT {
-    logger.debug(s"generateReport: vorlage: $vorlage, pdfGenerieren: $pdfGenerieren, pdfAblage: $pdfAblage, downloadFile: $downloadFile, pdfMerge: $pdfMerge, jobId: $jobId")
+    logger.debug(s"generateReport: vorlage: ${vorlage.length}, pdfGenerieren: $pdfGenerieren, pdfAblage: $pdfAblage, downloadFile: $downloadFile, pdfMerge: $pdfMerge, jobId: $jobId")
     val collector =
       if (pdfAblage.isDefined) FileStoreReportResultCollector.props(reportSystem, jobQueueService, downloadFile, pdfMerge)
       else if (data.rows.size == 1) HeadReportResultCollector.props(reportSystem, jobQueueService)

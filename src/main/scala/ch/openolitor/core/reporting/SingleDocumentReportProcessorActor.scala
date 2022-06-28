@@ -44,15 +44,14 @@ class SingleDocumentReportProcessorActor(name: String, locale: Locale) extends A
   val receive: Receive = {
     case GenerateReport(id, file, data) =>
       this.id = id
+      val s = sender()
       generateReport(file, data) match {
-        case Success(result) => {
-          sender ! DocumentReportResult(id, result, name + ".odt")
-        }
-        case Failure(error) => {
+        case Success(result) =>
+          s ! DocumentReportResult(id, result, name + ".odt")
+        case Failure(error) =>
           error.printStackTrace()
           log.warning(s"Couldn't generate report document {}", error)
-          sender ! ReportError(Some(id), error.getMessage)
-        }
+          s ! ReportError(Some(id), error.getMessage)
       }
       self ! PoisonPill
   }
@@ -60,7 +59,7 @@ class SingleDocumentReportProcessorActor(name: String, locale: Locale) extends A
   private def generateReport(file: Array[Byte], data: JsObject): Try[File] = {
     for {
       doc <- Try(TextDocument.loadDocument(new ByteArrayInputStream(file)))
-      result <- processDocument(doc, data, locale)
+      _ <- processDocument(doc, data, locale)
     } yield {
       val file = File.createTempFile("report", ".odt")
       val os = new FileOutputStream(file)

@@ -75,7 +75,7 @@ trait BuchhaltungRoutes
 
   import EntityStore._
 
-  def buchhaltungRoute(implicit subect: Subject) =
+  def buchhaltungRoute(implicit subect: Subject): Route =
     httpParameters("f".?, "g".?) { (f, g) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
@@ -86,6 +86,27 @@ trait BuchhaltungRoutes
       rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
+  private def pain008Route(version: String)(implicit subect: Subject): Route = post {
+    extractRequest { _ =>
+      entity(as[RechnungenContainer]) { cont =>
+        onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
+          generatePain008(rechnungen, version) match {
+            case Right(xmlData) => {
+              val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+              storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), s"pain_008_001_$version") { (fileId, _) =>
+                createZahlungExport(fileId, rechnungen, xmlData)
+              }
+            }
+            case Left(errorMessage) => {
+              logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_$version : $errorMessage")
+              complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_$version: $errorMessage")
+            }
+          }
+        }
+      }
+    }
+  }
+
   def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) =
     path("rechnungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungen, exportFormat)) ~
@@ -93,7 +114,7 @@ trait BuchhaltungRoutes
     } ~
       path("rechnungen" / "aktionen" / "downloadrechnungen") {
         post {
-          extractRequest { request =>
+          extractRequest { _ =>
             entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.fileStoreId.map(FileStoreFileId(_))).flatten
@@ -111,7 +132,7 @@ trait BuchhaltungRoutes
       } ~
       path("rechnungen" / "aktionen" / "downloadmahnungen") {
         post {
-          extractRequest { request =>
+          extractRequest { _ =>
             entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.mahnungFileStoreIds.map(FileStoreFileId(_))).flatten
@@ -127,31 +148,15 @@ trait BuchhaltungRoutes
           }
         }
       } ~
+      path("rechnungen" / "aktionen" / "pain_008_001_02") {
+        pain008Route("02")
+      } ~
       path("rechnungen" / "aktionen" / "pain_008_001_07") {
-        post {
-          extractRequest { request =>
-            entity(as[RechnungenContainer]) { cont =>
-              onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
-                generatePain008(rechnungen) match {
-                  case Right(xmlData) => {
-                    val bytes = xmlData.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-                    storeToFileStore(ZahlungsExportDaten, None, new ByteArrayInputStream(bytes), "pain_008_001_02") { (fileId, meta) =>
-                      createZahlungExport(fileId, rechnungen, xmlData)
-                    }
-                  }
-                  case Left(errorMessage) => {
-                    logger.debug(s"Some data needs to be introduce in the system before creating the pain_008_001_02 : $errorMessage")
-                    complete(StatusCodes.BadRequest, s"Some data needs to be introduce in the system before creating the pain_008_001_02 : $errorMessage")
-                  }
-                }
-              }
-            }
-          }
-        }
+        pain008Route("07")
       } ~
       path("rechnungen" / "aktionen" / "verschicken") {
         post {
-          extractRequest { request =>
+          extractRequest { _ =>
             entity(as[RechnungenContainer]) { cont =>
               verschicken(cont.ids)
             }
@@ -245,13 +250,13 @@ trait BuchhaltungRoutes
       path("zahlungsimports" / zahlungsImportIdPath) { id =>
         get(detail(buchhaltungReadRepository.getZahlungsImportDetail(id)))
       } ~
-      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "erledigen") { (_, zahlungsEingangId) =>
+      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "erledigen") { (_, _) =>
         post(entity(as[ZahlungsEingangModifyErledigt]) { entity => zahlungsEingangErledigen(entity) })
       } ~
-      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "ignore") { (_, zahlungsEingangId) =>
+      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "ignore") { (_, _) =>
         post(entity(as[ZahlungsEingangModifyErledigt]) { entity => zahlungsEingangIgnore(entity) })
       } ~
-      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / "aktionen" / "automatischerledigen") { id =>
+      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / "aktionen" / "automatischerledigen") { _ =>
         post(entity(as[Seq[ZahlungsEingangModifyErledigt]]) { entities => zahlungsEingaengeErledigen(entities) })
       }
 
@@ -438,7 +443,7 @@ trait BuchhaltungRoutes
   }
 
   private def sendEmailsToInvoicesSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[RechnungId], attachInvoice: Boolean)(implicit subject: Subject) = {
-    onSuccess((entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids, attachInvoice))) {
+    onSuccess(entityStore ? BuchhaltungCommandHandler.SendEmailToInvoicesSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids, attachInvoice)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
       case _ =>
@@ -446,7 +451,7 @@ trait BuchhaltungRoutes
     }
   }
 
-  def generatePain008(ids: List[Rechnung])(implicit subect: Subject): Either[String, String] = {
+  def generatePain008(ids: List[Rechnung], version: String = "02")(implicit subect: Subject): Either[String, String] = {
     val NbOfTxs = ids.size.toString
 
     val rechnungenWithFutures: Future[List[(Rechnung, KontoDaten)]] = Future.sequence(ids.map { rechnung =>
@@ -459,27 +464,28 @@ trait BuchhaltungRoutes
     val projekt: Projekt = Await.result(stammdatenReadRepository.getProjekt, d).get
 
     (kontoDatenProjekt.iban, kontoDatenProjekt.creditorIdentifier) match {
-      case (Some(""), Some(_)) => { Left(s"The iban is not defined for the project") }
-      case (Some(_), Some("")) => { Left("The creditorIdentifier is not defined for the project ") }
-      case (Some(iban), Some(creditorIdentifier)) => {
+      case (Some(iban), Some(_)) if iban.isBlank => Left(s"The iban is not defined for the project")
+      case (Some(_), Some(id)) if id.isBlank     => Left("The creditorIdentifier is not defined for the project ")
+      case (None, Some(_))                       => Left(s"The iban is not defined for the project")
+      case (Some(_), None)                       => Left("The creditorIdentifier is not defined for the project ")
+      case (None, None)                          => Left("Neither the creditorIdentifier nor the iban is defined for the project")
+      case _ =>
         val emptyIbanList = checkEmptyIban(rechnungen)
         if (emptyIbanList.isEmpty) {
-          val xmlText = Pain008_001_02_Export.exportPain008_001_02(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
-          Right(xmlText)
+          version match {
+            case "02" =>
+              val xmlText = Pain008_001_02_Export.exportPain008_001_02(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
+              Right(xmlText)
+            case "07" =>
+              val xmlText = Pain008_001_07_Export.exportPain008_001_07(rechnungen, kontoDatenProjekt, NbOfTxs, projekt)
+              Right(xmlText)
+            case v =>
+              Left(s"Unsupported pain008 version: $v")
+          }
         } else {
           val decoratedEmptyList = emptyIbanList.mkString(" ")
           Left(s"The iban or name account holder is not defined for the user: $decoratedEmptyList")
         }
-      }
-      case (None, Some(creditorIdentifier)) => {
-        Left(s"The iban is not defined for the project")
-      }
-      case (Some(iban), None) => {
-        Left("The creditorIdentifier is not defined for the project ")
-      }
-      case (None, None) => {
-        Left("Neither the creditorIdentifier nor the iban is defined for the project")
-      }
     }
   }
 

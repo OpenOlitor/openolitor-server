@@ -52,6 +52,6 @@ object EsrParser extends ZahlungsImportParser {
   }
 
   def parse(is: InputStream): Try[ZahlungsImportResult] = {
-    parse(Source.fromInputStream(is).getLines filterNot (_.isEmpty))
+    parse(Source.fromInputStream(is).getLines() filterNot (_.isEmpty))
   }
 }

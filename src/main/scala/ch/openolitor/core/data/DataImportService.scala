@@ -68,13 +68,13 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
 
   val entityStore: ActorRef
 
-  val parser = context.actorOf(DataImportParser.props)
+  val parser = context.actorOf(DataImportParser.props())
   var clearBeforeImport = false
   var originator: Option[ActorRef] = None
 
   val receive: Receive = {
     case ImportData(clearBefore, file) =>
-      originator = Some(sender)
+      originator = Some(sender())
       clearBeforeImport = clearBefore
       parser ! ParseSpreadsheet(file)
       context become waitForResult
@@ -82,7 +82,7 @@ abstract class DataImportService(implicit val personId: PersonId) extends Actor 
 
   val waitForResult: Receive = {
     case e: ParseError =>
-      e.error.printStackTrace
+      e.error.printStackTrace()
       originator map (_ ! e)
     case ParseResult(projekt, kundentypen, kunden, personen, pendenzen, touren, depots, abotypen, zusatzAbotypen, vertriebsarten, vertriebe, lieferungen,
       lieferplanungen, lieferpositionen, abos, zusatzAbos, abwesenheiten, produkte, produktekategorien, produktProduktekategorien,

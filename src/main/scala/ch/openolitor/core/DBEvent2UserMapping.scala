@@ -66,13 +66,13 @@ class DBEvent2UserMapping extends Actor
 
   override val system = context.system
 
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     //register ourself as listener to sendtoclient commands
     context.system.eventStream.subscribe(self, classOf[DBEvent[_]])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[DBEvent[_]])
     super.postStop()
   }

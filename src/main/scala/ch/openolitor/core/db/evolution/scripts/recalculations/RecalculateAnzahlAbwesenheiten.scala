@@ -27,26 +27,31 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
+
 import scala.util.Try
 import scala.util.Success
 import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.stammdaten.models.Abwesenheit
+
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
+import scala.annotation.nowarn
+
 object RecalculateAnzahlAbwesenheiten {
   val scripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with StammdatenWriteRepositoryImpl with NoPublishEventStream {
 
-    def buildAbwesenheitMap(projekt: ProjektV1, abwesenheiten: Seq[Abwesenheit]): TreeMap[String, Int] = {
+    def buildAbwesenheitMap(projekt: ProjektV1 @nowarn("cat=deprecation"), abwesenheiten: Seq[Abwesenheit]): TreeMap[String, Int] = {
       TreeMap(abwesenheiten.groupBy(a => projekt.geschaftsjahr.key(a.datum)).map {
         case (key, set) => (key, set.length)
       }.toSeq: _*)
     }
 
+    @nowarn("cat=deprecation")
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       // recalculate abwesenheiten
 

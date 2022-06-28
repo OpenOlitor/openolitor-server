@@ -64,7 +64,7 @@ trait DepotBriefReportService extends AsyncConnectionPoolContextAware with Repor
             .getOrElse(Left(ValidationError[DepotId](id, s"Depot konnte nicht geladen werden"))))
         })
         results.map(_.partition(_.isLeft) match {
-          case (a, b) => (a.map(_.left.get), b.map(_.right.get))
+          case (a, b) => (a.map(_.swap.toOption.get), b.map(_.toOption.get))
         })
       } getOrElse Future { (Seq(ValidationError[DepotId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }

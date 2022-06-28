@@ -48,14 +48,14 @@ class TemporaryDataBucketCleanupBatchJob(val sysConfig: SystemConfig, val system
 
       case Right(summaries) =>
         // temporary files shouldn't have been modified
-        summaries filter (_.lastModified + ExpiryTime < DateTime.now) map (_.key) match {
+        summaries filter (_.lastModified + ExpiryTime < DateTime.now()) map (_.key) match {
           case Nil => // Nothing to delete
 
-          case ids =>
+          case ids: Any =>
             fileStore.deleteFiles(TemporaryDataBucket, ids) map {
               case Left(error) =>
                 logger.error(s"Could not delete the files. $error")
-              case Right(result) =>
+              case Right(_) =>
                 logger.debug(s"Successfully deleted temporary ${ids.size} of ${summaries.size} files.")
             }
         }
@@ -64,6 +64,6 @@ class TemporaryDataBucketCleanupBatchJob(val sysConfig: SystemConfig, val system
 
   protected def handleInitialization(): Unit = {
     // perform cleanup nightly
-    batchJob = Some(context.system.scheduler.schedule(untilNextMidnight + (2 hours), 24 hours)(self ! StartBatchJob))
+    batchJob = Some(context.system.scheduler.scheduleAtFixedRate(untilNextMidnight + (2 hours), 24 hours)(() => self ! StartBatchJob))
   }
 }

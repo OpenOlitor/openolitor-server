@@ -27,12 +27,11 @@ import scala.concurrent.ExecutionContext
 import ch.openolitor.core.db._
 import ch.openolitor.util.IdUtil
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.util.IdUtil
 import ch.openolitor.stammdaten.models.ProjektReport
 import ch.openolitor.core.reporting.models._
 
 trait ReportReadRepository {
-  def getMultiReport[T <% JSONSerializable](projekt: ProjektReport, source: Future[List[T]])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[MultiReport[T]] = {
+  def getMultiReport[T <: JSONSerializable](projekt: ProjektReport, source: Future[List[T]])(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[MultiReport[T]] = {
     source map { entries =>
       MultiReport(MultiReportId(IdUtil.positiveRandomId), entries, projekt)
     }

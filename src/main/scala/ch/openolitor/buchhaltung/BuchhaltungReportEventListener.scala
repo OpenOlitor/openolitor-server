@@ -40,12 +40,12 @@ class DefaultBuchhaltungReportEventListener(override val entityStore: ActorRef) 
  * Listen on Report results to persist ids
  */
 abstract class BuchhaltungReportEventListener extends Actor with ActorLogging with BuchhaltungDBMappings with EntityStoreReference {
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[SingleReportResult])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[SingleReportResult])
     super.postStop()
   }

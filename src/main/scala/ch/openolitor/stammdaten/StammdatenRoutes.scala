@@ -57,7 +57,7 @@ import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, FilterExpr, UriQueryPa
 import scala.concurrent.ExecutionContext
 
 trait StammdatenRoutes extends BaseRouteService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with LazyLogging
+  with AsyncConnectionPoolContextAware with AkkaHttpDeserializers with LazyLogging
   with StammdatenJsonProtocol
   with StammdatenEventStoreSerializer
   with BuchhaltungJsonProtocol

@@ -505,7 +505,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
 
   implicit val treeMapIntFormat = new JsonFormat[TreeMap[String, Int]] {
     def write(obj: TreeMap[String, Int]): JsValue = {
-      val elems = obj.toTraversable.map {
+      val elems = obj.toSeq.map {
         case (key, value) => JsObject("key" -> JsString(key), "value" -> JsNumber(value))
       }.toVector
       JsArray(elems)
@@ -519,15 +519,15 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
               case Seq(JsString(key), JsNumber(value)) =>
                 (key -> value.toInt)
             }
-          }.toSeq
-          (TreeMap.empty[String, Int] /: entries) { (tree, c) => tree + c }
+          }.toMap
+          TreeMap.empty[String, Int] ++ entries
         case pt => sys.error(s"Unknown treemap:$pt")
       }
   }
 
   implicit val treeMapBigDecimalFormat = new JsonFormat[TreeMap[String, BigDecimal]] {
     def write(obj: TreeMap[String, BigDecimal]): JsValue = {
-      val elems = obj.toTraversable.map {
+      val elems = obj.toSeq.map {
         case (key, value) => JsObject("key" -> JsString(key), "value" -> JsNumber(value))
       }.toVector
       JsArray(elems)
@@ -539,12 +539,12 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
           val entries = elems.map { elem =>
             elem.asJsObject.getFields("key", "value") match {
               case Seq(JsString(key), JsNumber(value)) =>
-                (key -> value.asInstanceOf[BigDecimal])
+                (key -> value)
               case Seq(JsString(key), JsString(value)) =>
                 (key -> BigDecimal(value))
             }
-          }.toSeq
-          (TreeMap.empty[String, BigDecimal] /: entries) { (tree, c) => tree + c }
+          }.toMap
+          TreeMap.empty[String, BigDecimal] ++ entries
         case pt => sys.error(s"Unknown treemap:$pt")
       }
   }
@@ -1396,8 +1396,8 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   def enhancedProjektReportFormatDef(defaultFormat: JsonFormat[ProjektReport]): RootJsonFormat[ProjektReport] = new RootJsonFormat[ProjektReport] {
     def write(obj: ProjektReport): JsValue = {
       JsObject(defaultFormat.write(obj)
-        .asJsObject.fields +
-        (
+        .asJsObject.fields ++
+        Map(
           "strasseUndNummer" -> JsString(obj.strasseUndNummer.getOrElse("")),
           "plzOrt" -> JsString(obj.plzOrt.getOrElse("")),
           "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector)
@@ -2399,7 +2399,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val auslieferungReportEntryFormat: RootJsonFormat[AuslieferungReportEntry] = jsonFormat7(AuslieferungReportEntry)
   implicit val produzentenabrechnungReportFormat: RootJsonFormat[ProduzentenabrechnungReport] = jsonFormat9(ProduzentenabrechnungReport)
 
-  implicit def multiReportFormat[T <% JSONSerializable](implicit format: RootJsonFormat[T]): RootJsonFormat[MultiReport[T]] = jsonFormat3(MultiReport.apply[T])
+  implicit def multiReportFormat[T <: JSONSerializable](implicit format: RootJsonFormat[T]): RootJsonFormat[MultiReport[T]] = jsonFormat3(MultiReport.apply[T])
 
   implicit val geschaeftsjahrStartFormat = jsonFormat3(GeschaeftsjahrStart)
 

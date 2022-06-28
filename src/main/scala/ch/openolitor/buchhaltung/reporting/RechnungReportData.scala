@@ -70,7 +70,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
               }.getOrElse(Left(ValidationError[RechnungId](rechnungId, s"Rechnung konnte nicht gefunden werden"))))
             })
             results.map(_.partition(_.isLeft) match {
-              case (a, b) => (a.map(_.left.get), b.map(_.right.get))
+              case (a, b) => (a.map(_.swap.toOption.get), b.map(_.toOption.get))
             })
           }
         } getOrElse Future { (Seq(ValidationError[RechnungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }

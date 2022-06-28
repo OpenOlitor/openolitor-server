@@ -45,13 +45,15 @@ class FileStoreActor(fileStore: FileStore) extends Actor with ActorLogging {
 
   val receive: Receive = {
     case StoreFile(bucket, id, metadata, file) =>
-      val rec = sender
+      val rec = sender()
+      log.debug(s"FileStoreActor StoreFile:$bucket, id:$id, metadata:$metadata")
       storeFile(bucket, id, metadata, new FileInputStream(file)) map {
         case Left(e)       => rec ! e
         case Right(result) => rec ! result
       }
     case StoreByteArray(bucket, id, metadata, bytes) =>
-      val rec = sender
+      log.debug(s"FileStoreActor StoreByteArray:$bucket, id:$id, metadata:$metadata")
+      val rec = sender()
       storeFile(bucket, id, metadata, new ByteArrayInputStream(bytes)) map {
         case Left(e)       => rec ! e
         case Right(result) => rec ! result

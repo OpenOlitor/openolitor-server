@@ -45,7 +45,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * TODO Revert as soon as possible
  */
 trait SyncReportsRoutes extends BaseRouteService with ActorReferences
-  with ConnectionPoolContextAware with SprayDeserializers with LazyLogging
+  with ConnectionPoolContextAware with AkkaHttpDeserializers with LazyLogging
   with ReportsJsonProtocol
   with ReportsEventStoreSerializer
   with ReportsDBMappings {

@@ -30,6 +30,6 @@ object StringUtil {
     /**
      * Turn first letter of string into lower case
      */
-    def decapitalize: String = self.head.toLower + self.tail
+    def decapitalize: String = s"${self.head.toLower}${self.tail}"
   }
 }

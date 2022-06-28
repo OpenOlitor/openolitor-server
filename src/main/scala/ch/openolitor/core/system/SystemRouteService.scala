@@ -29,7 +29,7 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import ch.openolitor.core.{ ActorReferences, BaseRouteService, SprayDeserializers, SystemConfig }
+import ch.openolitor.core.{ ActorReferences, BaseRouteService, AkkaHttpDeserializers, SystemConfig }
 import ch.openolitor.core.data.DataImportService
 import ch.openolitor.core.data.DataImportService.{ ImportData, ImportResult }
 import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolContextAware }
@@ -46,7 +46,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 trait SystemRouteService extends BaseRouteService with ActorReferences
-  with ConnectionPoolContextAware with SprayDeserializers
+  with ConnectionPoolContextAware with AkkaHttpDeserializers
   with LazyLogging
   with StatusRoutes
   with SystemJsonProtocol

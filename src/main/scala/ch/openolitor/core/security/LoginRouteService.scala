@@ -37,7 +37,7 @@ import scalaz._
 
 trait LoginRouteService
   extends BaseRouteService
-  with SprayDeserializers
+  with AkkaHttpDeserializers
   with LazyLogging
   with LoginJsonProtocol
   with LoginService {

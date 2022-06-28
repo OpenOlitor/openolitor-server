@@ -80,7 +80,7 @@ class BufferedChunkingActor(fileStore: FileStore, fileName: String, chunkSize: I
 
   val receive: Receive = {
     case initiate: InitiateChunkedUpload =>
-      origSender = Some(sender)
+      origSender = Some(sender())
       chunkedFileStoreActor ! initiate
       context become waitingForChunkedUploadInitilization
   }

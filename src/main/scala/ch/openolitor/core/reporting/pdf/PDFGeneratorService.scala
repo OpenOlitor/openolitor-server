@@ -37,9 +37,9 @@ import scala.util.Try
 
 trait PDFGeneratorService {
   def sysConfig: SystemConfig
-  lazy val DefaultChunkSize = ConfigLoader.loadConfig.getInt("spray.can.parsing.max-chunk-size")
+  lazy val DefaultChunkSize: Int = ConfigLoader.loadConfig.getBytes("akka.http.parsing.max-chunk-size").toInt
 
-  lazy val endpointUri = sysConfig.mandantConfiguration.config.getString("converttopdf.endpoint")
+  lazy val endpointUri: String = sysConfig.mandantConfiguration.config.getString("converttopdf.endpoint")
 
   implicit val system: ActorSystem
   import system.dispatcher
@@ -47,14 +47,17 @@ trait PDFGeneratorService {
   def generatePDF(input: File, name: String): Try[File] = synchronized {
     Try {
       val uri = Uri(endpointUri)
-      val formData = Multipart.FormData(Multipart.FormData.BodyPart.fromFile(name + ".odt", ContentTypes.`application/octet-stream`, input, DefaultChunkSize))
+      val formData = Multipart.FormData(
+        Multipart.FormData.BodyPart.fromFile("data", ContentTypes.`application/octet-stream`, input, DefaultChunkSize),
+        Multipart.FormData.BodyPart.Strict("name", name + ".odt")
+      )
 
       val result = Http().singleRequest(HttpRequest(HttpMethods.POST, uri, entity = formData.toEntity)).flatMap {
         case HttpResponse(StatusCodes.OK, _, entity, _) =>
           val file = Files.createTempFile("report_pdf", ".pdf")
           entity.dataBytes.runWith(FileIO.toPath(file)).map(_ => file.toFile)
-        case other =>
-          throw new IllegalStateException(s"PDF konnte nicht generiert werden ${other}")
+        case other: Any =>
+          throw new IllegalStateException(s"PDF konnte nicht generiert werden $other")
       }
 
       Await.result(result, 600 seconds)

@@ -254,10 +254,12 @@ trait BuchhaltungJsonProtocol extends BaseJsonProtocol with LazyLogging with Sta
   def enhancedRechnungDetailFormatDef(implicit defaultFormat: JsonFormat[RechnungDetailReport]): RootJsonFormat[RechnungDetailReport] = new RootJsonFormat[RechnungDetailReport] {
     def write(obj: RechnungDetailReport): JsValue = {
       JsObject(defaultFormat.write(obj)
-        .asJsObject.fields +
-        ("referenzNummerFormatiert" -> JsString(obj.referenzNummerFormatiert),
+        .asJsObject.fields ++
+        Map(
+          "referenzNummerFormatiert" -> JsString(obj.referenzNummerFormatiert),
           "betragRappen" -> JsNumber(obj.betragRappen),
-          "betragFranken" -> JsNumber(obj.betragFranken)))
+          "betragFranken" -> JsNumber(obj.betragFranken)
+        ))
     }
 
     def read(json: JsValue): RechnungDetailReport = defaultFormat.read(json)

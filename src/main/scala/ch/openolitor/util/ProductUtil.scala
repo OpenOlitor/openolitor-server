@@ -24,6 +24,7 @@ package ch.openolitor.util
 
 import ch.openolitor.core.models.{ BaseId, BaseStringId }
 
+import scala.collection.compat.immutable.ArraySeq
 import scala.collection.immutable.HashSet
 
 object ProductUtil {
@@ -81,7 +82,7 @@ object ProductUtil {
 
       // extract values returned from defs
       val methodsAsPairs: Seq[Option[(String, Any)]] = for {
-        method <- self.getClass.getDeclaredMethods
+        method <- ArraySeq.unsafeWrapArray(self.getClass.getDeclaredMethods)
         // only conside methods without parameters
         if (method.getParameterCount == 0)
         // ignore system methods
@@ -102,7 +103,7 @@ object ProductUtil {
       }
       // concat field values and method return types, append methods after field that hidden methods for
       // lazy vals will overrite field value which will always be set to null
-      val allTuples = fieldsAsPairs ++ methodsAsPairs.flatten
+      val allTuples = ArraySeq.unsafeWrapArray(fieldsAsPairs ++ methodsAsPairs.flatten)
 
       Map(allTuples: _*)
     }

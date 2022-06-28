@@ -28,7 +28,7 @@ import ch.openolitor.stammdaten.models.ProjektReport
 
 case class MultiReportId(id: Long) extends BaseId
 
-case class MultiReport[T <% JSONSerializable](
+case class MultiReport[T <: JSONSerializable](
   id: MultiReportId,
   entries: Seq[T],
   projekt: ProjektReport

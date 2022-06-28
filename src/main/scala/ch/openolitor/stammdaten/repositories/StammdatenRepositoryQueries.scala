@@ -35,6 +35,8 @@ import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
 import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
+import scala.annotation.nowarn
+
 trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
 
   lazy val aboTyp = abotypMapping.syntax("atyp")
@@ -65,6 +67,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val produktekategorie = produktekategorieMapping.syntax("produktekategorie")
   lazy val produzent = produzentMapping.syntax("produzent")
   lazy val projekt = projektMapping.syntax("projekt")
+  @nowarn("cat=deprecation")
   lazy val projektV1 = projektV1Mapping.syntax("projektV1")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
   lazy val produktProduzent = produktProduzentMapping.syntax("produktProduzent")
@@ -1280,7 +1283,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(produktMapping as produkt)
-        .where.like(produkt.kategorien, '%' + bezeichnung + '%')
+        .where.like(produkt.kategorien, s"'%'$bezeichnung%")
     }.map(produktMapping(produkt)).list
   }
 
@@ -1288,7 +1291,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select
         .from(lieferplanungMapping as lieferplanung)
-        .where.like(lieferplanung.abotypDepotTour, '%' + abotypName + '%')
+        .where.like(lieferplanung.abotypDepotTour, s"%$abotypName%")
     }.map(lieferplanungMapping(lieferplanung)).list
   }
 
@@ -2179,7 +2182,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           copyTo[ZusatzAbo, ZusatzAboReport](z, "abotyp" -> zat)
         })
         val zusatzAbosString = (zs filter (_.hauptAboId == korbAbo.id) map (_.abotypName)).mkString(", ")
-        val zusatzAbosAggregatedString = zs.groupBy(_.abotypName).mapValues(_.size).map(a => a._2 + "x " + a._1).mkString(", ")
+        val zusatzAbosAggregatedString = zs.groupBy(_.abotypName).view.mapValues(_.size).map(a => s"${a._2}x ${a._1}").mkString(", ")
         val zusatzAbosList = (zs filter (_.hauptAboId == korbAbo.id))
         val kundeReport = copyTo[Kunde, KundeReport](kunde, "personen" -> ansprechpersonen)
         val lp = lieferpositionen flatMap {

@@ -1,51 +1,72 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package ch.openolitor.core
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.server.{ RequestContext, Route, RouteResult }
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.MarshallingDirectives.{ as, entity }
+import akka.http.scaladsl.server.{ RequestContext, Route, RouteResult }
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import akka.pattern.ask
-import akka.stream.scaladsl.{ Sink, Source, StreamConverters }
 import akka.stream.Materializer
+import akka.stream.scaladsl.{ Sink, Source, StreamConverters }
 import akka.util.{ ByteString, Timeout }
+import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.domain.EntityStore
 import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.models.{ BaseId, BaseStringId }
-import ch.openolitor.core.reporting._
 import ch.openolitor.core.reporting.ReportSystem.{ AsyncReportResult, ReportDataResult }
+import ch.openolitor.core.reporting._
 import ch.openolitor.core.security.Subject
 import ch.openolitor.core.ws.{ ExportFormat, ODS }
-import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.stammdaten.models.ProjektVorlageId
 import ch.openolitor.util.ZipBuilderWithFile
 import com.tegonal.CFEnvConfigLoader.ConfigLoader
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.odftoolkit.simple.table.{ Row, Table }
 import org.odftoolkit.simple.SpreadsheetDocument
 import org.odftoolkit.simple.style.StyleTypeDefinitions
+import org.odftoolkit.simple.table.{ Row, Table }
 import stamina.Persister
 
 import java.io._
 import java.nio.file.Files
 import java.util.{ Locale, UUID }
-import scala.collection.Iterable
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.{ Either, Failure, Left, Right, Success, Try }
 
-trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with SprayDeserializers with BaseJsonProtocol with EntityStoreReference with FileStoreReference with LazyLogging {
+trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with AkkaHttpDeserializers with BaseJsonProtocol with EntityStoreReference with FileStoreReference with LazyLogging {
 
   implicit val timeout = Timeout(5 seconds)
-  lazy val DefaultChunkSize = ConfigLoader.loadConfig.getInt("spray.can.parsing.max-chunk-size")
+  lazy val DefaultChunkSize = ConfigLoader.loadConfig.getBytes("akka.http.parsing.max-chunk-size").toInt
 
   implicit val exportFormatPath = enumPathMatcher(path =>
     path.head match {
@@ -323,13 +344,16 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
 
     val source = StreamConverters.fromInputStream(() => input, DefaultChunkSize)
 
-    source.runWith(Sink.onComplete {
-      case Success(_) =>
-        onCompleteSuccessFn()
-      case Failure(_) =>
-    })
+    source.watchTermination() { (_, done) =>
+      done.onComplete {
+        case Success(_) =>
+          onCompleteSuccessFn()
 
-    complete(StreamConverters.fromInputStream(() => input, DefaultChunkSize))
+        case Failure(_) =>
+      }
+    }
+
+    complete(source)
   }
 
   protected def stream(input: Array[Byte])(implicit materializer: Materializer): Route = {
@@ -378,6 +402,15 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
     }
   }
 
+  protected def uploadOpt(fileProperty: String = "file")(onUpload: Option[(InputStream, String)] => Route)(implicit materializer: Materializer): Route = {
+    entity(as[Multipart.FormData]) { formData =>
+      onSuccess(formData.parts.filter(_.name == fileProperty).runFold[Option[Multipart.FormData.BodyPart]](None)((_, part) => Some(part))) {
+        case Some(_) => upload(fileProperty) { (stream, name) => onUpload(Some((stream, name))) }
+        case _       => onUpload(None)
+      }
+    }
+  }
+
   protected def storeToFileStore(fileType: FileType, name: Option[String] = None, content: InputStream, fileName: String)(onUpload: (String, FileStoreFileMetadata) => Route, onError: Option[FileStoreError => Route] = None): Route = {
     val id = name.getOrElse(UUID.randomUUID.toString)
     onSuccess(fileStore.putFile(fileType.bucket, Some(id), FileStoreFileMetadata(fileName, fileType), content)) {
@@ -397,17 +430,18 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
     reportFunction: ReportConfig[I] => Future[Either[ServiceFailed, ReportServiceResult[I]]]
 
   )(idFactory: Long => I)(implicit subject: Subject, materializer: Materializer, classTag: ClassTag[I]): Route = {
-    upload("vorlage") { (content, fileName) =>
+    uploadOpt("vorlage") { maybeVorlage =>
       formFieldMap { fields =>
         (for {
           vorlageId <- Try(fields.get("projektVorlageId").map(_.toLong).map(ProjektVorlageId.apply))
           datenExtrakt <- Try(fields.get("datenExtrakt").map(_.toBoolean).getOrElse(false))
-          vorlage <- loadVorlage(datenExtrakt, Some((content, fileName)), vorlageId)
+          vorlage <- loadVorlage(datenExtrakt, maybeVorlage, vorlageId)
           pdfGenerieren <- Try(fields.get("pdfGenerieren").map(_.toBoolean).getOrElse(false))
           pdfAblegen <- Try(fields.get("pdfAblegen").map(_.toBoolean).getOrElse(false))
           downloadFile <- Try(fields.get("pdfDownloaden").map(_.toBoolean).getOrElse(false))
-          pdfMerge <- Try(fields.get("pdfMerge").map(_.toBoolean).getOrElse(false))
-          ids = fields.get("ids").map(_.split(",").map(i => idFactory(i.toLong)).toSeq).getOrElse(Seq.empty[I])
+          pdfMerge <- Try(fields.get("pdfMerge").map(_ == "pdfMerge").getOrElse(false))
+          ids = id.map(id => Seq(id)).orElse(fields.get("ids").map(_.split(",").map(i => idFactory(i.toLong)).toSeq))
+            .getOrElse(Seq.empty[I])
         } yield {
           logger.debug(s"generateReport: ids: $ids, pdfGenerieren: $pdfGenerieren, pdfAblegen: $pdfAblegen, downloadFile: $downloadFile")
           val config = ReportConfig[I](ids, vorlage, pdfGenerieren, pdfAblegen, downloadFile, pdfMerge)

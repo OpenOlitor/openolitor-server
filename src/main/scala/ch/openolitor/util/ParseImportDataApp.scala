@@ -45,7 +45,7 @@ object ParseImportDataApp extends App {
   }
 
   val system = ActorSystem("ParseImportDataApp")
-  val parser = system.actorOf(DataImportParser.props, "parser")
+  val parser = system.actorOf(DataImportParser.props(), "parser")
   val resultLogger = system.actorOf(Props(classOf[ResultLogger], parser, file), "logger")
 
   class ResultLogger(parser: ActorRef, file: File) extends Actor with ActorLogging {
