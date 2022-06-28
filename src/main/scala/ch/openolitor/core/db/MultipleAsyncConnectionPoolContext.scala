@@ -25,7 +25,7 @@ package ch.openolitor.core.db
 import scalikejdbc.async.AsyncConnectionPool
 
 case class MultipleAsyncConnectionPoolContext(contexts: (Symbol, AsyncConnectionPool)*) {
-  def this() {
+  def this() = {
     this(Nil: _*)
   }
 

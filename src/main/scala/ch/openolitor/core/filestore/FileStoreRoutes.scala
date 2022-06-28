@@ -31,7 +31,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import scala.util._
 
-trait FileStoreRoutes extends BaseRouteService with ActorReferences with SprayDeserializers with LazyLogging {
+trait FileStoreRoutes extends BaseRouteService with ActorReferences with AkkaHttpDeserializers with LazyLogging {
   self: FileStoreComponent =>
 
   lazy val fileStoreRoute =

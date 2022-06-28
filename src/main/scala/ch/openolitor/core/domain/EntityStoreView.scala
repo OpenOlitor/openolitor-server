@@ -119,7 +119,7 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
     case Startup =>
       log.debug("Received Startup command")
       startup()
-      sender ! Started
+      sender() ! Started
     case PrepareTerminate =>
       log.debug("The prepareTerminate was called")
       prepareTerminate()

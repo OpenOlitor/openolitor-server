@@ -49,12 +49,12 @@ class StammdatenGeneratedEventsListener(override val sysConfig: SystemConfig) ex
   with AboAktivChangeHandler {
   this: StammdatenUpdateRepositoryComponent =>
 
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[PersistentGeneratedEvent])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[PersistentGeneratedEvent])
     super.postStop()
   }

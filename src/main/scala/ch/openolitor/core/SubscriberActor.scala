@@ -31,12 +31,12 @@ trait SubscriberActor extends Actor {
 
   def subscribedClasses: Seq[Class[_]]
 
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     subscribedClasses.foreach(this.context.system.eventStream.subscribe(this.self, _))
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     subscribedClasses.foreach(this.context.system.eventStream.unsubscribe(this.self, _))
     super.postStop()
   }

@@ -186,7 +186,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
             logger.warn(s"catched exception:", e)
             Failure(e)
         }
-    }.toIterator.takeWhileInclusive(_.isSuccess).toSeq
+    }.iterator.takeWhileInclusive(_.isSuccess).toSeq
 
     logger.debug(s"Evolved:$x:${x.reverse.headOption.getOrElse("xxx")}")
     x.reverse.headOption.getOrElse(Failure(EvolutionException(s"No Script found")))

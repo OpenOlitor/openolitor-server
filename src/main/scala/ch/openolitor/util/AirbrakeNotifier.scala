@@ -97,7 +97,7 @@ class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends 
 
   protected def formatRequest(request: Option[HttpRequest]) = request map { r =>
     <request>
-      <url>{ r.method + " " + r.uri }</url>
+      <url>{ s"${r.method} ${r.uri}" }</url>
       <component/>
       <action/>
       { formatSession(r.headers.map(h => (h.name -> h.value)).toMap) }

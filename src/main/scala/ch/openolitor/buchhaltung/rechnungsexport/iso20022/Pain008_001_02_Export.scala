@@ -56,29 +56,27 @@ class Pain008_001_02_Export extends LazyLogging {
                 logger.error("Invalid group header SDD information while creating a pain008_001_02 file")
                 "Invalid payment information (group header)"
             }
-          case _ => {
+          case _ =>
             logger.error("Invalid payment information while creating a pain008_001_02 file")
             "Invalid payment information"
-          }
         }
       }
-      case _ => {
+      case _ =>
         logger.error(s"Invalid number of transactions while creating a pain008_001_02 file: $NbOfTxs")
         "Invalid number of transactions"
-      }
     }
   }
 
-  private def getDate(): XMLGregorianCalendar = {
-    val calendar = new GregorianCalendar();
+  private def getDate: XMLGregorianCalendar = {
+    val calendar = new GregorianCalendar()
     calendar.getTime
     val date = DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar)
     date.setTime(DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED)
     date
   }
 
-  private def getDateTime(): XMLGregorianCalendar = {
-    val calendar = new GregorianCalendar();
+  private def getDateTime: XMLGregorianCalendar = {
+    val calendar = new GregorianCalendar()
     calendar.getTime
     DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar)
   }
@@ -91,8 +89,8 @@ class Pain008_001_02_Export extends LazyLogging {
 
   private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String, projekt: Projekt): Option[GroupHeaderSDD] = {
     kontoDatenProjekt.iban match {
-      case Some(projectIban) => {
-        val MsgId = projectIban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
+      case Some(projectIban) =>
+        val MsgId = projectIban.slice(0, 15) + getSimpleDateTimeString(getDateTime)
         val CreDtTm = getDateTime
         val NbOfTxs = nbTransactions
         val CtrlSum = getSumAllRechnungs(rechnungen)
@@ -102,7 +100,6 @@ class Pain008_001_02_Export extends LazyLogging {
           case id if id <= 35 => Some(GroupHeaderSDD(MsgId, CreDtTm, NbOfTxs, CtrlSum, partyIdentificationSEPA1))
           case _              => None
         }
-      }
       case _ => None
     }
   }
@@ -110,7 +107,7 @@ class Pain008_001_02_Export extends LazyLogging {
   private def getPaymentInstructionInformationSDD(projekt: Projekt, kontoDatenProjekt: KontoDaten, rechnungen: List[(Rechnung, KontoDaten)], numberOfTransactions: String): Option[PaymentInstructionInformationSDD] = {
     kontoDatenProjekt.iban match {
       case Some(projectIban) => {
-        val PmtInfId = projectIban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
+        val PmtInfId = projectIban.slice(0, 15) + getSimpleDateTimeString(getDateTime)
         val PmtMtd = DD
         val BtchBookg = None
         val NbOfTxs = numberOfTransactions
@@ -121,7 +118,7 @@ class Pain008_001_02_Export extends LazyLogging {
           SequenceType1Code.fromString("FRST", defineNamespaceBinding()),
           None
         ))
-        val ReqdColltnDt = getDate()
+        val ReqdColltnDt = getDate
         val Cdtr = pain008_001_02.PartyIdentificationSEPA5(projekt.bezeichnung.slice(0, 70), None)
         val CdtrAcct = pain008_001_02.CashAccountSEPA1(pain008_001_02.AccountIdentificationSEPA(kontoDatenProjekt.iban.getOrElse("iban from CSA")))
         val CdtrAgt = pain008_001_02.BranchAndFinancialInstitutionIdentificationSEPA3(pain008_001_02.FinancialInstitutionIdentificationSEPA3(DataRecord[String](None, Some("BIC"), kontoDatenProjekt.bic.getOrElse(notProvided))))
@@ -158,7 +155,7 @@ class Pain008_001_02_Export extends LazyLogging {
         d.setTime(DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED)
         d
       }
-      case None => getDate()
+      case None => getDate
     }
     val DrctDbtTx = DirectDebitTransactionSDD(MandateRelatedInformationSDD(kontoDaten.mandateId.getOrElse(rechnung.kundeId.id.toString), dateOfSignature, None, None, None), None)
     val UltmtCdtr = None

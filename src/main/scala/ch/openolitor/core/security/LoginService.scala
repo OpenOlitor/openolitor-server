@@ -151,7 +151,7 @@ trait LoginService extends LazyLogging
 
   def validatePasswordChange(form: ChangePasswordForm)(implicit subject: Subject): EitherFuture[FormResult] = {
     for {
-      projekt <- getProjekt
+      projekt <- getProjekt()
       person <- personById(subject.personId)
       _ <- validatePassword(form.alt, person)
       _ <- validateNewPassword(form.neu)

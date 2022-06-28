@@ -45,14 +45,14 @@ object PDFReportResultCollector {
 class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector with DateFormats {
 
   var origSender: Option[ActorRef] = None
-  val PDFmerged = new PDFMergerUtility
-  val mergedFile = new PDDocument()
+  val PDFmerged: PDFMergerUtility = new PDFMergerUtility
+  val mergedFile: PDDocument = new PDDocument()
   var pdfFiles: List[(RechnungId, PDDocument)] = List()
   var errors: Seq[ReportError] = Seq()
 
   val receive: Receive = {
     case request: GenerateReports[_] =>
-      origSender = Some(sender)
+      origSender = Some(sender())
       reportSystem ! request
       context become waitingForResult
   }
@@ -66,14 +66,14 @@ class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
       pdfFiles = pdfFiles :+ (id, PDDocument.load(result.document))
       notifyProgress(stats)
     case result: GenerateReportsStats if result.numberOfReportsInProgress == 0 =>
-      pdfFiles.sortBy(_._1) map { file =>
+      pdfFiles.sortBy(_._1) foreach { file =>
         PDFmerged.appendDocument(mergedFile, file._2)
       }
       val fileName = "Report_" + filenameDateFormat.print(System.currentTimeMillis())
       val file = File.createTempFile(fileName, ".pdf")
       mergedFile.save(file)
       val payload = FileResultPayload(fileName, MediaTypes.`application/pdf`, file)
-      log.debug(s"Send payload as result:${fileName}")
+      log.debug(s"Send payload as result:$fileName")
       jobFinished(result, Some(payload))
       log.debug(s"Stop collector PoisonPill")
       self ! PoisonPill

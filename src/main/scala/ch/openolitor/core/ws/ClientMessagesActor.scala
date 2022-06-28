@@ -64,18 +64,18 @@ object ClientMessagesActor {
 }
 
 class ClientMessagesActor(streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]]) extends Actor with ActorLogging {
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     //register ourself as listener to sendtoclient commands
     context.system.eventStream.subscribe(self, classOf[SendToClient])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[SendToClient])
     super.postStop()
   }
 
-  def receive = {
+  def receive: Receive = {
     case SendToClient(_, msg, Nil) =>
       //broadcast to all
       log.debug(s"Broadcast client message:$msg")
@@ -84,7 +84,7 @@ class ClientMessagesActor(streamsByUser: TrieMap[PersonId, scala.collection.conc
       //send to specific clients only
       log.debug(s"send client message:$msg:$receivers")
       receivers.foreach(personId => streamsByUser.get(personId).foreach(_.foreach(_._2.offer(msg))))
-    case x =>
+    case x: Any =>
       log.debug(s"Received unkown event:$x")
   }
 }

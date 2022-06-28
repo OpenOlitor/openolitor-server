@@ -39,7 +39,7 @@ object LieferpositionParser extends EntityParser {
         indexAnzahl) = indexes take (8)
       val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
-      val produktId = Some(ProduktId(row.value[Long](indexProduktId)))
+      val produktId = ProduktId(row.value[Long](indexProduktId))
       val produzentId = ProduzentId(row.value[Long](indexProduzentId))
       val produkt = produkte.find(_.id == produktId) getOrElse (throw ParseException(s"No produkt found for id $produktId"))
       val produzent = produzenten.find(_.id == produzentId) getOrElse (throw ParseException(s"No produzent found for id $produzentId"))
@@ -47,7 +47,7 @@ object LieferpositionParser extends EntityParser {
       Lieferposition(
         id = LieferpositionId(id),
         lieferungId = LieferungId(row.value[Long](indexLieferungId)),
-        produktId = produktId,
+        produktId = Some(produktId),
         //TODO: verify produktbeschrieb
         produktBeschrieb = produkt.name,
         produzentId = produzentId,

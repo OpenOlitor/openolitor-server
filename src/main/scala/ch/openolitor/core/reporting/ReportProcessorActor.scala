@@ -43,7 +43,7 @@ object ReportProcessorActor {
 class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extends Actor with ActorLogging with DateFormats {
   import ReportSystem._
 
-  var stats = GenerateReportsStats(Boot.systemPersonId, JobId("Dummy"), 0, 0, 0)
+  var stats: GenerateReportsStats = GenerateReportsStats(Boot.systemPersonId, JobId("Dummy"), 0, 0, 0)
   var origSender: Option[ActorRef] = None
 
   val receive: Receive = {
@@ -60,14 +60,14 @@ class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extend
       receivedResult(result)
   }
 
-  def publish(result: AnyRef) = {
+  def publish(result: AnyRef): Unit = {
     //publish to eventstream as well
     context.system.eventStream.publish(result)
     //send result direct to client
-    origSender map (_ ! result)
+    origSender foreach (_ ! result)
   }
 
-  private def receivedResult(result: ReportResult) = {
+  private def receivedResult(result: ReportResult): Unit = {
     result match {
       case result: ReportSuccess =>
         stats = stats.incSuccess
@@ -80,17 +80,17 @@ class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extend
     log.debug(s"receivedResult:$stats:${stats.isFinished}")
     if (stats.isFinished) {
       //send completed result
-      origSender map (_ ! stats)
+      origSender foreach (_ ! stats)
       self ! PoisonPill
     }
   }
 
-  private def processReports(file: Array[Byte], jobId: JobId, data: ReportData[_], f: ReportDataRow => Props)(originator: PersonId) = {
-    origSender = Some(sender)
+  private def processReports(file: Array[Byte], jobId: JobId, data: ReportData[_], f: ReportDataRow => Props)(originator: PersonId): Unit = {
+    origSender = Some(sender())
     stats = stats.copy(originator = originator, jobId = jobId, numberOfReportsInProgress = data.rows.length)
 
     // send already stats to notify client about progress
-    sender ! stats
+    sender() ! stats
 
     for {
       (row, index) <- data.rows.zipWithIndex

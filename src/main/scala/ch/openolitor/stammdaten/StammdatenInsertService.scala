@@ -700,7 +700,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
           }
         }
 
-        val abotypDates = (abotypDepotTour.flatten.groupBy(_._1).mapValues(_ map { _._2 }) map {
+        val abotypDates = (abotypDepotTour.flatten.groupBy(_._1).view.mapValues(_ map { _._2 }) map {
           case (datum, abotypBeschrieb) =>
             datum + ": " + abotypBeschrieb.mkString(", ")
         }).mkString("; ")
