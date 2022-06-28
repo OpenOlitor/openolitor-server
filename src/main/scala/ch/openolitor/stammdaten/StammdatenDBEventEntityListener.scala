@@ -60,13 +60,13 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
 
   val dateFormat = DateTimeFormat.forPattern("dd.MM.yyyy")
 
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[DBEvent[_]])
     context.system.eventStream.subscribe(self, classOf[SystemEvent])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[DBEvent[_]])
     context.system.eventStream.unsubscribe(self, classOf[SystemEvent])
     super.postStop()
@@ -1034,7 +1034,7 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
       val lieferungen = selectedZusatzAbo(stammdatenUpdateRepository.getLieferungen(lieferplanungId))
       //delete the zusatzabos that don't even have a korb
       val abotypDates = (lieferungen.map(l => (dateFormat.print(l.datum), l.abotypBeschrieb))
-        .groupBy(_._1).mapValues(_ map { _._2 }) map {
+        .groupBy(_._1).view.mapValues(_ map { _._2 }) map {
           case (datum, abotypBeschriebe) =>
             datum + ": " + abotypBeschriebe.mkString(", ")
         }).mkString("; ")

@@ -415,19 +415,19 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
     case PasswortWechselCommand(_, personId, pwd, einladungId) => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => PasswortGewechseltEvent(factory.newMetadata(), personId, pwd, einladungId))))
 
-    case LoginDeaktivierenCommand(originator, kundeId, personId) if originator.id != personId => _ => _ =>
+    case LoginDeaktivierenCommand(originator, kundeId, personId) if originator != personId => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => LoginDeaktiviertEvent(factory.newMetadata(), kundeId, personId))))
 
-    case LoginAktivierenCommand(originator, kundeId, personId) if originator.id != personId => _ => _ =>
+    case LoginAktivierenCommand(originator, kundeId, personId) if originator != personId => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => LoginAktiviertEvent(factory.newMetadata(), kundeId, personId))))
 
-    case EinladungSendenCommand(originator, kundeId, personId) if originator.id != personId => idFactory => meta =>
+    case EinladungSendenCommand(originator, kundeId, personId) if originator != personId => idFactory => meta =>
       sendEinladung(idFactory, meta, kundeId, personId)
 
     case PasswortResetCommand(_, personId) => idFactory => meta =>
       sendPasswortReset(idFactory, meta, personId)
 
-    case RolleWechselnCommand(originator, kundeId, personId, rolle) if originator.id != personId => idFactory => meta =>
+    case RolleWechselnCommand(originator, kundeId, personId, rolle) if originator != personId => idFactory => meta =>
       changeRolle(idFactory, meta, kundeId, personId, rolle)
     case OtpResetCommand(_, kundeId, personId) => _ => _ =>
       Success(Seq(DefaultResultingEvent(factory => OtpResetEvent(factory.newMetadata(), kundeId, personId, OtpUtil.generateOtpSecretString))))
@@ -859,7 +859,7 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
             (h.tourId, tour.name, lieferung.datum) -> h.id
           }
       }
-    }).flatten.groupBy(_._1).mapValues(_ map { _._2 })
+    }).flatten.groupBy(_._1).view.mapValues(_ map { _._2 })
 
     (vertriebsartenDaten flatMap {
       case ((tourId, tourName, lieferdatum), vertriebsartIds) => {

@@ -43,12 +43,12 @@ class DefaultReportsDBEventEntityListener(sysConfig: SystemConfig, override val 
 class ReportsDBEventEntityListener(override val sysConfig: SystemConfig) extends Actor with ActorLogging with ReportsDBMappings with AsyncConnectionPoolContextAware {
   this: ReportsUpdateRepositoryComponent =>
 
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[DBEvent[_]])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[DBEvent[_]])
     super.postStop()
   }

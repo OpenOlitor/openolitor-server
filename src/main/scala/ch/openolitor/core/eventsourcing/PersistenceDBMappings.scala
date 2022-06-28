@@ -57,10 +57,10 @@ trait PersistenceDBMappings extends DBMappings with ActorSystemReference {
   private def readStream(is: InputStream, builder: ByteStringBuilder): ByteString = {
     val buffer = new Array[Byte](1024)
     is.read(buffer) match {
-      case l if l <= 0 => builder.result
+      case l if l <= 0 => builder.result()
       case l =>
         for (i <- 0 to l) {
-          print(buffer(i) + " ")
+          print(s"${buffer(i)} ")
           builder.putByte(buffer(i))
         }
         readStream(is, builder)

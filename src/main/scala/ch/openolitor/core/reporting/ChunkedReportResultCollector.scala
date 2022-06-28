@@ -28,8 +28,6 @@ import scala.util._
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.FileStoreResultPayload
-import akka.stream.ActorMaterializer
-import akka.stream.ActorMaterializerSettings
 import ch.openolitor.core.reporting.BufferedChunkingActor.CompleteChunkedTransfer
 import ch.openolitor.core.filestore.ChunkedFileStoreActor.InitiateChunkedUpload
 
@@ -41,17 +39,15 @@ object ChunkedReportResultCollector {
  * Collect all results into a remote zip file on the file store.
  */
 class ChunkedReportResultCollector(fileStore: FileStore, fileName: String, reportSystem: ActorRef, override val jobQueueService: ActorRef) extends ResultCollector with DateFormats {
-  val bufferedChunkingActor = context.actorOf(BufferedChunkingActor.props(fileStore, fileName, 10 * 1024 * 1024), "buffered-chunking-actor-" + System.currentTimeMillis)
+  val bufferedChunkingActor: ActorRef = context.actorOf(BufferedChunkingActor.props(fileStore, fileName, 10 * 1024 * 1024), "buffered-chunking-actor-" + System.currentTimeMillis)
 
   var origSender: Option[ActorRef] = None
   var errors: Seq[ReportError] = Seq()
   var reportStats: Option[GenerateReportsStats] = None
 
-  implicit val materializer = ActorMaterializer(ActorMaterializerSettings(context.system))
-
   val receive: Receive = {
     case request: GenerateReports[_] =>
-      origSender = Some(sender)
+      origSender = Some(sender())
       reportSystem ! request
       bufferedChunkingActor ! InitiateChunkedUpload(TemporaryData.bucket, Some(fileName), FileStoreFileMetadata(fileName, TemporaryData))
       context become waitingForResult
@@ -62,7 +58,7 @@ class ChunkedReportResultCollector(fileStore: FileStore, fileName: String, repor
       errors = errors :+ error
       notifyProgress(stats)
 
-    case SingleReportResult(id, stats, Right(result: ReportResultWithDocument)) =>
+    case SingleReportResult(_, stats, Right(result: ReportResultWithDocument)) =>
       bufferedChunkingActor ! result
       notifyProgress(stats)
 
@@ -84,7 +80,7 @@ class ChunkedReportResultCollector(fileStore: FileStore, fileName: String, repor
       jobFinished(reportStats.get, Some(payload))
       self ! PoisonPill
 
-    case FileStoreError(error) =>
+    case FileStoreError(_) =>
       log.error(s"Got error in waitingForResultPayload")
       jobFinished(reportStats.get, None)
       self ! PoisonPill

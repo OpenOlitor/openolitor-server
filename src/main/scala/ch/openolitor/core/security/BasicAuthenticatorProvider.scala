@@ -15,7 +15,7 @@ trait BasicAuthenticatorProvider {
           case Some(subject) => provide(subject)
           case None          => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenges.basic(realm)))
         }
-      case None => reject(AuthenticationFailedRejection(CredentialsMissing, HttpChallenges.basic(realm)))
+      case _: Any => reject(AuthenticationFailedRejection(CredentialsMissing, HttpChallenges.basic(realm)))
     }
   }
 }

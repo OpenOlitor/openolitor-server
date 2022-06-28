@@ -29,11 +29,11 @@ import ch.openolitor.core.repositories.InstantEventPublisher
  * Trait providing a simple access to publish events to the eventstream per mandant
  */
 trait EventStream {
-  def publish(msg: Object)
+  def publish(msg: Object): Unit
 }
 
 trait NoPublishEventStream extends EventStream {
-  def publish(msg: Object) = {}
+  def publish(msg: Object): Unit = {}
 
   implicit val eventPublisher = new InstantEventPublisher(this)
 }
@@ -41,5 +41,5 @@ trait NoPublishEventStream extends EventStream {
 trait AkkaEventStream extends EventStream {
   val system: ActorSystem
 
-  def publish(msg: Object) = system.eventStream.publish(msg)
+  def publish(msg: Object): Unit = system.eventStream.publish(msg)
 }

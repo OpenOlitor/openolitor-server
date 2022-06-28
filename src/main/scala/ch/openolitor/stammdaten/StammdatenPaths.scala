@@ -25,9 +25,9 @@ package ch.openolitor.stammdaten
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.models._
 import ch.openolitor.core.filestore.UnknownFileType
-import ch.openolitor.core.SprayDeserializers
+import ch.openolitor.core.AkkaHttpDeserializers
 
-trait StammdatenPaths extends SprayDeserializers with StammdatenJsonProtocol {
+trait StammdatenPaths extends AkkaHttpDeserializers with StammdatenJsonProtocol {
   implicit val abotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val zusatzAbotypIdPath = long2BaseIdPathMatcher(AbotypId.apply)
   implicit val kundeIdPath = long2BaseIdPathMatcher(KundeId.apply)

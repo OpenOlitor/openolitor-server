@@ -36,14 +36,14 @@ trait StammdatenDeleteRepository extends BaseDeleteRepository with EventStream {
 
 trait StammdatenDeleteRepositoryImpl extends StammdatenDeleteRepository with LazyLogging with StammdatenRepositoryQueries {
   def deleteLieferpositionen(id: LieferungId)(implicit session: DBSession): Int = {
-    deleteLieferpositionenQuery(id).update.apply
+    deleteLieferpositionenQuery(id).update.apply()
   }
 
   def deleteKoerbe(id: LieferungId)(implicit session: DBSession): Int = {
-    deleteKoerbeQuery(id).update.apply
+    deleteKoerbeQuery(id).update.apply()
   }
 
   def deleteZusatzAbos(hauptAboId: AboId)(implicit session: DBSession): Int = {
-    deleteZusatzAbosQuery(hauptAboId).update.apply
+    deleteZusatzAbosQuery(hauptAboId).update.apply()
   }
 }

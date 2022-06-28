@@ -236,6 +236,7 @@ trait DocumentProcessor extends LazyLogging {
             field.updateField(if (bool) "1" else "0", doc.getContentRoot)
           case Value(JsNumber(number), _) =>
             field.updateField(number.toString, doc.getContentRoot)
+          case _: Any =>
         }
     }
   }
@@ -460,7 +461,7 @@ trait DocumentProcessor extends LazyLogging {
       resolvePropertyFromJson(name, paths) map {
         _.headOption.map {
           case JsString(value) =>
-            if (!value.isEmpty) {
+            if (value.nonEmpty) {
               resolvePropertyFromJson("referenzNummer", paths) flatMap {
                 _.headOption.map {
                   case JsString(referenzNummer) =>
@@ -472,7 +473,7 @@ trait DocumentProcessor extends LazyLogging {
 
                     val filePNG = File.createTempFile("qrcPNG", ".png")
                     //transform the svg in a png and getting the reference of the file
-                    svg2png(fileSVG, filePNG, referenzNummer)
+                    svg2png(fileSVG, filePNG)
 
                     val templateFilename = t.getInternalPath
                     //remove the template image
@@ -494,7 +495,7 @@ trait DocumentProcessor extends LazyLogging {
     }
   }
 
-  private def svg2png(svgFile: File, pngFile: File, referenzNummer: String) {
+  private def svg2png(svgFile: File, pngFile: File): Unit = {
     val svg_URI_input = svgFile.toURI.toString
     val input_svg_image = new TranscoderInput(svg_URI_input)
     val png_ostream = new FileOutputStream(pngFile)
@@ -717,7 +718,7 @@ trait DocumentProcessor extends LazyLogging {
   def extractProperties(data: JsValue, prefix: String = ""): Map[String, Value] = {
     val childPrefix = if (prefix == "") prefix else s"$prefix."
     data match {
-      case j @ JsObject(value) ⇒ value.map {
+      case j @ JsObject(value) => value.map {
         case (k, v) =>
           extractProperties(v, s"$childPrefix$k")
       }.flatten.toMap + (prefix -> Value(j, ""))

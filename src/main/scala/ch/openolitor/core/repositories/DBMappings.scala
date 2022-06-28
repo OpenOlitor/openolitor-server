@@ -78,34 +78,34 @@ trait DBMappings extends BaseParameter
       Option(_) match {
         case None => TreeMap.empty[K, V]
         case Some(s) =>
-          (TreeMap.empty[K, V] /: s.split(",")) { (tree, str) =>
+          TreeMap.empty[K, V] ++ s.split(",").flatMap { str =>
             str.split("=") match {
               case Array(left, right) =>
-                tree + (kf(left) -> vf(right))
+                Some(kf(left) -> vf(right))
               case _ =>
-                tree
+                None
             }
           }
       }
     }, { map =>
-      map.toIterable.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
+      map.iterator.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
     })
   def mapBinders[K, V](kf: String => K, vf: String => V, kg: K => String, vg: V => String): Binders[Map[K, V]] =
     Binders.string.xmap({
       Option(_) match {
         case None => Map.empty[K, V]
         case Some(s) =>
-          (Map.empty[K, V] /: s.split(",")) { (tree, str) =>
+          Map.empty[K, V] ++ s.split(",").flatMap { str =>
             str.split("=") match {
               case Array(left, right) =>
-                tree + (kf(left) -> vf(right))
+                Some(kf(left) -> vf(right))
               case _ =>
-                tree
+                None
             }
           }
       }
     }, { map =>
-      map.toIterable.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
+      map.iterator.map { case (k, v) => kg(k) + "=" + vg(v) }.mkString(",")
     })
 
   implicit val localeBinder: Binders[Locale] = Binders.string.xmap(l => Locale.forLanguageTag(l), _.toLanguageTag)

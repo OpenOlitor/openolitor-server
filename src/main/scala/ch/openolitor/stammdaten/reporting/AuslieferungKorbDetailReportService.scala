@@ -81,11 +81,11 @@ trait AuslieferungKorbDetailReportService extends AsyncConnectionPoolContextAwar
               (
                 abotypName,
                 factorizedLieferpositionenList,
-                auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size)
+                auslieferungen.groupBy(auslieferung => auslieferung.depot.map(_.name).orElse(auslieferung.tour.map(_.name)).getOrElse("Post")).view.mapValues(_.size)
               )
-          }) map {
+          }).map {
             case (abotypName, lp, proDepotTour) =>
-              KorbDetailsReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbDetailsReportProDepotTour(p._1, p._2))).toSeq, lp)
+              KorbDetailsReportProAbotyp(abotypName, proDepotTour.values.sum, proDepotTour.map(p => KorbDetailsReportProDepotTour(p._1, p._2)).toSeq, lp)
           }
 
           val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()

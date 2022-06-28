@@ -36,12 +36,12 @@ class SimpleFrameIterator(containerElement: OdfElement) extends Iterator[Frame] 
   private var nextElement: Frame = _
   private var tempElement: Frame = _
 
-  def hasNext(): Boolean = {
+  override def hasNext: Boolean = {
     tempElement = findNext(nextElement)
     (tempElement != null)
   }
 
-  def next(): Frame = {
+  override def next(): Frame = {
     if (tempElement != null) {
       nextElement = tempElement
       tempElement = null

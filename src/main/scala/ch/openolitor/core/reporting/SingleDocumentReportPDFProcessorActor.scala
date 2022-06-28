@@ -39,8 +39,8 @@ class SingleDocumentReportPDFProcessorActor(sysConfig: SystemConfig, name: Strin
   import ReportSystem._
   import PDFGeneratorActor._
 
-  val generateDocumentActor = context.actorOf(SingleDocumentReportProcessorActor.props(name, locale), "generate-document-" + System.currentTimeMillis)
-  val generatePdfActor = context.actorOf(PDFGeneratorActor.props(sysConfig, name), "pdf-" + System.currentTimeMillis)
+  val generateDocumentActor: ActorRef = context.actorOf(SingleDocumentReportProcessorActor.props(name, locale), "generate-document-" + System.currentTimeMillis)
+  val generatePdfActor: ActorRef = context.actorOf(PDFGeneratorActor.props(sysConfig, name), "pdf-" + System.currentTimeMillis)
 
   var origSender: Option[ActorRef] = None
   var id: Any = null
@@ -48,7 +48,7 @@ class SingleDocumentReportPDFProcessorActor(sysConfig: SystemConfig, name: Strin
 
   val receive: Receive = {
     case cmd: GenerateReport =>
-      origSender = Some(sender)
+      origSender = Some(sender())
       generateDocumentActor ! cmd
       context become waitingForDocumentResult
   }
@@ -61,11 +61,11 @@ class SingleDocumentReportPDFProcessorActor(sysConfig: SystemConfig, name: Strin
       context become waitingForPdfResult
     case e: ReportError =>
       //stop on error
-      origSender map (_ ! e)
+      origSender foreach (_ ! e)
       self ! PoisonPill
   }
 
-  override def postStop() = {
+  override def postStop(): Unit = {
     // cleanup
     if (odtFile != null) {
       odtFile.delete()
@@ -74,10 +74,10 @@ class SingleDocumentReportPDFProcessorActor(sysConfig: SystemConfig, name: Strin
 
   val waitingForPdfResult: Receive = {
     case PDFResult(pdf) =>
-      origSender map (_ ! PdfReportResult(id, pdf, name + ".pdf"))
+      origSender foreach (_ ! PdfReportResult(id, pdf, name + ".pdf"))
       self ! PoisonPill
     case PDFError(error) =>
-      origSender map (_ ! ReportError(Some(id), error))
+      origSender foreach (_ ! ReportError(Some(id), error))
       self ! PoisonPill
   }
 }

@@ -37,7 +37,7 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.ExecutionContext
 
 trait ReportsRoutes extends BaseRouteService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with LazyLogging
+  with AsyncConnectionPoolContextAware with AkkaHttpDeserializers with LazyLogging
   with ReportsJsonProtocol
   with ReportsEventStoreSerializer
   with ReportsDBMappings {

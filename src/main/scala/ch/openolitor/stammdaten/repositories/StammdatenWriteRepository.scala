@@ -33,7 +33,7 @@ trait StammdatenWriteRepository extends StammdatenReadRepositorySync
   with StammdatenDeleteRepository
   with BaseWriteRepository
   with EventStream {
-  def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
+  def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit
 }
 
 trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository
@@ -43,7 +43,7 @@ trait StammdatenWriteRepositoryImpl extends StammdatenWriteRepository
   with StammdatenDeleteRepositoryImpl
   with LazyLogging
   with StammdatenRepositoryQueries {
-  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
+  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit = {
     DB autoCommit { implicit session =>
       sql"truncate table ${postlieferungMapping.table}".execute.apply()
       sql"truncate table ${depotlieferungMapping.table}".execute.apply()

@@ -47,7 +47,7 @@ class ChunkedFileStoreActor(fileStore: FileStore) extends Actor with ActorLoggin
 
   val receive: Receive = {
     case InitiateChunkedUpload(bucket, id, metadata) =>
-      val rec = sender
+      val rec = sender()
       val name = id.getOrElse(UUID.randomUUID.toString)
 
       fileStore.initiateChunkedUpload(bucket, Some(name), metadata) map {
@@ -62,7 +62,7 @@ class ChunkedFileStoreActor(fileStore: FileStore) extends Actor with ActorLoggin
 
   val initialized: Receive = {
     case UploadChunk(metadata, inputStream, partSize, partNumber) =>
-      val rec = sender
+      val rec = sender()
 
       fileStore.uploadChunk(metadata, inputStream, partSize, partNumber) map {
         case Left(e) =>
@@ -73,24 +73,24 @@ class ChunkedFileStoreActor(fileStore: FileStore) extends Actor with ActorLoggin
       }
 
     case CompleteChunkedUpload(metadata) =>
-      val rec = sender
+      val rec = sender()
 
       fileStore.completeChunkedUpload(metadata, etags sortBy (_.partNumber)) map {
         case Left(e) =>
           rec ! e
-        case Right(result) =>
+        case Right(_) =>
           rec ! ChunkedUploadCompleted
       }
 
       self ! PoisonPill
 
     case AbortChunkedUpload(metadata) =>
-      val rec = sender
+      val rec = sender()
 
       fileStore.abortChunkedUpload(metadata) map {
         case Left(e) =>
           rec ! e
-        case Right(result) =>
+        case Right(_) =>
           rec ! ChunkedUploadAborted
       }
 

@@ -50,12 +50,12 @@ class StammdatenMailListener(override val sysConfig: SystemConfig) extends Actor
   // implicitly expose the eventStream
   lazy implicit val stammdatenRepositoryImplicit = stammdatenWriteRepository
 
-  override def preStart() {
+  override def preStart(): Unit = {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[MailSentEvent])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[MailSentEvent])
     super.postStop()
   }

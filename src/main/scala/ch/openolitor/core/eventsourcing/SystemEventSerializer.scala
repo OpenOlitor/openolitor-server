@@ -36,7 +36,7 @@ trait SystemEventSerializer extends BaseJsonProtocol with EntityStoreJsonProtoco
 
   implicit val personLoggedInPersister =
     persister[PersonLoggedIn, V2]("person-logged-in", from[V1]
-      .to[V2](_.update('secondFactorType ! set[Option[SecondFactorType]](None))))
+      .to[V2](_.update(Symbol("secondFactorType") ! set[Option[SecondFactorType]](None))))
   implicit val systemStartedPersister = persister[SystemStarted]("system-started")
   implicit val personChangedOtpSecret = persister[PersonChangedOtpSecret]("person-changed-otp-secret")
   implicit val personChangeSecondFactorType = persister[PersonChangedSecondFactorType]("person-change-second-factor-type")

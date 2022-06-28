@@ -35,7 +35,7 @@ trait KundenportalWriteRepository extends KundenportalReadRepositorySync
   with KundenportalUpdateRepository
   with BaseWriteRepository
   with EventStream {
-  def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
+  def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit
 }
 
 trait KundenportalWriteRepositoryImpl extends KundenportalReadRepositorySyncImpl
@@ -44,7 +44,6 @@ trait KundenportalWriteRepositoryImpl extends KundenportalReadRepositorySyncImpl
   with KundenportalWriteRepository
   with LazyLogging
   with KundenportalRepositoryQueries {
-  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
-
+  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit = {
   }
 }

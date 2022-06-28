@@ -76,7 +76,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
 
         val proAbotypZusatzabos = (auslieferungReport.entries groupBy (groupIdentifierZusatzabos) map {
           case (abotypName, auslieferungen) =>
-            (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse POST) mapValues (_.size))
+            (abotypName, auslieferungen.groupBy(auslieferung => auslieferung.depot.map(_.name).orElse(auslieferung.tour.map(_.name)).getOrElse(POST)).view.mapValues(_.size))
         }) map {
           case (abotypName, proDepotTour) =>
             val color = hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse("")
@@ -89,7 +89,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
 
         val proAbotyp = (auslieferungReport.entries groupBy (groupIdentifierHauptabo) map {
           case (abotypName, auslieferungen) =>
-            (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse POST) mapValues (_.size))
+            (abotypName, auslieferungen.groupBy(auslieferung => auslieferung.depot.map(_.name).orElse(auslieferung.tour.map(_.name)).getOrElse(POST)).view.mapValues(_.size))
         }) map {
           case (abotypName, proDepotTour) =>
             val color = hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse("")
@@ -102,7 +102,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
 
         val allZusatzabotypNames = auslieferungReport.entries flatMap { obj => obj.korb.abo.zusatzAbotypNames }
 
-        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, zusatzAboFarbCodes(x._1), x._2))
+        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).view.mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, zusatzAboFarbCodes(x._1), x._2))
 
         val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()
 

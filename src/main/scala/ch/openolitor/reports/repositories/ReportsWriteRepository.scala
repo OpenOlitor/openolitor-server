@@ -37,7 +37,7 @@ trait ReportsWriteRepository extends ReportsReadRepositorySync
   with ReportsDeleteRepository
   with BaseWriteRepository
   with EventStream {
-  def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
+  def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit
 }
 
 trait ReportsWriteRepositoryImpl extends ReportsReadRepositorySyncImpl
@@ -47,7 +47,7 @@ trait ReportsWriteRepositoryImpl extends ReportsReadRepositorySyncImpl
   with ReportsWriteRepository
   with LazyLogging
   with ReportsRepositoryQueries {
-  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
+  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit = {
     DB autoCommit { implicit session =>
       sql"truncate table ${reportMapping.table}".execute.apply()
     }

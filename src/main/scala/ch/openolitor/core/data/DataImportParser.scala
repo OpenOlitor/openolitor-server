@@ -27,6 +27,8 @@ import ch.openolitor.stammdaten.models._
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
 import akka.actor._
+import akka.event.LoggingAdapter
+
 import java.io.InputStream
 import scala.util._
 import ch.openolitor.core.data.parsers._
@@ -38,7 +40,7 @@ class DataImportParser extends Actor with ActorLogging {
 
   val receive: Receive = {
     case ParseSpreadsheet(file) =>
-      val rec = sender
+      val rec = sender()
       try {
         importData(file) match {
           case Success(result) =>
@@ -55,7 +57,7 @@ class DataImportParser extends Actor with ActorLogging {
   }
 
   def importData(file: InputStream): Try[ParseResult] = {
-    implicit val loggingAdapter = log
+    implicit val loggingAdapter: LoggingAdapter = log
 
     val doc = SpreadsheetDocument.loadDocument(file)
 
@@ -160,11 +162,7 @@ object DataImportParser {
   implicit class MySpreadsheet(self: SpreadsheetDocument) {
     def sheet(name: String): Option[Table] = {
       val sheet = self.getSheetByName(name)
-      if (sheet != null) {
-        Some(sheet)
-      } else {
-        None
-      }
+      Option(sheet)
     }
 
     def withSheet[R](name: String)(f: String => Table => R): R = {

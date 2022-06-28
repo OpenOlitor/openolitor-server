@@ -401,6 +401,7 @@ trait ParsingMatchers {
             s"parsing issue, $msg",
             expectable
           )
+        case x: Any => failure(s"Parsing failed:$x", expectable)
       }
     }
 
