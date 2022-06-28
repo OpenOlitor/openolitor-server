@@ -1000,16 +1000,16 @@ class JsonPathSpec extends Specification with Matchers {
 
     "not mess up with node with the same name at different depths in the hierarchy" in {
       val json = """{"foo":{"nico":{"nico":42}}}"""
-      JsonPath.query("""$..foo[?(@.nico)]""", parseJson(json)).right.get must containTheSameElementsAs(Seq(parseJson("""{"nico":{"nico":42}}""")))
+      JsonPath.query("""$..foo[?(@.nico)]""", parseJson(json)).toOption.get must containTheSameElementsAs(Seq(parseJson("""{"nico":{"nico":42}}""")))
     }
 
     "work with getting the whole store" in {
       JsonPath.query("$..book.*", goessnerJson) === Right(Vector())
-      JsonPath.query("$.store.*", goessnerJson).right.get must containTheSameElementsAs(Vector(parseJson(allBooks), parseJson(bicycle)))
+      JsonPath.query("$.store.*", goessnerJson).toOption.get must containTheSameElementsAs(Vector(parseJson(allBooks), parseJson(bicycle)))
     }
 
     "work with getting all prices" in {
-      JsonPath.query("$.store..price", goessnerJson).right.get must containTheSameElementsAs(Vector(
+      JsonPath.query("$.store..price", goessnerJson).toOption.get must containTheSameElementsAs(Vector(
         double(8.95),
         double(12.99),
         double(8.99),
@@ -1026,7 +1026,7 @@ class JsonPathSpec extends Specification with Matchers {
     }
 
     "allow to get everything" in {
-      JsonPath.query("$..*", goessnerJson).right.get must containTheSameElementsAs(Vector(
+      JsonPath.query("$..*", goessnerJson).toOption.get must containTheSameElementsAs(Vector(
         goessnerJson,
         parseJson(allStore),
         parseJson(bicycle),

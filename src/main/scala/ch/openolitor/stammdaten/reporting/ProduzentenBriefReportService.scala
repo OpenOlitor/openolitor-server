@@ -64,7 +64,7 @@ trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with
             .getOrElse(Left(ValidationError[ProduzentId](id, s"Produzent konnte nicht geladen werden"))))
         })
         results.map(_.partition(_.isLeft) match {
-          case (a, b) => (a.map(_.left.get), b.map(_.right.get))
+          case (a, b) => (a.map(_.swap.toOption.get), b.map(_.toOption.get))
         })
       } getOrElse Future { (Seq(ValidationError[ProduzentId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }

@@ -66,7 +66,7 @@ trait LieferplanungReportService extends AsyncConnectionPoolContextAware with Re
           }.getOrElse(Left(ValidationError[LieferplanungId](id, s"Die Lieferplanung konnte nicht gefunden werden"))))
         })
         results.map(_.partition(_.isLeft) match {
-          case (a, b) => (a.map(_.left.get), b.map(_.right.get))
+          case (a, b) => (a.map(_.swap.toOption.get), b.map(_.toOption.get))
         })
       } getOrElse Future { (Seq(ValidationError[LieferplanungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }

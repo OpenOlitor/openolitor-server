@@ -511,7 +511,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getProjektPublik(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektPublik]] = {
     import scalikejdbc.async.makeSQLToOptionAsync
-    getProjektQuery.future map (_ map (projekt => {
+    getProjektQuery.future() map (_ map (projekt => {
       copyTo[Projekt, ProjektPublik](projekt)
     }))
   }
@@ -552,7 +552,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getProduzentenabrechnungReport(sammelbestellungIds: Seq[SammelbestellungId], projekt: ProjektReport)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProduzentenabrechnungReport]] = {
-    getProduzentenabrechnungQuery(sammelbestellungIds).future flatMap { result =>
+    getProduzentenabrechnungQuery(sammelbestellungIds).future() flatMap { result =>
       Future.sequence((result.groupBy(_.produzentId) map {
         case (produzentId, sammelbestellungen) => {
           val sumPreis = sammelbestellungen.map(_.preisTotal).sum
@@ -835,7 +835,7 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getProjektVorlagen(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ProjektVorlage]] = {
     import scalikejdbc.async.makeSQLToListAsync
-    getProjektVorlagenQuery.future()
+    getProjektVorlagenQuery().future()
   }
 
   def getProjektVorlage(id: ProjektVorlageId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektVorlage]] = {
@@ -849,6 +849,6 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
   }
 
   def getLastClosedLieferplanungenDetail(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferplanungOpenDetail]] = {
-    getLastClosedLieferplanungenDetailQuery.future map (_.take(5))
+    getLastClosedLieferplanungenDetailQuery.future() map (_.take(5))
   }
 }

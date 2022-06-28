@@ -28,6 +28,6 @@ import akka.util.ByteString
 
 object ByteStringUtil {
   def readFromInputStream(is: InputStream): Try[ByteString] = {
-    Try(ByteString(Stream.continually(is.read).takeWhile(_ != -1).map(_.toByte).toArray))
+    Try(ByteString(LazyList.continually(is.read).takeWhile(_ != -1).map(_.toByte).toArray))
   }
 }

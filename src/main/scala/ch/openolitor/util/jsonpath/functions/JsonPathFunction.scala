@@ -59,6 +59,9 @@ object JsonPathFunctions {
         case JsArray(values) =>
           logger.debug(s"Cannot extract string from array:$values")
           None
+        case x: Any =>
+          logger.warn(s"Cannot extract string from value:$x")
+          None
       }
     }
 
@@ -113,6 +116,9 @@ object JsonPathFunctions {
           None
         case JsArray(values) =>
           logger.debug(s"Cannot extract number from array:$values")
+          None
+        case x: Any =>
+          logger.warn(s"Cannot extract number from value:$x")
           None
       }
     }
@@ -180,10 +186,10 @@ object JsonPathFunctions {
    */
   object GroupBy extends Param1JsonPathFunction {
     def evaluate(property: String, jsValue: Vector[JsValue]): Option[Vector[JsValue]] = {
-      val groups = jsValue.groupBy(jsValue => JsonPath.query("$." + property, jsValue).right.toOption.flatMap {
+      val groups = jsValue.groupBy(jsValue => JsonPath.query("$." + property, jsValue).toOption.flatMap {
         // if property was not found, JsonPath evaluated to empty vector, map this case to None
         case Vector() => None
-        case x        => Some(x)
+        case x: Any   => Some(x)
       })
       // filter out not matched properties and map vector into a jsarray
       val result = groups.filterNot(_._1.isEmpty).map(entries => JsArray(entries._2)).toVector

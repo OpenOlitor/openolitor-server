@@ -23,12 +23,14 @@
 package ch.openolitor.core.filestore
 
 import akka.actor.ActorSystem
-import ch.openolitor.core.{ JSONSerializable, MandantConfiguration }
 import ch.openolitor.core.models.BaseStringId
-import com.amazonaws.{ AmazonClientException, ClientConfiguration }
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.{ AmazonS3Client, S3ClientOptions }
+import ch.openolitor.core.{ JSONSerializable, MandantConfiguration }
+import com.amazonaws.auth.{ AWSStaticCredentialsProvider, BasicAWSCredentials }
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.model._
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3ClientBuilder, S3ClientOptions }
+import com.amazonaws.{ AmazonClientException, ClientConfiguration }
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 
@@ -164,7 +166,7 @@ trait FileStore {
   }
 }
 
-class S3FileStore(override val mandant: String, override val client: AmazonS3Client) extends FileStore with FileStoreBucketLifeCycleConfiguration with LazyLogging {
+class S3FileStore(override val mandant: String, override val client: AmazonS3) extends FileStore with FileStoreBucketLifeCycleConfiguration with LazyLogging {
   def getFileSummaries(bucket: FileStoreBucket): Future[Either[FileStoreError, List[FileStoreFileSummary]]] = {
     Future.successful {
       try {
@@ -378,10 +380,13 @@ object S3FileStore extends LazyLogging {
     })
   }
 
-  private def buildClient(mandantConfiguration: MandantConfiguration): AmazonS3Client = {
-    val client = new AmazonS3Client(new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key")), opts)
-    client.setEndpoint(mandantConfiguration.config.getString("s3.aws-endpoint"))
-    client.setS3ClientOptions(S3ClientOptions.builder.setPathStyleAccess(true).build())
-    client
+  private def buildClient(mandantConfiguration: MandantConfiguration): AmazonS3 = {
+    val credentials = new BasicAWSCredentials(mandantConfiguration.config.getString("s3.aws-access-key-id"), mandantConfiguration.config.getString("s3.aws-secret-acccess-key"))
+    AmazonS3ClientBuilder.standard()
+      .withCredentials(new AWSStaticCredentialsProvider(credentials))
+      .withClientConfiguration(opts)
+      .withEndpointConfiguration(new EndpointConfiguration(mandantConfiguration.config.getString("s3.aws-endpoint"), Regions.DEFAULT_REGION.getName()))
+      .withPathStyleAccessEnabled(true)
+      .build()
   }
 }

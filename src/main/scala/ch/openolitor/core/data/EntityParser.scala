@@ -39,28 +39,28 @@ trait EntityParser {
   val modifyColumns = Seq("erstelldat", "ersteller", "modifidat", "modifikator")
 
   def parseTreeMap[K: Ordering, V](value: String)(kf: String => K, vf: String => V): TreeMap[K, V] = {
-    (TreeMap.empty[K, V] /: value.split(",")) { (tree, str) =>
+    TreeMap.empty[K, V] ++ (value.split(",")).flatMap { str =>
       str.split("=") match {
         case Array(left, right) =>
-          tree + (kf(left) -> vf(right))
+          Some(kf(left) -> vf(right))
         case _ =>
-          tree
+          None
       }
     }
   }
 
   def parseMap[K, V](value: String)(kf: String => K, vf: String => V): Map[K, V] = {
-    (Map.empty[K, V] /: value.split(",")) { (tree, str) =>
+    Map.empty[K, V] ++ value.split(",").flatMap { str =>
       str.split("=") match {
         case Array(left, right) =>
-          tree + (kf(left) -> vf(right))
+          Some(kf(left) -> vf(right))
         case _ =>
-          tree
+          None
       }
     }
   }
 
-  def parseEntity[E <: BaseEntity[I], I <: BaseId](idCol: String, colNames: Seq[String])(entityFactory: Long => Seq[Int] => Row => E)(implicit loggingAdapter: LoggingAdapter) = { name: String => table: Table =>
+  def parseEntity[E <: BaseEntity[I], I <: BaseId](idCol: String, colNames: Seq[String])(entityFactory: Long => Seq[Int] => Row => E)(implicit loggingAdapter: LoggingAdapter): String => Table => (List[E], Map[Long, I]) = { name: String => table: Table =>
     var idMapping = Map[Long, I]()
     val parseResult = parseImpl(name, table, idCol, colNames)(entityFactory) {
       case (id, entity) =>
@@ -74,7 +74,7 @@ trait EntityParser {
   def parseImpl[E <: BaseEntity[_], P, R](name: String, table: Table, idCol: String, colNames: Seq[String])(entityFactory: Long => Seq[Int] => Row => P)(resultHandler: (Long, P) => Option[R])(implicit loggingAdapter: LoggingAdapter): List[R] = {
     loggingAdapter.debug(s"Parse $name")
     val header = table.getRowByIndex(0)
-    val data = table.getRowIterator().asScala.toStream drop (1)
+    val data = table.getRowIterator().asScala.to(LazyList).drop(1)
 
     //match column indexes
     val indexes = columnIndexes(header, name, Seq(idCol) ++ colNames)

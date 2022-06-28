@@ -28,6 +28,6 @@ import scala.util.Try
 object InputStreamUtil {
   implicit class ExtInputStream(self: InputStream) {
     def toByteArray: Try[Array[Byte]] =
-      Try(Stream.continually(self.read).takeWhile(_ != -1).map(_.toByte).toArray)
+      Try(LazyList.continually(self.read).takeWhile(_ != -1).map(_.toByte).toArray)
   }
 }

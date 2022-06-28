@@ -60,6 +60,6 @@ class ArbeitseinsatzStatusUpdater(override val sysConfig: SystemConfig, override
   }
 
   protected def handleInitialization(): Unit = {
-    batchJob = Some(context.system.scheduler.schedule(1 minute, 1 hour)(self ! StartBatchJob))
+    batchJob = Some(context.system.scheduler.scheduleWithFixedDelay(1 minute, 1 hour)(() => self ! StartBatchJob))
   }
 }

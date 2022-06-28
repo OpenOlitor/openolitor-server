@@ -27,6 +27,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
+
 import scala.util.Try
 import scala.util.Success
 import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
@@ -35,9 +36,12 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 
+import scala.annotation.nowarn
+
 object RecalculateAnzahlSaldoZuTiefLieferung {
   val scripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with StammdatenWriteRepositoryImpl with NoPublishEventStream {
 
+    @nowarn("cat=deprecation")
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       // recalculate Körbe Saldo zu tief
       sql"""update Lieferung set anzahl_saldo_zu_tief = 0""".execute.apply()

@@ -97,7 +97,7 @@ trait BaseUpdateRepository extends BaseReadRepositorySync with UpdateRepository 
 
         // filter with allowed fields
         // if there are no modification fields in the passed updateFields default values are used
-        val updateParams = (defaultValues ++ updateFields.filterKeys(allowedFields.contains)).toSeq
+        val updateParams = (defaultValues ++ updateFields.view.filterKeys(allowedFields.contains)).toSeq
 
         logger.debug(s"update entity:${id} with values:$updateParams")
 

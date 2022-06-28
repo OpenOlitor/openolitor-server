@@ -24,9 +24,11 @@ package ch.openolitor.core.db.evolution
 
 import akka.actor._
 import ch.openolitor.core.SystemConfig
-import scala.util.{ Try, Success, Failure }
+
+import scala.util.{ Failure, Success, Try }
 import ch.openolitor.core.Boot
 import ch.openolitor.core.db.ConnectionPoolContextAware
+import ch.openolitor.core.models.PersonId
 import scalikejdbc.DB
 
 object DBEvolutionActor {
@@ -41,32 +43,32 @@ trait DBEvolutionActor extends Actor with ActorLogging with ConnectionPoolContex
   import DBEvolutionActor._
   val evolution: Evolution
 
-  var state = DBEvolutionState(0)
+  var state: DBEvolutionState = DBEvolutionState(0)
   var exception: Throwable = _
 
   val created: Receive = {
     case CheckDBEvolution =>
       log.debug(s"received additional CheckDBEvolution; evolution has been successful, otherwise I would be in uncheckedDB")
-      sender ! Success(state)
+      sender() ! Success(state)
   }
 
   val failed: Receive = {
     case CheckDBEvolution =>
       log.debug(s"received additional CheckDBEvolution; evolution has been successful, otherwise I would be in uncheckedDB")
-      sender ! Failure(exception)
+      sender() ! Failure(exception)
   }
 
   val uncheckedDB: Receive = {
     case CheckDBEvolution =>
       log.debug(s"uncheckedDB => check db evolution")
-      sender ! checkDBEvolution()
-    case x =>
+      sender() ! checkDBEvolution()
+    case x: Any =>
       log.error(s"uncheckedDB => unsupported command:$x")
   }
 
   def checkDBEvolution(): Try[DBEvolutionState] = {
     log.debug(s"Check DB Evolution: current revision=${state.dbRevision}")
-    implicit val personId = Boot.systemPersonId
+    implicit val personId: PersonId = Boot.systemPersonId
     evolution.evolveDatabase(state.dbRevision) match {
       case Success(rev) =>
         log.debug(s"Successfully updated to db rev:$rev")
@@ -90,5 +92,5 @@ trait DBEvolutionActor extends Actor with ActorLogging with ConnectionPoolContex
 }
 
 class DefaultDBEvolutionActor(override val sysConfig: SystemConfig, override val evolution: Evolution) extends DBEvolutionActor {
-  val system = context.system
+  val system: ActorSystem = context.system
 }

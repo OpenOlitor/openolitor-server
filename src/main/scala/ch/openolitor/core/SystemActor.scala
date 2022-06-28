@@ -23,10 +23,10 @@
 package ch.openolitor.core
 
 import akka.actor._
+
 import scala.concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
-import akka.pattern.BackoffSupervisor
-import akka.pattern.Backoff
+import akka.pattern.{ BackoffOpts, BackoffSupervisor }
 
 object SystemActor {
   case class Child(props: Props, name: String)
@@ -42,7 +42,7 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
 
   log.debug(s"oo-system:SystemActor initialization:$sysConfig")
 
-  override val supervisorStrategy = OneForOneStrategy() {
+  override val supervisorStrategy: OneForOneStrategy = OneForOneStrategy() {
     case e =>
       log.warning(s"Child actor failed:$e")
       airbrakeNotifier ! e
@@ -52,8 +52,8 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
   /**
    * Use onFailureBackoff to restart after Exceptions delayed by an exponential backoff function
    */
-  private def onFailureBackoff(childProps: Props, childName: String) = BackoffSupervisor.props(
-    Backoff.onFailure(
+  private def onFailureBackoff(childProps: Props, childName: String): Props = BackoffSupervisor.props(
+    BackoffOpts.onFailure(
       childProps,
       childName,
       minBackoff = 1.seconds,
@@ -66,8 +66,8 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
   /**
    * Use onStopBackoff Strategy for Actors which indicate stopping as an error (i.e. PersistentActor)
    */
-  private def onStopBackoff(childProps: Props, childName: String) = BackoffSupervisor.props(
-    Backoff.onStop(
+  private def onStopBackoff(childProps: Props, childName: String): Props = BackoffSupervisor.props(
+    BackoffOpts.onStop(
       childProps,
       childName,
       minBackoff = 1.seconds,
@@ -90,7 +90,7 @@ class SystemActor(sysConfig: SystemConfig, airbrakeNotifier: ActorRef) extends A
       context.watch(actorRef)
 
       //return created actor
-      sender ! actorRef
+      sender() ! actorRef
     case Terminated(child) =>
       context.unwatch(child)
       log.warning(s"Child actor terminated: $child")

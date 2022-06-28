@@ -25,7 +25,7 @@ package ch.openolitor.core.system
 import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import ch.openolitor.core.{ ActorReferences, BaseRouteService, SprayDeserializers, SystemConfig }
+import ch.openolitor.core.{ ActorReferences, BaseRouteService, AkkaHttpDeserializers, SystemConfig }
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent, ProjektStammdaten }
 import com.typesafe.scalalogging.LazyLogging
@@ -33,7 +33,7 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.ExecutionContext
 
 trait NonAuthRessourcesRouteService extends BaseRouteService with ActorReferences
-  with ConnectionPoolContextAware with SprayDeserializers with LazyLogging with SystemJsonProtocol with FileStoreComponent {
+  with ConnectionPoolContextAware with AkkaHttpDeserializers with LazyLogging with SystemJsonProtocol with FileStoreComponent {
 
   override implicit protected val executionContext: ExecutionContext = system.dispatcher
 

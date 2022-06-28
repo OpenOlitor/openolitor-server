@@ -55,16 +55,16 @@ class Pain008_001_07_Export extends LazyLogging {
       ), "Document", defineNamespaceBinding()).toString()
   }
 
-  private def getDate(): XMLGregorianCalendar = {
-    val calendar = new GregorianCalendar();
+  private def getDate: XMLGregorianCalendar = {
+    val calendar = new GregorianCalendar()
     calendar.getTime
     val date = DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar)
     date.setTime(DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED)
     date
   }
 
-  private def getDateTime(): XMLGregorianCalendar = {
-    val calendar = new GregorianCalendar();
+  private def getDateTime: XMLGregorianCalendar = {
+    val calendar = new GregorianCalendar()
     calendar.getTime
     DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar)
   }
@@ -76,7 +76,7 @@ class Pain008_001_07_Export extends LazyLogging {
   }
 
   private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String, projekt: Projekt): GroupHeader55 = {
-    val MsgId = kontoDatenProjekt.iban.get.slice(0, 15) + getSimpleDateTimeString(getDateTime())
+    val MsgId = kontoDatenProjekt.iban.get.slice(0, 15) + getSimpleDateTimeString(getDateTime)
     val CreDtTm = getDateTime
     val NbOfTxs = nbTransactions
     val CtrlSum = getSumAllRechnungs(rechnungen)
@@ -86,7 +86,7 @@ class Pain008_001_07_Export extends LazyLogging {
   }
 
   private def getPaymentInstructionInformationSDD(projekt: Projekt, kontoDatenProjekt: KontoDaten, rechnungen: List[(Rechnung, KontoDaten)], transactionNumber: String): PaymentInstruction21 = {
-    val PmtInfId = kontoDatenProjekt.iban.slice(0, 15) + getSimpleDateTimeString(getDateTime())
+    val PmtInfId = kontoDatenProjekt.iban.slice(0, 15).toString + getSimpleDateTimeString(getDateTime)
     val PmtMtd = DD
     val BtchBookg = None
     val NbOfTxs = Some(transactionNumber)
@@ -96,7 +96,7 @@ class Pain008_001_07_Export extends LazyLogging {
       Some(ServiceLevel8Choice(DataRecord[String](None, Some("Cd"), "SEPA"))),
       Some(LocalInstrument2Choice(DataRecord[String](None, Some("Cd"), "Core"))), Some(FRST), None
     ))
-    val ReqdColltnDt = getDate()
+    val ReqdColltnDt = getDate
     val Cdtr = pain008_001_07.PartyIdentification43(Some(projekt.bezeichnung), None, None, None, None)
     val CdtrAcct = pain008_001_07.CashAccount24(pain008_001_07.AccountIdentification4Choice(DataRecord[String](None, Some("IBAN"), kontoDatenProjekt.iban.getOrElse("wrong Iban"))))
     val CdtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, None))
@@ -126,7 +126,7 @@ class Pain008_001_07_Export extends LazyLogging {
     val PmtTpInf = None
     val InstdAmt = pain008_001_07.ActiveOrHistoricCurrencyAndAmount(rechnung.betrag, Map[String, DataRecord[String]]("Ccy" -> DataRecord(None, Some("Ccy"), "EUR")))
     val ChrgBr = None
-    val DrctDbtTx = Some(DirectDebitTransaction9(Some(MandateRelatedInformation11(Some(rechnung.kundeId.id.toString), Some(getDate()), None, None, None)), None, None, None))
+    val DrctDbtTx = Some(DirectDebitTransaction9(Some(MandateRelatedInformation11(Some(rechnung.kundeId.id.toString), Some(getDate), None, None, None)), None, None, None))
     val UltmtCdtr = None
     val DbtrAgt = pain008_001_07.BranchAndFinancialInstitutionIdentification5(pain008_001_07.FinancialInstitutionIdentification8(None, None, None, None, Some(pain008_001_07.GenericFinancialIdentification1("NOTPROVIDED", None, None))))
     val DbtrAgtAcct = None

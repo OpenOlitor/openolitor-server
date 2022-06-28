@@ -4,17 +4,16 @@ enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
 
 name := "openolitor-server"
-mainClass in Compile := Some("ch.openolitor.core.Boot")
+mainClass := Some("ch.openolitor.core.Boot")
+Compile / mainClass := Some("ch.openolitor.core.Boot")
 
-assemblyJarName in assembly := "openolitor-server.jar"
-
-mainClass in assembly := Some("ch.openolitor.core.Boot")
+assembly / assemblyJarName := "openolitor-server.jar"
 
 assemblyMergeStrategy in assembly := {
   case PathList("org", "slf4j", xs @ _*)         => MergeStrategy.first
   case "library.properties"                      => MergeStrategy.discard
   case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
 }
 
@@ -48,7 +47,6 @@ val buildSettings = Seq(
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   // add -Xcheckinit to scalac options to check for null val's during initialization see also: https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-feature", "-language:_", "-language:postfixOps"),
-  mainClass in (Compile, run) := Some("ch.openolitor.core.Boot"),
 
   libraryDependencies ++= {
   Seq(
@@ -57,14 +55,6 @@ val buildSettings = Seq(
     "com.typesafe.akka"          %% "akka-http"                % akkaHttpVersion,
     "com.typesafe.akka"          %% "akka-http-caching"        % akkaHttpVersion,
     "com.typesafe.akka"          %% "akka-http-spray-json"     % akkaHttpVersion, // ### NO Scala 3
-    // Could be required: "com.typesafe.akka"          %% "akka-http-xml"            % akkaHttpVersion,
-//    "io.spray"                     %%  "spray-can"     					              % sprayV,
-//    "io.spray"                     %%  "spray-caching"     					          % sprayV,
-//    "io.spray"                     %%  "spray-routing-shapeless2" 		        % sprayV,
-//    "io.spray"                     %%  "spray-testkit" 					              % sprayV  % "test",
-//    "io.spray" 			               %%  "spray-json"    					              % sprayV,
-//    "io.spray" 			               %%  "spray-client"  					              % sprayV,
-//    "com.wandoulabs.akka"          %%  "spray-websocket" 				              % "0.1.4",
     "com.typesafe.akka"            %%  "akka-actor"    					              % akkaVersion, // ### Scala 3, experimental
     "com.typesafe.akka"            %%  "akka-persistence"                     % akkaVersion,
     "com.typesafe.akka"            %%  "akka-persistence-query"               % akkaVersion,
@@ -83,8 +73,6 @@ val buildSettings = Seq(
     "org.scalaz" 		               %%  "scalaz-core"						              % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %%  "scala-logging"				                % "3.9.4", // ### Scala 3
-    //akka persistence journal driver
-    //"com.okumin" 		               %%  "akka-persistence-sql-async" 	        % "0.5.1",
     // use currently own fork, until PR was merged and a new release is available
     //"org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.9.+",
     //"com.github.mauricio"          %%  "mysql-async" 						              % "0.2.+", // ### NO Scala 3, NO Scala 2.13 => scalikejdbc-async is Scala 3 and 2.13, and supports mysql
@@ -102,9 +90,6 @@ val buildSettings = Seq(
     // Libreoffice document API
     "org.apache.odftoolkit"        %   "simple-odf"					                  % "0.8.2-incubating" withSources(),
     "org.apache.odftoolkit"        %   "simple-odf"        					          % "0.8.2-incubating" withSources(),
-    // ### removed for impl: "com.jsuereth"                 %%  "scala-arm"                            % "1.4", // ### NO Scala 3, NO Scala 2.13 => replace with code
-    //simple websocket client
-    // ### removed for impl: "org.jfarcand"                 %   "wcs"                                  % "1.5", // ### NO Scala 3, NO Scala 2.13 => removed from github
     "com.scalapenos"               %%  "stamina-json"                         % "0.1.6", // ### NO Scala 3
     "net.virtual-void" %%  "json-lenses" % "0.6.2",
     // s3
@@ -205,7 +190,6 @@ val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
 dockerEnvVars := Map("JAVA_OPTS" -> "-XX:+ExitOnOutOfMemoryError -Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
                      "application_buildnr" -> today)
 
-maintainer in Docker := "OpenOlitor Team <info@openolitor.org>"
-packageSummary in Docker := "Server Backend of the OpenOlitor Platform"
+Docker / maintainer := "OpenOlitor Team <info@openolitor.org>"
 
-version in Docker := sys.env.get("GITHUB_REF").getOrElse(version.value + "_SNAPSHOT").split("/").last
+Docker / version := sys.env.get("GITHUB_REF").getOrElse(version.value + "_SNAPSHOT").split("/").last

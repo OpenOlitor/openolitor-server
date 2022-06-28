@@ -43,11 +43,11 @@ trait BaseBatchJobsSupervisor extends Actor with LazyLogging {
 
   val batchJobs: Set[ActorRef]
 
-  def receive = {
+  def receive: Receive = {
     case m @ (InitializeBatchJob | StartBatchJob | CancelBatchJob) =>
       batchJobs foreach (_ ! m)
-    case result @ BatchJobResult(duration) =>
-      sender ! result
+    case result @ BatchJobResult(_) =>
+      sender() ! result
     case _ =>
   }
 }
@@ -67,7 +67,7 @@ trait BaseBatchJob extends Actor with LazyLogging {
    */
   protected def handleInitialization(): Unit
 
-  def receive = {
+  def receive: Receive = {
     case InitializeBatchJob =>
       handleInitialization()
     case StartBatchJob =>
@@ -76,9 +76,9 @@ trait BaseBatchJob extends Actor with LazyLogging {
         process()
         val duration = (DateTime.now.getMillis - start) millis
 
-        logger.debug(s"Batch job successful after ${duration}")
+        logger.debug(s"Batch job successful after $duration")
 
-        sender ! BatchJobResult(duration)
+        sender() ! BatchJobResult(duration)
       } catch {
         case e: Exception =>
           logger.error("Batch job failed!", e)

@@ -252,7 +252,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
   def removeLieferungPlanung(meta: EventMetadata, lieferungId: LieferungOnLieferplanungId)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.deleteLieferpositionen(lieferungId.getLieferungId())
-      stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, lieferungId.getLieferungId) map { lieferung =>
+      stammdatenWriteRepository.getById[Lieferung, LieferungId](lieferungMapping, lieferungId.getLieferungId()) map { lieferung =>
         // remove zusatzabo baskets and update the lieferung numbers
         lieferung.lieferplanungId match {
           case Some(lieferplanungId) =>
@@ -278,7 +278,7 @@ class StammdatenDeleteService(override val sysConfig: SystemConfig) extends Even
         stammdatenWriteRepository.deleteKoerbe(lieferung.id)
         stammdatenWriteRepository.getAbotypById(lieferung.abotypId) collect {
           case abotyp: ZusatzAbotyp =>
-            stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferungId.getLieferungId)
+            stammdatenWriteRepository.deleteEntity[Lieferung, LieferungId](lieferungId.getLieferungId())
           case _ =>
             stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferungId.getLieferungId())(
               lieferungMapping.column.durchschnittspreis -> ZERO,

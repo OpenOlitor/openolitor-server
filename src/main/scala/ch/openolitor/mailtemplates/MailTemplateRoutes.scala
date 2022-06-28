@@ -40,7 +40,7 @@ import scala.concurrent.ExecutionContext
 trait MailTemplateRoutes extends BaseRouteService
   with ActorReferences
   with AsyncConnectionPoolContextAware
-  with SprayDeserializers
+  with AkkaHttpDeserializers
   with LazyLogging
   with MailTemplateJsonProtocol
   with MailTemplateDBMappings

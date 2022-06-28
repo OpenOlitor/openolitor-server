@@ -30,6 +30,6 @@ import org.joda.time.DateTime
 class MailServiceMock extends Actor {
   def receive = {
     case SendMailCommand(personId, mail, duration) =>
-      sender ! SendMailEvent(null, "uid", mail, DateTime.now(), None)
+      sender() ! SendMailEvent(null, "uid", mail, DateTime.now(), None)
   }
 }

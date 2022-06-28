@@ -39,11 +39,11 @@ object PDFGeneratorActor {
 class PDFGeneratorActor(override val sysConfig: SystemConfig, name: String) extends Actor with ActorLogging with PDFGeneratorService {
   import PDFGeneratorActor._
 
-  override lazy val system = context.system
+  override lazy val system: ActorSystem = context.system
 
   val receive: Receive = {
     case GeneratePDF(document) =>
-      val rec = sender
+      val rec = sender()
       blocking {
         //run pdf service in blocking mode, only one pdf can get generated once
         generatePDF(document, name) match {

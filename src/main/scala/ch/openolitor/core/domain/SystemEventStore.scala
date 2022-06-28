@@ -56,7 +56,7 @@ trait SystemEventStore extends AggregateRoot {
    */
   override def updateState(recovery: Boolean = false)(evt: PersistentEvent): Unit = {
     evt match {
-      case PersistentSystemEvent(meta, event) if !recovery =>
+      case PersistentSystemEvent(_, event) if !recovery =>
         //publish event to eventstream
         log.debug(s"Publish system event:$event")
         publish(event)
@@ -64,13 +64,13 @@ trait SystemEventStore extends AggregateRoot {
     }
   }
 
-  override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
+  override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State): Unit = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
       case Removed                  => context become removed
       case Created                  => context become created
       case s: SystemEventStoreState => this.state = s
-      case other                    => log.error(s"Received unsupported state:$other")
+      case other: Any               => log.error(s"Received unsupported state:$other")
     }
   }
 
@@ -89,22 +89,22 @@ trait SystemEventStore extends AggregateRoot {
       context.stop(self)
     case GetState =>
       log.debug(s"created => GetState")
-      sender ! state
+      sender() ! state
     case systemEvent: SystemEvent =>
       persist(PersistentSystemEvent(metadata, systemEvent))(afterEventPersisted)
-    case other =>
+    case other: Any =>
       log.warning(s"Received unknown command:$other")
   }
 
-  def metadata = {
+  def metadata: EventMetadata = {
     EventMetadata(SystemPersonId, VERSION, DateTime.now, aquireTransactionNr(), 1L, persistenceId)
   }
 
-  def incState = {
+  def incState: SystemEventStoreState = {
     state.copy(seqNr = state.seqNr + 1)
   }
 
-  override val receiveCommand = created
+  override val receiveCommand: Receive = created
 }
 
 class DefaultSystemEventStore(val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef) extends SystemEventStore {

@@ -67,6 +67,6 @@ class AktiveAbosCalculation(override val sysConfig: SystemConfig, override val s
   }
 
   protected def handleInitialization(): Unit = {
-    batchJob = Some(context.system.scheduler.schedule(untilNextMidnight.plus(2 hours), 24 hours)(self ! StartBatchJob))
+    batchJob = Some(context.system.scheduler.scheduleAtFixedRate(untilNextMidnight.plus(2 hours), 24 hours)(() => self ! StartBatchJob))
   }
 }
