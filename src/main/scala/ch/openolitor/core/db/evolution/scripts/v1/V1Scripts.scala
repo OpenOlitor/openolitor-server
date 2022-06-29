@@ -630,11 +630,11 @@ object V1Scripts {
         welcomeMessage2 = None,
         messageForMembers = None,
         maintenanceMode = false,
-        generierteMailsSenden = false,
         einsatzEinheit = Stunden,
         einsatzAbsageVorlaufTage = 3,
         einsatzShowListeKunde = true,
         sendEmailToBcc = false,
+        generierteMailsSenden = false,
 
         //modification flags
         erstelldat = DateTime.now,
