@@ -260,6 +260,7 @@ object V1Scripts {
         second_factor_type varchar(10),
         otp_secret varchar(200),
         otp_reset varchar(1),
+        contact_permission varchar(1),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -489,6 +490,7 @@ object V1Scripts {
         sprache varchar(10),
         welcome_message1 varchar(2000),
         welcome_message2 varchar(2000),
+        message_for_members mediumtext,
         maintenance_mode varchar(1),
         generierte_mails_senden varchar(1) not null,
         einsatz_einheit varchar(20) not null,
@@ -599,6 +601,7 @@ object V1Scripts {
         secondFactorType = Some(OtpSecondFactorType),
         otpSecret = OtpUtil.generateOtpSecretString,
         otpReset = true,
+        contactPermission = true,
         // modification flags
         erstelldat = DateTime.now,
         ersteller = personId,
