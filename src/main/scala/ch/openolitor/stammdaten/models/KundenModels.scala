@@ -367,6 +367,12 @@ case class KundeUebersicht(
   modifikator: PersonId
 ) extends JSONSerializable
 
+case class KundenSearchIndex(
+  id: KundeId,
+  bezeichnung: String,
+  searchIndex: String
+) extends JSONSerializable
+
 case class KundeDetail(
   id: KundeId,
   aktiv: Boolean,

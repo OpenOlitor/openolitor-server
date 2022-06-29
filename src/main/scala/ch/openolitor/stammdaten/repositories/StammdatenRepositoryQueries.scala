@@ -31,7 +31,7 @@ import org.joda.time.DateTime
 import com.github.nscala_time.time.Imports._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
@@ -50,6 +50,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val sammelbestellung = sammelbestellungMapping.syntax("sammelbestellung")
   lazy val bestellposition = bestellpositionMapping.syntax("bestellposition")
   lazy val kunde = kundeMapping.syntax("kunde")
+  lazy val kundenSearchIndex = kundenSearchIndexMapping.syntax("kundenSearchIndex")
   lazy val pendenz = pendenzMapping.syntax("pendenz")
   lazy val kundentyp = customKundentypMapping.syntax("kundentyp")
   lazy val postlieferung = postlieferungMapping.syntax("postlieferung")
@@ -134,6 +135,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       SELECT ${kunde.result.*} FROM ${kundeMapping as kunde}
       WHERE typen REGEXP ${kundentypRegex}
     """.map(kundeMapping(kunde)).list
+  }
+
+  protected def getKundenSearchIndexQuery(queryString: Option[QueryFilter]) = {
+    withSQL {
+      select
+        .from(kundenSearchIndexMapping as kundenSearchIndex)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "search_index", kundenSearchIndex))
+        .orderBy(kundenSearchIndex.bezeichnung)
+    }.map(kundenSearchIndexMapping(kundenSearchIndex)).list
   }
 
   protected def getKundenUebersichtQuery(filter: Option[FilterExpr]) = {

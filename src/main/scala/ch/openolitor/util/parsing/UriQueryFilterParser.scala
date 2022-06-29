@@ -24,11 +24,11 @@ package ch.openolitor.util.parsing
 
 import com.typesafe.scalalogging.LazyLogging
 
-object UriQueryParamGeschaeftsjahrParser extends LazyLogging {
+object UriQueryFilterParser extends LazyLogging {
 
-  def parse(input: String): Option[GeschaeftsjahrFilter] = {
-    if (input.length == 4) {
-      Some(GeschaeftsjahrFilter(input.toInt))
+  def parse(input: String): Option[QueryFilter] = {
+    if (input.length > 0) {
+      Some(QueryFilter(input))
     } else {
       None
     }

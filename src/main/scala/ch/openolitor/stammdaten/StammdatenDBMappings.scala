@@ -250,6 +250,22 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
+  implicit val kundenSearchIndexMapping = new SQLSyntaxSupport[KundenSearchIndex] {
+    override val tableName = "KundenSearchIndex"
+    override lazy val columns: Seq[String] = autoColumns[KundenSearchIndex]()
+
+    def apply(p: SyntaxProvider[KundenSearchIndex])(rs: WrappedResultSet): KundenSearchIndex = apply(p.resultName)(rs)
+
+    def opt(e: SyntaxProvider[KundenSearchIndex])(rs: WrappedResultSet): Option[KundenSearchIndex] = try {
+      Option(apply(e)(rs))
+    } catch {
+      case e: IllegalArgumentException => None
+    }
+
+    def apply(rn: ResultName[KundenSearchIndex])(rs: WrappedResultSet): KundenSearchIndex =
+      autoConstruct(rs, rn)
+  }
+
   implicit val kundeMapping = new BaseEntitySQLSyntaxSupport[Kunde] {
     override val tableName = "Kunde"
 

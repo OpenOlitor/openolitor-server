@@ -39,7 +39,7 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Macros._
 import org.joda.time.DateTime
 import ch.openolitor.util.IdUtil
-import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, FilterExpr }
+import ch.openolitor.util.parsing.{ QueryFilter, GeschaeftsjahrFilter, FilterExpr }
 
 trait StammdatenReadRepositoryAsync extends ReportReadRepository {
 
@@ -61,6 +61,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
 
   def getKunden(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Kunde]]
   def getKundenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[KundeUebersicht]]
+  def getKundenSearchIndex(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[KundenSearchIndex]]
   def getKundeDetail(id: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetail]]
   def getKundeDetailReport(kundeId: KundeId, projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KundeDetailReport]]
   def getKundeDetailsArbeitseinsatzReport(projekt: ProjektReport)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[KundeDetailArbeitseinsatzReport]]
@@ -182,6 +183,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getKundenUebersicht(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[KundeUebersicht]] = {
     getKundenUebersichtQuery(filter).future
+  }
+
+  def getKundenSearchIndex(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[KundenSearchIndex]] = {
+    getKundenSearchIndexQuery(queryString).future
   }
 
   def getCustomKundentypen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[CustomKundentyp]] = {

@@ -53,7 +53,7 @@ import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
+import ch.openolitor.util.parsing.{ QueryFilter, GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser, UriQueryFilterParser }
 
 trait StammdatenRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -77,12 +77,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def stammdatenRoute(implicit subject: Subject): Route =
-    parameters('f.?, 'g.?) { (f, g) =>
+
+    parameters('f.?, 'g.?, 'q.?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
       implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
         UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
+      }
+      implicit val queryFilter = q flatMap { queryFilter =>
+        UriQueryFilterParser.parse(queryFilter)
       }
 
       kontoDatenRoute ~ aboTypenRoute ~ vertriebeRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
@@ -101,20 +105,23 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           (put | post)(update[KontoDatenModify, KontoDatenId](id))
       }
 
-  private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
-    path("kunden" ~ exportFormatPath.?) { exportFormat =>
-      get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
-        post {
-          entity(as[KundeModify]) { kunde =>
-            val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
-            if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
-              createKunde(kunde)
-            } else {
-              complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+  private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
+    path("kundenSearch") {
+      get(list(stammdatenReadRepository.getKundenSearchIndex))
+    } ~
+      path("kunden" ~ exportFormatPath.?) { exportFormat =>
+        get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
+          post {
+            entity(as[KundeModify]) { kunde =>
+              val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
+              if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
+                createKunde(kunde)
+              } else {
+                complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+              }
             }
           }
-        }
-    } ~
+      } ~
       path("kunden" / kundeIdPath) { id =>
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
           (put | post)(
