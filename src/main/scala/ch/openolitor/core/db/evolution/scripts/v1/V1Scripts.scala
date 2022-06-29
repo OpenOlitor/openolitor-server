@@ -626,13 +626,13 @@ object V1Scripts {
         sprache = Locale.forLanguageTag("de-CH"),
         welcomeMessage1 = None,
         welcomeMessage2 = None,
+        messageForMembers = None,
         maintenanceMode = false,
         generierteMailsSenden = false,
         einsatzEinheit = Stunden,
         einsatzAbsageVorlaufTage = 3,
         einsatzShowListeKunde = true,
         sendEmailToBcc = false,
-        messageForMembers = None,
 
         //modification flags
         erstelldat = DateTime.now,
