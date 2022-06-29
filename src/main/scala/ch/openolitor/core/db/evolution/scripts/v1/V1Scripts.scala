@@ -597,7 +597,6 @@ object V1Scripts {
         passwortWechselErforderlich = true,
         rolle = Some(AdministratorZugang),
         categories = Set.empty[PersonCategoryNameId],
-        contactPermission = false,
         secondFactorType = Some(OtpSecondFactorType),
         otpSecret = OtpUtil.generateOtpSecretString,
         otpReset = true,
