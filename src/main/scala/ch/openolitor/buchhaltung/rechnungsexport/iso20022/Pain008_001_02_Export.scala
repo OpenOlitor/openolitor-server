@@ -90,7 +90,7 @@ class Pain008_001_02_Export extends LazyLogging {
   private def getGroupHeaderSDD(rechnungen: List[Rechnung], kontoDatenProjekt: KontoDaten, nbTransactions: String, projekt: Projekt): Option[GroupHeaderSDD] = {
     kontoDatenProjekt.iban match {
       case Some(projectIban) =>
-        val MsgId = projectIban.slice(0, 15) + getSimpleDateTimeString(getDateTime
+        val MsgId = projectIban.slice(0, 15) + getSimpleDateTimeString(getDateTime)
         val CreDtTm = getDateTime
         val NbOfTxs = nbTransactions
         val CtrlSum = getSumAllRechnungs(rechnungen)
