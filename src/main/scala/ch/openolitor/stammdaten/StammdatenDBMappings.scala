@@ -250,19 +250,19 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
-  implicit val kundenSearchIndexMapping = new SQLSyntaxSupport[KundenSearchIndex] {
-    override val tableName = "KundenSearchIndex"
-    override lazy val columns: Seq[String] = autoColumns[KundenSearchIndex]()
+  implicit val kundenSearchMapping = new SQLSyntaxSupport[KundenSearch] {
+    override val tableName = "KundenSearch"
+    override lazy val columns: Seq[String] = autoColumns[KundenSearch]()
 
-    def apply(p: SyntaxProvider[KundenSearchIndex])(rs: WrappedResultSet): KundenSearchIndex = apply(p.resultName)(rs)
+    def apply(p: SyntaxProvider[KundenSearch])(rs: WrappedResultSet): KundenSearch = apply(p.resultName)(rs)
 
-    def opt(e: SyntaxProvider[KundenSearchIndex])(rs: WrappedResultSet): Option[KundenSearchIndex] = try {
+    def opt(e: SyntaxProvider[KundenSearch])(rs: WrappedResultSet): Option[KundenSearch] = try {
       Option(apply(e)(rs))
     } catch {
       case e: IllegalArgumentException => None
     }
 
-    def apply(rn: ResultName[KundenSearchIndex])(rs: WrappedResultSet): KundenSearchIndex =
+    def apply(rn: ResultName[KundenSearch])(rs: WrappedResultSet): KundenSearch =
       autoConstruct(rs, rn)
   }
 
@@ -360,6 +360,22 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.description -> personCategory.description
       )
     }
+  }
+
+  implicit val personenSearchMapping = new SQLSyntaxSupport[PersonenSearch] {
+    override val tableName = "PersonenSearch"
+    override lazy val columns: Seq[String] = autoColumns[PersonenSearch]()
+
+    def apply(p: SyntaxProvider[PersonenSearch])(rs: WrappedResultSet): PersonenSearch = apply(p.resultName)(rs)
+
+    def opt(e: SyntaxProvider[PersonenSearch])(rs: WrappedResultSet): Option[PersonenSearch] = try {
+      Option(apply(e)(rs))
+    } catch {
+      case e: IllegalArgumentException => None
+    }
+
+    def apply(rn: ResultName[PersonenSearch])(rs: WrappedResultSet): PersonenSearch =
+      autoConstruct(rs, rn)
   }
 
   implicit val pendenzMapping = new BaseEntitySQLSyntaxSupport[Pendenz] {

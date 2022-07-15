@@ -31,19 +31,19 @@ import scala.concurrent._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 
 /**
  * Asynchronous Repository
  */
 trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
-  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Rechnung]]
-  def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[RechnungsPosition]]
+  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Future[List[Rechnung]]
+  def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Future[List[RechnungsPosition]]
   def getKundenRechnungen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Rechnung]]
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[RechnungDetail]]
   def getRechnungByReferenznummer(referenzNummer: String)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Rechnung]]
 
-  def getZahlungsImports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZahlungsImport]]
+  def getZahlungsImports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Future[List[ZahlungsImport]]
   def getZahlungsImportDetail(id: ZahlungsImportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZahlungsImportDetail]]
 
   def getZahlungsExports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZahlungsExport]]
@@ -52,12 +52,12 @@ trait BuchhaltungReadRepositoryAsync extends BaseReadRepositoryAsync {
 }
 
 class BuchhaltungReadRepositoryAsyncImpl extends BuchhaltungReadRepositoryAsync with LazyLogging with BuchhaltungRepositoryQueries {
-  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Rechnung]] = {
-    getRechnungenQuery(filter, gjFilter).future
+  def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Future[List[Rechnung]] = {
+    getRechnungenQuery(filter, gjFilter, queryString).future
   }
 
-  def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[RechnungsPosition]] = {
-    getRechnungsPositionQuery(filter).future
+  def getRechnungsPositionen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Future[List[RechnungsPosition]] = {
+    getRechnungsPositionQuery(filter, queryString).future
   }
 
   def getKundenRechnungen(kundeId: KundeId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Rechnung]] = {
@@ -72,8 +72,8 @@ class BuchhaltungReadRepositoryAsyncImpl extends BuchhaltungReadRepositoryAsync 
     getRechnungByReferenznummerQuery(referenzNummer).future
   }
 
-  def getZahlungsImports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[ZahlungsImport]] = {
-    getZahlungsImportsQuery.future
+  def getZahlungsImports(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Future[List[ZahlungsImport]] = {
+    getZahlungsImportsQuery(filter, queryString).future
   }
 
   def getZahlungsImportDetail(id: ZahlungsImportId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ZahlungsImportDetail]] = {

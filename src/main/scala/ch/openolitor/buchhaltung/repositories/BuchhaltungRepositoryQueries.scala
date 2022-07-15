@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
+import ch.openolitor.util.parsing.{ FilterAttributeList, FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 
@@ -47,27 +47,52 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   lazy val person = personMapping.syntax("pers")
   lazy val projekt = projektMapping.syntax("projekt")
 
-  protected def getRechnungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
-    withSQL {
-      select
-        .from(rechnungMapping as rechnung)
-        .join(projektMapping as projekt)
-        .where.append(
-          UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
-        ).and(
-            UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung)
-          )
-        .orderBy(rechnung.rechnungsDatum)
-    }.map(rechnungMapping(rechnung)).list
+  protected def getRechnungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
+    queryString match {
+      case None =>
+        withSQL {
+          select
+            .from(rechnungMapping as rechnung)
+            .join(projektMapping as projekt)
+            .where.append(
+              UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
+            ).and(
+                UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung)
+              ).orderBy(rechnung.rechnungsDatum)
+        }.map(rechnungMapping(rechnung)).list
+      case Some(_) =>
+        withSQL {
+          select
+            .from(rechnungMapping as rechnung)
+            .join(projektMapping as projekt)
+            .where.append(
+              UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
+            ).and(
+                UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung)
+              ).and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", rechnung))
+            .orderBy(rechnung.rechnungsDatum)
+        }.map(rechnungMapping(rechnung)).list
+    }
   }
 
-  protected def getRechnungsPositionQuery(filter: Option[FilterExpr]) = {
-    withSQL {
-      select
-        .from(rechnungsPositionMapping as rechnungsPosition)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
-        .orderBy(rechnungsPosition.id)
-    }.map(rechnungsPositionMapping(rechnungsPosition)).list
+  protected def getRechnungsPositionQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
+    queryString match {
+      case None =>
+        withSQL {
+          select
+            .from(rechnungsPositionMapping as rechnungsPosition)
+            .where(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
+            .orderBy(rechnungsPosition.id)
+        }.map(rechnungsPositionMapping(rechnungsPosition)).list
+      case Some(_) =>
+        withSQL {
+          select
+            .from(rechnungsPositionMapping as rechnungsPosition)
+            .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "beschrieb", rechnungsPosition))
+            .and(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
+            .orderBy(rechnungsPosition.id)
+        }.map(rechnungsPositionMapping(rechnungsPosition)).list
+    }
   }
 
   protected def getRechnungsPositionenByRechnungsIdQuery(rechnungId: RechnungId) = {
@@ -134,11 +159,26 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
     }.map(rechnungMapping(rechnung)).single
   }
 
-  protected def getZahlungsImportsQuery = {
-    withSQL {
-      select
-        .from(zahlungsImportMapping as zahlungsImport)
-    }.map(zahlungsImportMapping(zahlungsImport)).list
+  protected def getZahlungsImportsQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
+    queryString match {
+      case None =>
+        withSQL {
+          select
+            .from(zahlungsImportMapping as zahlungsImport)
+            .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zahlungsImport))
+        }.map(zahlungsImportMapping(zahlungsImport)).list
+      case _ =>
+        withSQL {
+          select
+            .from(zahlungsImportMapping as zahlungsImport)
+            .where.withRoundBracket(
+              _.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", zahlungsImport))
+                .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "anzahl_zahlungs_eingaenge", zahlungsImport))
+                .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "anzahl_zahlungs_eingaenge_erledigt", zahlungsImport))
+            )
+            .and(UriQueryParamToSQLSyntaxBuilder.build(filter, zahlungsImport))
+        }.map(zahlungsImportMapping(zahlungsImport)).list
+    }
   }
 
   protected def getZahlungsImportDetailQuery(id: ZahlungsImportId) = {

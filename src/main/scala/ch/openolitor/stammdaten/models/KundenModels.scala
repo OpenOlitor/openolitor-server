@@ -367,10 +367,10 @@ case class KundeUebersicht(
   modifikator: PersonId
 ) extends JSONSerializable
 
-case class KundenSearchIndex(
+case class KundenSearch(
   id: KundeId,
   bezeichnung: String,
-  searchIndex: String
+  kundenSearchValues: String
 ) extends JSONSerializable
 
 case class KundeDetail(
@@ -715,6 +715,11 @@ case class PersonUebersicht(
   ersteller: PersonId,
   modifidat: DateTime,
   modifikator: PersonId
+) extends JSONSerializable
+
+case class PersonenSearch(
+  id: PersonId,
+  personenSearchValues: String
 ) extends JSONSerializable
 
 case class KundeSummary(id: KundeId, kunde: String) extends Product
