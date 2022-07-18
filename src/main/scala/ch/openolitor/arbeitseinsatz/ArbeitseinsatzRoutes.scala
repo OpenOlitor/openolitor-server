@@ -44,6 +44,8 @@ import spray.http._
 import spray.httpx.marshalling.ToResponseMarshallable._
 import spray.httpx.SprayJsonSupport._
 import ch.openolitor.core.domain.EntityStore._
+import ch.openolitor.util.parsing.UriQueryFilterParser
+import ch.openolitor.util.parsing.QueryFilter
 
 trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -62,7 +64,15 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
   implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
 
-  def arbeitseinsatzRoute(implicit subject: Subject) =
+  def arbeitseinsatzRoutes(implicit subject: Subject): Route =
+    parameters('q.?) { q =>
+      implicit val queryFilter = q flatMap { queryFilter =>
+        UriQueryFilterParser.parse(queryFilter)
+      }
+      arbeitseinsatzRoute
+    }
+
+  def arbeitseinsatzRoute(implicit subject: Subject, queryString: Option[QueryFilter]): Route =
     path("arbeitskategorien" ~ exportFormatPath.?) { exportFormat =>
       get(list(arbeitseinsatzReadRepository.getArbeitskategorien, exportFormat)) ~
         post(create[ArbeitskategorieModify, ArbeitskategorieId](ArbeitskategorieId.apply _))

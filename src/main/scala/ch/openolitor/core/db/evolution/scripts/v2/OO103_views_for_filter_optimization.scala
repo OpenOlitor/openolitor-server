@@ -52,18 +52,5 @@ object OO103_views_for_filter_optimization {
     }
   }
 
-  val CreatePersonenViewForFilterOptimization = new Script with LazyLogging with StammdatenDBMappings {
-    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
-      sql"""
-        CREATE VIEW if not exists `PersonenSearch` AS
-          select
-            p.id AS id,
-            concat(p.name, ',', p.vorname, ',' , p.email) AS personen_search_values
-          from Person as p;
-      """.execute.apply()
-      Success(true)
-    }
-  }
-
-  val scripts = Seq(CreateKundenViewForFilterOptimization, CreatePersonenViewForFilterOptimization)
+  val scripts = Seq(CreateKundenViewForFilterOptimization)
 }
