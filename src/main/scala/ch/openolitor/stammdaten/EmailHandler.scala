@@ -52,7 +52,7 @@ trait EmailHandler extends MailTemplateService with AsyncConnectionPoolContextAw
               case Some(bccAddress) => mailPayload.toMail(1, email, None, Some(bccAddress), replyTo, docReference)
               case None             => mailPayload.toMail(1, email, None, None, replyTo, docReference)
             }
-            mailService ? SendMailCommandWithCallback(originator, mail, Some(5 minutes), person.id) map {
+            mailService ? SendMailCommandWithCallback(originator, mail, Some(60 minutes), person.id) map {
               case _: SendMailEvent =>
               //ok
               case other =>

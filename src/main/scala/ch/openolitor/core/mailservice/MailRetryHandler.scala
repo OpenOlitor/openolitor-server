@@ -35,7 +35,7 @@ trait MailRetryHandler {
 }
 
 trait DefaultMailRetryHandler extends MailRetryHandler {
-  val RetryTime = List(10, 60, 300, 900, 3600)
+  val RetryTime = List(10, 60, 300, 600, 3200)
 
   override def calculateRetryEnqueued(enqueued: MailEnqueued): Either[RetryFailed, Option[MailEnqueued]] = {
     val now = DateTime.now()
