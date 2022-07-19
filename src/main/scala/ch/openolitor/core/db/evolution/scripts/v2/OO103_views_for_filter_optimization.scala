@@ -20,18 +20,37 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util.parsing
+package ch.openolitor.core.db.evolution.scripts.v2
 
+import ch.openolitor.core.SystemConfig
+import ch.openolitor.core.db.evolution.Script
+import ch.openolitor.stammdaten.StammdatenDBMappings
 import com.typesafe.scalalogging.LazyLogging
+import scalikejdbc._
 
-object UriQueryParamGeschaeftsjahrParser extends LazyLogging {
+import scala.util.{ Success, Try }
 
-  def parse(input: String): Option[GeschaeftsjahrFilter] = {
-    if (input.length == 4) {
-      Some(GeschaeftsjahrFilter(input.toInt))
-    } else {
-      None
+/**
+ * Remaining indexes from OO597_DBScripts
+ */
+object OO103_views_for_filter_optimization {
+  val CreateKundenViewForFilterOptimization = new Script with LazyLogging with StammdatenDBMappings {
+    def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
+      sql"""
+        CREATE VIEW if not exists `KundenSearch` AS
+          select
+            k.id AS id,
+            k.bezeichnung AS bezeichnung,
+            concat(k.bezeichnung, ',', (
+              select group_concat(p.name, ',', p.vorname separator ',')
+              from Person p
+              where k.id = p.kunde_id)
+            ) AS kunden_search_values
+          from Kunde as k;
+      """.execute.apply()
+      Success(true)
     }
   }
 
+  val scripts = Seq(CreateKundenViewForFilterOptimization)
 }

@@ -53,7 +53,7 @@ import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
+import ch.openolitor.util.parsing.{ QueryFilter, GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser, UriQueryFilterParser }
 
 trait StammdatenRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -77,12 +77,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def stammdatenRoute(implicit subject: Subject): Route =
-    parameters('f.?, 'g.?) { (f, g) =>
+
+    parameters('f.?, 'g.?, 'q.?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
       implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
         UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
+      }
+      implicit val queryFilter = q flatMap { queryFilter =>
+        UriQueryFilterParser.parse(queryFilter)
       }
 
       kontoDatenRoute ~ aboTypenRoute ~ vertriebeRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
@@ -101,20 +105,23 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           (put | post)(update[KontoDatenModify, KontoDatenId](id))
       }
 
-  private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
-    path("kunden" ~ exportFormatPath.?) { exportFormat =>
-      get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
-        post {
-          entity(as[KundeModify]) { kunde =>
-            val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
-            if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
-              createKunde(kunde)
-            } else {
-              complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+  private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
+    path("kundenSearch") {
+      get(list(stammdatenReadRepository.getKundenSearch))
+    } ~
+      path("kunden" ~ exportFormatPath.?) { exportFormat =>
+        get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
+          post {
+            entity(as[KundeModify]) { kunde =>
+              val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
+              if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
+                createKunde(kunde)
+              } else {
+                complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+              }
             }
           }
-        }
-    } ~
+      } ~
       path("kunden" / kundeIdPath) { id =>
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
           (put | post)(
@@ -238,7 +245,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(buchhaltungReadRepository.getKundenRechnungen(kundeId)))
       }
 
-  private def personenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route = {
+  private def personenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route = {
     path("personen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getPersonenUebersicht, exportFormat))
     }
@@ -269,7 +276,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       get(list(stammdatenReadRepository.getVertriebe))
     }
 
-  private def aboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def aboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
     path("abotypen") {
       get(list(stammdatenReadRepository.getAbotypen)) ~
         post(create[AbotypModify, AbotypId](AbotypId.apply _))
@@ -346,7 +353,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         delete(remove(lieferungId))
       }
 
-  private def zusatzAboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def zusatzAboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
     path("zusatzAbotypen") {
       get(list(stammdatenReadRepository.getZusatzAbotypen)) ~
         post(create[ZusatzAbotypModify, AbotypId](AbotypId.apply))
@@ -382,7 +389,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           delete(remove(id))
       }
 
-  private def aboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Route =
+  private def aboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("abos" ~ exportFormatPath.?) { exportFormat =>
       parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
         get(list(stammdatenReadRepository.getAbos(Option(xFlags)), exportFormat))
@@ -403,7 +410,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         }
       }
 
-  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Route =
+  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("zusatzabos" ~ exportFormatPath.?) { exportFormat =>
       parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
         get(list(stammdatenReadRepository.getZusatzAbos(Option(xFlags)), exportFormat))
@@ -445,7 +452,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           delete(remove(id))
       }
 
-  private def produzentenRoute(implicit subject: Subject): Route =
+  private def produzentenRoute(implicit subject: Subject, filter: Option[FilterExpr], querystring: Option[QueryFilter]): Route =
     path("produzenten" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getProduzenten, exportFormat)) ~
         post(create[ProduzentModify, ProduzentId](ProduzentId.apply _))
@@ -512,7 +519,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(stammdatenReadRepository.getGeschaeftsjahre))
       }
 
-  private def lieferplanungRoute(implicit subject: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Route =
+  private def lieferplanungRoute(implicit subject: Subject, gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("lieferplanungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getLieferplanungen, exportFormat)) ~
         post(create[LieferplanungCreate, LieferplanungId](LieferplanungId.apply _))
@@ -666,7 +673,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def lieferantenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Route =
+  private def lieferantenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("lieferanten" / "sammelbestellungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getSammelbestellungen, exportFormat))
     } ~
@@ -696,7 +703,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def auslieferungenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]): Route =
+  private def auslieferungenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("depotauslieferungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getDepotAuslieferungen, exportFormat))
     } ~

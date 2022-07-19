@@ -28,9 +28,12 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models.KundeId
+import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
+import ch.openolitor.util.parsing.QueryFilter
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import scalikejdbc._
+
 import scala.language.postfixOps
 
 trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings with StammdatenDBMappings {
@@ -54,10 +57,12 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitskategorieMapping(arbeitskategorie)).list
   }
 
-  protected def getArbeitsangeboteQuery = {
+  protected def getArbeitsangeboteQuery(queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(arbeitsangebotMapping as arbeitsangebot)
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", arbeitsangebot))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", arbeitsangebot))
         .orderBy(arbeitsangebot.zeitVon)
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
@@ -79,10 +84,12 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
 
-  protected def getArbeitseinsaetzeQuery = {
+  protected def getArbeitseinsaetzeQuery(queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(arbeitseinsatzMapping as arbeitseinsatz)
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "arbeitsangebot_titel", arbeitseinsatz))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde_bezeichnung", arbeitseinsatz))
         .orderBy(arbeitseinsatz.zeitVon)
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
   }
@@ -150,7 +157,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitseinsatzMapping(arbeitseinsatz)).list
   }
 
-  protected def getArbeitseinsatzabrechnungQuery = {
+  protected def getArbeitseinsatzabrechnungQuery(queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(kundeMapping as kunde)
@@ -159,6 +166,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo.abotypId).or.eq(aboTyp.id, postlieferungAbo.abotypId))
         .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
         .orderBy(kunde.bezeichnung)
     }.one(kundeMapping(kunde))
       .toManies(
@@ -178,7 +186,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
 
   }
 
-  protected def getArbeitseinsatzabrechnungOnlyAktivKundenQuery = {
+  protected def getArbeitseinsatzabrechnungOnlyAktivKundenQuery(queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(kundeMapping as kunde)
@@ -187,7 +195,8 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(kunde.id, postlieferungAbo.kundeId)
         .leftJoin(abotypMapping as aboTyp).on(sqls.eq(aboTyp.id, depotlieferungAbo.abotypId).or.eq(aboTyp.id, heimlieferungAbo.abotypId).or.eq(aboTyp.id, postlieferungAbo.abotypId))
         .leftJoin(arbeitseinsatzMapping as arbeitseinsatz).on(kunde.id, arbeitseinsatz.kundeId)
-        .where((depotlieferungAbo.aktiv).or(heimlieferungAbo.aktiv).or(postlieferungAbo.aktiv))
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
+        .and.withRoundBracket(_.eq(depotlieferungAbo.aktiv, true).or.eq(heimlieferungAbo.aktiv, true).or.eq(postlieferungAbo.aktiv, true))
         .orderBy(kunde.bezeichnung)
     }.one(kundeMapping(kunde))
       .toManies(

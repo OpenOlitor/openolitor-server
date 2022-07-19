@@ -46,7 +46,7 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.RechnungReportService
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter, UriQueryFilterParser, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
@@ -76,17 +76,21 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def buchhaltungRoute(implicit subect: Subject): Route =
-    spray.routing.directives.ParameterDirectives.parameters('f.?, 'g.?) { (f, g) =>
+    spray.routing.directives.ParameterDirectives.parameters('f.?, 'g.?, 'q.?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
       implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
         UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
       }
+      implicit val queryFilter = q flatMap { queryFilter =>
+        UriQueryFilterParser.parse(queryFilter)
+      }
+
       rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
-  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) =
+  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) =
     path("rechnungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungen, exportFormat)) ~
         post(create[RechnungCreateFromRechnungsPositionen, RechnungId](RechnungId.apply _))
@@ -210,7 +214,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         (post)(mahnungBericht(id))
       }
 
-  def rechnungspositionenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
+  def rechnungspositionenRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("rechnungspositionen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungsPositionen, exportFormat))
     } ~
@@ -226,7 +230,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         }
       }
 
-  def zahlungsImportsRoute(implicit subect: Subject) =
+  def zahlungsImportsRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("zahlungsimports") {
       get(list(buchhaltungReadRepository.getZahlungsImports)) ~
         (put | post)(upload { (form, content, fileName) =>

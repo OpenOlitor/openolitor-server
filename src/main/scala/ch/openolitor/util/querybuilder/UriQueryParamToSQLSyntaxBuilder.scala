@@ -62,6 +62,20 @@ object UriQueryParamToSQLSyntaxBuilder extends LazyLogging with StammdatenDBMapp
     }
   }
 
+  def build[T](maybeExpr: Option[QueryFilter], column: String, sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T]): SQLSyntax = {
+    maybeExpr match {
+      case None => sqls"""1=1"""
+      case Some(expr) => build(expr, column, sqlSyntax) match {
+        case Some(sql) => sql
+        case None      => sqls"""1=1"""
+      }
+    }
+  }
+
+  def build[T](expr: QueryFilter, column: String, sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T]): Option[SQLSyntax] = {
+    retrieveColumn(sqlSyntax, column) map (c => sqls.like(c, toSqlLike(expr.query)))
+  }
+
   def build[T](maybeExpr: Option[FilterExpr], sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T], exclude: Seq[String] = Seq()): Option[SQLSyntax] = {
     maybeExpr match {
       case None       => None

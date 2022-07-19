@@ -196,7 +196,7 @@ trait RouteServiceActor
             stammdatenRouteService.stammdatenRoute ~
               mailtemplateRouteService.mailRoute ~
               buchhaltungRouteService.buchhaltungRoute ~
-              arbeitseinsatzRouteService.arbeitseinsatzRoute ~
+              arbeitseinsatzRouteService.arbeitseinsatzRoutes ~
               reportsRouteService.reportsRoute ~
               syncReportsRouteService.syncReportsRoute ~
               fileStoreRoute
