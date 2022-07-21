@@ -1333,10 +1333,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     withSQL {
       select(sqls.distinct(lieferplanung.result.*))
         .from(lieferplanungMapping as lieferplanung)
-        .join(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
         .join(projektMapping as projekt)
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build[Lieferung](gjFilter, lieferung, "datum"))
-        .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bemerkungen", lieferplanung)
+        .where.exists(select(distinct(lieferung.lieferplanungId))
+          .from(lieferungMapping as lieferung)
+          .where.append(UriQueryParamToSQLSyntaxBuilder.build[Lieferung](gjFilter, lieferung, "datum")).and.eq(lieferung.lieferplanungId, lieferplanung.id))
+        .or.notExists(select(distinct(lieferung.lieferplanungId))
+          .from(lieferungMapping as lieferung).where.eq(lieferung.lieferplanungId, lieferplanung.id))
+        .and.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bemerkungen", lieferplanung))
           .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "abotyp_depot_tour", lieferplanung)))
     }.map(lieferplanungMapping(lieferplanung)).list
   }
