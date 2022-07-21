@@ -260,6 +260,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       select
         .from(lieferplanungMapping as lieferplanung)
         .leftJoin(lieferungMapping as lieferung).on(lieferung.lieferplanungId, lieferplanung.id)
+        .where.eq(lieferung.id, lieferungId)
     }.map(lieferplanungMapping(lieferplanung)).single
   }
 
