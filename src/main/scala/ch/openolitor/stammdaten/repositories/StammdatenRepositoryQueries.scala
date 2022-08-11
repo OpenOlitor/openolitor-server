@@ -382,12 +382,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(personMapping as person)
         .leftJoin(kundeMapping as kunde).on(person.kundeId, kunde.id)
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
-        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
-        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "email", person))
-        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
-        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
-        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
+        .where.withRoundBracket {
+          _.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "email", person))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
+        }
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, person))
         .orderBy(person.name)
     }.one(personMapping(person))
