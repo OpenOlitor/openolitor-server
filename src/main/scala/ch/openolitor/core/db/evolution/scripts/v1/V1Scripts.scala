@@ -22,20 +22,22 @@
 \*                                                                           */
 package ch.openolitor.core.db.evolution.scripts
 
-import ch.openolitor.core.db.evolution._
-import scalikejdbc._
-import scala.util._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.stammdaten.StammdatenDBMappings
-import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import org.mindrot.jbcrypt.BCrypt
-import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.SystemConfig
-import org.joda.time.DateTime
-import ch.openolitor.core.repositories.BaseWriteRepository
-import ch.openolitor.core.NoPublishEventStream
-import ch.openolitor.core.models.PersonId
 import java.util.Locale
+
+import ch.openolitor.buchhaltung.BuchhaltungDBMappings
+import ch.openolitor.core.{ NoPublishEventStream, SystemConfig }
+import ch.openolitor.core.db.evolution._
+import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.repositories.BaseWriteRepository
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.stammdaten.models._
+import ch.openolitor.util.OtpUtil
+import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
+import org.mindrot.jbcrypt.BCrypt
+import scalikejdbc._
+
+import scala.util._
 
 object V1Scripts {
   val StammdatenDBInitializationScript = new Script with LazyLogging with StammdatenDBMappings {
@@ -185,6 +187,7 @@ object V1Scripts {
 
       sql"""create table ${kundeMapping.table} (
         id BIGINT not null,
+        aktiv varchar(1) not null default 1,
         bezeichnung varchar(50),
         strasse varchar(50) not null,
         haus_nummer varchar(10),
@@ -254,6 +257,10 @@ object V1Scripts {
         passwort_wechsel_erforderlich varchar(1),
         rolle varchar(50),
         categories varchar(2000),
+        second_factor_type varchar(10),
+        otp_secret varchar(200),
+        otp_reset varchar(1),
+        contact_permission varchar(1),
         erstelldat datetime not null,
         ersteller BIGINT not null,
         modifidat datetime not null,
@@ -479,9 +486,11 @@ object V1Scripts {
         geschaeftsjahr_monat DECIMAL(2,0) not null,
         geschaeftsjahr_tag DECIMAL(2,0) not null,
         two_factor_authentication varchar(100),
+        default_second_factor_type varchar(10),
         sprache varchar(10),
         welcome_message1 varchar(2000),
         welcome_message2 varchar(2000),
+        message_for_members mediumtext,
         maintenance_mode varchar(1),
         generierte_mails_senden varchar(1) not null,
         einsatz_einheit varchar(20) not null,
@@ -536,6 +545,7 @@ object V1Scripts {
       val kid = sysConfig.mandantConfiguration.dbSeeds.get(classOf[KundeId]).getOrElse(1L)
       val kunde = Kunde(
         id = KundeId(kid),
+        aktiv = true,
         bezeichnung = "System Administator",
         strasse = "",
         hausNummer = None,
@@ -587,7 +597,10 @@ object V1Scripts {
         passwortWechselErforderlich = true,
         rolle = Some(AdministratorZugang),
         categories = Set.empty[PersonCategoryNameId],
-        contactPermission = false,
+        secondFactorType = Some(OtpSecondFactorType),
+        otpSecret = OtpUtil.generateOtpSecretString,
+        otpReset = true,
+        contactPermission = true,
         // modification flags
         erstelldat = DateTime.now,
         ersteller = personId,
@@ -610,18 +623,18 @@ object V1Scripts {
         waehrung = CHF,
         geschaeftsjahrMonat = 1,
         geschaeftsjahrTag = 1,
-        twoFactorAuthentication = Map(AdministratorZugang -> false, KundenZugang -> true),
+        twoFactorAuthentication = Map(AdministratorZugang -> true, KundenZugang -> true),
+        defaultSecondFactorType = OtpSecondFactorType,
         sprache = Locale.forLanguageTag("de-CH"),
         welcomeMessage1 = None,
         welcomeMessage2 = None,
+        messageForMembers = None,
         maintenanceMode = false,
         generierteMailsSenden = false,
         einsatzEinheit = Stunden,
         einsatzAbsageVorlaufTage = 3,
         einsatzShowListeKunde = true,
         sendEmailToBcc = false,
-        messageForMembers = None,
-
         //modification flags
         erstelldat = DateTime.now,
         ersteller = personId,

@@ -53,8 +53,7 @@ import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ QueryFilter, GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser, UriQueryFilterParser }
 
 trait StammdatenRoutes extends HttpService with ActorReferences
   with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
@@ -78,10 +77,18 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   import EntityStore._
 
   def stammdatenRoute(implicit subject: Subject): Route =
-    parameters('f.?) { (f) =>
+
+    parameters('f.?, 'g.?, 'q.?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
+      implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
+        UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
+      }
+      implicit val queryFilter = q flatMap { queryFilter =>
+        UriQueryFilterParser.parse(queryFilter)
+      }
+
       kontoDatenRoute ~ aboTypenRoute ~ vertriebeRoute ~ zusatzAboTypenRoute ~ kundenRoute ~ depotsRoute ~ aboRoute ~ zusatzaboRoute ~ personenRoute ~
         kundentypenRoute ~ personCategoryRoute ~ pendenzenRoute ~ produkteRoute ~ produktekategorienRoute ~
         produzentenRoute ~ tourenRoute ~ projektRoute ~ lieferplanungRoute ~ auslieferungenRoute ~ lieferantenRoute ~ vorlagenRoute ~
@@ -98,20 +105,23 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           (put | post)(update[KontoDatenModify, KontoDatenId](id))
       }
 
-  private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
-    path("kunden" ~ exportFormatPath.?) { exportFormat =>
-      get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
-        post {
-          entity(as[KundeModify]) { kunde =>
-            val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
-            if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
-              createKunde(kunde)
-            } else {
-              complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+  private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
+    path("kundenSearch") {
+      get(list(stammdatenReadRepository.getKundenSearch))
+    } ~
+      path("kunden" ~ exportFormatPath.?) { exportFormat =>
+        get(list(stammdatenReadRepository.getKundenUebersicht, exportFormat)) ~
+          post {
+            entity(as[KundeModify]) { kunde =>
+              val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
+              if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
+                createKunde(kunde)
+              } else {
+                complete(StatusCodes.BadRequest, s"The email address needs to be unique. More than one person is using the same email address")
+              }
             }
           }
-        }
-    } ~
+      } ~
       path("kunden" / kundeIdPath) { id =>
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
           (put | post)(
@@ -211,13 +221,16 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         delete(remove(personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "logindeaktivieren") { (kundeId, personId) =>
-        (post)(disableLogin(kundeId, personId))
+        post(disableLogin(kundeId, personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "loginaktivieren") { (kundeId, personId) =>
-        (post)(enableLogin(kundeId, personId))
+        post(enableLogin(kundeId, personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "einladungsenden") { (kundeId, personId) =>
-        (post)(sendEinladung(kundeId, personId))
+        post(sendEinladung(kundeId, personId))
+      } ~
+      path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "reset_otp") { (kundeId, personId) =>
+        post(resetOtp(kundeId, personId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath / "aktionen" / "rollewechseln") { (kundeId, personId) =>
         post {
@@ -232,7 +245,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         get(list(buchhaltungReadRepository.getKundenRechnungen(kundeId)))
       }
 
-  private def personenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route = {
+  private def personenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route = {
     path("personen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getPersonenUebersicht, exportFormat))
     }
@@ -263,7 +276,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       get(list(stammdatenReadRepository.getVertriebe))
     }
 
-  private def aboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def aboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
     path("abotypen") {
       get(list(stammdatenReadRepository.getAbotypen)) ~
         post(create[AbotypModify, AbotypId](AbotypId.apply _))
@@ -340,7 +353,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         delete(remove(lieferungId))
       }
 
-  private def zusatzAboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def zusatzAboTypenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
     path("zusatzAbotypen") {
       get(list(stammdatenReadRepository.getZusatzAbotypen)) ~
         post(create[ZusatzAbotypModify, AbotypId](AbotypId.apply))
@@ -376,7 +389,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           delete(remove(id))
       }
 
-  private def aboRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def aboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("abos" ~ exportFormatPath.?) { exportFormat =>
       parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
         get(list(stammdatenReadRepository.getAbos(Option(xFlags)), exportFormat))
@@ -397,7 +410,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
         }
       }
 
-  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("zusatzabos" ~ exportFormatPath.?) { exportFormat =>
       parameter('x.?.as[AbosComplexFlags]) { xFlags: AbosComplexFlags =>
         get(list(stammdatenReadRepository.getZusatzAbos(Option(xFlags)), exportFormat))
@@ -439,7 +452,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           delete(remove(id))
       }
 
-  private def produzentenRoute(implicit subject: Subject): Route =
+  private def produzentenRoute(implicit subject: Subject, filter: Option[FilterExpr], querystring: Option[QueryFilter]): Route =
     path("produzenten" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getProduzenten, exportFormat)) ~
         post(create[ProduzentModify, ProduzentId](ProduzentId.apply _))
@@ -501,9 +514,12 @@ trait StammdatenRoutes extends HttpService with ActorReferences
           (put | post)(uploadStored(ProjektStammdaten, Some("style-kundenportal")) { (id, metadata) =>
             complete("Style 'style-kundenportal' uploaded")
           })
+      } ~
+      path("projekt" / projektIdPath / "geschaeftsjahre") { id =>
+        get(list(stammdatenReadRepository.getGeschaeftsjahre))
       }
 
-  private def lieferplanungRoute(implicit subject: Subject): Route =
+  private def lieferplanungRoute(implicit subject: Subject, gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("lieferplanungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getLieferplanungen, exportFormat)) ~
         post(create[LieferplanungCreate, LieferplanungId](LieferplanungId.apply _))
@@ -521,7 +537,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath) { (lieferplanungId, lieferungId) =>
         (put | post)(create[LieferungPlanungAdd, LieferungId]((x: Long) => lieferungId)) ~
-          delete(remove(lieferungId.getLieferungOnLieferplanungId()))
+          delete(lieferplanungRemoveLieferung(lieferungId))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / korbStatusPath / "aboIds") { (lieferplanungId, korbStatus) =>
         get(list(stammdatenReadRepository.getAboIds(lieferplanungId, korbStatus)))
@@ -590,6 +606,15 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
+  private def lieferplanungRemoveLieferung(lieferungId: LieferungId)(implicit subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.RemoveLieferungCommand(subject.personId, lieferungId)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Could not remove the abotyp from the lieferplanung")
+      case _ =>
+        complete("")
+    }
+  }
+
   private def lieferplanungModifizieren(lieferplanungModify: LieferplanungPositionenModify)(implicit idPersister: Persister[LieferplanungId, _], subject: Subject): Route = {
     implicit val timeout = Timeout(30.seconds)
     onSuccess(entityStore ? StammdatenCommandHandler.LieferplanungModifyCommand(subject.personId, lieferplanungModify)) {
@@ -648,7 +673,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def lieferantenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def lieferantenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("lieferanten" / "sammelbestellungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getSammelbestellungen, exportFormat))
     } ~
@@ -678,7 +703,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
     }
   }
 
-  private def auslieferungenRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
+  private def auslieferungenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("depotauslieferungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getDepotAuslieferungen, exportFormat))
     } ~
@@ -790,7 +815,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def deleteAbwesenheit(abwesenheitId: AbwesenheitId)(implicit idPersister: Persister[AuslieferungId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.DeleteAbwesenheitCommand(subject.personId, abwesenheitId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.DeleteAbwesenheitCommand(subject.personId, abwesenheitId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die Abwesenheit kann nicht gelöscht werden. Die Lieferung ist bereits abgeschlossen.")
       case _ =>
@@ -799,7 +824,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def createAnzahlLieferungenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate)(implicit idPersister: Persister[AboId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.CreateAnzahlLieferungenRechnungsPositionenCommand(subject.personId, rechnungCreate))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateAnzahlLieferungenRechnungsPositionenCommand(subject.personId, rechnungCreate)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen AboIds erstellt werden.")
       case _ =>
@@ -808,7 +833,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def createBisGuthabenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisGuthabenCreate)(implicit idPersister: Persister[AboId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.CreateBisGuthabenRechnungsPositionenCommand(subject.personId, rechnungCreate))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateBisGuthabenRechnungsPositionenCommand(subject.personId, rechnungCreate)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen AboIds erstellt werden.")
       case _ =>
@@ -817,7 +842,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def disableLogin(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.LoginDeaktivierenCommand(subject.personId, kundeId, personId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.LoginDeaktivierenCommand(subject.personId, kundeId, personId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Das Login konnte nicht deaktiviert werden.")
       case _ =>
@@ -826,7 +851,7 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def enableLogin(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.LoginAktivierenCommand(subject.personId, kundeId, personId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.LoginAktivierenCommand(subject.personId, kundeId, personId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Das Login konnte nicht aktiviert werden.")
       case _ =>
@@ -835,9 +860,18 @@ trait StammdatenRoutes extends HttpService with ActorReferences
   }
 
   private def sendEinladung(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess((entityStore ? StammdatenCommandHandler.EinladungSendenCommand(subject.personId, kundeId, personId))) {
+    onSuccess(entityStore ? StammdatenCommandHandler.EinladungSendenCommand(subject.personId, kundeId, personId)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die Einladung konnte nicht gesendet werden.")
+      case _ =>
+        complete("")
+    }
+  }
+
+  private def resetOtp(kundeId: KundeId, personId: PersonId)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.OtpResetCommand(subject.personId, kundeId, personId)) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"OTP konnte nicht zurückgesetzt werden.")
       case _ =>
         complete("")
     }

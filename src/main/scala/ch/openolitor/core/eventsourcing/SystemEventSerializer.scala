@@ -22,16 +22,24 @@
 \*                                                                           */
 package ch.openolitor.core.eventsourcing
 
+import stamina._
 import stamina.json._
 import ch.openolitor.core.BaseJsonProtocol
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
 import ch.openolitor.core.domain.SystemEvents
+import ch.openolitor.stammdaten.StammdatenJsonProtocol
+import ch.openolitor.stammdaten.models.SecondFactorType
+import spray.json.lenses.JsonLenses._
 
-trait SystemEventSerializer extends BaseJsonProtocol with EntityStoreJsonProtocol {
+trait SystemEventSerializer extends BaseJsonProtocol with EntityStoreJsonProtocol with StammdatenJsonProtocol {
   import SystemEvents._
 
-  implicit val personLoggedInPersister = persister[PersonLoggedIn]("person-logged-in")
+  implicit val personLoggedInPersister =
+    persister[PersonLoggedIn, V2]("person-logged-in", from[V1]
+      .to[V2](_.update('secondFactorType ! set[Option[SecondFactorType]](None))))
   implicit val systemStartedPersister = persister[SystemStarted]("system-started")
+  implicit val personChangedOtpSecret = persister[PersonChangedOtpSecret]("person-changed-otp-secret")
+  implicit val personChangeSecondFactorType = persister[PersonChangedSecondFactorType]("person-change-second-factor-type")
 
-  val systemEventPersisters = List(personLoggedInPersister, systemStartedPersister)
+  val systemEventPersisters = List(personLoggedInPersister, systemStartedPersister, personChangedOtpSecret, personChangeSecondFactorType)
 }

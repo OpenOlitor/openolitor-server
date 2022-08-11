@@ -25,21 +25,22 @@ package ch.openolitor.arbeitseinsatz.repositories
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models.{ KundeId, Person, Projekt }
+import ch.openolitor.util.parsing.QueryFilter
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc.DBSession
 
 trait ArbeitseinsatzReadRepositorySync extends BaseReadRepositorySync {
   def getArbeitskategorien(implicit session: DBSession): List[Arbeitskategorie]
 
-  def getArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot]
+  def getArbeitsangebote(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitsangebot]
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
   def getFutureArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot]
-  def getArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz]
+  def getArbeitseinsaetze(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitseinsatz]
   def getArbeitseinsatz(arbeitseinsatzId: ArbeitseinsatzId)(implicit session: DBSession): Option[Arbeitseinsatz]
   def getArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz]
   def getFutureArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz]
   def getFutureArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz]
-  def getArbeitseinsatzabrechnung(implicit session: DBSession): List[ArbeitseinsatzAbrechnung]
+  def getArbeitseinsatzabrechnung(implicit session: DBSession, queryString: Option[QueryFilter]): List[ArbeitseinsatzAbrechnung]
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[ArbeitseinsatzDetail]
   def getPersonenByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[Person]
   def getProjekt(implicit session: DBSession): Option[Projekt]
@@ -50,8 +51,8 @@ trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositoryS
     getArbeitskategorienQuery.apply()
   }
 
-  def getArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot] = {
-    getArbeitsangeboteQuery.apply()
+  def getArbeitsangebote(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitsangebot] = {
+    getArbeitsangeboteQuery(queryString).apply()
   }
 
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {
@@ -62,8 +63,8 @@ trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositoryS
     getFutureArbeitsangeboteQuery.apply()
   }
 
-  def getArbeitseinsaetze(implicit session: DBSession): List[Arbeitseinsatz] = {
-    getArbeitseinsaetzeQuery.apply()
+  def getArbeitseinsaetze(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitseinsatz] = {
+    getArbeitseinsaetzeQuery(queryString).apply()
   }
 
   def getArbeitseinsaetze(kundeId: KundeId)(implicit session: DBSession): List[Arbeitseinsatz] = {
@@ -82,8 +83,8 @@ trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositoryS
     getFutureArbeitseinsaetzeQuery(kundeId).apply()
   }
 
-  def getArbeitseinsatzabrechnung(implicit session: DBSession): List[ArbeitseinsatzAbrechnung] = {
-    getArbeitseinsatzabrechnungQuery.apply()
+  def getArbeitseinsatzabrechnung(implicit session: DBSession, queryString: Option[QueryFilter]): List[ArbeitseinsatzAbrechnung] = {
+    getArbeitseinsatzabrechnungQuery(queryString).apply()
   }
 
   def getArbeitseinsatzDetailByArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): List[ArbeitseinsatzDetail] = {

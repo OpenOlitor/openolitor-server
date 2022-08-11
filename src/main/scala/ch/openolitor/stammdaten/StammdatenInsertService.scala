@@ -34,10 +34,12 @@ import akka.actor.ActorSystem
 import ch.openolitor.core.models._
 import org.joda.time.LocalDate
 import ch.openolitor.core.Macros._
+
 import scala.collection.immutable.TreeMap
 import scalikejdbc.DBSession
 import org.joda.time.format.DateTimeFormat
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.util.OtpUtil
 
 object StammdatenInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): StammdatenInsertService = new DefaultStammdatenInsertService(sysConfig, system)
@@ -65,6 +67,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
 
   val ZERO = 0
   val FALSE = false
+  val TRUE = true
 
   val stammdatenInsertHandle: Handle = {
     case EntityInsertedEvent(meta, id: AbotypId, abotyp: AbotypModify) =>
@@ -239,6 +242,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
     val kunde = copyTo[KundeModify, Kunde](
       create,
       "id" -> id,
+      "aktiv" -> TRUE,
       "bezeichnung" -> bez,
       "anzahlPersonen" -> create.ansprechpersonen.length,
       "anzahlAbos" -> ZERO,
@@ -256,6 +260,7 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
   }
 
   def createPerson(meta: EventMetadata, id: PersonId, create: PersonCreate)(implicit personId: PersonId = meta.originator) = {
+
     val rolle: Option[Rolle] = Some(KundenZugang)
 
     val person = copyTo[PersonCreate, Person](
@@ -268,6 +273,9 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       "passwort" -> None,
       "passwortWechselErforderlich" -> FALSE,
       "rolle" -> rolle,
+      // Always generate otp secret even if the user doesn't use it at the moment
+      "otpSecret" -> OtpUtil.generateOtpSecretString,
+      "otpReset" -> TRUE,
       "erstelldat" -> meta.timestamp,
       "ersteller" -> meta.originator,
       "modifidat" -> meta.timestamp,
@@ -659,6 +667,11 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
             "modifikator" -> meta.originator
           )
           stammdatenWriteRepository.insertEntity[Abwesenheit, AbwesenheitId](abw)
+          stammdatenWriteRepository.getById(lieferungMapping, abw.lieferungId) map { lieferung =>
+            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id) {
+              lieferungMapping.column.anzahlAbwesenheiten -> (lieferung.anzahlAbwesenheiten + 1).toString
+            }
+          }
         case _ =>
           logger.debug("Eine Abwesenheit kann nur einmal erfasst werden")
       }
@@ -684,13 +697,15 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
       //create lieferplanung
       stammdatenWriteRepository.insertEntity[Lieferplanung, LieferplanungId](insert) map { lieferplanung =>
         //alle nächsten Lieferungen alle Abotypen (wenn Flag es erlaubt)
-        val abotypDepotTour = stammdatenWriteRepository.getLieferungenNext() map { lieferung =>
+        val abotypDepotTour = stammdatenWriteRepository.getLieferungenNext() map { lieferung: Lieferung =>
           logger.debug("createLieferplanung: Lieferung " + lieferung.id + ": " + lieferung)
-          val adjustedLieferung: Lieferung = updateLieferungUndZusatzLieferung(lieferplanungId, project, lieferung)
-          (dateFormat.print(adjustedLieferung.datum), adjustedLieferung.abotypBeschrieb)
+          updateLieferungUndZusatzLieferung(lieferplanungId, project, lieferung) match {
+            case Some(adjustedLieferung) => Some(dateFormat.print(adjustedLieferung.datum), adjustedLieferung.abotypBeschrieb)
+            case None                    => None
+          }
         }
 
-        val abotypDates = (abotypDepotTour.groupBy(_._1).mapValues(_ map { _._2 }) map {
+        val abotypDates = (abotypDepotTour.flatten.groupBy(_._1).mapValues(_ map { _._2 }) map {
           case (datum, abotypBeschrieb) =>
             datum + ": " + abotypBeschrieb.mkString(", ")
         }).mkString("; ")

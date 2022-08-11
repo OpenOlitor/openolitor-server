@@ -28,14 +28,17 @@ import ch.openolitor.core.JSONSerializable
 import ch.openolitor.stammdaten.StammdatenJsonProtocol
 
 trait LoginJsonProtocol extends StammdatenJsonProtocol with AutoProductFormats[JSONSerializable] {
-  implicit val loginStatusFormat = new JsonFormat[LoginStatus] {
-    def write(obj: LoginStatus): JsValue =
+  implicit val loginStatusFormat = new JsonFormat[RequestStatus] {
+    def write(obj: RequestStatus): JsValue =
       JsString(obj.productPrefix)
 
-    def read(json: JsValue): LoginStatus =
+    def read(json: JsValue): RequestStatus =
       json match {
-        case JsString(value) => LoginStatus(value).getOrElse(sys.error(s"Unknown LoginStatus:$value"))
+        case JsString(value) => RequestStatus(value).getOrElse(sys.error(s"Unknown LoginStatus:$value"))
         case pt              => sys.error(s"Unknown LoginStatus:$pt")
       }
   }
+
+  implicit val subjectFormat = autoProductFormat[Subject]
+  implicit val userFormat = autoProductFormat[User]
 }

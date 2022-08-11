@@ -24,29 +24,62 @@ package ch.openolitor.core.security
 
 import ch.openolitor.core.JSONSerializable
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.models.PersonSummary
-import ch.openolitor.stammdaten.models.Rolle
-import ch.openolitor.stammdaten.models.KundeId
+import ch.openolitor.stammdaten.models.{ EmailSecondFactorType, KundeId, OtpSecondFactorType, PersonDetail, PersonSummary, Rolle, SecondFactorType }
+
+sealed trait SecondFactor {
+  val personId: PersonId;
+  val token: String;
+
+  def `type`: SecondFactorType
+}
+case class EmailSecondFactor(token: String, code: String, personId: PersonId) extends SecondFactor with JSONSerializable {
+  def `type` = EmailSecondFactorType
+}
+case class OtpSecondFactor(token: String, personId: PersonId) extends SecondFactor with JSONSerializable {
+  def `type` = OtpSecondFactorType
+}
+
+trait AuthenticatedForm extends JSONSerializable {
+  val secondFactorAuth: Option[SecondFactorAuthentication]
+}
+
+case class SecondFactorAuthentication(token: String, code: String) extends JSONSerializable
 
 case class LoginForm(email: String, passwort: String) extends JSONSerializable
-case class SecondFactorLoginForm(token: String, code: String) extends JSONSerializable
-case class SecondFactor(token: String, code: String, personId: PersonId)
-case class ChangePasswordForm(alt: String, neu: String) extends JSONSerializable
-case class SetPasswordForm(token: String, neu: String) extends JSONSerializable
+case class ChangePasswordForm(alt: String, neu: String, secondFactorAuth: Option[SecondFactorAuthentication]) extends JSONSerializable
+case class SetPasswordForm(token: String, neu: String, secondFactorAuth: Option[SecondFactorAuthentication]) extends JSONSerializable
 case class PasswordResetForm(email: String) extends JSONSerializable
+case class LoginSettingsForm(secondFactorEnabled: Boolean, secondFactorType: SecondFactorType, secondFactorAuth: Option[SecondFactorAuthentication]) extends AuthenticatedForm
 
-sealed trait LoginStatus extends Product
-case object LoginOk extends LoginStatus
-case object LoginSecondFactorRequired extends LoginStatus
+case class OtpDisable(code: String) extends JSONSerializable
+case class OtpSecretResetRequest(code: String) extends JSONSerializable
+case class OtpSecretResetConfirm(token: String, code: String) extends JSONSerializable
+case class OtpSecretResetResponse(token: String, person: PersonSummary, otpSecret: String) extends JSONSerializable
 
-object LoginStatus {
-  def apply(value: String): Option[LoginStatus] = {
-    Vector(LoginOk, LoginSecondFactorRequired).find(_.toString == value)
+sealed trait RequestStatus extends Product
+case object Ok extends RequestStatus
+case object SecondFactorRequired extends RequestStatus
+
+object RequestStatus {
+  def apply(value: String): Option[RequestStatus] = {
+    Vector(Ok, SecondFactorRequired).find(_.toString == value)
   }
 }
 
-case class LoginResult(status: LoginStatus, token: String, person: PersonSummary) extends JSONSerializable
+trait ResultWithSecondFactorValidation {
+  val status: RequestStatus
+  val token: Option[String]
+}
+
+case class FormResult(status: RequestStatus, token: Option[String], secondFactorType: Option[SecondFactorType]) extends JSONSerializable with ResultWithSecondFactorValidation
+
+case class LoginResult(status: RequestStatus, token: Option[String], person: PersonSummary, otpSecret: Option[String], secondFactorType: Option[SecondFactorType]) extends JSONSerializable with ResultWithSecondFactorValidation
 
 case class RequestFailed(msg: String)
 
-case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle])
+case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle], secondFactorType: Option[SecondFactorType]) extends JSONSerializable
+
+case class User(user: PersonDetail, subject: Subject) extends JSONSerializable
+
+case class LoginSettings(secondFactorRequired: Boolean, secondFactorEnabled: Boolean, secondFactorType: SecondFactorType) extends JSONSerializable
+

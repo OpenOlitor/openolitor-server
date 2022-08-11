@@ -34,7 +34,6 @@ import ch.openolitor.core.models.PersonId
 import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
-import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.core.models.BaseId
 
 object ReportsUpdateService {

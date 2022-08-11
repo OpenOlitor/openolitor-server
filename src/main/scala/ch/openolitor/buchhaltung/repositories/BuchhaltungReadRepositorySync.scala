@@ -27,6 +27,7 @@ import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
+import ch.openolitor.util.parsing.{ FilterExpr, QueryFilter }
 
 trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
   def getRechnungen(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung]
@@ -36,7 +37,7 @@ trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
 
   def getRechnungsPositionenByRechnungsId(rechnungId: RechnungId)(implicit session: DBSession, cpContext: ConnectionPoolContext): List[RechnungsPosition]
 
-  def getZahlungsImports(implicit session: DBSession, cpContext: ConnectionPoolContext): List[ZahlungsImport]
+  def getZahlungsImports(implicit session: DBSession, cpContext: ConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): List[ZahlungsImport]
   def getZahlungsImportDetail(id: ZahlungsImportId)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[ZahlungsImportDetail]
   def getZahlungsEingangByReferenznummer(referenzNummer: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[ZahlungsEingang]
 
@@ -51,7 +52,7 @@ trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
 
 trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync with LazyLogging with BuchhaltungRepositoryQueries {
   def getRechnungen(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung] = {
-    getRechnungenQuery(None).apply()
+    getRechnungenQuery(None, None, None).apply()
   }
 
   def getKundenRechnungen(kundeId: KundeId)(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung] = {
@@ -70,8 +71,8 @@ trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync wi
     getRechnungsPositionenByRechnungsIdQuery(rechnungId).apply()
   }
 
-  def getZahlungsImports(implicit session: DBSession, cpContext: ConnectionPoolContext): List[ZahlungsImport] = {
-    getZahlungsImportsQuery.apply()
+  def getZahlungsImports(implicit session: DBSession, cpContext: ConnectionPoolContext, filter: Option[FilterExpr], queryString: Option[QueryFilter]): List[ZahlungsImport] = {
+    getZahlungsImportsQuery(filter, queryString).apply()
   }
 
   def getZahlungsImportDetail(id: ZahlungsImportId)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[ZahlungsImportDetail] = {

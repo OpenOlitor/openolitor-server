@@ -44,6 +44,7 @@ import ch.openolitor.util.ConfigUtil._
 import scalikejdbc.DBSession
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scalikejdbc.DB
 
@@ -106,6 +107,8 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
       sendPasswortReset(meta, einladung)
     case RolleGewechseltEvent(meta, _, personId, rolle) =>
       changeRolle(meta, personId, rolle)
+    case OtpResetEvent(meta, _, personId, otpSecret) =>
+      resetOtp(meta, personId, otpSecret)
     case SendEmailToPersonEvent(meta, subject, body, replyTo, context) =>
       checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
     case SendEmailToKundeEvent(meta, subject, body, replyTo, context) =>
@@ -251,6 +254,12 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
 
   def sendEinladung(meta: EventMetadata, einladungCreate: EinladungCreate)(implicit originator: PersonId = meta.originator): Unit = {
     sendEinladung(meta, einladungCreate, BaseZugangLink, InvitationMailTemplateType)
+  }
+  def resetOtp(meta: EventMetadata, personId: PersonId, otpSecret: String)(implicit originator: PersonId = meta.originator) = {
+    // reset OTP with new secret
+    DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.updateEntity[Person, PersonId](personId)(personMapping.column.otpReset -> true, personMapping.column.otpSecret -> otpSecret)
+    }
   }
 
   def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {

@@ -23,7 +23,6 @@
 package ch.openolitor.kundenportal
 
 import scala.util.{ Failure, Success, Try }
-
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolContextAware }
@@ -33,10 +32,9 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.core.domain.{ CommandHandler, EntityStore, EventTransactionMetadata, IdFactory, UserCommand }
 import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadRepositorySyncComponent, KundenportalReadRepositorySyncComponent }
-import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Offen, Person }
+import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Lieferplanung, Verrechnet, Abgeschlossen, Offen, Person }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
-
 import akka.actor.ActorSystem
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
@@ -65,7 +63,10 @@ trait KundenportalCommandHandler extends CommandHandler
       DB readOnly { implicit session =>
         kundenportalReadRepository.getAbo(entity.aboId) map { abo =>
           if (subject.kundeId == abo.kundeId && abo.id == entity.aboId) {
-            handleEntityInsert[AbwesenheitCreate, AbwesenheitId](idFactory, meta, entity, AbwesenheitId.apply)
+            kundenportalReadRepository.getLieferplanung(entity.aboId, entity.datum) match {
+              case lp: Some[Lieferplanung] if (lp.get.status == Abgeschlossen || lp.get.status == Verrechnet) => Failure(new InvalidStateException("Die Lieferplanung ist bereits abgeschlossen."))
+              case _ => handleEntityInsert[AbwesenheitCreate, AbwesenheitId](idFactory, meta, entity, AbwesenheitId.apply)
+            }
           } else {
             Failure(new InvalidStateException("Es können nur Abwesenheiten auf eigenen Abos erstellt werden."))
           }
@@ -83,8 +84,8 @@ trait KundenportalCommandHandler extends CommandHandler
                 } else {
                   Failure(new InvalidStateException(s"Lieferplanung bereits abgeschlossen."))
                 }
-              } getOrElse (Success(Seq(EntityDeleteEvent(abwesenheitId))))
-            } getOrElse (Failure(new InvalidStateException(s"Die Abwesenheit konnte wurde nicht gefunden.")))
+              } getOrElse Success(Seq(EntityDeleteEvent(abwesenheitId)))
+            } getOrElse Failure(new InvalidStateException(s"Die Abwesenheit konnte wurde nicht gefunden."))
           } else {
             Failure(new InvalidStateException("Es können nur Abwesenheiten eigener Abos entfernt werden."))
           }

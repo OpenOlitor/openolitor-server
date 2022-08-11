@@ -23,28 +23,18 @@
 package ch.openolitor.mailtemplates
 
 import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
-import spray.json._
-import spray.json.DefaultJsonProtocol._
-import spray.http._
-import spray.http.MediaTypes._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.httpx.marshalling._
-import spray.httpx.unmarshalling._
-import spray.routing._
-import spray.routing.Directive._
-import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.security.Subject
-import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateReadRepositoryComponent, MailTemplateDBMappings, MailTemplateReadRepositoryComponent }
-import ch.openolitor.mailtemplates.model._
-import ch.openolitor.mailtemplates.eventsourcing._
-import ch.openolitor.core.domain.EntityStore
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.util.parsing.FilterExpr
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
+import ch.openolitor.core.security.Subject
+import ch.openolitor.mailtemplates.eventsourcing._
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateReadRepositoryComponent, MailTemplateDBMappings, MailTemplateReadRepositoryComponent }
+import ch.openolitor.util.parsing.{ FilterExpr, UriQueryParamFilterParser }
+import com.typesafe.scalalogging.LazyLogging
+import spray.httpx.SprayJsonSupport._
+import spray.routing.Directive._
+import spray.routing._
 
 trait MailTemplateRoutes extends HttpService
   with AsyncConnectionPoolContextAware

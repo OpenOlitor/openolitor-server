@@ -23,7 +23,7 @@
 package ch.openolitor.stammdaten.repositories
 
 import scalikejdbc._
-import sqls.{ distinct, count }
+import sqls.{ count, distinct }
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.Macros._
@@ -31,7 +31,7 @@ import org.joda.time.DateTime
 import com.github.nscala_time.time.Imports._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 
@@ -50,6 +50,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val sammelbestellung = sammelbestellungMapping.syntax("sammelbestellung")
   lazy val bestellposition = bestellpositionMapping.syntax("bestellposition")
   lazy val kunde = kundeMapping.syntax("kunde")
+  lazy val kundenSearch = kundenSearchMapping.syntax("kundenSearch")
   lazy val pendenz = pendenzMapping.syntax("pendenz")
   lazy val kundentyp = customKundentypMapping.syntax("kundentyp")
   lazy val postlieferung = postlieferungMapping.syntax("postlieferung")
@@ -88,30 +89,35 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val korbSecond = korbMapping.syntax("korbSecond")
   lazy val lieferungSecond = lieferungMapping.syntax("lieferungSecond")
 
-  protected def getAbotypenQuery(filter: Option[FilterExpr]) = {
+  protected def getAbotypenQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(abotypMapping as aboTyp)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, aboTyp))
+        .where.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "beschreibung", aboTyp))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", aboTyp))).and(UriQueryParamToSQLSyntaxBuilder.build(filter, aboTyp))
         .orderBy(aboTyp.name)
     }.map(abotypMapping(aboTyp)).list
   }
 
   protected def getExistingZusatzAbotypenQuery(lieferungId: LieferungId) = {
+    val today = LocalDate.now.toDateTimeAtStartOfDay
     withSQL {
       select
         .from(zusatzAbotypMapping as zusatzAboTyp)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.abotypId, zusatzAboTyp.id)
         .leftJoin(korbMapping as korb).on(korb.aboId, zusatzAbo.hauptAboId)
-        .where.eq(korb.lieferungId, lieferungId)
+        .where.eq(korb.lieferungId, lieferungId).and.withRoundBracket {
+          _.isNull(zusatzAboTyp.aktivBis).or.ge(zusatzAboTyp.aktivBis, today)
+        }
     }.map(zusatzAbotypMapping(zusatzAboTyp)).list
   }
 
-  protected def getZusatzAbotypenQuery(filter: Option[FilterExpr]) = {
+  protected def getZusatzAbotypenQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(zusatzAbotypMapping as zusatzAboTyp)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAboTyp))
+        .where.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "beschreibung", zusatzAboTyp))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", zusatzAboTyp))).and(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAboTyp))
         .orderBy(zusatzAboTyp.name)
     }.map(zusatzAbotypMapping(zusatzAboTyp)).list
   }
@@ -133,31 +139,50 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     """.map(kundeMapping(kunde)).list
   }
 
-  protected def getKundenUebersichtQuery(filter: Option[FilterExpr]) = {
+  protected def getKundenSearchQuery(queryString: Option[QueryFilter]) = {
+    withSQL {
+      select
+        .from(kundenSearchMapping as kundenSearch)
+        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunden_search_values", kundenSearch))
+        .orderBy(kundenSearch.bezeichnung)
+    }.map(kundenSearchMapping(kundenSearch)).list
+  }
+
+  protected def getKundenUebersichtQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(kundeMapping as kunde)
         .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
         .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
         .orderBy(person.sort)
     }.one(kundeMapping(kunde))
       .toManies(
         rs => personMapping.opt(person)(rs),
         rs => kontoDatenMapping.opt(kontoDaten)(rs)
-      )
-      .map((kunde, personen, kontoDaten) => {
-        val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonSummary](p)).toSeq
-        val kd = kontoDaten.length match {
-          case 0 => None
-          case 1 => Some(kontoDaten(0))
-          case _ => {
-            logger.error(s"The kunde $kunde.id cannot have more than an account")
-            None
+      ).map((kunde, personen, kontoDaten) => {
+          val personenWihoutPwd = personen.toSet[Person].map(p => copyTo[Person, PersonSummary](p)).toSeq
+          val kd = kontoDaten.length match {
+            case 0 => None
+            case 1 => Some(kontoDaten(0))
+            case _ => {
+              logger.error(s"The kunde $kunde.id cannot have more than an account")
+              None
+            }
           }
-        }
-        copyTo[Kunde, KundeUebersicht](kunde, "ansprechpersonen" -> personenWihoutPwd, "kontoDaten" -> kd)
-      }).list
+          copyTo[Kunde, KundeUebersicht](kunde, "ansprechpersonen" -> personenWihoutPwd, "kontoDaten" -> kd)
+        }).list
   }
 
   protected def getCustomKundentypenQuery = {
@@ -352,12 +377,18 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(personMapping(person)).list
   }
 
-  protected def getPersonenUebersichtQuery(filter: Option[FilterExpr]) = {
+  protected def getPersonenUebersichtQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(personMapping as person)
         .leftJoin(kundeMapping as kunde).on(person.kundeId, kunde.id)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, person))
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "email", person))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
+        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, person))
         .orderBy(person.name)
     }.one(personMapping(person))
       .toOne(
@@ -456,11 +487,18 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
-  protected def getZusatzAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getZusatzAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+          ).and.append(
+              UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", zusatzAbo)
+            )
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
@@ -611,12 +649,13 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).single
   }
 
-  protected def getDepotlieferungAbosOnlyAktiveZusatzabosQuery(filter: Option[FilterExpr]) = {
+  protected def getDepotlieferungAbosOnlyAktiveZusatzabosQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} =  true")
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
+        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
     }.one(depotlieferungAboMapping(depotlieferungAbo))
       .toMany(
         rs => zusatzAboMapping.opt(zusatzAbo)(rs)
@@ -628,11 +667,18 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getDepotlieferungAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[DepotlieferungAbo](gjFilter, depotlieferungAbo)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo)
+          ).and.append(
+              UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo)
+            )
     }.map(depotlieferungAboMapping(depotlieferungAbo)).list
   }
 
@@ -718,25 +764,27 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.list
   }
 
-  protected def getPersonenZusatzAboAktivByZusatzAbotypenQuery(filter: Option[FilterExpr]) = {
+  protected def getPersonenZusatzAboAktivByZusatzAbotypenQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(personMapping as person)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(zusatzAbo.kundeId, person.kundeId)
         .leftJoin(zusatzAbotypMapping as zusatzAboTyp).on(sqls.eq(zusatzAbo.abotypId, zusatzAboTyp.id))
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAboTyp))
+        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", zusatzAboTyp))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAboTyp))
         .having(sqls.eq(zusatzAbo.aktiv, true))
     }.map { rs =>
       copyTo[Person, PersonSummary](personMapping(person)(rs))
     }.list
   }
 
-  protected def getHeimlieferungAbosOnlyAktiveZusatzabosQuery(filter: Option[FilterExpr]) = {
+  protected def getHeimlieferungAbosOnlyAktiveZusatzabosQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${heimlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} = true")
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
+        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toMany(
         rs => zusatzAboMapping.opt(zusatzAbo)(rs)
@@ -748,20 +796,28 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getHeimlieferungAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[HeimlieferungAbo](gjFilter, heimlieferungAbo)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo)
+          ).and.append(
+              UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo)
+            )
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
-  protected def getPostlieferungAbosOnlyAktiveZusatzabosQuery(filter: Option[FilterExpr]) = {
+  protected def getPostlieferungAbosOnlyAktiveZusatzabosQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${postlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} =  true")
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
+        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toMany(
         rs => zusatzAboMapping.opt(zusatzAbo)(rs)
@@ -773,11 +829,18 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
-  protected def getPostlieferungAbosQuery(filter: Option[FilterExpr]) = {
+  protected def getPostlieferungAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(postlieferungAboMapping as postlieferungAbo)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[PostlieferungAbo](gjFilter, postlieferungAbo)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo)
+          ).and.append(
+              UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo)
+            )
     }.map(postlieferungAboMapping(postlieferungAbo)).list
   }
 
@@ -1001,13 +1064,21 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
 
-  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
+  protected def getAktiveZusatzAbosQuery(abotypId: AbotypId, hauptAboVertriebId: VertriebId, lieferdatum: DateTime, lieferplanungId: LieferplanungId) = {
     // zusätzlich get haupabo, get all Lieferungen where Lieferplanung is equal
     withSQL {
       select
         .from(zusatzAboMapping as zusatzAbo)
         .innerJoin(lieferungMapping as lieferung).on(zusatzAbo.abotypId, lieferung.abotypId)
+        .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(zusatzAbo.hauptAboId, heimlieferungAbo.id)
+        .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(zusatzAbo.hauptAboId, depotlieferungAbo.id)
+        .leftJoin(postlieferungAboMapping as postlieferungAbo).on(zusatzAbo.hauptAboId, postlieferungAbo.id)
         .where.eq(zusatzAbo.abotypId, abotypId)
+        .and.withRoundBracket {
+          _.eq(heimlieferungAbo.vertriebId, hauptAboVertriebId)
+            .or.eq(postlieferungAbo.vertriebId, hauptAboVertriebId)
+            .or.eq(depotlieferungAbo.vertriebId, hauptAboVertriebId)
+        }
         .and.le(zusatzAbo.start, lieferdatum)
         .and.eq(lieferung.lieferplanungId, lieferplanungId)
         .and.withRoundBracket { _.isNull(zusatzAbo.ende).or.ge(zusatzAbo.ende, lieferdatum.toLocalDate) }
@@ -1063,10 +1134,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(produktekategorieMapping(produktekategorie)).list
   }
 
-  protected def getProduzentenQuery = {
+  protected def getProduzentenQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(produzentMapping as produzent)
+        .where.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", produzent))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", produzent))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", produzent))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", produzent))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", produzent)))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, produzent))
     }.map(produzentMapping(produzent)).list
   }
 
@@ -1146,6 +1223,17 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .from(tourlieferungMapping as tourlieferung)
         .where.eq(tourlieferung.tourId, tourId)
     }.map(tourlieferungMapping(tourlieferung)).list
+  }
+
+  protected def getGeschaeftsjahreQuery = {
+    sql"""WITH RECURSIVE seq AS (SELECT 1990 AS value UNION ALL SELECT value + 1 FROM seq WHERE value < YEAR(CURDATE()))
+         SELECT p.geschaeftsjahr_tag as tag, p.geschaeftsjahr_monat as monat, s.value as jahr FROM seq as s, Projekt p where s.value >= (
+         select
+         if(month(min(abos.start)) < p.geschaeftsjahr_monat, year(min(abos.start)) - 1, year(min(abos.start)))
+         from (select da.start as start from DepotlieferungAbo da UNION select ha.start as start from HeimlieferungAbo ha UNION select pa.start as start from PostlieferungAbo pa) as abos
+        );""".map(rs => {
+      GeschaeftsjahrStart(rs.int(1), rs.int(2), rs.int(3))
+    }).list
   }
 
   protected def getProjektQuery = {
@@ -1242,10 +1330,26 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(produktMapping(produkt)).list
   }
 
-  protected def getLieferplanungenQuery = {
+  protected def getLieferplanungQuery(abotypName: String) = {
     withSQL {
       select
         .from(lieferplanungMapping as lieferplanung)
+        .where.like(lieferplanung.abotypDepotTour, '%' + abotypName + '%')
+    }.map(lieferplanungMapping(lieferplanung)).list
+  }
+
+  protected def getLieferplanungenQuery(gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
+    withSQL {
+      select(sqls.distinct(lieferplanung.result.*))
+        .from(lieferplanungMapping as lieferplanung)
+        .join(projektMapping as projekt)
+        .where.exists(select(distinct(lieferung.lieferplanungId))
+          .from(lieferungMapping as lieferung)
+          .where.append(UriQueryParamToSQLSyntaxBuilder.build[Lieferung](gjFilter, lieferung, "datum")).and.eq(lieferung.lieferplanungId, lieferplanung.id))
+        .or.notExists(select(distinct(lieferung.lieferplanungId))
+          .from(lieferungMapping as lieferung).where.eq(lieferung.lieferplanungId, lieferplanung.id))
+        .and.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bemerkungen", lieferplanung))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "abotyp_depot_tour", lieferplanung)))
     }.map(lieferplanungMapping(lieferplanung)).list
   }
 
@@ -1489,6 +1593,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 		         SELECT DISTINCT ${lieferung.vertriebId}
 		         FROM ${lieferungMapping as lieferung}
 		         WHERE ${lieferung.lieferplanungId} = ${id.id}
+		            AND ${lieferung.anzahlKoerbeZuLiefern} + ${lieferung.anzahlSaldoZuTief} + ${lieferung.anzahlAbwesenheiten} > 0
 		       )
 		       GROUP BY ${lieferung.abotypId}) groupedLieferung
 		    ON ${lieferung.abotypId} = groupedLieferung.abotypId
@@ -1542,11 +1647,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(sammelbestellungMapping(sammelbestellung)).list
   }
 
-  protected def getSammelbestellungenQuery(filter: Option[FilterExpr]) = {
+  protected def getSammelbestellungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(sammelbestellungMapping as sammelbestellung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
+          ).and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung))
     }.map(sammelbestellungMapping(sammelbestellung)).list
   }
 
@@ -1868,27 +1978,42 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       .list
   }
 
-  protected def getDepotAuslieferungenQuery(filter: Option[FilterExpr]) = {
+  protected def getDepotAuslieferungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(depotAuslieferungMapping as depotAuslieferung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, depotAuslieferung))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[DepotAuslieferung](gjFilter, depotAuslieferung, "datum")
+        )
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, depotAuslieferung))
+        .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "depot_name", depotAuslieferung))
     }.map(depotAuslieferungMapping(depotAuslieferung)).list
   }
 
-  protected def getTourAuslieferungenQuery(filter: Option[FilterExpr]) = {
+  protected def getTourAuslieferungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(tourAuslieferungMapping as tourAuslieferung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, tourAuslieferung))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[TourAuslieferung](gjFilter, tourAuslieferung, "datum")
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, tourAuslieferung)
+          ).and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "tour_name", tourAuslieferung))
     }.map(tourAuslieferungMapping(tourAuslieferung)).list
   }
 
-  protected def getPostAuslieferungenQuery(filter: Option[FilterExpr]) = {
+  protected def getPostAuslieferungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(postAuslieferungMapping as postAuslieferung)
-        .where(UriQueryParamToSQLSyntaxBuilder.build(filter, postAuslieferung))
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[PostAuslieferung](gjFilter, postAuslieferung, "datum")
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, postAuslieferung)
+          ).and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "datum", postAuslieferung))
     }.map(postAuslieferungMapping(postAuslieferung)).list
   }
 
@@ -2382,6 +2507,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
               .and.eq(zusatzAbo.aktiv, true)
           )
     }.map(res => AboId(res.long(1))).list
+  }
+
+  protected def getLieferungenByAbotypQuery(abotypId: AbotypId) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, abotypId)
+    }.map(lieferungMapping(lieferung)).list
   }
 
   protected def getLieferungenOffenOrAbgeschlossenByAbotypQuery(abotypId: AbotypId) = {

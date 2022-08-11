@@ -112,6 +112,26 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         s"${frist.wert}$einheit"
     }
   })
+  implicit val optionalSecondFactorTypeBinders: Binders[Option[SecondFactorType]] = Binders.string.xmap(_ match {
+    case "otp"   => Some(OtpSecondFactorType)
+    case "email" => Some(EmailSecondFactorType)
+    case _       => None
+  }, {
+    _ match {
+      case Some(OtpSecondFactorType)   => "otp"
+      case Some(EmailSecondFactorType) => "email"
+      case _                           => null
+    }
+  })
+  implicit val secondFactorTypeBinders: Binders[SecondFactorType] = Binders.string.xmap(_ match {
+    case "otp"   => OtpSecondFactorType
+    case "email" => EmailSecondFactorType
+  }, {
+    _ match {
+      case OtpSecondFactorType   => "otp"
+      case EmailSecondFactorType => "email"
+    }
+  })
 
   implicit val baseProduktekategorieIdSetBinders: Binders[Set[BaseProduktekategorieId]] = setBaseStringIdBinders(BaseProduktekategorieId.apply _)
   implicit val baseProduzentIdSetBinders: Binders[Set[BaseProduzentId]] = setBaseStringIdBinders(BaseProduzentId.apply _)
@@ -230,6 +250,22 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
     }
   }
 
+  implicit val kundenSearchMapping = new SQLSyntaxSupport[KundenSearch] {
+    override val tableName = "KundenSearch"
+    override lazy val columns: Seq[String] = autoColumns[KundenSearch]()
+
+    def apply(p: SyntaxProvider[KundenSearch])(rs: WrappedResultSet): KundenSearch = apply(p.resultName)(rs)
+
+    def opt(e: SyntaxProvider[KundenSearch])(rs: WrappedResultSet): Option[KundenSearch] = try {
+      Option(apply(e)(rs))
+    } catch {
+      case e: IllegalArgumentException => None
+    }
+
+    def apply(rn: ResultName[KundenSearch])(rs: WrappedResultSet): KundenSearch =
+      autoConstruct(rs, rn)
+  }
+
   implicit val kundeMapping = new BaseEntitySQLSyntaxSupport[Kunde] {
     override val tableName = "Kunde"
 
@@ -243,6 +279,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
 
     override def updateParameters(kunde: Kunde) = {
       super.updateParameters(kunde) ++ Seq(
+        column.aktiv -> kunde.aktiv,
         column.bezeichnung -> kunde.bezeichnung,
         column.strasse -> kunde.strasse,
         column.hausNummer -> kunde.hausNummer,
@@ -298,7 +335,10 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.passwortWechselErforderlich -> person.passwortWechselErforderlich,
         column.rolle -> person.rolle,
         column.categories -> person.categories,
-        column.contactPermission -> person.contactPermission
+        column.contactPermission -> person.contactPermission,
+        column.secondFactorType -> person.secondFactorType,
+        column.otpSecret -> person.otpSecret,
+        column.otpReset -> person.otpReset
       )
     }
   }
@@ -320,6 +360,22 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.description -> personCategory.description
       )
     }
+  }
+
+  implicit val personenSearchMapping = new SQLSyntaxSupport[PersonenSearch] {
+    override val tableName = "PersonenSearch"
+    override lazy val columns: Seq[String] = autoColumns[PersonenSearch]()
+
+    def apply(p: SyntaxProvider[PersonenSearch])(rs: WrappedResultSet): PersonenSearch = apply(p.resultName)(rs)
+
+    def opt(e: SyntaxProvider[PersonenSearch])(rs: WrappedResultSet): Option[PersonenSearch] = try {
+      Option(apply(e)(rs))
+    } catch {
+      case e: IllegalArgumentException => None
+    }
+
+    def apply(rn: ResultName[PersonenSearch])(rs: WrappedResultSet): PersonenSearch =
+      autoConstruct(rs, rn)
   }
 
   implicit val pendenzMapping = new BaseEntitySQLSyntaxSupport[Pendenz] {
@@ -834,6 +890,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
         column.geschaeftsjahrMonat -> projekt.geschaeftsjahrMonat,
         column.geschaeftsjahrTag -> projekt.geschaeftsjahrTag,
         column.twoFactorAuthentication -> projekt.twoFactorAuthentication,
+        column.defaultSecondFactorType -> projekt.defaultSecondFactorType,
         column.sprache -> projekt.sprache,
         column.welcomeMessage1 -> projekt.welcomeMessage1,
         column.welcomeMessage2 -> projekt.welcomeMessage2,

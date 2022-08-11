@@ -30,7 +30,7 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.domain.EntityStoreJsonProtocol
-import ch.openolitor.stammdaten.StammdatenCommandHandler._
+import ch.openolitor.stammdaten.StammdatenCommandHandler.{ OtpResetEvent, _ }
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer
 
 import java.util.Locale
@@ -56,21 +56,13 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val zusatzAboModifyPersister = persister[ZusatzAboModify]("zusatzabo-modify")
   implicit val zusatzAboCreatePersister = persister[ZusatzAboCreate]("zusatzabo-create")
 
-  val kundeModifyPersister = persister[KundeModify]("kunde-modify")
-  val kundeModifyV2Persister = persister[KundeModify, V2]("kunde-modify", from[V1]
-    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen)))
-  val kundeModifyV3Persister = persister[KundeModify, V3]("kunde-modify", from[V1]
-    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
-    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None))))
-  val kundeModifyV4Persister = persister[KundeModify, V4]("kunde-modify", from[V1]
-    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
-    .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
-    .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None))))
-  implicit val kundeModifyV5Persister = persister[KundeModify, V5]("kunde-modify", from[V1]
-    .to[V2](fixPersonModifyInKundeModify(_, 'ansprechpersonen))
+  implicit val kundeModifyPersister = persister[KundeModify, V7]("kunde-modify", from[V1]
+    .to[V2](fixPersonModifyInKundeModifyV2(_, 'ansprechpersonen))
     .to[V3](_.update('paymentType ! set[Option[PaymentType]](None)))
     .to[V4](_.update('longLieferung ! set[Option[BigDecimal]](None)).update('latLieferung ! set[Option[BigDecimal]](None)))
-    .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen)))
+    .to[V5](fixPersonModifyContactPermissionInKundeModify(_, 'ansprechpersonen))
+    .to[V6](fixPersonModifyInKundeModifyV3(_, 'ansprechpersonen))
+    .to[V7](_.update('aktiv ! set[Boolean](true))))
 
   implicit val kundeIdPersister = persister[KundeId]("kunde-id")
 
@@ -85,8 +77,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val personCategoryCreatePersister = persister[PersonCategoryCreate]("personCategory-create")
   implicit val personCategoryModifyPersister = persister[PersonCategoryModify]("personCategory-modify")
 
-  implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate]("abwesenheit-create")
-  implicit val abwesenheitCreateV2Persister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
+  implicit val abwesenheitCreatePersister = persister[AbwesenheitCreate, V2]("abwesenheit-create", from[V1]
     .to[V2](fixToLocalDate(_, 'datum)))
 
   implicit val abwesenheitIdPersister = persister[AbwesenheitId]("abwesenheit-id")
@@ -106,19 +97,18 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
 
   implicit val aboPriceModifyPersister = persister[AboPriceModify]("abo-price-modify")
 
-  val aboGuthabenModifyPersister = persister[AboGuthabenModify]("abo-guthaben-modify")
-  implicit val aboGuthabenModifyV2Persister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
+  implicit val aboGuthabenModifyPersister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
     .to[V2](in => in.update('guthabenAlt ! set[Int](in.extract[Int]('guthabenNeu)))))
 
   // TODO how to set vertriebId?!
   implicit val aboVertriebsartModifyPersister = persister[AboVertriebsartModify, V2]("abo-vertriebsart-modify", from[V1]
     .to[V2](in => in.update('vertriebIdNeu ! set[Int](0))))
 
-  implicit val aboDLV2Persister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
+  implicit val aboDLPersister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
-  implicit val aboPLV2Persister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
+  implicit val aboPLPersister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
-  implicit val aboHLV2Persister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
+  implicit val aboHLPersister = persister[HeimlieferungAboModify, V2]("heimlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
 
   implicit val aboDLCreatePersister = persister[DepotlieferungAboCreate]("depotlieferungabo-create")
@@ -174,19 +164,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val vorlageUploadPersister = persister[ProjektVorlageUpload]("projekt-vorlage-upload")
   implicit val vorlageIdPersister = persister[ProjektVorlageId]("projekt-vorlage-id")
 
-  val projektModifyV5Persister = persister[ProjektModify, V5](
-    "projekt-modify",
-    from[V1]
-      .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
-      .to[V3](_.update('maintenanceMode ! set[Boolean](false)))
-      .to[V4](_.update('generierteMailsSenden ! set[Boolean](false))
-        .update('einsatzEinheit ! set[EinsatzEinheit](Halbtage))
-        .update('einsatzAbsageVorlaufTage ! set[Int](3))
-        .update('einsatzShowListeKunde ! set[Boolean](true)))
-      .to[V5](_.update('sendEmailToBcc ! set[Boolean](true)))
-  )
-
-  implicit val projektModifyV6Persister = persister[ProjektModify, V6](
+  implicit val projektModifyPersister = persister[ProjektModify, V7](
     "projekt-modify",
     from[V1]
       .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
@@ -197,6 +175,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
         .update('einsatzShowListeKunde ! set[Boolean](true)))
       .to[V5](_.update('sendEmailToBcc ! set[Boolean](true)))
       .to[V6](_.update('messageForMembers ! set[Option[String]](None)))
+      .to[V7](_.update('defaultSecondFactorType ! set[SecondFactorType](EmailSecondFactorType)))
   )
 
   implicit val projektIdPersister = persister[ProjektId]("projekt-id")
@@ -237,8 +216,10 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val sendEmailToPersonEventV2Persister = persister[SendEmailToPersonEvent, V2]("send-email-person", from[V1]
     .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
   implicit val sendEmailToKundeEventPersister = persister[SendEmailToKundeEvent]("send-email-kunde")
-  implicit val sendEmailToKundeEventV2Persister = persister[SendEmailToKundeEvent, V2]("send-email-kunde", from[V1]
-    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
+  implicit val sendEmailToKundeEventV2Persister = persister[SendEmailToKundeEvent, V3]("send-email-kunde", from[V1]
+    .to[V2](_.update('person / 'contactPermission ! set[Boolean](false)))
+    .to[V3](_.update('context / 'kunde / 'aktiv ! set[Boolean](true))))
+
   implicit val sendEmailToAboSubscriberEventPersister = persister[SendEmailToAboSubscriberEvent]("send-email-abo-subscriber")
   implicit val sendEmailToAboSubscriberEventV2Persister = persister[SendEmailToAboSubscriberEvent, V2]("send-email-abo-subscriber", from[V1]
     .to[V2](_.update('person / 'contactPermission ! set[Boolean](false))))
@@ -258,6 +239,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val aboAktiviertEventPersister = persister[AboAktiviertEvent, V2]("abo-aktiviert-event", V1toV2metaDataMigration)
   implicit val aboDeaktiviertEventPersister = persister[AboDeaktiviertEvent, V2]("abo-deaktiviert-event", V1toV2metaDataMigration)
 
+  implicit val otpResetEventPersistet = persister[OtpResetEvent]("otp-reset-event")
+
   val stammdatenPersisters = List(
     depotModifyPersister,
     depotIdPersister,
@@ -267,7 +250,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     zusatzAbotypModifyPersister,
     zusatzAboModifyPersister,
     zusatzAboCreatePersister,
-    kundeModifyV5Persister,
+    kundeModifyPersister,
     kundeIdPersister,
     personCreateV3Persister,
     personCategoryIdPersister,
@@ -285,14 +268,14 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     vertriebsartDLAbotypPersister,
     vertriebsartPLAbotypPersister,
     vertriebsartHLAbotypPersister,
-    aboDLV2Persister,
-    aboPLV2Persister,
-    aboHLV2Persister,
+    aboDLPersister,
+    aboPLPersister,
+    aboHLPersister,
     aboPriceModifyPersister,
     aboDLCreatePersister,
     aboPLCreatePersister,
     aboHLCreatePersister,
-    aboGuthabenModifyV2Persister,
+    aboGuthabenModifyPersister,
     aboVertriebsartModifyPersister,
     customKundetypCreatePersister,
     customKundetypModifyV1Persister,
@@ -327,9 +310,9 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     tourCreatePersiter,
     tourModifyPersiter,
     tourIdPersister,
-    projektModifyV6Persister,
+    projektModifyPersister,
     projektIdPersister,
-    abwesenheitCreateV2Persister,
+    abwesenheitCreatePersister,
     abwesenheitIdPersister,
     korbCreatePersister,
     korbModifyAuslieferungPersister,
@@ -370,7 +353,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     sendEmailToDepotSubscriberEventV2Persister,
     aboAktiviertEventPersister,
     aboDeaktiviertEventPersister,
-    korbIdPersister
+    korbIdPersister,
+    otpResetEventPersistet
   ) ++ mailTemplatePersisters
 
   def fixToOptionLocalDate(in: JsValue, attribute: Symbol): JsValue = {
@@ -400,22 +384,29 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     }
   }
 
-  def fixPersonModifyInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
+  def fixPersonModifyInKundeModifyV2(in: JsValue, attribute: Symbol): JsValue = {
     val personen = in.extract[Set[PersonModifyV1]](attribute)
     val emptySet = Set[PersonCategoryNameId]()
     val personenV3 = personen map { person =>
-      copyTo[PersonModifyV1, PersonModify](person, "categories" -> emptySet, "contactPermission" -> False)
+      copyTo[PersonModifyV1, PersonModifyV2](person, "categories" -> emptySet)
     }
-    in.update(attribute ! set[Set[PersonModify]](personenV3))
+    in.update(attribute ! set[Set[PersonModifyV2]](personenV3))
   }
 
   def fixPersonModifyContactPermissionInKundeModify(in: JsValue, attribute: Symbol): JsValue = {
     val personen = in.extract[Set[PersonModifyV2]](attribute)
-    val emptySet = Set[PersonCategoryNameId]()
     val personenV3 = personen map { person =>
-      copyTo[PersonModifyV2, PersonModify](person, "contactPermission" -> False)
+      copyTo[PersonModifyV2, PersonModifyV3](person, "contactPermission" -> False)
     }
-    in.update(attribute ! set[Set[PersonModify]](personenV3))
+    in.update(attribute ! set[Set[PersonModifyV3]](personenV3))
+  }
+
+  def fixPersonModifyInKundeModifyV3(in: JsValue, attribute: Symbol): JsValue = {
+    val personenV3 = in.extract[Set[PersonModifyV3]](attribute)
+    val personen = personenV3 map { person =>
+      copyTo[PersonModifyV3, PersonModify](person, "secondFactorType" -> None)
+    }
+    in.update(attribute ! set[Set[PersonModify]](personen))
   }
 
 }

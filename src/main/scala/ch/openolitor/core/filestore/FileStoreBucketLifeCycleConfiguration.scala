@@ -22,14 +22,15 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-import scala.concurrent.Future
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.BucketLifecycleConfiguration
 import com.amazonaws.AmazonClientException
+import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.s3.model.BucketLifecycleConfiguration
+
 import scala.collection.JavaConversions._
+import scala.concurrent.Future
 
 trait FileStoreBucketLifeCycleConfiguration {
-  def client: AmazonS3Client
+  def client: AmazonS3
 
   def bucketName(bucket: FileStoreBucket): String
 

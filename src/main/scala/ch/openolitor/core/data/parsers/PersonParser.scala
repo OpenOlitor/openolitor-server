@@ -28,6 +28,7 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.data.ParseException
 import org.joda.time.DateTime
 import akka.event.LoggingAdapter
+import ch.openolitor.util.OtpUtil
 
 object PersonParser extends EntityParser {
   import EntityParser._
@@ -35,12 +36,12 @@ object PersonParser extends EntityParser {
   def parse(implicit loggingAdapter: LoggingAdapter) = {
     parseEntity[Person, PersonId]("id", Seq("kunde_id", "anrede", "name", "vorname", "email", "email_alternative",
       "telefon_mobil", "telefon_festnetz", "bemerkungen", "sort", "login_aktiv", "passwort", "letzte_anmeldung", "passwort_wechsel",
-      "rolle", "categories", "contactPermission") ++ modifyColumns) { id => indexes =>
+      "rolle", "categories", "contactPermission", "second_factor_type") ++ modifyColumns) { id => indexes =>
       row =>
         //match column indexes
         val Seq(indexKundeId, indexAnrede, indexName, indexVorname, indexEmail, indexEmailAlternative, indexTelefonMobil,
           indexTelefonFestnetz, indexBemerkungen, indexSort, indexLoginAktiv, indexPasswort, indexLetzteAnmeldung,
-          indexPasswortWechselErforderlich, indexRolle, indexCategories, indexContactPermission) = indexes take (17)
+          indexPasswortWechselErforderlich, indexRolle, indexCategories, indexContactPermission, indexSecondFactorType) = indexes take (17)
         val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
         val kundeId = KundeId(row.value[Long](indexKundeId))
@@ -65,6 +66,13 @@ object PersonParser extends EntityParser {
           rolle = row.value[Option[String]](indexRolle) map (r => Rolle(r) getOrElse (throw ParseException(s"Unbekannte Rolle $r bei Person Nr. $id"))),
           categories = (row.value[String](indexCategories).split(",") map (PersonCategoryNameId)).toSet,
           contactPermission = row.value[Boolean](indexContactPermission),
+          secondFactorType = row.value[String](indexSecondFactorType) match {
+            case "email" => Some(EmailSecondFactorType)
+            case "otp"   => Some(OtpSecondFactorType)
+            case ""      => None
+          },
+          otpSecret = OtpUtil.generateOtpSecretString,
+          otpReset = true,
           // modification flags
           erstelldat = row.value[DateTime](indexErstelldat),
           ersteller = PersonId(row.value[Long](indexErsteller)),

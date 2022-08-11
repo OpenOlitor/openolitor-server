@@ -25,6 +25,7 @@ package ch.openolitor.core.domain
 import ch.openolitor.core.models.PersonId
 import org.joda.time.DateTime
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.stammdaten.models.SecondFactorType
 
 case class EventTransactionMetadata(originator: PersonId, version: Int, timestamp: DateTime, transactionNr: Long, source: String) {
   def toMetadata(seqNr: Long) = {
@@ -55,6 +56,8 @@ object SystemEvents {
 
   val SystemPersonId = PersonId(0)
 
-  case class PersonLoggedIn(personId: PersonId, timestamp: DateTime) extends SystemEvent
+  case class PersonLoggedIn(personId: PersonId, timestamp: DateTime, secondFactorType: Option[SecondFactorType]) extends SystemEvent with JSONSerializable
+  case class PersonChangedOtpSecret(personId: PersonId, secret: String) extends SystemEvent with JSONSerializable
+  case class PersonChangedSecondFactorType(personId: PersonId, secondFactorType: Option[SecondFactorType]) extends SystemEvent with JSONSerializable
   case class SystemStarted(timestamp: DateTime) extends SystemEvent
 }

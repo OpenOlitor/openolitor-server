@@ -60,7 +60,10 @@ trait KundenportalReadRepositoryAsync {
 
 class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsync with LazyLogging with KundenportalRepositoryQueries {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektKundenportal]] = {
-    getProjektQuery.future map (_ map (projekt => copyTo[Projekt, ProjektKundenportal](projekt)))
+    getProjektQuery.future map (_ map (projekt => {
+      val t = copyTo[Projekt, ProjektKundenportal](projekt)
+      t
+    }))
   }
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {

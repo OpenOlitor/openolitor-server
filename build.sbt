@@ -37,7 +37,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.4.23",
+  version := "2.5.10",
   scalaVersion := "2.11.12",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.11"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -85,7 +85,7 @@ val buildSettings = Seq(
     "ch.qos.logback"  	           %   "logback-classic"    		  		        % "1.1.7",
     "org.mariadb.jdbc"	           %   "mariadb-java-client"                  % "2.7.5",
     // Libreoffice document API
-    "org.apache.odftoolkit"        %   "simple-odf"					          % "0.8.2-incubating" withSources(),
+    "org.apache.odftoolkit"        %   "simple-odf"					                  % "0.8.2-incubating" withSources(),
     "com.jsuereth"                 %%  "scala-arm"                            % "1.4",
     //simple websocket client
     "org.jfarcand"                 %   "wcs"                                  % "1.5",
@@ -106,7 +106,9 @@ val buildSettings = Seq(
     "org.apache.pdfbox"            % "pdfbox-parent"                          % "2.0.20" pomOnly(),
     "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
     "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
-    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2"
+    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.0.2",
+    "com.eatthepath"               % "java-otp"                               % "0.2.0",
+    "org.apache.pdfbox"            % "pdfbox-tools"                           % "2.0.2"
   )
 }
 )

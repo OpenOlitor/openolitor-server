@@ -251,5 +251,9 @@ object V2Scripts {
     Operations465_EnlargeKundeBez.scripts ++
     OO411_adding_person_contact_permission.scripts ++
     OO86_enlarge_login_message_size.scripts ++
-    OO86_create_kunden_specific_message.scripts
+    OO86_create_kunden_specific_message.scripts ++
+    OO_add_otp_second_factor.scripts ++
+    OO89_user_information_in_zahlungeingang.scripts ++
+    OO69_kunde_aktiv.scripts ++
+    OO103_views_for_filter_optimization.scripts
 }

@@ -26,10 +26,12 @@ import ch.openolitor.core.models._
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
-
 import java.util.Locale
+
 import ch.openolitor.core.JSONSerializable
-import ch.openolitor.core.scalax.{ Tuple27, Tuple28 }
+import ch.openolitor.core.models._
+import ch.openolitor.core.scalax.Tuple29
+import org.joda.time.{ DateTime, LocalDate }
 
 sealed trait EinsatzEinheit extends Product
 
@@ -46,7 +48,9 @@ case object Punkte extends EinsatzEinheit
 
 case class ProjektId(id: Long) extends BaseId
 
-case class Geschaeftsjahr(monat: Int, tag: Int) {
+case class GeschaeftsjahrStart(tag: Int, monat: Int, jahr: Int) extends JSONSerializable
+
+case class Geschaeftsjahr(monat: Int, tag: Int) extends JSONSerializable {
 
   /**
    * Errechnet den Start des Geschäftsjahres aufgrund eines Datums
@@ -101,16 +105,17 @@ case class Projekt(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
+  defaultSecondFactorType: SecondFactorType,
   sprache: Locale,
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],
+  messageForMembers: Option[String],
   maintenanceMode: Boolean,
   generierteMailsSenden: Boolean,
   einsatzEinheit: EinsatzEinheit,
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
   sendEmailToBcc: Boolean,
-  messageForMembers: Option[String],
   //modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
@@ -122,7 +127,7 @@ case class Projekt(
 
 object Projekt {
   def unapply(o: Projekt) = {
-    Some(Tuple28(
+    Some(Tuple29(
       o.id,
       o.bezeichnung,
       o.strasse,
@@ -137,16 +142,17 @@ object Projekt {
       o.geschaeftsjahrMonat,
       o.geschaeftsjahrTag,
       o.twoFactorAuthentication,
+      o.defaultSecondFactorType,
       o.sprache,
       o.welcomeMessage1,
       o.welcomeMessage2,
+      o.messageForMembers,
       o.maintenanceMode,
       o.generierteMailsSenden,
       o.einsatzEinheit,
       o.einsatzAbsageVorlaufTage,
       o.einsatzShowListeKunde,
       o.sendEmailToBcc,
-      o.messageForMembers,
       o.erstelldat,
       o.ersteller,
       o.modifidat,
@@ -169,16 +175,17 @@ object Projekt {
     geschaeftsjahrMonat: Int = 1,
     geschaeftsjahrTag: Int = 1,
     twoFactorAuthentication: Map[Rolle, Boolean] = Map(),
+    defaultSecondFactorType: SecondFactorType = EmailSecondFactorType,
     sprache: Locale = Locale.GERMAN,
     welcomeMessage1: Option[String] = None,
     welcomeMessage2: Option[String] = None,
+    messageForMembers: Option[String] = None,
     maintenanceMode: Boolean = false,
     generierteMailsSenden: Boolean = false,
     einsatzEinheit: EinsatzEinheit = Stunden,
     einsatzAbsageVorlaufTage: Int = 3,
     einsatzShowListeKunde: Boolean = true,
-    sendEmailToBcc: Boolean = true,
-    messageForMembers: Option[String] = None
+    sendEmailToBcc: Boolean = true
   )(implicit person: PersonId): Projekt = {
     Projekt(
       id,
@@ -195,16 +202,17 @@ object Projekt {
       geschaeftsjahrMonat,
       geschaeftsjahrTag,
       twoFactorAuthentication,
+      defaultSecondFactorType,
       sprache,
       welcomeMessage1,
       welcomeMessage2,
+      messageForMembers,
       maintenanceMode,
       generierteMailsSenden,
       einsatzEinheit,
       einsatzAbsageVorlaufTage,
       einsatzShowListeKunde,
       sendEmailToBcc,
-      messageForMembers,
       erstelldat = DateTime.now,
       ersteller = person,
       modifidat = DateTime.now,
@@ -254,7 +262,9 @@ case class ProjektKundenportal(
   einsatzAbsageVorlaufTage: Int,
   einsatzShowListeKunde: Boolean,
   sendEmailToBcc: Boolean,
-  messageForMembers: Option[String]
+  messageForMembers: Option[String],
+  twoFactorAuthentication: Map[Rolle, Boolean],
+  defaultSecondFactorType: SecondFactorType
 ) extends JSONSerializable
 
 case class ProjektReport(
@@ -305,6 +315,7 @@ case class ProjektModify(
   geschaeftsjahrMonat: Int,
   geschaeftsjahrTag: Int,
   twoFactorAuthentication: Map[Rolle, Boolean],
+  defaultSecondFactorType: SecondFactorType,
   sprache: Locale,
   welcomeMessage1: Option[String],
   welcomeMessage2: Option[String],

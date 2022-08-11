@@ -46,14 +46,12 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.RechnungReportService
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter, UriQueryFilterParser, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.reporting.MahnungReportService
-import java.io._
-import java.io.ByteArrayInputStream
 
+import java.io.ByteArrayInputStream
 import scala.concurrent.duration.SECONDS
 import scala.concurrent.duration.Duration
 import ch.openolitor.buchhaltung.rechnungsexport.iso20022._
@@ -77,15 +75,22 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
 
   import EntityStore._
 
-  def buchhaltungRoute(implicit subect: Subject) =
-    parameters('f.?) { (f) =>
+  def buchhaltungRoute(implicit subect: Subject): Route =
+    spray.routing.directives.ParameterDirectives.parameters('f.?, 'g.?, 'q.?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
+      implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
+        UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
+      }
+      implicit val queryFilter = q flatMap { queryFilter =>
+        UriQueryFilterParser.parse(queryFilter)
+      }
+
       rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
-  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
+  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) =
     path("rechnungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungen, exportFormat)) ~
         post(create[RechnungCreateFromRechnungsPositionen, RechnungId](RechnungId.apply _))
@@ -93,11 +98,16 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("rechnungen" / "aktionen" / "downloadrechnungen") {
         post {
           requestInstance { request =>
-            entity(as[RechnungenContainer]) { cont =>
+            entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.fileStoreId.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download rechnungen with filestoreRefs:$fileStoreIds")
-                downloadAll("Rechnungen_" + System.currentTimeMillis + ".zip", GeneriertRechnung, fileStoreIds)
+                downloadAll(
+                  "Rechnungen_" + System.currentTimeMillis,
+                  GeneriertRechnung,
+                  fileStoreIds,
+                  if (cont.pdfMerge.equals("pdfMerge")) true else false
+                )
               }
             }
           }
@@ -106,11 +116,16 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       path("rechnungen" / "aktionen" / "downloadmahnungen") {
         post {
           requestInstance { request =>
-            entity(as[RechnungenContainer]) { cont =>
+            entity(as[RechnungenDownloadContainer]) { cont =>
               onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
                 val fileStoreIds = rechnungen.map(_.mahnungFileStoreIds.map(FileStoreFileId(_))).flatten
                 logger.debug(s"Download mahnungen with filestoreRefs:$fileStoreIds")
-                downloadAll("Mahnungen_" + System.currentTimeMillis + ".zip", GeneriertMahnung, fileStoreIds)
+                downloadAll(
+                  "Mahnungen_" + System.currentTimeMillis,
+                  GeneriertMahnung,
+                  fileStoreIds,
+                  if (cont.pdfMerge.equals("pdfMerge")) true else false
+                )
               }
             }
           }
@@ -199,7 +214,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         (post)(mahnungBericht(id))
       }
 
-  def rechnungspositionenRoute(implicit subect: Subject, filter: Option[FilterExpr]) =
+  def rechnungspositionenRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("rechnungspositionen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungsPositionen, exportFormat))
     } ~
@@ -215,7 +230,7 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
         }
       }
 
-  def zahlungsImportsRoute(implicit subect: Subject) =
+  def zahlungsImportsRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("zahlungsimports") {
       get(list(buchhaltungReadRepository.getZahlungsImports)) ~
         (put | post)(upload { (form, content, fileName) =>
@@ -236,6 +251,9 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
       } ~
       path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "erledigen") { (_, zahlungsEingangId) =>
         post(entity(as[ZahlungsEingangModifyErledigt]) { entity => zahlungsEingangErledigen(entity) })
+      } ~
+      path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / zahlungsEingangIdPath / "aktionen" / "ignore") { (_, zahlungsEingangId) =>
+        post(entity(as[ZahlungsEingangModifyErledigt]) { entity => zahlungsEingangIgnore(entity) })
       } ~
       path("zahlungsimports" / zahlungsImportIdPath / "zahlungseingaenge" / "aktionen" / "automatischerledigen") { id =>
         post(entity(as[Seq[ZahlungsEingangModifyErledigt]]) { entities => zahlungsEingaengeErledigen(entities) })
@@ -342,6 +360,14 @@ trait BuchhaltungRoutes extends HttpService with ActorReferences
     }
   }
 
+  def zahlungsEingangIgnore(entity: ZahlungsEingangModifyErledigt)(implicit idPersister: Persister[ZahlungsEingangId, _], subject: Subject) = {
+    onSuccess((entityStore ? BuchhaltungCommandHandler.ZahlungsEingangIgnoreCommand(subject.personId, entity))) {
+      case UserCommandFailed =>
+        complete(StatusCodes.BadRequest, s"Der Zahlungseingang konnte nicht erledigt werden")
+      case _ =>
+        complete("")
+    }
+  }
   def rechnungBericht(id: RechnungId)(implicit idPersister: Persister[ZahlungsEingangId, _], subject: Subject) = {
     implicit val personId = subject.personId
     generateReport[RechnungId](Some(id), generateRechnungReports _)(RechnungId.apply)

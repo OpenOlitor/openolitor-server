@@ -73,82 +73,84 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
   }
 
   val receive: Receive = {
-    case e @ EntityModified(personId, entity: Abotyp, orig: Abotyp) if entity.name != orig.name =>
+    case EntityModified(personId, entity: Abotyp, orig: Abotyp) if entity.name != orig.name =>
       handleAbotypModify(orig, entity)(personId)
-    case e @ EntityCreated(personId, entity: DepotlieferungAbo) =>
+    case EntityCreated(personId, entity: DepotlieferungAbo) =>
       handleDepotlieferungAboCreated(entity)(personId)
       handleAboCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: DepotlieferungAbo) =>
+    case EntityDeleted(personId, entity: DepotlieferungAbo) =>
       handleDepotlieferungAboDeleted(entity)(personId)
       handleAboDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: DepotlieferungAbo, orig: DepotlieferungAbo) if entity.depotId != orig.depotId =>
+    case EntityModified(personId, entity: DepotlieferungAbo, orig: DepotlieferungAbo) if entity.depotId != orig.depotId =>
       handleDepotlieferungAboDepotChanged(entity, orig, entity)(personId)
       handleAboModified(orig, entity)(personId)
-    case e @ EntityCreated(personId, entity: HeimlieferungAbo) =>
+    case EntityCreated(personId, entity: HeimlieferungAbo) =>
       handleHeimlieferungAboCreated(entity)(personId)
       handleAboCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: HeimlieferungAbo) =>
+    case EntityDeleted(personId, entity: HeimlieferungAbo) =>
       handleHeimlieferungAboDeleted(entity)(personId)
       handleAboDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) if entity.tourId != orig.tourId =>
+    case EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) if entity.tourId != orig.tourId =>
       handleHeimlieferungAboTourChanged(entity, orig, entity)(personId)
       handleAboModified(orig, entity)(personId)
-    case e @ EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) =>
+    case EntityModified(personId, entity: HeimlieferungAbo, orig: HeimlieferungAbo) =>
       handleAboModified(orig, entity)(personId)
-    case e @ EntityModified(personId, entity: PostlieferungAbo, orig: PostlieferungAbo) if entity.vertriebId != orig.vertriebId =>
+    case EntityModified(personId, entity: PostlieferungAbo, orig: PostlieferungAbo) if entity.vertriebId != orig.vertriebId =>
       handleAboModified(orig, entity)(personId)
 
-    case e @ EntityCreated(personId, entity: ZusatzAbo)                   => handleZusatzAboCreated(entity)(personId)
-    case e @ EntityModified(personId, entity: ZusatzAbo, orig: ZusatzAbo) => handleZusatzAboModified(orig, entity)(personId)
-    case e @ EntityDeleted(personId, entity: ZusatzAbo)                   => handleZusatzAboDeleted(entity)(personId)
+    case EntityCreated(personId, entity: ZusatzAbo)                   => handleZusatzAboCreated(entity)(personId)
+    case EntityModified(personId, entity: ZusatzAbo, orig: ZusatzAbo) => handleZusatzAboModified(orig, entity)(personId)
+    case EntityDeleted(personId, entity: ZusatzAbo)                   => handleZusatzAboDeleted(entity)(personId)
 
-    case e @ EntityCreated(personId, entity: Abo)                         => handleAboCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Abo)                         => handleAboDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: Abo, orig: Abo)             => handleAboModified(orig, entity)(personId)
-    case e @ EntityCreated(personId, entity: Abwesenheit)                 => handleAbwesenheitCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Abwesenheit)                 => handleAbwesenheitDeleted(entity)(personId)
+    case EntityCreated(personId, entity: Abo)                         => handleAboCreated(entity)(personId)
+    case EntityDeleted(personId, entity: Abo)                         => handleAboDeleted(entity)(personId)
+    case EntityModified(personId, entity: Abo, orig: Abo)             => handleAboModified(orig, entity)(personId)
+    case EntityCreated(personId, entity: Abwesenheit)                 => handleAbwesenheitCreated(entity)(personId)
+    case EntityDeleted(personId, entity: Abwesenheit)                 => handleAbwesenheitDeleted(entity)(personId)
 
-    case e @ EntityCreated(personId, entity: Kunde)                       => handleKundeCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Kunde)                       => handleKundeDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: Kunde, orig: Kunde)         => handleKundeModified(entity, orig)(personId)
+    case EntityCreated(personId, entity: Kunde)                       => handleKundeCreated(entity)(personId)
+    case EntityDeleted(personId, entity: Kunde)                       => handleKundeDeleted(entity)(personId)
+    case EntityModified(personId, entity: Kunde, orig: Kunde)         => handleKundeModified(entity, orig)(personId)
 
-    case e @ EntityDeleted(personId, entity: Person)                      => handlePersonDeleted(entity)(personId)
+    case EntityDeleted(personId, entity: Person)                      => handlePersonDeleted(entity)(personId)
 
-    case e @ EntityCreated(personId, entity: Pendenz)                     => handlePendenzCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: Pendenz)                     => handlePendenzDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: Pendenz, orig: Pendenz)     => handlePendenzModified(entity, orig)(personId)
+    case EntityCreated(personId, entity: Pendenz)                     => handlePendenzCreated(entity)(personId)
+    case EntityDeleted(personId, entity: Pendenz)                     => handlePendenzDeleted(entity)(personId)
+    case EntityModified(personId, entity: Pendenz, orig: Pendenz)     => handlePendenzModified(entity, orig)(personId)
 
-    case e @ EntityCreated(personId, entity: RechnungsPosition)           => handleRechnungsPositionCreated(entity)(personId)
-    case e @ EntityDeleted(personId, entity: RechnungsPosition)           => handleRechnungsPositionDeleted(entity)(personId)
-    case e @ EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Bezahlt && entity.status == RechnungsPositionStatus.Bezahlt) =>
+    case EntityCreated(personId, entity: RechnungsPosition)           => handleRechnungsPositionCreated(entity)(personId)
+    case EntityDeleted(personId, entity: RechnungsPosition)           => handleRechnungsPositionDeleted(entity)(personId)
+    case EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Bezahlt && entity.status == RechnungsPositionStatus.Bezahlt) =>
       handleRechnungsPositionBezahlt(entity, orig)(personId)
     case e @ EntityModified(personId, entity: RechnungsPosition, orig: RechnungsPosition) if (orig.status != RechnungsPositionStatus.Storniert && entity.status == RechnungsPositionStatus.Storniert) =>
       handleRechnungsPositionStorniert(entity, orig)(personId)
 
-    case e @ EntityCreated(personId, entity: Lieferplanung) => handleLieferplanungCreated(entity)(personId)
+    case EntityCreated(personId, entity: Lieferplanung)            => handleLieferplanungCreated(entity)(personId)
 
-    case e @ EntityDeleted(personId, entity: Lieferplanung) => handleLieferplanungDeleted(entity)(personId)
-    case e @ PersonLoggedIn(personId, timestamp)            => handlePersonLoggedIn(personId, timestamp)
+    case EntityDeleted(personId, entity: Lieferplanung)            => handleLieferplanungDeleted(entity)(personId)
+    case PersonLoggedIn(personId, timestamp, secondFactorType)     => handlePersonLoggedIn(personId, timestamp, secondFactorType)
+    case PersonChangedOtpSecret(personId, secret)                  => handlePersonChangedOtpSecret(personId, secret)
+    case PersonChangedSecondFactorType(personId, secondFactorType) => handlePersonChangedSecondFactorType(personId, secondFactorType)
 
-    case e @ EntityModified(personId, entity: Lieferplanung, orig: Lieferplanung) =>
+    case EntityModified(personId, entity: Lieferplanung, orig: Lieferplanung) =>
       handleLieferplanungModified(entity, orig)(personId)
-    case e @ EntityModified(personId, entity: Lieferung, orig: Lieferung) //Die Lieferung wird von der Lieferplanung entfernt
+    case EntityModified(personId, entity: Lieferung, orig: Lieferung) //Die Lieferung wird von der Lieferplanung entfernt
     if (orig.lieferplanungId.isEmpty && entity.lieferplanungId.isDefined) =>
       handleLieferplanungLieferungenChanged(entity.lieferplanungId.get)(personId)
-    case e @ EntityModified(personId, entity: Lieferung, orig: Lieferung) //Die Lieferung wird an eine Lieferplanung angehängt
+    case EntityModified(personId, entity: Lieferung, orig: Lieferung) //Die Lieferung wird an eine Lieferplanung angehängt
     if (orig.lieferplanungId.isDefined && entity.lieferplanungId.isEmpty) => handleLieferplanungLieferungenChanged(orig.lieferplanungId.get)(personId)
 
-    case e @ EntityModified(personId, entity: Lieferung, orig: Lieferung) if (entity.lieferplanungId.isDefined) => handleLieferungChanged(entity, orig)(personId)
+    case EntityModified(personId, entity: Lieferung, orig: Lieferung) if (entity.lieferplanungId.isDefined) => handleLieferungChanged(entity, orig)(personId)
 
-    case e @ EntityModified(personId, entity: Vertriebsart, orig: Vertriebsart)                                 => handleVertriebsartModified(entity, orig)(personId)
+    case EntityModified(personId, entity: Vertriebsart, orig: Vertriebsart)                                 => handleVertriebsartModified(entity, orig)(personId)
 
-    case e @ EntityModified(personId, entity: Auslieferung, orig: Auslieferung) if (orig.status == Erfasst && entity.status == Ausgeliefert) =>
+    case EntityModified(personId, entity: Auslieferung, orig: Auslieferung) if (orig.status == Erfasst && entity.status == Ausgeliefert) =>
       handleAuslieferungAusgeliefert(entity)(personId)
 
-    case e @ EntityModified(userId, entity: Depot, orig: Depot) => handleDepotModified(entity, orig)(userId)
-    case e @ EntityModified(userId, entity: Korb, orig: Korb) if entity.status != orig.status => handleKorbStatusChanged(entity, orig.status)(userId)
+    case EntityModified(userId, entity: Depot, orig: Depot) => handleDepotModified(entity, orig)(userId)
+    case EntityModified(userId, entity: Korb, orig: Korb) if entity.status != orig.status => handleKorbStatusChanged(entity, orig.status)(userId)
 
-    case x => //log.debug(s"receive unused event $x")
+    case _ => //log.debug(s"receive unused event $x")
   }
 
   def handleAbotypModify(orig: Abotyp, entity: Abotyp)(implicit personId: PersonId) = {
@@ -992,13 +994,38 @@ class StammdatenDBEventEntityListener(override val sysConfig: SystemConfig) exte
     }
   }
 
-  def handlePersonLoggedIn(personId: PersonId, timestamp: DateTime) = {
+  def handlePersonLoggedIn(personId: PersonId, timestamp: DateTime, secondFactorType: Option[SecondFactorType]) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenUpdateRepository.getById(personMapping, personId) map { person =>
+        val additionalFields = (secondFactorType, person.otpReset) match {
+          case (Some(OtpSecondFactorType), true) =>
+            // reset otpReset after first succesful login with otp Second factor
+            Seq(personMapping.column.otpReset -> false)
+          case _ =>
+            Seq()
+        }
 
-      implicit val pid = SystemEvents.SystemPersonId
-      stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(
-        personMapping.column.letzteAnmeldung -> Option(timestamp)
-      )
+        implicit val pid = SystemEvents.SystemPersonId
+        stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(personMapping.column.letzteAnmeldung -> Option(timestamp), additionalFields: _*)
+      }
+    }
+  }
+
+  private def handlePersonChangedOtpSecret(personId: PersonId, secret: String) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenUpdateRepository.getById(personMapping, personId) map { person =>
+        implicit val pid = SystemEvents.SystemPersonId
+        stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(personMapping.column.otpSecret -> secret)
+      }
+    }
+  }
+
+  private def handlePersonChangedSecondFactorType(personId: PersonId, secondFactorType: Option[SecondFactorType]) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenUpdateRepository.getById(personMapping, personId) map { person =>
+        implicit val pid = SystemEvents.SystemPersonId
+        stammdatenUpdateRepository.updateEntity[Person, PersonId](personId)(personMapping.column.secondFactorType -> secondFactorType)
+      }
     }
   }
 

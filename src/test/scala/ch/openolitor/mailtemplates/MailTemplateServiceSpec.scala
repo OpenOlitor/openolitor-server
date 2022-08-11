@@ -2,7 +2,7 @@ package ch.openolitor.mailtemplates
 
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
-import org.mockito.Matchers.{ eq => eqz, _ }
+import org.mockito.Matchers.{ eq => eqz }
 import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.mailtemplates.model._
 import org.specs2.matcher._
@@ -12,7 +12,7 @@ import scala.util.Random
 import ch.openolitor.core.models.PersonId
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{ Failure, Success }
+import scala.util.{ Success }
 import ch.openolitor.core.mailservice.MailPayload
 import ch.openolitor.core.SystemConfig
 import com.typesafe.config.ConfigFactory
@@ -103,8 +103,8 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
         BigDecimal(10), new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0),
         new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0)),
       Projekt(ProjektId(0), "my project", None, None, None, None, None, false, false, false, CHF, 1, 1,
-        Map(Rolle("AdministratorZugang").get -> false, Rolle("KundenZugang").get -> false),
-        Locale.GERMAN, None, None, false, false, Stunden, 3, true, false, None, new DateTime(2017, 1, 15, 0, 0, 0),
+        Map(Rolle("AdministratorZugang").get -> false, Rolle("KundenZugang").get -> false), EmailSecondFactorType,
+        Locale.GERMAN, None, None, None, false, false, Stunden, 3, true, false, new DateTime(2017, 1, 15, 0, 0, 0),
         PersonId(0), new DateTime(2017, 1, 15, 0, 0, 0), PersonId(0)),
       Produzent(ProduzentId(0), "TestProduzent", Some("Hans"), "PRZ", None, None, None, "1234", "Bern", None,
         "info@produzent.ch", None, None, None, None, false, None, None, false,

@@ -22,13 +22,59 @@
 \*                                                                           */
 package ch.openolitor.util.querybuilder
 
+import ch.openolitor.core.models.{ BaseEntity, BaseId }
 import scalikejdbc._
 import ch.openolitor.util.parsing._
 import ch.openolitor.util.StringUtil._
 import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.repositories.DBMappings
+import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.stammdaten.models.Abo
 
-object UriQueryParamToSQLSyntaxBuilder extends LazyLogging with DBMappings {
+object UriQueryParamToSQLSyntaxBuilder extends LazyLogging with StammdatenDBMappings {
+
+  lazy val projekt = projektMapping.syntax("projekt")
+
+  def build[E <: BaseEntity[_ <: BaseId]](gjFilter: Option[GeschaeftsjahrFilter], entity: QuerySQLSyntaxProvider[SQLSyntaxSupport[E], E], attribute: String) = {
+    gjFilter match {
+      case Some(datum) => sqls"""(
+        (${entity.column(attribute.toUnderscore)} >= STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
+        AND
+         ${entity.column(attribute.toUnderscore)} < STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr + 1},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e'))
+        OR
+        ${entity.column(attribute.toUnderscore)} IS NULL
+      )"""
+      case None => sqls"""1=1"""
+    }
+  }
+
+  def build[A <: Abo](gjFilter: Option[GeschaeftsjahrFilter], abo: QuerySQLSyntaxProvider[SQLSyntaxSupport[A], A]) = {
+    gjFilter match {
+      case Some(datum) => sqls"""(
+        ${abo.start} < STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr + 1},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
+        AND
+          (
+            ${abo.ende} IS NULL
+            OR
+            ${abo.ende} >= STR_TO_DATE(CONCAT(${datum.inGeschaeftsjahr},LPAD(${projekt.geschaeftsjahrMonat},2,'0'),${projekt.geschaeftsjahrTag}), '%Y%m%e')
+          )
+      )"""
+      case None => sqls"""1=1"""
+    }
+  }
+
+  def build[T](maybeExpr: Option[QueryFilter], column: String, sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T]): SQLSyntax = {
+    maybeExpr match {
+      case None => sqls"""1=1"""
+      case Some(expr) => build(expr, column, sqlSyntax) match {
+        case Some(sql) => sql
+        case None      => sqls"""1=1"""
+      }
+    }
+  }
+
+  def build[T](expr: QueryFilter, column: String, sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T]): Option[SQLSyntax] = {
+    retrieveColumn(sqlSyntax, column) map (c => sqls.like(c, toSqlLike(expr.query)))
+  }
 
   def build[T](maybeExpr: Option[FilterExpr], sqlSyntax: QuerySQLSyntaxProvider[SQLSyntaxSupport[T], T], exclude: Seq[String] = Seq()): Option[SQLSyntax] = {
     maybeExpr match {

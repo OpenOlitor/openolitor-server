@@ -22,14 +22,9 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates.repositories
 
-import scalikejdbc._
-import scalikejdbc.async._
-import scalikejdbc.async.FutureImplicits._
-import ch.openolitor.core.db._
-import ch.openolitor.core.db.OOAsyncDB._
-import akka.actor.ActorSystem
-import ch.openolitor.mailtemplates.model._
 import ch.openolitor.core.repositories.BaseReadRepositorySync
+import ch.openolitor.mailtemplates.model._
+import scalikejdbc._
 
 trait MailTemplateReadRepositorySync extends BaseReadRepositorySync {
   def getMailTemplateByName(templateName: String)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[MailTemplate]
