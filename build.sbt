@@ -177,7 +177,7 @@ val updateLatest = sys.env.get("DOCKER_UPDATE_LATEST") match {
                       }
 
 dockerUpdateLatest := updateLatest
-dockerBaseImage := "openjdk:17"
+dockerBaseImage := "eclipse-temurin:17"
 dockerExposedPorts ++= Seq(9003)
 
 // the directories created, e.g. /var/log/openolitor-server, are created using user id 1000,
