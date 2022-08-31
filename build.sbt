@@ -2,6 +2,7 @@ scalaVersion := "2.13.8"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
+enablePlugins(AshScriptPlugin)
 
 name := "openolitor-server"
 mainClass := Some("ch.openolitor.core.Boot")
@@ -20,6 +21,8 @@ assemblyMergeStrategy in assembly := {
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import com.typesafe.sbt.packager.docker.Cmd
+
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
