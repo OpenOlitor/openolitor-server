@@ -209,6 +209,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(abotypMapping as aboTyp).on(lieferung.abotypId, aboTyp.id)
         .leftJoin(lieferpositionMapping as lieferposition).on(lieferposition.lieferungId, lieferung.id)
         .leftJoin(lieferplanungMapping as lieferplanung).on(lieferplanung.id, lieferung.lieferplanungId)
+        .leftJoin(abwesenheitMapping as abwesenheit).on(abwesenheit.lieferungId, lieferung.id)
         .where.eq(lieferung.abotypId, id)
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, lieferung))
         .and.withRoundBracket { _.eq(lieferung.status, Abgeschlossen).or.eq(lieferung.status, Verrechnet) }
@@ -218,14 +219,15 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => lieferpositionMapping.opt(lieferposition)(rs),
-        rs => lieferplanungMapping.opt(lieferplanung)(rs)
+        rs => lieferplanungMapping.opt(lieferplanung)(rs),
+        rs => abwesenheitMapping.opt(abwesenheit)(rs)
       )
-      .map((lieferung, abotyp, lieferposition, lieferplanung) => {
+      .map((lieferung, abotyp, lieferposition, lieferplanung, abwesenheit) => {
         val bemerkung = lieferplanung match {
           case Nil => None
           case x   => x.head.bemerkungen
         }
-        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung)
+        copyTo[Lieferung, LieferungDetail](lieferung, "abotyp" -> abotyp.headOption, "lieferpositionen" -> lieferposition, "lieferplanungBemerkungen" -> bemerkung, "anzahlAbwesenheiten" -> abwesenheit.length)
       })
   }
 

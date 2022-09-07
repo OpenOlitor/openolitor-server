@@ -667,11 +667,6 @@ class StammdatenInsertService(override val sysConfig: SystemConfig) extends Even
             "modifikator" -> meta.originator
           )
           stammdatenWriteRepository.insertEntity[Abwesenheit, AbwesenheitId](abw)
-          stammdatenWriteRepository.getById(lieferungMapping, abw.lieferungId) map { lieferung =>
-            stammdatenWriteRepository.updateEntity[Lieferung, LieferungId](lieferung.id) {
-              lieferungMapping.column.anzahlAbwesenheiten -> (lieferung.anzahlAbwesenheiten + 1).toString
-            }
-          }
         case _ =>
           logger.debug("Eine Abwesenheit kann nur einmal erfasst werden")
       }

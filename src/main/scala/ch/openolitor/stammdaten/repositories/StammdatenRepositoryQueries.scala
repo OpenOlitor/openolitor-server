@@ -593,9 +593,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(lieferungMapping as lieferung)
         .leftJoin(vertriebMapping as vertrieb).on(lieferung.vertriebId, vertrieb.id)
+        .leftJoin(abwesenheitMapping as abwesenheit).on(abwesenheit.lieferungId, lieferung.id)
         .where.eq(lieferung.abotypId, abotypId).and.eq(vertrieb.abotypId, abotypId).and.eq(lieferung.vertriebId, vertriebId).and.isNull(lieferung.lieferplanungId)
         .orderBy(lieferung.datum)
-    }.map(lieferungMapping(lieferung)).list
+    }.one(lieferungMapping(lieferung))
+      .toMany(
+        rs => abwesenheitMapping.opt(abwesenheit)(rs)
+      ).map((lieferung, abwesenheit) => {
+          copyTo[Lieferung, Lieferung](lieferung, "anzahlAbwesenheiten" -> abwesenheit.length)
+        }).list
   }
 
   protected def getUngeplanteLieferungenQuery(abotypId: AbotypId) = {
