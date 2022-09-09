@@ -42,6 +42,7 @@ trait CoreRepositoryQueries extends LazyLogging with CoreDBMappings with Persist
     }.map(persistenceJournalViewMapping(persistenceJournal)).list
   }
 
+  @deprecated("Do not use anymore. Only kept because it was used in migration script oo656.")
   protected def queryLatestPersistenceMessageByPersistenceIdQuery = {
     sql"""SELECT l.persistence_id, l.persistence_key, l.sequence_nr, j.message FROM
       persistence_journal j INNER JOIN (
