@@ -199,41 +199,53 @@ object Boot extends App with LazyLogging {
       val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor, fileStore), "mail-service"), duration).asInstanceOf[ActorRef]
       logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
+      // STAMMDATEN
       val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
       val reportSystem = Await.result(system ? SystemActor.Child(ReportSystem.props(fileStore, sysCfg), "report-system"), duration).asInstanceOf[ActorRef]
       val jobQueueService = Await.result(system ? SystemActor.Child(JobQueueService.props(cfg), "job-queue"), duration).asInstanceOf[ActorRef]
 
-      //start actor listening events
+      // start listeners for stammdaten
       Await.result(system ? SystemActor.Child(StammdatenDBEventEntityListener.props, "stammdaten-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       Await.result(system ? SystemActor.Child(StammdatenMailListener.props, "stammdaten-mail-listener"), duration).asInstanceOf[ActorRef]
       Await.result(system ? SystemActor.Child(StammdatenGeneratedEventsListener.props, "stammdaten-generated-events-listener"), duration).asInstanceOf[ActorRef]
 
+      // BUCHHALTUNG
       val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
+
+      // start listeners for buchhaltung
       Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
       Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
+      // ARBEITSEINSATZ
       val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
-      Await.result(system ? SystemActor.Child(MailTemplateEntityStoreView.props(dbEvolutionActor, airbrakeNotifier), "mailtemplate-entity-store-view"), duration).asInstanceOf[ActorRef]
+
+      // MAILTEMPLATE
+      val mailTemplateEntityStoreView = Await.result(system ? SystemActor.Child(MailTemplateEntityStoreView.props(dbEvolutionActor, airbrakeNotifier), "mailtemplate-entity-store-view"), duration).asInstanceOf[ActorRef]
+
+      // REPORT
       val reportsEntityStoreView = Await.result(system ? SystemActor.Child(ReportsEntityStoreView.props(dbEvolutionActor, airbrakeNotifier), "reports-entity-store-view"), duration).asInstanceOf[ActorRef]
+
+      // start listeners for reports
       Await.result(system ? SystemActor.Child(ReportsDBEventEntityListener.props, "reports-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
 
-      //start websocket service
+      // start websocket service
       // create map of users to streams used by the actor and the service
       val streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]] = TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]]()
       Await.result(system ? SystemActor.Child(ClientMessagesActor.props(streamsByUser), "ws-client-messages"), duration).asInstanceOf[ActorRef]
 
-      //start actor mapping dbevents to client messages
+      // start actor mapping dbevents to client messages
       Await.result(system ? SystemActor.Child(DBEvent2UserMapping.props(), "db-event-mapper"), duration).asInstanceOf[ActorRef]
 
       val batchJobs = Await.result(system ? SystemActor.Child(OpenOlitorBatchJobs.props(entityStore, fileStore), "batch-jobs"), duration).asInstanceOf[ActorRef]
 
-      //initialize global persistentviews
+      // initialize global persistentviews
       logger.debug(s"oo-system: send Startup to entityStoreview")
       eventStore ? DefaultMessages.Startup
       stammdatenEntityStoreView ? DefaultMessages.Startup
       buchhaltungEntityStoreView ? DefaultMessages.Startup
       arbeitseinsatzEntityStoreView ? DefaultMessages.Startup
       reportsEntityStoreView ? DefaultMessages.Startup
+      mailTemplateEntityStoreView ? DefaultMessages.Startup
 
       // create and start our service actor
 
