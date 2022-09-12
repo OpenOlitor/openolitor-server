@@ -34,6 +34,7 @@ import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+import scalikejdbc.jodatime.JodaParameterBinderFactory
 
 import scala.annotation.nowarn
 
@@ -1205,7 +1206,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getTourDetailQuery(id: TourId, aktiveOrPlanned: Boolean) = {
-    val today = LocalDate.now.toDateTimeAtStartOfDay
+    // if used directly within slqs string, the imported implicit doesn't seem to work
+    val today = JodaParameterBinderFactory.jodaDateTimeParameterBinderFactory(LocalDate.now.toDateTimeAtStartOfDay)
     withSQL[Tour] {
       select
         .from(tourMapping as tour)
