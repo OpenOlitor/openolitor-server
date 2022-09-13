@@ -30,7 +30,7 @@ import org.joda.time._
 import org.joda.time.format._
 import ch.openolitor.core.models._
 import ch.openolitor.core.reporting.AsyncReportServiceResult
-import ch.openolitor.stammdaten.models.{ PersonContactPermissionModify, SecondFactorType }
+import ch.openolitor.stammdaten.models.{ EmailSecondFactorType, OtpSecondFactorType, PersonContactPermissionModify, SecondFactorType }
 
 import java.util.UUID
 import java.util.Locale
@@ -43,7 +43,7 @@ trait JSONSerializable extends Product
 trait BaseJsonProtocol extends DefaultJsonProtocol {
   val defaultConvert: Any => String = x => x.toString
 
-  implicit val uuidFormat = new RootJsonFormat[UUID] {
+  implicit val uuidFormat: JsonFormat[UUID] = new RootJsonFormat[UUID] {
     def write(obj: UUID): JsValue = JsString(obj.toString)
 
     def read(json: JsValue): UUID =
@@ -53,7 +53,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol {
       }
   }
 
-  implicit val localeFormat = new RootJsonFormat[Locale] {
+  implicit val localeFormat: JsonFormat[Locale] = new RootJsonFormat[Locale] {
     def write(obj: Locale): JsValue = JsString(obj.toLanguageTag)
 
     def read(json: JsValue): Locale =
@@ -63,7 +63,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol {
       }
   }
 
-  def enumFormat[E](implicit fromJson: String => E, toJson: E => String = defaultConvert) = new RootJsonFormat[E] {
+  def enumFormat[E](implicit fromJson: String => E, toJson: E => String = defaultConvert): RootJsonFormat[E] = new RootJsonFormat[E] {
     def write(obj: E): JsValue = JsString(toJson(obj))
 
     def read(json: JsValue): E =
@@ -73,7 +73,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol {
       }
   }
 
-  def baseIdFormat[I <: BaseId](implicit fromJson: Long => I) = new RootJsonFormat[I] {
+  def baseIdFormat[I <: BaseId](implicit fromJson: Long => I): RootJsonFormat[I] = new RootJsonFormat[I] {
     def write(obj: I): JsValue = JsNumber(obj.id)
 
     def read(json: JsValue): I =
@@ -86,7 +86,7 @@ trait BaseJsonProtocol extends DefaultJsonProtocol {
   /*
    * joda datetime format
    */
-  implicit val dateTimeFormat = new JsonFormat[DateTime] {
+  implicit val dateTimeFormat: JsonFormat[DateTime] = new JsonFormat[DateTime] {
 
     val formatter = ISODateTimeFormat.dateTime
 
@@ -111,12 +111,12 @@ trait BaseJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit val optionDateTimeFormat = new OptionFormat[DateTime]
+  implicit val optionDateTimeFormat: JsonFormat[Option[DateTime]] = new OptionFormat[DateTime]
 
   /*
    * joda LocalDate format
    */
-  implicit val localDateFormat = new JsonFormat[LocalDate] {
+  implicit val localDateFormat: JsonFormat[LocalDate] = new JsonFormat[LocalDate] {
 
     val formatter = ISODateTimeFormat.dateTime
 
@@ -141,22 +141,38 @@ trait BaseJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit val optionLocalDateFormat = new OptionFormat[LocalDate]
+  implicit val optionLocalDateFormat: JsonFormat[Option[LocalDate]] = new OptionFormat[LocalDate]
 
-  implicit val personIdFormat = baseIdFormat(PersonId.apply)
-  implicit val vorlageTypeFormat = enumFormat(VorlageTyp.apply)
-  implicit val secondFactorTypeFormat = enumFormat(SecondFactorType.apply)
+  implicit val personIdFormat: RootJsonFormat[PersonId] = baseIdFormat(PersonId.apply)
+  implicit val vorlageTypeFormat: RootJsonFormat[VorlageTyp] = enumFormat(VorlageTyp.apply)
 
-  implicit val idResponseFormat = jsonFormat1(BaseJsonProtocol.IdResponse)
+  implicit val secondFactorType: JsonFormat[SecondFactorType] = new JsonFormat[SecondFactorType] {
+    def write(obj: SecondFactorType): JsValue =
+      obj match {
+        case OtpSecondFactorType   => JsString("otp")
+        case EmailSecondFactorType => JsString("email")
+      }
 
-  implicit val rejectionMessageFormat = jsonFormat2(RejectionMessage)
-  implicit val personContactPermissionModifyFormat = jsonFormat1(PersonContactPermissionModify)
+    def read(json: JsValue): SecondFactorType =
+      json match {
+        case JsString("otp")   => OtpSecondFactorType
+        case JsString("email") => EmailSecondFactorType
+        case pe                => sys.error(s"Unknown secondfactor type:$pe")
+      }
+  }
 
-  implicit val jobIdFormat = jsonFormat3(JobId)
-  implicit val asyncReportServiceResultFormat = jsonFormat2(AsyncReportServiceResult)
+  implicit val optionalSecondFactorType: JsonFormat[Option[SecondFactorType]] = new OptionFormat[SecondFactorType]
+
+  implicit val idResponseFormat: RootJsonFormat[BaseJsonProtocol.IdResponse] = jsonFormat1(BaseJsonProtocol.IdResponse)
+
+  implicit val rejectionMessageFormat: RootJsonFormat[RejectionMessage] = jsonFormat2(RejectionMessage)
+  implicit val personContactPermissionModifyFormat: RootJsonFormat[PersonContactPermissionModify] = jsonFormat1(PersonContactPermissionModify)
+
+  implicit val jobIdFormat: RootJsonFormat[JobId] = jsonFormat3(JobId)
+  implicit val asyncReportServiceResultFormat: RootJsonFormat[AsyncReportServiceResult] = jsonFormat2(AsyncReportServiceResult)
 
   // event formats
-  implicit val eventMetadataFormat = jsonFormat6(EventMetadata)
+  implicit val eventMetadataFormat: RootJsonFormat[EventMetadata] = jsonFormat6(EventMetadata)
 }
 
 object BaseJsonProtocol {
