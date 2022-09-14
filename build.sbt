@@ -41,7 +41,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.6.5",
+  version := "2.6.6",
   scalaVersion := "2.13.8",
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.11", "2.13.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -190,7 +190,7 @@ daemonUserUid in Docker := Some("1000")
 val todayD = Calendar.getInstance.getTime
 val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
 
-dockerEnvVars := Map("JAVA_OPTS" -> "-XX:+ExitOnOutOfMemoryError -XX:+UseShenandoahGC -Xms256m -Xmx3G -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
+dockerEnvVars := Map("JAVA_OPTS" -> "-XX:+ExitOnOutOfMemoryError -Dconfig.file=/etc/openolitor-server/application.conf -Dlogback.configurationFile=/etc/openolitor-server/logback.xml",
                      "application_buildnr" -> today)
 
 Docker / maintainer := "OpenOlitor Team <info@openolitor.org>"
