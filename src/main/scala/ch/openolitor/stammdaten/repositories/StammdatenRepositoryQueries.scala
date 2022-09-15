@@ -601,7 +601,7 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getUngeplanteLieferungenQuery(abotypId: AbotypId, vertriebId: VertriebId) = {
-    withSQL {
+    withSQL[Lieferung] {
       select
         .from(lieferungMapping as lieferung)
         .leftJoin(vertriebMapping as vertrieb).on(lieferung.vertriebId, vertrieb.id)
