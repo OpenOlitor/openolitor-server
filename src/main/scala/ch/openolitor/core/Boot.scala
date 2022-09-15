@@ -38,7 +38,7 @@ import ch.openolitor.core.db.evolution.{ DBEvolutionActor, Evolution }
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.core.domain._
 import ch.openolitor.core.domain.SystemEvents.SystemStarted
-import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent, S3FileStore }
+import ch.openolitor.core.filestore.S3FileStore
 import ch.openolitor.core.jobs.JobQueueService
 import ch.openolitor.core.mailservice.MailService
 import ch.openolitor.core.models.PersonId
@@ -60,9 +60,8 @@ import scalikejdbc.ConnectionPoolContext
 
 import java.net.ServerSocket
 import scala.collection.concurrent.TrieMap
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
-import scala.io.StdIn
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
@@ -82,7 +81,14 @@ case class MandantConfiguration(key: String, name: String, interface: String, po
 }
 
 object Boot extends App with LazyLogging {
-  case class MandantSystem(config: MandantConfiguration, system: ActorSystem)
+  case class MandantSystem(config: MandantConfiguration, system: ActorSystem, fileStore: S3FileStore)
+
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+  private var proxyActorSystem: Option[ActorSystem] = None
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+  private var proxyServerBinding: Option[Http.ServerBinding] = None
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+  private var mandantServerBindings: Seq[Http.ServerBinding] = Seq.empty
 
   def freePort: Int = synchronized {
     Using(new ServerSocket(0)) { socket =>
@@ -122,6 +128,12 @@ object Boot extends App with LazyLogging {
     startProxyService(mandanten, config)
   }
 
+  try {
+    Await.ready(Future.never, Duration.Inf)
+  } catch {
+    case _: Throwable => shutdown()
+  }
+
   def getMandantConfiguration(ooConfig: Config): NonEmptyList[MandantConfiguration] = {
     val mandanten = ooConfig.getStringList("mandanten").asScala.toList
 
@@ -147,14 +159,18 @@ object Boot extends App with LazyLogging {
 
   def startProxyService(mandanten: NonEmptyList[MandantSystem], config: Config) = {
     implicit val proxySystem = ActorSystem("oo-proxy", config)
+    proxyActorSystem = Some(proxySystem)
     implicit val executionContext = proxySystem.dispatcher
 
-    Http().newServerAt(rootInterface, rootPort).bind(proxy.Proxy(mandanten).withWsRoutes)
-
-    logger.debug(s"oo-proxy-system: configured proxy listener on port ${rootPort}")
-
-    // TODO: spray-to-akka-http: bind to process
-    StdIn.readLine()
+    Http().newServerAt(rootInterface, rootPort).bindFlow(proxy.Proxy(mandanten).withWsRoutes).transform[Unit](
+      { binding: Http.ServerBinding =>
+        logger.debug(s"oo-proxy-system: configured proxy listener on port ${rootPort}")
+        proxyServerBinding = Some(binding)
+      },
+      { t: Throwable =>
+        new IllegalStateException("Could not start the proxy server", t)
+      }
+    )
   }
 
   def startAirbrakeService(implicit systemConfig: SystemConfig) = {
@@ -254,19 +270,35 @@ object Boot extends App with LazyLogging {
 
       val clientMessagesRouteService = new DefaultClientMessagesRouteService(entityStore, sysCfg, app, loginTokenCache, streamsByUser)
 
-      Http().newServerAt(cfg.interface, port = cfg.port).bind(routeService.routes)
-      logger.debug(s"oo-system: configured listener on port ${cfg.port}")
+      implicit val executionContext = app.dispatcher
+
+      Http().newServerAt(cfg.interface, port = cfg.port).bindFlow(routeService.routes).transform[Unit](
+        { binding: Http.ServerBinding =>
+          logger.debug(s"oo-system: configured listener on port ${cfg.port}")
+          mandantServerBindings :+= binding
+        },
+        { t: Throwable =>
+          new IllegalStateException("Could not start mandant server", t)
+        }
+      )
 
       //start new websocket service
-      Http().newServerAt(cfg.interface, port = cfg.wsPort).bind(clientMessagesRouteService.routes)
-      logger.debug(s"oo-system: configured ws listener on port ${cfg.wsPort}")
+      Http().newServerAt(cfg.interface, port = cfg.wsPort).bindFlow(clientMessagesRouteService.routes).transform[Unit](
+        { binding: Http.ServerBinding =>
+          logger.debug(s"oo-system: configured ws listener on port ${cfg.wsPort}")
+          mandantServerBindings :+= binding
+        },
+        { t: Throwable =>
+          new IllegalStateException("Could not start mandant ws server", t)
+        }
+      )
 
       batchJobs ! InitializeBatchJob
 
       // persist timestamp of system startup
       eventStore ! SystemStarted(DateTime.now)
 
-      MandantSystem(cfg, app)
+      MandantSystem(cfg, app, fileStore)
     }
   }
 
@@ -283,4 +315,20 @@ object Boot extends App with LazyLogging {
   def connectionPoolContext(mandantConfig: MandantConfiguration) = MandantDBs(mandantConfig).connectionPoolContext()
 
   def asyncConnectionPoolContext(mandantConfig: MandantConfiguration) = AsyncMandantDBs(mandantConfig).connectionPoolContext()
+
+  private def shutdown(): Unit = {
+    implicit val executionContext = scala.concurrent.ExecutionContext.global
+
+    logger.info("Shutting down OpenOlitor server...")
+
+    val shutdown = for {
+      _ <- proxyServerBinding.fold(Future.unit)(_.unbind().map(_ => logger.info("Shutdown of proxy server binding completed.")))
+      _ <- proxyActorSystem.fold(Future.unit)(_.terminate().map(_ => logger.info("Shutdown of proxy actor system completed.")))
+      _ <- Future.sequence(mandantServerBindings.map(_.unbind())).map(_ => logger.info("Shutdown of mandant server bindings completed."))
+      _ <- Future.sequence(mandanten.toList.map(_.system.terminate())).map(_ => logger.info("Shutdown of mandant actor systems completed."))
+      _ <- Future { mandanten.foreach(_.fileStore.client.shutdown()) }.map(_ => logger.info("Shutdown of file store clients completed."))
+    } yield logger.info("Shutdown of OpenOlitor server completed.")
+
+    Await.ready(shutdown, 20 seconds)
+  }
 }
