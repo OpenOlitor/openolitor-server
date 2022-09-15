@@ -242,8 +242,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, lieferung))
         .and.withRoundBracket { _.eq(lieferung.status, Abgeschlossen).or.eq(lieferung.status, Verrechnet) }
         .orderBy(lieferung.datum).desc
-    }
-      .one(lieferungMapping(lieferung))
+    }.one(lieferungMapping(lieferung))
       .toManies(
         rs => abotypMapping.opt(aboTyp)(rs),
         rs => lieferpositionMapping.opt(lieferposition)(rs),
