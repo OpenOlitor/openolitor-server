@@ -56,7 +56,7 @@ trait StammdatenPaths extends AkkaHttpDeserializers with StammdatenJsonProtocol 
   implicit val korbStatusPath = enumPathMatcher(KorbStatus.apply(_) match {
     case x => Some(x)
   })
-  implicit val vorlageTypePath = enumPathMatcher(VorlageTyp.apply(_) match {
+  implicit val vorlageTypPath = enumPathMatcher(VorlageTyp.apply(_) match {
     case UnknownFileType => None
     case x               => Some(x)
   })

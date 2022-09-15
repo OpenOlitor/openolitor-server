@@ -895,7 +895,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
           post(create[ProjektVorlageCreate, ProjektVorlageId](ProjektVorlageId.apply _))
       } ~
       //Standardvorlagen
-      path("vorlagen" / vorlageTypePath / "dokument") { vorlageType =>
+      path("vorlagen" / vorlageTypPath / "dokument") { vorlageType =>
         get(tryDownload(vorlageType, defaultFileTypeId(vorlageType)) { _ =>
           //Return vorlage from resources
           fileTypeResourceAsStream(vorlageType, None) match {
