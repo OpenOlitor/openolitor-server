@@ -99,21 +99,21 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
   }
 
   def getLieferungenDetails(abotypId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]] = {
-    import scalikejdbc.async.makeSQLToListAsync
-    getLieferungenByAbotypQuery(abotypId, filter).list.future()
+    import scalikejdbc.async.makeOneToManySQLToListAsync
+    getLieferungenByAbotypQuery(abotypId, filter).future()
   }
 
   def getLieferungenDetails(abotypId: AbotypId, vertriebId: VertriebId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]] = {
-    import scalikejdbc.async.makeSQLToListAsync
-    getLieferungenDetailsQuery(abotypId, vertriebId, filter).list.future()
+    import scalikejdbc.async.makeOneToManySQLToListAsync
+    getLieferungenDetailsQuery(abotypId, vertriebId, filter).future()
   }
 
   def getLieferungenMainAndAdditionalDetails(abotypId: AbotypId, vertriebId: VertriebId, aboId: AboId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[LieferungDetail]] = {
-    import scalikejdbc.async.makeSQLToListAsync
+    import scalikejdbc.async.makeOneToManySQLToListAsync
     for {
       zusatzabos <- getZusatzAbosByHauptAbo(aboId)
-      mainLieferungen <- getLieferungenDetailsQuery(abotypId, vertriebId, filter).list.future()
-      zusatzaboLieferungen <- Future.sequence(zusatzabos.map(z => getLieferungenByAbotypQuery(z.abotypId, None).list.future()))
+      mainLieferungen <- getLieferungenDetailsQuery(abotypId, vertriebId, filter).future()
+      zusatzaboLieferungen <- Future.sequence(zusatzabos.map(z => getLieferungenByAbotypQuery(z.abotypId, None).future()))
     } yield mainLieferungen ++ zusatzaboLieferungen.flatMap(identity)
   }
 
