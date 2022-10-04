@@ -69,7 +69,15 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
               UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
             ).and(
                 UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung)
-              ).and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", rechnung))
+              ).and.append(
+                  UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", rechnung)
+                    .append(sqls"""or""")
+                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", rechnung))
+                    .append(sqls"""or""")
+                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kundeId", rechnung))
+                    .append(sqls"""or""")
+                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "betrag", rechnung))
+                )
             .orderBy(rechnung.rechnungsDatum)
         }.map(rechnungMapping(rechnung)).list
     }
@@ -89,6 +97,8 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
           select
             .from(rechnungsPositionMapping as rechnungsPosition)
             .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "beschrieb", rechnungsPosition))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", rechnungsPosition))
             .and(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
             .orderBy(rechnungsPosition.id)
         }.map(rechnungsPositionMapping(rechnungsPosition)).list
