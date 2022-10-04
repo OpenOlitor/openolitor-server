@@ -96,32 +96,34 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
     }
 
     override def write(obj: ArbeitseinsatzDetail): JsValue = JsObject(
-      "id" -> obj.id.toJson,
-      "arbeitsangebotId" -> obj.arbeitsangebotId.toJson,
-      "arbeitsangebotTitel" -> obj.arbeitsangebotTitel.toJson,
-      "arbeitsangebotStatus" -> obj.arbeitsangebotStatus.toJson,
-      "zeitVon" -> obj.zeitVon.toJson,
-      "zeitBis" -> obj.zeitBis.toJson,
-      "einsatzZeit" -> obj.einsatzZeit.toJson,
-      "kundeId" -> obj.kundeId.toJson,
-      "kundeBezeichnung" -> obj.kundeBezeichnung.toJson,
-      "aboId" -> obj.aboId.toJson,
-      "aboBezeichnung" -> obj.aboBezeichnung.toJson,
-      "personId" -> obj.personId.toJson,
-      "personName" -> obj.personName.toJson,
-      "anzahlPersonen" -> obj.anzahlPersonen.toJson,
-      "bemerkungen" -> obj.bemerkungen.toJson,
-      "email" -> obj.email.toJson,
-      "telefonMobil" -> obj.telefonMobil.toJson,
-      "contactPermission" -> obj.contactPermission.toJson,
-      //additional Detail fields
-      "arbeitsangebot" -> obj.arbeitsangebot.toJson,
-      "coworkers" -> obj.coworkers.toJson,
-      //modification flags
-      "erstelldat" -> obj.erstelldat.toJson,
-      "ersteller" -> obj.ersteller.toJson,
-      "modifidat" -> obj.modifidat.toJson,
-      "modifikator" -> obj.modifikator.toJson
+      Map(
+        "id" -> obj.id.toJson,
+        "arbeitsangebotId" -> obj.arbeitsangebotId.toJson,
+        "arbeitsangebotTitel" -> obj.arbeitsangebotTitel.toJson,
+        "arbeitsangebotStatus" -> obj.arbeitsangebotStatus.toJson,
+        "zeitVon" -> obj.zeitVon.toJson,
+        "zeitBis" -> obj.zeitBis.toJson,
+        "einsatzZeit" -> obj.einsatzZeit.toJson,
+        "kundeId" -> obj.kundeId.toJson,
+        "kundeBezeichnung" -> obj.kundeBezeichnung.toJson,
+        "aboId" -> obj.aboId.toJson,
+        "aboBezeichnung" -> obj.aboBezeichnung.toJson,
+        "personId" -> obj.personId.toJson,
+        "personName" -> obj.personName.toJson,
+        "anzahlPersonen" -> obj.anzahlPersonen.toJson,
+        "bemerkungen" -> obj.bemerkungen.toJson,
+        "email" -> obj.email.toJson,
+        "telefonMobil" -> obj.telefonMobil.toJson,
+        "contactPermission" -> obj.contactPermission.toJson,
+        //additional Detail fields
+        "arbeitsangebot" -> obj.arbeitsangebot.toJson,
+        "coworkers" -> obj.coworkers.toJson,
+        //modification flags
+        "erstelldat" -> obj.erstelldat.toJson,
+        "ersteller" -> obj.ersteller.toJson,
+        "modifidat" -> obj.modifidat.toJson,
+        "modifikator" -> obj.modifikator.toJson
+      ).filterNot(_._2 == JsNull)
     )
   }
 
@@ -156,29 +158,31 @@ trait ArbeitseinsatzJsonProtocol extends BaseJsonProtocol with LazyLogging with 
     }
 
     override def write(obj: ArbeitseinsatzDetailReport): JsValue = JsObject(
-      "id" -> obj.id.toJson,
-      "arbeitsangebotId" -> obj.arbeitsangebotId.toJson,
-      "arbeitsangebotTitel" -> obj.arbeitsangebotTitel.toJson,
-      "arbeitsangebotStatus" -> obj.arbeitsangebotStatus.toJson,
-      "zeitVon" -> obj.zeitVon.toJson,
-      "zeitBis" -> obj.zeitBis.toJson,
-      "einsatzZeit" -> obj.einsatzZeit.toJson,
-      "kundeId" -> obj.kundeId.toJson,
-      "kundeBezeichnung" -> obj.kundeBezeichnung.toJson,
-      "aboId" -> obj.aboId.toJson,
-      "aboBezeichnung" -> obj.aboBezeichnung.toJson,
-      "personId" -> obj.personId.toJson,
-      "personName" -> obj.personName.toJson,
-      "anzahlPersonen" -> obj.anzahlPersonen.toJson,
-      "bemerkungen" -> obj.bemerkungen.toJson,
-      "email" -> obj.email.toJson,
-      "telefonMobil" -> obj.telefonMobil.toJson,
-      "arbeitsangebot" -> obj.arbeitsangebot.toJson,
-      "projekt" -> obj.projekt.toJson,
-      "erstelldat" -> obj.erstelldat.toJson,
-      "ersteller" -> obj.ersteller.toJson,
-      "modifidat" -> obj.modifidat.toJson,
-      "modifikator" -> obj.modifikator.toJson
+      Map(
+        "id" -> obj.id.toJson,
+        "arbeitsangebotId" -> obj.arbeitsangebotId.toJson,
+        "arbeitsangebotTitel" -> obj.arbeitsangebotTitel.toJson,
+        "arbeitsangebotStatus" -> obj.arbeitsangebotStatus.toJson,
+        "zeitVon" -> obj.zeitVon.toJson,
+        "zeitBis" -> obj.zeitBis.toJson,
+        "einsatzZeit" -> obj.einsatzZeit.toJson,
+        "kundeId" -> obj.kundeId.toJson,
+        "kundeBezeichnung" -> obj.kundeBezeichnung.toJson,
+        "aboId" -> obj.aboId.toJson,
+        "aboBezeichnung" -> obj.aboBezeichnung.toJson,
+        "personId" -> obj.personId.toJson,
+        "personName" -> obj.personName.toJson,
+        "anzahlPersonen" -> obj.anzahlPersonen.toJson,
+        "bemerkungen" -> obj.bemerkungen.toJson,
+        "email" -> obj.email.toJson,
+        "telefonMobil" -> obj.telefonMobil.toJson,
+        "arbeitsangebot" -> obj.arbeitsangebot.toJson,
+        "projekt" -> obj.projekt.toJson,
+        "erstelldat" -> obj.erstelldat.toJson,
+        "ersteller" -> obj.ersteller.toJson,
+        "modifidat" -> obj.modifidat.toJson,
+        "modifikator" -> obj.modifikator.toJson
+      ).filterNot(_._2 == JsNull)
     )
   }
 
