@@ -395,7 +395,23 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
     }
   }
 
-  protected def upload(fileProperty: String = "file")(onUpload: (InputStream, String) => Route)(implicit materializer: Materializer): Route = {
+  protected def upload[T](fileProperty: String = "file")(onConsume: (InputStream, String) => Future[(T, String)])(onUpload: (T, String) => Route)(implicit materializer: Materializer): Route = {
+    fileUpload(fileProperty) {
+      case (fileInfo, byteSource) =>
+        onSuccess(onConsume(byteSource.runWith(StreamConverters.asInputStream()), fileInfo.fileName))(onUpload)
+    }
+  }
+
+  /**
+   * Make sure that the input stream in `onUpload` is consumed in a separate thread to avoid deadlocks and therefore timeout exceptions.
+   * Otherwise you should use `upload` which demands an `onConsumed` to be wrapped in a future.
+   *
+   * @param fileProperty
+   * @param onUpload
+   * @param materializer
+   * @return the resulting Route
+   */
+  protected def uploadUndispatchedConsume(fileProperty: String = "file")(onUpload: (InputStream, String) => Route)(implicit materializer: Materializer): Route = {
     fileUpload(fileProperty) {
       case (fileInfo, byteSource) =>
         onUpload(byteSource.runWith(StreamConverters.asInputStream()), fileInfo.fileName)
@@ -405,7 +421,7 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
   protected def uploadOpt(fileProperty: String = "file")(onUpload: Option[(InputStream, String)] => Route)(implicit materializer: Materializer): Route = {
     entity(as[Multipart.FormData]) { formData =>
       onSuccess(formData.parts.filter(_.name == fileProperty).runFold[Option[Multipart.FormData.BodyPart]](None)((_, part) => Some(part))) {
-        case Some(_) => upload(fileProperty) { (stream, name) => onUpload(Some((stream, name))) }
+        case Some(_) => uploadUndispatchedConsume(fileProperty) { (stream, name) => onUpload(Some((stream, name))) }
         case _       => onUpload(None)
       }
     }
@@ -420,7 +436,7 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
   }
 
   protected def uploadStored(fileType: FileType, name: Option[String] = None)(onUpload: (String, FileStoreFileMetadata) => Route, onError: Option[FileStoreError => Route] = None)(implicit materializer: Materializer): Route = {
-    upload() { (content, fileName) =>
+    uploadUndispatchedConsume() { (content, fileName) =>
       storeToFileStore(fileType, name, content, fileName)(onUpload, onError)
     }
   }
