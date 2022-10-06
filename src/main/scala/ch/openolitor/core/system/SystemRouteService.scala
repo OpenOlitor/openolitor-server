@@ -88,7 +88,7 @@ trait SystemRouteService extends BaseRouteService with ActorReferences
         post {
           extractRequestContext { requestContext =>
             implicit val materializer: Materializer = requestContext.materializer
-            upload() {
+            uploadUndispatchedConsume() {
               case (content, fileName) =>
                 formFieldMap { fields =>
                   implicit val timeout = Timeout(300 seconds)

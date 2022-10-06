@@ -238,18 +238,20 @@ trait BuchhaltungRoutes
   def zahlungsImportsRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("zahlungsimports") {
       get(list(buchhaltungReadRepository.getZahlungsImports)) ~
-        (put | post)(upload() { (content, fileName) =>
-          // read the file once and pass the same content along
-          val uploadData = LazyList.continually(content.read).takeWhile(-1 !=).map(_.toByte).toArray
-
-          ZahlungsImportParser.parse(uploadData) match {
-            case Success(importResult) =>
-              storeToFileStore(ZahlungsImportDaten, None, new ByteArrayInputStream(uploadData), fileName) { (fileId, meta) =>
-                createZahlungsImport(fileId, importResult.records)
-              }
-            case Failure(e) => complete(StatusCodes.BadRequest, s"Die Datei konnte nicht gelesen werden: $e")
+        (put | post) {
+          upload() { (content, fileName) =>
+            // read the file once and pass the same content along
+            Future { (content.readAllBytes(), fileName) }
+          } { (uploadData, fileName) =>
+            ZahlungsImportParser.parse(uploadData) match {
+              case Success(importResult) =>
+                storeToFileStore(ZahlungsImportDaten, None, new ByteArrayInputStream(uploadData), fileName) { (fileId, meta) =>
+                  createZahlungsImport(fileId, importResult.records)
+                }
+              case Failure(e) => complete(StatusCodes.BadRequest, s"Die Datei konnte nicht gelesen werden: $e")
+            }
           }
-        })
+        }
     } ~
       path("zahlungsimports" / zahlungsImportIdPath) { id =>
         get(detail(buchhaltungReadRepository.getZahlungsImportDetail(id)))
