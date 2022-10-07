@@ -646,7 +646,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         fields.get("abwesenheiten").fold(Seq.empty[Abwesenheit])(_.convertTo[Seq[Abwesenheit]]),
         fields.get("lieferdaten").fold(Seq.empty[Lieferung])(_.convertTo[Seq[Lieferung]]),
         fields.get("abotyp").fold(Option.empty[Abotyp])(_.convertTo[Option[Abotyp]]),
-        fields("vertrieb").convertTo[Option[Vertrieb]]
+        fields.get("vertrieb").fold(Option.empty[Vertrieb])(_.convertTo[Option[Vertrieb]])
       )
     }
 
@@ -790,7 +790,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         fields.get("abwesenheiten").fold(Seq.empty[Abwesenheit])(_.convertTo[Seq[Abwesenheit]]),
         fields.get("lieferdaten").fold(Seq.empty[Lieferung])(_.convertTo[Seq[Lieferung]]),
         fields.get("abotyp").fold(Option.empty[Abotyp])(_.convertTo[Option[Abotyp]]),
-        fields("vertrieb").convertTo[Option[Vertrieb]]
+        fields.get("vertrieb").fold(Option.empty[Vertrieb])(_.convertTo[Option[Vertrieb]])
       )
     }
 
@@ -928,7 +928,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         fields.get("abwesenheiten").fold(Seq.empty[Abwesenheit])(_.convertTo[Seq[Abwesenheit]]),
         fields.get("lieferdaten").fold(Seq.empty[Lieferung])(_.convertTo[Seq[Lieferung]]),
         fields.get("abotyp").fold(Option.empty[Abotyp])(_.convertTo[Option[Abotyp]]),
-        fields("vertrieb").convertTo[Option[Vertrieb]]
+        fields.get("vertrieb").fold(Option.empty[Vertrieb])(_.convertTo[Option[Vertrieb]])
       )
     }
 
@@ -1145,7 +1145,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         fields("einsatzAbsageVorlaufTage").convertTo[Int],
         fields("einsatzShowListeKunde").convertTo[Boolean],
         fields("sendEmailToBcc").convertTo[Boolean],
-        fields("messageForMembers").convertTo[Option[String]]
+        fields.get("messageForMembers").fold(Option.empty[String])(_.convertTo[Option[String]])
       )
     }
 
@@ -1570,7 +1570,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
           fields.get("bemerkungen").fold(Option.empty[String])(_.convertTo[Option[String]]),
           fields("sort").convertTo[Int],
           fields("loginAktiv").convertTo[Boolean],
-          fields("passwort").convertTo[Option[Array[Char]]],
+          fields.get("passwort").fold(Option.empty[Array[Char]])(_.convertTo[Option[Array[Char]]]),
           fields.get("letzteAnmeldung").fold(Option.empty[DateTime])(_.convertTo[Option[DateTime]]),
           fields("passwortWechselErforderlich").convertTo[Boolean],
           fields.get("rolle").fold(Option.empty[Rolle])(_.convertTo[Option[Rolle]]),
