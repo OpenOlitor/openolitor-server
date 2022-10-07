@@ -78,9 +78,6 @@ object V2Scripts {
         withSQL(insertInto(persistenceEventStateMapping).values(params: _*)).update.apply()
       }
 
-      // stop all entity-store snapshots due to class incompatiblity
-      sql"""truncate persistence_snapshot""".execute.apply()
-
       Success(true)
     }
   }
