@@ -158,6 +158,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .append(sqls"""OR""")
         .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
         .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
+        .append(sqls"""OR""")
         .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
         .append(sqls"""OR""")
         .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
@@ -384,10 +386,12 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .leftJoin(kundeMapping as kunde).on(person.kundeId, kunde.id)
         .where.withRoundBracket {
           _.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", person))
             .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
             .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "email", person))
             .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
             .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
+            .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
             .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
         }
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, person))
@@ -500,6 +504,10 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
           ).and.append(
               UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", zusatzAbo)
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", zusatzAbo))
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "hauptAboId", zusatzAbo))
             )
     }.map(zusatzAboMapping(zusatzAbo)).list
   }
@@ -662,7 +670,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} =  true")
-        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo))
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo))
+        .append(sqls"""or""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", depotlieferungAbo))
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
     }.one(depotlieferungAboMapping(depotlieferungAbo))
       .toMany(
@@ -686,6 +696,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo)
           ).and.append(
               UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo)
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", depotlieferungAbo))
             )
     }.map(depotlieferungAboMapping(depotlieferungAbo)).list
   }
@@ -791,7 +803,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${heimlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} = true")
-        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo))
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo))
+        .append(sqls"""or""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", heimlieferungAbo))
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toMany(
@@ -815,6 +829,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo)
           ).and.append(
               UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo)
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", heimlieferungAbo))
             )
     }.map(heimlieferungAboMapping(heimlieferungAbo)).list
   }
@@ -824,7 +840,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${postlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} =  true")
-        .where(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo))
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo))
+        .append(sqls"""or""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", postlieferungAbo))
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toMany(
@@ -848,6 +866,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
             UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo)
           ).and.append(
               UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo)
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", postlieferungAbo))
             )
     }.map(postlieferungAboMapping(postlieferungAbo)).list
   }
@@ -1664,7 +1684,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
           UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
         ).and(
             UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
-          ).and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung))
+          )
+        .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung)
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", sammelbestellung)))
     }.map(sammelbestellungMapping(sammelbestellung)).list
   }
 
