@@ -46,7 +46,6 @@ val buildSettings = Seq(
   crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.11", "2.13.8"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += Resolver.sonatypeRepo("releases"),
-  // ### removed: resolvers += "Spray" at "http://repo.spray.io",
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   // add -Xcheckinit to scalac options to check for null val's during initialization see also: https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-feature", "-language:_", "-language:postfixOps"),
@@ -76,10 +75,6 @@ val buildSettings = Seq(
     "org.scalaz" 		               %%  "scalaz-core"						              % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %%  "scala-logging"				                % "3.9.4", // ### Scala 3
-    // use currently own fork, until PR was merged and a new release is available
-    //"org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.9.+",
-    //"com.github.mauricio"          %%  "mysql-async" 						              % "0.2.+", // ### NO Scala 3, NO Scala 2.13 => scalikejdbc-async is Scala 3 and 2.13, and supports mysql
-    //
     "org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.15.0",
     "org.scalikejdbc" 	           %%  "scalikejdbc-config"				            % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %%  "scalikejdbc-test"                     % scalalikeV   % "test", // ### Scala 3
@@ -129,14 +124,6 @@ lazy val scalaxbSettings = Seq(
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.02") -> "ch.openolitor.generated.xsd.pain008_001_02")
 )
-
-// lazy val akkaPersistenceSqlAsyncUri = uri("git://github.com/OpenOlitor/akka-persistence-sql-async#fix/scalikejdbc_version_with_timeout")
-// lazy val akkaPersistenceSqlAsync = ProjectRef(akkaPersistenceSqlAsyncUri, "core")
-
-// lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/oneToManies21Traversable")
-// lazy val scalikejdbcAsync = ProjectRef(scalikejdbcAsyncForkUri, "core")
-
-// lazy val sprayJsonMacro = RootProject(uri("git://github.com/openolitor/spray-json-macros.git"))
 
 lazy val macroSub = (project in file("macro")).settings(buildSettings,
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value)
