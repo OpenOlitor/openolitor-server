@@ -28,7 +28,8 @@ import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
-import scala.util.{ Try, Success }
+
+import scala.util.{ Success, Try }
 import org.joda.time.DateTime
 import ch.openolitor.core.Boot
 import ch.openolitor.core.repositories.CoreRepositoryQueries
@@ -37,6 +38,8 @@ import ch.openolitor.core.models.PersistenceEventStateId
 import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+
+import scala.annotation.nowarn
 
 object V2Scripts {
 
@@ -59,6 +62,7 @@ object V2Scripts {
         modifikator BIGINT not null)""".execute.apply()
 
       logger.debug(s"store last sequence number for actors and persistence views")
+      @nowarn("cat=deprecation")
       val persistentActorStates = queryLatestPersistenceMessageByPersistenceIdQuery.apply() map { messagePerPersistenceId =>
         //find latest sequence nr
         logger.debug(s"OO-656: latest persistence id of persistentactor:${messagePerPersistenceId.persistenceId}, sequenceNr:${messagePerPersistenceId.sequenceNr}")

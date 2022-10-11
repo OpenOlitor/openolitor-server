@@ -96,7 +96,6 @@ trait Proxy extends LazyLogging {
 
           val proxyRequest: HttpRequest = context.request.withHeaders(headers).withUri(uri)
 
-          // TODO: spray-to-akka-http: maybe introduce .completionTimeout() infinite to reflect original implementation
           Source.single(proxyRequest)
             .via(connectionFlow(mandantSystem.system)(new URI(mandantSystem.config.uri)))
             .runWith(Sink.head)(context.materializer)
