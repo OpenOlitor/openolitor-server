@@ -10,17 +10,17 @@ import ch.openolitor.stammdaten.models._
 import com.typesafe.config.ConfigFactory
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => isEq }
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher._
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
 import java.util.Locale
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{ Random, Success }
 
-class MailTemplateServiceSpec extends Specification with Mockito with Matchers with ResultMatchers {
+class MailTemplateServiceSpec(implicit ec: ExecutionEnv) extends Specification with Mockito with Matchers with ResultMatchers {
   sequential =>
 
   val timeout: FiniteDuration = FiniteDuration(5, SECONDS)

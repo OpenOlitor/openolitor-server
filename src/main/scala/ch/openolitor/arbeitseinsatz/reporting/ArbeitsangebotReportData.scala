@@ -25,8 +25,7 @@ package ch.openolitor.arbeitseinsatz.reporting
 import scala.concurrent.Future
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware }
 import ch.openolitor.core.reporting._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models.Projekt
@@ -34,10 +33,8 @@ import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncCompon
 import ch.openolitor.stammdaten.models.ProjektReport
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzJsonProtocol
 import ch.openolitor.arbeitseinsatz.repositories.ArbeitseinsatzReadRepositoryAsyncComponent
-import scala.Left
-import scala.Right
 
-trait ArbeitsangebotReportData extends AsyncConnectionPoolContextAware with ArbeitseinsatzJsonProtocol {
+trait ArbeitsangebotReportData extends AsyncConnectionPoolContextAware with ArbeitseinsatzJsonProtocol with ExecutionContextAware {
   self: ArbeitseinsatzReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
 
   def arbeitseinsaetzeByArbeitsangebote(arbeitsangebotIds: Seq[ArbeitsangebotId]): Future[(Seq[ValidationError[ArbeitsangebotId]], Seq[ArbeitseinsatzDetailReport])] = {

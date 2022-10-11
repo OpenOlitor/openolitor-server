@@ -22,10 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.http.scaladsl.model.headers.HttpChallenge
-import akka.http.scaladsl.server.{ AuthenticationFailedRejection, Directive1, Rejection, RequestContext }
-import akka.http.scaladsl.server.AuthenticationFailedRejection.CredentialsRejected
+import akka.http.scaladsl.server.{ Directive1, Rejection, RequestContext }
 import akka.http.scaladsl.server.Directives._
+import ch.openolitor.core.ExecutionContextAware
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.{ DateTime, DateTimeZone }
 import scalaz._
@@ -33,7 +32,6 @@ import scalaz.Scalaz._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Try, Failure => TryFailure, Success => TrySuccess }
 
 object AuthCookies {
@@ -52,7 +50,7 @@ case class AuthenticatorRejection(reason: String) extends Rejection
  * 4. Request Zeit darf eine maximale Duration nicht überschreiten (Request kann nicht zu einem späteren Zeitpunkt erneut ausgeführt werden)
  * 5. Im lokalen Cache muss eine PersonId für das entsprechende token gespeichert sein
  */
-trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache {
+trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache with ExecutionContextAware {
   import AuthCookies._
 
   type Authentication = Either[AuthenticatorRejection, Subject]

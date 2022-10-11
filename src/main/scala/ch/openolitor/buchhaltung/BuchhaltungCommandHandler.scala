@@ -43,7 +43,7 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySy
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
 import ch.openolitor.core.Macros.copyTo
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
@@ -86,9 +86,13 @@ object BuchhaltungCommandHandler {
   case class SendEmailToInvoiceSubscribersEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], invoiceReference: Option[String], context: RechnungMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
-trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware
+trait BuchhaltungCommandHandler extends CommandHandler
+  with BuchhaltungDBMappings
+  with ConnectionPoolContextAware
+  with AsyncConnectionPoolContextAware
   with FileTypeFilenameMapping
-  with MailTemplateService {
+  with MailTemplateService
+  with ExecutionContextAware {
   self: BuchhaltungReadRepositorySyncComponent =>
   import BuchhaltungCommandHandler._
   import EntityStore._
@@ -392,4 +396,5 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 
 class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungCommandHandler
   with DefaultBuchhaltungReadRepositorySyncComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
 }

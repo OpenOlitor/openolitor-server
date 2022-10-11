@@ -29,13 +29,11 @@ import ch.openolitor.core.batch.BaseBatchJob
 import scala.concurrent.duration._
 import ch.openolitor.core.batch.BatchJobs._
 import ch.openolitor.stammdaten.StammdatenCommandHandler
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
 import scalikejdbc._
 import ch.openolitor.stammdaten.repositories.StammdatenRepositoryQueries
 import akka.actor.ActorRef
-import akka.actor.actorRef2Scala
 
 object AktiveAbosCalculation {
   def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[AktiveAbosCalculation], sysConfig, system, entityStore)
@@ -67,6 +65,6 @@ class AktiveAbosCalculation(override val sysConfig: SystemConfig, override val s
   }
 
   protected def handleInitialization(): Unit = {
-    batchJob = Some(context.system.scheduler.scheduleAtFixedRate(untilNextMidnight.plus(2 hours), 24 hours)(() => self ! StartBatchJob))
+    batchJob = Some(context.system.scheduler.scheduleAtFixedRate(untilNextMidnight.plus(2 hours), 24 hours)(() => self ! StartBatchJob)(system.dispatcher))
   }
 }

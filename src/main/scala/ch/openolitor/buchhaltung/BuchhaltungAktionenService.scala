@@ -45,20 +45,19 @@ import ch.openolitor.core.repositories.EventPublisher
 import ch.openolitor.stammdaten.EmailHandler
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 object BuchhaltungAktionenService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system, mailService)
 }
 
 class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-  extends BuchhaltungAktionenService(sysConfig, mailService) with DefaultBuchhaltungWriteRepositoryComponent {
-}
+  extends BuchhaltungAktionenService(sysConfig, mailService, system.dispatcher) with DefaultBuchhaltungWriteRepositoryComponent {}
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Buchhaltung Modul
  */
-class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent]
+class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef, override implicit val executionContext: ExecutionContext) extends EventService[PersistentEvent]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with BuchhaltungDBMappings
@@ -66,7 +65,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
   with BuchhaltungEventStoreSerializer
   with MailTemplateService
   with EmailHandler
-  with SystemConfigReference {
+  with SystemConfigReference
+  with ExecutionContextAware {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val Zero = 0

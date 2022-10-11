@@ -34,9 +34,7 @@ import ch.openolitor.arbeitseinsatz.repositories.DefaultArbeitseinsatzWriteRepos
 import scalikejdbc._
 import ch.openolitor.arbeitseinsatz.repositories.ArbeitseinsatzRepositoryQueries
 import akka.actor.ActorRef
-import akka.actor.actorRef2Scala
 import scala.language.postfixOps
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object ArbeitseinsatzStatusUpdater {
   def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[ArbeitseinsatzStatusUpdater], sysConfig, system, entityStore)
@@ -60,6 +58,6 @@ class ArbeitseinsatzStatusUpdater(override val sysConfig: SystemConfig, override
   }
 
   protected def handleInitialization(): Unit = {
-    batchJob = Some(context.system.scheduler.scheduleWithFixedDelay(1 minute, 1 hour)(() => self ! StartBatchJob))
+    batchJob = Some(context.system.scheduler.scheduleWithFixedDelay(1 minute, 1 hour)(() => self ! StartBatchJob)(system.dispatcher))
   }
 }

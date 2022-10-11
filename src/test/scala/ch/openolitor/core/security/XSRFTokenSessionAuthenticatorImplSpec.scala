@@ -38,7 +38,7 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable._
 
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class XSRFTokenSessionAuthenticatorImplSpec(implicit ec: ExecutionEnv) extends Specification with Specs2RouteTest with MockitoSugar {
   import AuthCookies._
@@ -196,4 +196,5 @@ class XSRFTokenSessionAuthenticatorImplSpec(implicit ec: ExecutionEnv) extends S
 
 class MockXSRFTokenSessionAuthenticatorProvider(override val maxRequestDelay: Option[Duration], actorSystem: ActorSystem) extends XSRFTokenSessionAuthenticatorProvider {
   override val loginTokenCache: Cache[String, Subject] = LfuCache(actorSystem)
+  override implicit protected val executionContext: ExecutionContext = actorSystem.dispatcher
 }

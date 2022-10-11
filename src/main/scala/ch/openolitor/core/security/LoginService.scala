@@ -4,7 +4,7 @@ import akka.http.caching.scaladsl.{ Cache, CachingSettings }
 import akka.http.caching.LfuCache
 import akka.pattern.ask
 import akka.util.Timeout
-import ch.openolitor.core.{ ActorReferences, SystemConfigReference }
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware, SystemConfigReference }
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
@@ -23,7 +23,6 @@ import scalaz.EitherT
 import scalaz.Scalaz._
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Random
@@ -32,7 +31,8 @@ trait LoginService extends LazyLogging
   with AsyncConnectionPoolContextAware
   with XSRFTokenSessionAuthenticatorProvider
   with ActorReferences
-  with SystemConfigReference {
+  with SystemConfigReference
+  with ExecutionContextAware {
   self: StammdatenReadRepositoryAsyncComponent =>
 
   type EitherFuture[A] = EitherT[RequestFailed, Future, A]

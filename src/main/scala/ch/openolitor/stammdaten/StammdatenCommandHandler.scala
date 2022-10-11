@@ -27,6 +27,7 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
 import ch.openolitor.util.ConfigUtil._
 
+import scala.concurrent.ExecutionContext
 import scala.util._
 import scalikejdbc.DB
 import ch.openolitor.stammdaten.models._
@@ -43,7 +44,6 @@ import ch.openolitor.util.OtpUtil
 import org.joda.time.DateTime
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext.Implicits.global
 import scalikejdbc.DBSession
 
 object StammdatenCommandHandler {
@@ -110,8 +110,12 @@ object StammdatenCommandHandler {
   case class UpdateKundeEvent(meta: EventMetadata, kundeId: KundeId, kunde: KundeModify) extends PersistentGeneratedEvent with JSONSerializable
 }
 
-trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings with ConnectionPoolContextAware
-  with LieferungDurchschnittspreisHandler with MailTemplateService {
+trait StammdatenCommandHandler extends CommandHandler
+  with StammdatenDBMappings
+  with ConnectionPoolContextAware
+  with LieferungDurchschnittspreisHandler
+  with MailTemplateService
+  with ExecutionContextAware {
 
   self: StammdatenReadRepositorySyncComponent =>
   import StammdatenCommandHandler._
@@ -1218,4 +1222,5 @@ trait StammdatenCommandHandler extends CommandHandler with StammdatenDBMappings 
 
 class DefaultStammdatenCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends StammdatenCommandHandler
   with DefaultStammdatenReadRepositorySyncComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
 }
