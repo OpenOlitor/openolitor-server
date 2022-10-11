@@ -52,63 +52,63 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"     %% "scala-xml"                % "2.1.0",
-    "javax.xml.bind"             %  "jaxb-api"                 % "2.3.1",
-    "com.typesafe.akka"          %% "akka-http"                % akkaHttpVersion,
-    "com.typesafe.akka"          %% "akka-http-caching"        % akkaHttpVersion,
-    "com.typesafe.akka"          %% "akka-http-spray-json"     % akkaHttpVersion, // ### NO Scala 3
-    "com.typesafe.akka"            %%  "akka-actor"    					              % akkaVersion, // ### Scala 3, experimental
-    "com.typesafe.akka"            %%  "akka-persistence"                     % akkaVersion,
-    "com.typesafe.akka"            %%  "akka-persistence-query"               % akkaVersion,
-    "com.typesafe.akka"            %%  "akka-slf4j"    					              % akkaVersion,
-    "com.typesafe.akka"            %%  "akka-stream"    					            % akkaVersion,
-    "com.typesafe.akka"            %%  "akka-testkit"  			    	            % akkaVersion       % "test",
-    "com.typesafe.akka"            %%  "akka-http-testkit"  			    	      % akkaHttpVersion   % "test",
-    "com.typesafe.akka"            %%  "akka-stream-testkit"  			    	    % akkaVersion       % "test",
-    "com.lightbend.akka"           %%  "akka-persistence-jdbc"    					  % "5.0.4",
-    "com.github.dnvriend"          %%  "akka-persistence-inmemory" 		        % "2.5.15.2"     % "test", // from "https://github.com/OpenOlitor/openolitor-legacy-dependencies/raw/master/com.github.dnvriend/akka-persistence-inmemory_2.11/jars/akka-persistence-inmemory_2.11-1.0.5.jar", // ### NO Scala 3
-    "org.specs2"                   %%  "specs2-core"   					              % specs2V     % "test", // ### Scala 3
-    "org.specs2"                   %%  "specs2-mock"                          % specs2V     % "test",
-    "org.specs2"                   %%  "specs2-junit"                         % specs2V     % "test",
-    "org.specs2"                   %%  "specs2-scalacheck"                    % specs2V     % "test",
-    "org.mockito"                  %%  "mockito-scala"                        % "1.17.7"   % "test",
-    "org.scalaz" 		               %%  "scalaz-core"						              % "7.3.6", // ### Scala 3
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.1.0",
+    "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
+    "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
+    "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
+    "com.typesafe.akka"            %% "akka-http-spray-json"               % akkaHttpVersion, // ### NO Scala 3
+    "com.typesafe.akka"            %% "akka-actor"    					           % akkaVersion, // ### Scala 3, experimental
+    "com.typesafe.akka"            %% "akka-persistence"                   % akkaVersion,
+    "com.typesafe.akka"            %% "akka-persistence-query"             % akkaVersion,
+    "com.typesafe.akka"            %% "akka-slf4j"    					           % akkaVersion,
+    "com.typesafe.akka"            %% "akka-stream"    					           % akkaVersion,
+    "com.typesafe.akka"            %% "akka-testkit"  			    	         % akkaVersion                             % "test",
+    "com.typesafe.akka"            %% "akka-http-testkit"  			    	     % akkaHttpVersion                         % "test",
+    "com.typesafe.akka"            %% "akka-stream-testkit"  			    	   % akkaVersion                             % "test",
+    "com.lightbend.akka"           %% "akka-persistence-jdbc"    					 % "5.0.4",
+    "com.github.dnvriend"          %% "akka-persistence-inmemory" 		     % "2.5.15.2"                              % "test", // ### NO Scala 3
+    "org.specs2"                   %% "specs2-core"   					           % specs2V                                 % "test", // ### Scala 3
+    "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
+    "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
+    "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
+    "org.mockito"                  %% "mockito-scala"                      % "1.17.7"                                % "test",
+    "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
-    "com.typesafe.scala-logging"   %%  "scala-logging"				                % "3.9.4", // ### Scala 3
-    "org.scalikejdbc"              %%  "scalikejdbc-async"                    % "0.15.0",
-    "org.scalikejdbc" 	           %%  "scalikejdbc-config"				            % scalalikeV, // ### Scala 3
-    "org.scalikejdbc"              %%  "scalikejdbc-test"                     % scalalikeV   % "test", // ### Scala 3
-    "org.scalikejdbc" 	           %%  "scalikejdbc-syntax-support-macro"     % scalalikeV, // ### Scala 3
-    "org.scalikejdbc" 	           %%  "scalikejdbc-joda-time"                % scalalikeV, // ### Scala 3
-    "com.github.jasync-sql"        %   "jasync-mysql"                         % "2.0.+",
-    "com.h2database"               %   "h2"                                   % "2.1.212"    % "test",
-    "ch.qos.logback"  	           %   "logback-classic"    		  		        % "1.2.11",
-    "org.mariadb.jdbc"	           %   "mariadb-java-client"                  % "3.0.4",
-    "mysql"	                       %   "mysql-connector-java"                 % "8.0.29",
+    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.4", // ### Scala 3
+    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.15.0",
+    "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
+    "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
+    "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
+    "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
+    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.0.+",
+    "com.h2database"               %  "h2"                                 % "2.1.212"                               % "test",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.2.11",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.0.4",
+    "mysql"	                       %  "mysql-connector-java"               % "8.0.29",
     // Libreoffice document API
-    "org.apache.odftoolkit"        %   "simple-odf"					                  % "0.8.2-incubating" withSources(),
-    "org.apache.odftoolkit"        %   "simple-odf"        					          % "0.8.2-incubating" withSources(),
-    "com.scalapenos"               %%  "stamina-json"                         % "0.1.6", // ### NO Scala 3
-    "net.virtual-void" %%  "json-lenses" % "0.6.2",
+    "org.apache.odftoolkit"        %  "simple-odf"					               % "0.8.2-incubating" withSources(),
+    "org.apache.odftoolkit"        %  "simple-odf"        					       % "0.8.2-incubating" withSources(),
+    "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
+    "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %   "aws-java-sdk-s3"                      % "1.12.213",
-    "de.svenkubiak"                %   "jBCrypt"                              % "0.4.1",
-    "com.github.daddykotex"        %% "courier"                               % "3.1.0", // ### Scala 3
-    "com.github.nscala-time"       %%  "nscala-time"                          % "2.30.0", // ### Scala 3
-    "com.github.blemale"           %% "scaffeine"                             % "5.1.2", // ### Scala 3
-    "de.zalando"                   %% "beard"                                 % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.213",
+    "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
+    "com.github.daddykotex"        %% "courier"                            % "3.1.0", // ### Scala 3
+    "com.github.nscala-time"       %% "nscala-time"                        % "2.30.0", // ### Scala 3
+    "com.github.blemale"           %% "scaffeine"                          % "5.1.2", // ### Scala 3
+    "de.zalando"                   %% "beard"                              % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
     // transitive dependencies of legacy de.zalando.beard
-    "org.antlr"                    % "antlr4"                                 % "4.8-1",
-    "io.monix"                     %% "monix"                                 % "3.4.0", // ### Scala 3
-    "net.codecrete.qrbill"         % "qrbill-generator"                       % "2.4.3",
-    "io.nayuki"                    % "qrcodegen"                              % "1.6.0",
-    "org.apache.pdfbox"            % "pdfbox"                                 % "2.0.20",
-    "org.apache.pdfbox"            % "pdfbox-parent"                          % "2.0.20" pomOnly(),
-    "org.apache.xmlgraphics"       % "batik-transcoder"                       % "1.10",
-    "org.apache.xmlgraphics"       % "batik-codec"                            % "1.9",
-    "com.tegonal"                  %% "cf-env-config-loader"                  % "1.1.2", // ### NO Scala 3, NO Scala 2.13
-    "com.eatthepath"               % "java-otp"                               % "0.2.0",
-    "org.apache.pdfbox"            % "pdfbox-tools"                           % "2.0.2"
+    "org.antlr"                    %  "antlr4"                             % "4.8-1",
+    "io.monix"                     %% "monix"                              % "3.4.0", // ### Scala 3
+    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "2.4.3",
+    "io.nayuki"                    %  "qrcodegen"                          % "1.6.0",
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.20",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.20" pomOnly(),
+    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.10",
+    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.9",
+    "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
+    "com.eatthepath"               %  "java-otp"                           % "0.2.0",
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.2"
   )
 },
   dependencyOverrides ++= Seq(
