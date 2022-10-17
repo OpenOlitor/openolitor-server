@@ -20,46 +20,15 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core
+package ch.openolitor.core.filestore
 
-import spray.httpx.unmarshalling._
-import ch.openolitor.core.models.BaseId
-import spray.json._
-import spray.routing._
-import spray.httpx.unmarshalling._
+import ch.openolitor.core.{ ActorSystemReference, SystemConfigReference }
+import com.typesafe.scalalogging.LazyLogging
 
-trait SprayDeserializers {
-  implicit val string2BooleanConverter = new Deserializer[String, Boolean] {
-    def apply(value: String) = value.toLowerCase match {
-      case "true" | "yes" | "on"  => Right(true)
-      case "false" | "no" | "off" => Right(false)
-      case x                      => Left(MalformedContent("'" + x + "' is not a valid Boolean value"))
-    }
-  }
+trait FileStoreComponent extends SystemConfigReference with ActorSystemReference {
+  val fileStore: FileStore
+}
 
-  def jsonDeserializer[T](implicit read: JsonReader[T]) = new Deserializer[String, T] {
-    def apply(str: String) = {
-      Right(read.read(str.parseJson))
-    }
-  }
-
-  def long2BaseIdPathMatcher[T <: BaseId](implicit f: Long => T): spray.routing.PathMatcher1[T] = {
-    PathMatchers.LongNumber.flatMap(id => Some(f(id)))
-  }
-
-  def enumPathMatcher[T](implicit f: String => Option[T]): spray.routing.PathMatcher1[T] = {
-    PathMatchers.Segment.flatMap(id => f(id))
-  }
-
-  def long2BaseIdConverter[T <: BaseId](implicit f: Long => T) = new Deserializer[Long, T] {
-    def apply(value: Long) = {
-      try {
-        Right(f(value))
-      } catch {
-        case e: Exception =>
-          Left(MalformedContent(s"'$value' is not a valid id:$e"))
-      }
-    }
-
-  }
+trait DefaultFileStoreComponent extends FileStoreComponent with LazyLogging {
+  override lazy val fileStore = S3FileStore(sysConfig.mandantConfiguration, system)
 }

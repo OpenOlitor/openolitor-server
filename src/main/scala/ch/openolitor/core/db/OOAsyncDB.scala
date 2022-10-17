@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext
 /**
  * This asyncdb case class supports dealing with multiple connectionpools within the same vm
  */
-case class OOAsyncDB(context: MultipleAsyncConnectionPoolContext, name: Any = AsyncConnectionPool.DEFAULT_NAME) {
+case class OOAsyncDB(context: MultipleAsyncConnectionPoolContext, name: Symbol = AsyncConnectionPool.DEFAULT_NAME) {
   /**
    * Provides a code block which have a connection from ConnectionPool and passes it to the operation.
    *

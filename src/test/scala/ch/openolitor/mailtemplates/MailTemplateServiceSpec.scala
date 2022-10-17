@@ -1,26 +1,26 @@
 package ch.openolitor.mailtemplates
 
-import org.specs2.mutable._
-import org.specs2.mock.Mockito
-import org.mockito.Matchers.{ eq => eqz }
-import ch.openolitor.mailtemplates.repositories._
-import ch.openolitor.mailtemplates.model._
-import org.specs2.matcher._
-import ch.openolitor.mailtemplates.engine.MailTemplateService
-import org.joda.time.DateTime
-import scala.util.Random
-import ch.openolitor.core.models.PersonId
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{ Success }
 import ch.openolitor.core.mailservice.MailPayload
+import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.SystemConfig
-import com.typesafe.config.ConfigFactory
+import ch.openolitor.mailtemplates.engine.MailTemplateService
+import ch.openolitor.mailtemplates.model._
+import ch.openolitor.mailtemplates.repositories._
 import ch.openolitor.stammdaten.models._
-import java.util.Locale
-import scala.concurrent.duration._
+import com.typesafe.config.ConfigFactory
+import org.joda.time.DateTime
+import org.mockito.ArgumentMatchers.{ eq => isEq }
+import org.specs2.concurrent.ExecutionEnv
+import org.specs2.matcher._
+import org.specs2.mock.Mockito
+import org.specs2.mutable._
 
-class MailTemplateServiceSpec extends Specification with Mockito with Matchers with ResultMatchers {
+import java.util.Locale
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.util.{ Random, Success }
+
+class MailTemplateServiceSpec(implicit ec: ExecutionEnv) extends Specification with Mockito with Matchers with ResultMatchers {
   sequential =>
 
   val timeout: FiniteDuration = FiniteDuration(5, SECONDS)
@@ -72,7 +72,7 @@ class MailTemplateServiceSpec extends Specification with Mockito with Matchers w
       )
 
       val service = new MailTemplateServiceMock()
-      service.mailTemplateReadRepositoryAsync.getMailTemplateByName(eqz("templateName"))(any) returns Future.successful(Some(mailTemplate))
+      service.mailTemplateReadRepositoryAsync.getMailTemplateByName(isEq("templateName"))(any) returns Future.successful(Some(mailTemplate))
 
       val result = service.generateMail(templateSubject, templateBody, rootObject)
       result must be_==(Success(MailPayload(resultSubject, resultBody)))

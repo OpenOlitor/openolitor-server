@@ -22,16 +22,14 @@
 \*                                                                           */
 package ch.openolitor.helloworld
 
-import spray.routing._
-import spray.http.MediaTypes._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive.pimpApply
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import ch.openolitor.core._
 
 case class HelloWorld(message: String)
 
 // this trait defines our service behavior independently from the service actor
-trait HelloWorldRoutes extends HttpService {
+trait HelloWorldRoutes extends BaseRouteService {
 
   import HelloWorldJsonProtocol._
 
@@ -44,26 +42,11 @@ trait HelloWorldRoutes extends HttpService {
    * Hello World demo routes
    */
   def helloRoute(): Route =
-    path("xml") {
+    path("json") {
       get {
-        respondWithMediaType(`text/xml`) { // XML is marshalled to `text/xml` by default, so we simply override here
-          complete {
-            <html>
-              <body>
-                <h1>Hello World</h1>
-              </body>
-            </html>
-          }
+        complete {
+          HelloWorld("Hello World!")
         }
       }
-    } ~
-      path("json") {
-        get {
-          respondWithMediaType(`application/json`) {
-            complete {
-              HelloWorld("Hello World!")
-            }
-          }
-        }
-      }
+    }
 }

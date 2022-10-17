@@ -26,8 +26,8 @@ import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration
 
-import scala.collection.JavaConversions._
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 
 trait FileStoreBucketLifeCycleConfiguration {
   def client: AmazonS3
@@ -54,7 +54,7 @@ trait FileStoreBucketLifeCycleConfiguration {
   }
 
   private def updateLifeCycle(bucket: FileStoreBucket, rules: BucketLifecycleConfiguration.Rule*) = {
-    val configuration = new BucketLifecycleConfiguration().withRules(rules)
+    val configuration = new BucketLifecycleConfiguration().withRules(rules.asJava)
     client.setBucketLifecycleConfiguration(bucketName(bucket), configuration)
   }
 }

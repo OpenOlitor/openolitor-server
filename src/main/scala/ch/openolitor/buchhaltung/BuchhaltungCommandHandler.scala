@@ -43,7 +43,7 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySy
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
 import ch.openolitor.core.Macros.copyTo
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 object BuchhaltungCommandHandler {
   case class RechnungVerschickenCommand(originator: PersonId, id: RechnungId) extends UserCommand
@@ -86,9 +86,13 @@ object BuchhaltungCommandHandler {
   case class SendEmailToInvoiceSubscribersEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], invoiceReference: Option[String], context: RechnungMailContext) extends PersistentGeneratedEvent with JSONSerializable
 }
 
-trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMappings with ConnectionPoolContextAware with AsyncConnectionPoolContextAware
+trait BuchhaltungCommandHandler extends CommandHandler
+  with BuchhaltungDBMappings
+  with ConnectionPoolContextAware
+  with AsyncConnectionPoolContextAware
   with FileTypeFilenameMapping
-  with MailTemplateService {
+  with MailTemplateService
+  with ExecutionContextAware {
   self: BuchhaltungReadRepositorySyncComponent =>
   import BuchhaltungCommandHandler._
   import EntityStore._
@@ -312,7 +316,7 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 
             val aboIds = abos map (_.id)
             val zusatzabosByAbo: Map[RechnungsPositionId, Seq[RechnungsPositionId]] =
-              zusatzabos map (z => (z.id, z.parentRechnungsPositionId.get)) groupBy (_._2) mapValues (_ map (_._1))
+              zusatzabos.map(z => (z.id, z.parentRechnungsPositionId.get)).groupBy(_._2).view.mapValues(_.map(_._1)).toMap
 
             val abosWithSort = Range(100, Int.MaxValue, 100) zip (aboIds)
             val allAbosWithSort = abosWithSort.flatMap {
@@ -392,4 +396,5 @@ trait BuchhaltungCommandHandler extends CommandHandler with BuchhaltungDBMapping
 
 class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungCommandHandler
   with DefaultBuchhaltungReadRepositorySyncComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
 }

@@ -30,7 +30,7 @@ import scala.util.parsing.combinator.RegexParsers
  * Originally token from gatlin-jsonpath and converted to spray-json
  * https://github.com/gatling/gatling/tree/master/gatling-jsonpath
  */
-object Parser extends RegexParsers {
+object OOJsonPathParser extends RegexParsers {
 
   private val NumberRegex = """-?\d+""".r
   private val FieldRegex = """[^\*\.\[\]\(\)=!<>\s]+""".r
@@ -186,7 +186,7 @@ object Parser extends RegexParsers {
     phrase(root ~ pathSequence) ^^ { case r ~ ps => r :: ps }
 }
 
-class Parser {
-  private val query = Parser.query
-  def compile(jsonpath: String): Parser.ParseResult[List[PathToken]] = Parser.parse(query, jsonpath)
+class OOJsonPathParser {
+  private val query = OOJsonPathParser.query
+  def compile(jsonpath: String): OOJsonPathParser.ParseResult[List[PathToken]] = OOJsonPathParser.parse(query, jsonpath)
 }

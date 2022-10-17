@@ -22,9 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core.eventsourcing
 
-import zangelo.spray.json.AutoProductFormats
-import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.BaseJsonProtocol
+import ch.openolitor.core.models.{ PersistedMessage, PersistenceJournalView }
 
-trait PersistenceJsonProtocol extends AutoProductFormats[JSONSerializable] {
-
+trait PersistenceJsonProtocol extends BaseJsonProtocol {
+  implicit val PersistedMessageFormat = jsonFormat1(PersistedMessage)
+  implicit val persistenceJournalFormat = jsonFormat4(PersistenceJournalView)
 }

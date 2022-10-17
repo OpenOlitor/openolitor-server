@@ -39,13 +39,13 @@ object BestellpositionParser extends EntityParser {
       val Seq(indexBestellungId, indexProduktId, indexPreisEinheit, indexEinheit, indexMenge, indexPreis, indexAnzahl) = indexes take (7)
       val Seq(indexErstelldat, indexErsteller, indexModifidat, indexModifikator) = indexes takeRight (4)
 
-      val produktId = Some(ProduktId(row.value[Long](indexProduktId)))
+      val produktId = ProduktId(row.value[Long](indexProduktId))
       val produkt = produkte.find(_.id == produktId) getOrElse (throw ParseException(s"No produkt found for id $produktId"))
 
       Bestellposition(
         BestellpositionId(id),
         bestellungId = BestellungId(row.value[Long](indexBestellungId)),
-        produktId,
+        Some(produktId),
         //TODO: verify
         produktBeschrieb = produkt.name,
         preisEinheit = row.value[Option[BigDecimal]](indexPreisEinheit),

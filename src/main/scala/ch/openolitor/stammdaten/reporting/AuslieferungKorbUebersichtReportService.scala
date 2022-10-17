@@ -27,19 +27,18 @@ import ch.openolitor.core.reporting.models._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
+
 import scala.concurrent.Future
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
-import ch.openolitor.core.filestore._
 import org.joda.time.DateTime
 import ch.openolitor.core.jobs.JobQueueService.JobId
 import ch.openolitor.util.IdUtil
 
-trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
+trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol with ReportJsonProtocol with ExecutionContextAware {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
   def generateAuslieferungKorbUebersichtReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
     generateReports[AuslieferungId, MultiReport[AuslieferungKorbUebersichtReport]](
@@ -76,7 +75,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
 
         val proAbotypZusatzabos = (auslieferungReport.entries groupBy (groupIdentifierZusatzabos) map {
           case (abotypName, auslieferungen) =>
-            (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse POST) mapValues (_.size))
+            (abotypName, auslieferungen.groupBy(auslieferung => auslieferung.depot.map(_.name).orElse(auslieferung.tour.map(_.name)).getOrElse(POST)).view.mapValues(_.size))
         }) map {
           case (abotypName, proDepotTour) =>
             val color = hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse("")
@@ -89,7 +88,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
 
         val proAbotyp = (auslieferungReport.entries groupBy (groupIdentifierHauptabo) map {
           case (abotypName, auslieferungen) =>
-            (abotypName, auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse POST) mapValues (_.size))
+            (abotypName, auslieferungen.groupBy(auslieferung => auslieferung.depot.map(_.name).orElse(auslieferung.tour.map(_.name)).getOrElse(POST)).view.mapValues(_.size))
         }) map {
           case (abotypName, proDepotTour) =>
             val color = hauptAboFarbCodes.collectFirst { case x if x._1.contains(abotypName) => x._2 }.getOrElse("")
@@ -102,7 +101,7 @@ trait AuslieferungKorbUebersichtReportService extends AsyncConnectionPoolContext
 
         val allZusatzabotypNames = auslieferungReport.entries flatMap { obj => obj.korb.abo.zusatzAbotypNames }
 
-        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, zusatzAboFarbCodes(x._1), x._2))
+        val proZusatzabotyp = allZusatzabotypNames.groupBy(identity).view.mapValues(_.size).map(x => KorbUebersichtReportProZusatzabotyp(x._1, zusatzAboFarbCodes(x._1), x._2))
 
         val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()
 

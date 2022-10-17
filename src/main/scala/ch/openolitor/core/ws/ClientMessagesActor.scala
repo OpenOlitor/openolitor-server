@@ -23,15 +23,14 @@
 package ch.openolitor.core.ws
 
 import akka.actor._
-import spray.can.Http
-import ClientMessages._
+import akka.stream.scaladsl._
 import ch.openolitor.core._
 import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.ws.ClientMessages._
 import ch.openolitor.core.ws.ControlCommands.SendToClient
-import ch.openolitor.core.ws.ClientMessagesWorker.Push
 import spray.json.RootJsonWriter
-import spray.caching.Cache
-import ch.openolitor.core.security.Subject
+
+import scala.collection.concurrent.TrieMap
 
 trait ClientReceiverComponent {
   val clientReceiver: ClientReceiver
@@ -60,38 +59,32 @@ trait ClientReceiver extends EventStream {
     writer.write(msg).compactPrint
 }
 
-object ClientMessagesServer {
-  def props(loginTokenCache: Cache[Subject]) = Props(classOf[ClientMessagesServer], loginTokenCache)
+object ClientMessagesActor {
+  def props(streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]]) = Props(classOf[ClientMessagesActor], streamsByUser)
 }
-class ClientMessagesServer(loginTokenCache: Cache[Subject]) extends Actor with ActorLogging {
 
-  override def preStart() {
+class ClientMessagesActor(streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]]) extends Actor with ActorLogging {
+  override def preStart(): Unit = {
     super.preStart()
     //register ourself as listener to sendtoclient commands
     context.system.eventStream.subscribe(self, classOf[SendToClient])
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self, classOf[SendToClient])
     super.postStop()
   }
 
-  def receive = {
-    // when a new connection comes in we register a WebSocketConnection actor as the per connection handler
-    case Http.Connected(remoteAddress, localAddress) =>
-      log.debug(s"Connected to websocket:$remoteAddress, $localAddress")
-      val serverConnection = sender()
-      val conn = context.actorOf(ClientMessagesWorker.props(serverConnection, loginTokenCache))
-      serverConnection ! Http.Register(conn)
-    case SendToClient(senderPersonId, msg, Nil) =>
+  def receive: Receive = {
+    case SendToClient(_, msg, Nil) =>
       //broadcast to all
       log.debug(s"Broadcast client message:$msg")
-      context.children.map(c => c ! Push(Nil, msg))
-    case SendToClient(senderPersonId, msg, receivers) =>
+      streamsByUser.foreach(_._2.foreach(_._2.offer(msg)))
+    case SendToClient(_, msg, receivers) =>
       //send to specific clients only
       log.debug(s"send client message:$msg:$receivers")
-      context.children.map(_ ! Push(receivers, msg))
-    case x =>
+      receivers.foreach(personId => streamsByUser.get(personId).foreach(_.foreach(_._2.offer(msg))))
+    case x: Any =>
       log.debug(s"Received unkown event:$x")
   }
 }

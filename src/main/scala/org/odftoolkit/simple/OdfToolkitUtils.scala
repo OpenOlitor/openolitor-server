@@ -32,7 +32,7 @@ import org.odftoolkit.simple.draw._
 import org.odftoolkit.simple.table._
 import org.odftoolkit.simple.text.Paragraph
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Extends document to make method accessor public available

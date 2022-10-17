@@ -22,28 +22,27 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import spray.routing._
-import spray.httpx.SprayJsonSupport._
+import akka.actor._
+import akka.http.scaladsl.model.{ ContentType, MediaTypes }
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import ch.openolitor.buchhaltung.repositories.{ BuchhaltungReadRepositoryAsyncComponent, DefaultBuchhaltungReadRepositoryAsyncComponent }
+import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core._
 import ch.openolitor.core.db._
-import spray.http._
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import ch.openolitor.core.filestore._
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
 import ch.openolitor.stammdaten.reporting._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.filestore._
-import akka.actor._
-import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
-import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
-import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import spray.http.ContentType
 
-trait StammdatenOpenRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+import scala.concurrent.ExecutionContext
+
+trait StammdatenOpenRoutes
+  extends BaseRouteService
+  with ActorReferences
+  with AsyncConnectionPoolContextAware
   with StammdatenJsonProtocol
   with StammdatenEventStoreSerializer
   with BuchhaltungJsonProtocol
@@ -58,8 +57,8 @@ trait StammdatenOpenRoutes extends HttpService with ActorReferences
   with StammdatenPaths {
   self: StammdatenReadRepositoryAsyncComponent with BuchhaltungReadRepositoryAsyncComponent with FileStoreComponent =>
 
-  def stammdatenOpenRoute =
-    parameters('f.?) { (f) =>
+  def stammdatenOpenRoute: Route =
+    parameter("f".?) { f =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
@@ -69,11 +68,11 @@ trait StammdatenOpenRoutes extends HttpService with ActorReferences
 
     }
 
-  def projectsRoute =
+  def projectsRoute: Route =
     path("projekt") {
       get(detail(stammdatenReadRepository.getProjektPublik))
     } ~
-      path("projekt" / projektIdPath / "logo") { id =>
+      path("projekt" / projektIdPath / "logo") { _ =>
         get(download(ProjektStammdaten, "logo"))
       } ~
       path("projekt" / "importFile") {
@@ -94,11 +93,12 @@ class DefaultStammdatenOpenRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
   extends StammdatenOpenRoutes
   with DefaultStammdatenReadRepositoryAsyncComponent
   with DefaultBuchhaltungReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

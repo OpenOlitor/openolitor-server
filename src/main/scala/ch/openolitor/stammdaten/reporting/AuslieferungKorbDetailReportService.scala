@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten.reporting
 
-import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware }
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
@@ -36,11 +36,11 @@ import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncCompon
 import ch.openolitor.util.IdUtil
 import org.joda.time.DateTime
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait AuslieferungKorbDetailReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
+trait AuslieferungKorbDetailReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol with ExecutionContextAware {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
+
   def generateAuslieferungKorbDetailReports(fileType: FileType)(config: ReportConfig[AuslieferungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[AuslieferungId]]] = {
     generateReports[AuslieferungId, MultiReport[AuslieferungKorbDetailsReport]](
       config,
@@ -73,18 +73,18 @@ trait AuslieferungKorbDetailReportService extends AsyncConnectionPoolContextAwar
                 lp: Lieferposition =>
                   {
                     val numberOfTimes = totalLieferpositionenList.filter(_.id == lp.id).length
-                    val quantity = lp.menge.getOrElse(BigDecimal(1)).doubleValue()
+                    val quantity = lp.menge.getOrElse(BigDecimal(1)).doubleValue
                     KorbTotalComposition(lp.id.toString, lp.produktBeschrieb, Math.round((quantity * numberOfTimes) * 100.0) / 100.0, lp.einheit.toString)
                   }
               }
               (
                 abotypName,
                 factorizedLieferpositionenList,
-                auslieferungen groupBy (auslieferung => auslieferung.depot.map(_.name) orElse (auslieferung.tour map (_.name)) getOrElse "Post") mapValues (_.size)
+                auslieferungen.groupBy(auslieferung => auslieferung.depot.map(_.name).orElse(auslieferung.tour.map(_.name)).getOrElse("Post")).view.mapValues(_.size)
               )
-          }) map {
+          }).map {
             case (abotypName, lp, proDepotTour) =>
-              KorbDetailsReportProAbotyp(abotypName, proDepotTour.values.sum, (proDepotTour map (p => KorbDetailsReportProDepotTour(p._1, p._2))).toSeq, lp)
+              KorbDetailsReportProAbotyp(abotypName, proDepotTour.values.sum, proDepotTour.map(p => KorbDetailsReportProDepotTour(p._1, p._2)).toSeq, lp)
           }
 
           val datum = if (!auslieferungReport.entries.isEmpty) auslieferungReport.entries(0).datum else new DateTime()

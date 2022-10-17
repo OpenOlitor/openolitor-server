@@ -269,7 +269,7 @@ trait StammdatenDBMappings extends DBMappings with LazyLogging with BaseParamete
   implicit val kundeMapping = new BaseEntitySQLSyntaxSupport[Kunde] {
     override val tableName = "Kunde"
 
-    override lazy val columns: Seq[String] = autoColumns[Kunde]()
+    override lazy val columns = autoColumns[Kunde]()
 
     def apply(rn: ResultName[Kunde])(rs: WrappedResultSet): Kunde =
       autoConstruct(rs, rn)

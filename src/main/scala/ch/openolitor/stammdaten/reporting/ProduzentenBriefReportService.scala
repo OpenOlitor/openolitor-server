@@ -26,17 +26,16 @@ import ch.openolitor.core.reporting._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
+
 import scala.concurrent.Future
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
-import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
-trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
+trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol with ExecutionContextAware {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
   def generateProduzentenBriefReports(fileType: FileType)(config: ReportConfig[ProduzentId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[ProduzentId]]] = {
     generateReports[ProduzentId, ProduzentDetailReport](
@@ -64,7 +63,7 @@ trait ProduzentenBriefReportService extends AsyncConnectionPoolContextAware with
             .getOrElse(Left(ValidationError[ProduzentId](id, s"Produzent konnte nicht geladen werden"))))
         })
         results.map(_.partition(_.isLeft) match {
-          case (a, b) => (a.map(_.left.get), b.map(_.right.get))
+          case (a, b) => (a.map(_.swap.toOption.get), b.map(_.toOption.get))
         })
       } getOrElse Future { (Seq(ValidationError[ProduzentId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }

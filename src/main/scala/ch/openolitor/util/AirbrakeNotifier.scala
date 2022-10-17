@@ -23,12 +23,10 @@
 package ch.openolitor.util
 
 import akka.actor._
-import spray.http.HttpRequest
-import ch.openolitor.util.ConfigUtil._
-import spray.http._
-import spray.client.pipelining._
-import scala.concurrent.Future
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.Http
 import ch.openolitor.core.SystemConfig
+import ch.openolitor.util.ConfigUtil._
 
 /**
  * Based on https://raw.githubusercontent.com/tegonal/play-airbrake/master/src/main/scala/play/airbrake/Airbrake.scala
@@ -43,20 +41,12 @@ object AirbrakeNotifier {
 class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends Actor with ActorLogging {
   import AirbrakeNotifier._
 
-  import system.dispatcher
-
   lazy val config = systemConfig.mandantConfiguration.config
   lazy val enabled = config.getBooleanOption("airbrake.enabled") getOrElse (false)
   lazy val apiKey = config.getStringOption("airbrake.api-key") getOrElse { sys.error("Could not find Airbrake api-key in config") }
   lazy val ssl = config.getBooleanOption("airbrake.ssl") getOrElse (false)
   lazy val endpoint = config.getStringOption("airbrake.endpoint") getOrElse ("api.airbrake.io")
   lazy val mandantIdentifier = systemConfig.mandantConfiguration.name
-
-  val pipeline: HttpRequest => Future[HttpResponse] = {
-    ((_: HttpRequest).mapEntity(_.flatMap(f => HttpEntity(
-      f.contentType.withMediaType(MediaTypes.`application/xml`), f.data
-    )))) ~> sendReceive
-  }
 
   def receive: Receive = {
     case AirbrakeNotification(th, request) =>
@@ -78,8 +68,10 @@ class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends 
 
   protected def notify(th: Throwable, request: Option[HttpRequest]): Unit = {
     if (enabled) {
+      implicit val actorSystem = system
       val scheme = if (ssl) "https" else "http"
-      pipeline(Post(s"$scheme://$endpoint/notifier_api/v2/notices", formatNotice(apiKey, request, th)))
+
+      Http().singleRequest(HttpRequest(HttpMethods.POST, uri = s"$scheme://$endpoint/notifier_api/v2/notices", entity = HttpEntity(ContentTypes.`text/xml(UTF-8)`, formatNotice(apiKey, request, th).text)))
     }
   }
 
@@ -105,7 +97,7 @@ class AirbrakeNotifier(system: ActorSystem, systemConfig: SystemConfig) extends 
 
   protected def formatRequest(request: Option[HttpRequest]) = request map { r =>
     <request>
-      <url>{ r.method + " " + r.uri }</url>
+      <url>{ s"${r.method} ${r.uri}" }</url>
       <component/>
       <action/>
       { formatSession(r.headers.map(h => (h.name -> h.value)).toMap) }

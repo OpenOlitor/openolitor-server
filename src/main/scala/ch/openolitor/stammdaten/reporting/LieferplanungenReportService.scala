@@ -26,17 +26,16 @@ import ch.openolitor.core.reporting._
 import ch.openolitor.stammdaten._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware }
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore._
+
 import scala.concurrent.Future
 import ch.openolitor.core.models.PersonId
-import scala.concurrent.ExecutionContext.Implicits.global
 import ch.openolitor.core.Macros._
-import ch.openolitor.core.filestore._
 import ch.openolitor.core.jobs.JobQueueService.JobId
 
-trait LieferplanungReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol {
+trait LieferplanungReportService extends AsyncConnectionPoolContextAware with ReportService with StammdatenJsonProtocol with ExecutionContextAware {
   self: StammdatenReadRepositoryAsyncComponent with ActorReferences with FileStoreComponent =>
   def generateLieferplanungReports(fileType: FileType)(config: ReportConfig[LieferplanungId])(implicit personId: PersonId): Future[Either[ServiceFailed, ReportServiceResult[LieferplanungId]]] = {
     generateReports[LieferplanungId, LieferplanungReport](
@@ -66,7 +65,7 @@ trait LieferplanungReportService extends AsyncConnectionPoolContextAware with Re
           }.getOrElse(Left(ValidationError[LieferplanungId](id, s"Die Lieferplanung konnte nicht gefunden werden"))))
         })
         results.map(_.partition(_.isLeft) match {
-          case (a, b) => (a.map(_.left.get), b.map(_.right.get))
+          case (a, b) => (a.map(_.swap.toOption.get), b.map(_.toOption.get))
         })
       } getOrElse Future { (Seq(ValidationError[LieferplanungId](null, s"Projekt konnte nicht geladen werden")), Seq()) }
     }

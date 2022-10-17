@@ -22,20 +22,17 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import spray.routing._
-import spray.routing.authentication._
-import spray.http._
-import scala.concurrent.Future
-import spray.caching.Cache
+import akka.http.scaladsl.server.{ Directive1, Rejection, RequestContext }
+import akka.http.scaladsl.server.Directives._
+import ch.openolitor.core.ExecutionContextAware
 import com.typesafe.scalalogging.LazyLogging
-import spray.routing.Rejection
-import scala.concurrent.duration.Duration
+import org.joda.time.{ DateTime, DateTimeZone }
 import scalaz._
-import Scalaz._
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import scala.util.{ Try, Success => TrySuccess, Failure => TryFailure }
+import scalaz.Scalaz._
+
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.util.{ Try, Failure => TryFailure, Success => TrySuccess }
 
 object AuthCookies {
   val CsrfTokenCookieName = "XSRF-TOKEN"
@@ -53,22 +50,30 @@ case class AuthenticatorRejection(reason: String) extends Rejection
  * 4. Request Zeit darf eine maximale Duration nicht überschreiten (Request kann nicht zu einem späteren Zeitpunkt erneut ausgeführt werden)
  * 5. Im lokalen Cache muss eine PersonId für das entsprechende token gespeichert sein
  */
-trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache {
+trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache with ExecutionContextAware {
   import AuthCookies._
+
+  type Authentication = Either[AuthenticatorRejection, Subject]
 
   /*
    * Configure max time since
    */
   val maxRequestDelay: Option[Duration]
-  lazy val openOlitorAuthenticator: ContextAuthenticator[Subject] = new XSRFTokenSessionAuthenticatorImpl(loginTokenCache)
 
-  private class XSRFTokenSessionAuthenticatorImpl(tokenCache: Cache[Subject]) extends ContextAuthenticator[Subject] {
+  def authenticate(implicit context: RequestContext): Directive1[Subject] =
+    onSuccess(new XSRFTokenSessionAuthenticatorImpl()(context)) flatMap {
+      case Left(rejection: AuthenticatorRejection) =>
+        reject(rejection): Directive1[Subject]
+      case Right(s: Subject) =>
+        provide(s)
+    }
 
-    val noDateTimeValue = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC);
+  private class XSRFTokenSessionAuthenticatorImpl {
+    val noDateTimeValue = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
 
-    type RequestValidation[V] = EitherT[Future, AuthenticatorRejection, V]
+    type RequestValidation[V] = EitherT[AuthenticatorRejection, Future, V]
 
-    def apply(ctx: RequestContext): Future[Authentication[Subject]] = {
+    def apply(ctx: RequestContext): Future[Authentication] = {
       logger.debug(s"${ctx.request.uri}:${ctx.request.method}")
       (for {
         headerToken <- findHeaderToken(ctx)
@@ -83,14 +88,14 @@ trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache 
     private def findCookieToken(ctx: RequestContext): RequestValidation[String] = EitherT {
       Future {
         logger.debug(s"Check cookies:${ctx.request.cookies}")
-        ctx.request.cookies.find(_.name.toLowerCase == CsrfTokenCookieName.toLowerCase).map(_.content.right).getOrElse(AuthenticatorRejection("Kein XSRF-Token im Cookie gefunden").left)
+        ctx.request.cookies.find(_.name.toLowerCase == CsrfTokenCookieName.toLowerCase).map(_.value.right[AuthenticatorRejection]).getOrElse(AuthenticatorRejection("Kein XSRF-Token im Cookie gefunden").left)
       }
     }
 
     private def findHeaderToken(ctx: RequestContext): RequestValidation[String] = EitherT {
       Future {
         logger.debug(s"Headers present: ${ctx.request.headers}")
-        ctx.request.headers.find(_.name.toLowerCase == CsrfTokenHeaderName.toLowerCase).map(_.value.right).getOrElse(AuthenticatorRejection("Kein XSRF-Token im Header gefunden").left)
+        ctx.request.headers.find(_.name.toLowerCase == CsrfTokenHeaderName.toLowerCase).map(_.value.right[AuthenticatorRejection]).getOrElse(AuthenticatorRejection("Kein XSRF-Token im Header gefunden").left)
       }
     }
 
@@ -116,21 +121,29 @@ trait XSRFTokenSessionAuthenticatorProvider extends LazyLogging with TokenCache 
     }
 
     private def findSubjectInCache(token: String): RequestValidation[Subject] = EitherT {
-      loginTokenCache.get(token) map (_ map (_.right)) getOrElse Future.successful(AuthenticatorRejection(s"Keine Person gefunden für token: $token").left)
+      loginTokenCache.get(token) match {
+        case Some(subjectFuture) =>
+          subjectFuture.map(_.right[AuthenticatorRejection])
+        case None =>
+          Future.successful(AuthenticatorRejection(s"Keine Person gefunden für token: $token").left)
+      }
     }
 
     private def compareRequestTime(requestTime: DateTime): RequestValidation[Boolean] = EitherT {
       Future {
-        maxRequestDelay map { maxTime =>
-          val now = DateTime.now
-          val min = now.minus(maxTime.toMillis)
-          if (min.isAfter(requestTime)) {
-            //request took too long
-            AuthenticatorRejection(s"Zeitstempel stimmt nicht überein. Aktuell: $now, Min: $min, Zeitstempel: $requestTime").left
-          } else {
-            true.right
-          }
-        } getOrElse (true.right)
+        maxRequestDelay match {
+          case Some(maxTime) =>
+            val now = DateTime.now
+            val min = now.minus(maxTime.toMillis)
+            if (min.isAfter(requestTime)) {
+              //request took too long
+              AuthenticatorRejection(s"Zeitstempel stimmt nicht überein. Aktuell: $now, Min: $min, Zeitstempel: $requestTime").left
+            } else {
+              true.right[AuthenticatorRejection]
+            }
+          case None =>
+            true.right[AuthenticatorRejection]
+        }
       }
     }
   }

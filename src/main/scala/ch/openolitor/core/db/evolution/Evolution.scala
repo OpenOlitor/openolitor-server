@@ -94,6 +94,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
           adjustSeed[ProduktProduzent, ProduktProduzentId](produktProduzentMapping),
           adjustSeed[Produktekategorie, ProduktekategorieId](produktekategorieMapping),
           adjustSeed[Projekt, ProjektId](projektMapping),
+          adjustSeed[ProjektVorlage, ProjektVorlageId](projektVorlageMapping),
           adjustSeed[Report, ReportId](reportMapping),
           adjustSeed[Tour, TourId](tourMapping),
           adjustSeed[Lieferplanung, LieferplanungId](lieferplanungMapping),
@@ -186,7 +187,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
             logger.warn(s"catched exception:", e)
             Failure(e)
         }
-    }.toIterator.takeWhileInclusive(_.isSuccess).toSeq
+    }.iterator.takeWhileInclusive(_.isSuccess).toSeq
 
     logger.debug(s"Evolved:$x:${x.reverse.headOption.getOrElse("xxx")}")
     x.reverse.headOption.getOrElse(Failure(EvolutionException(s"No Script found")))

@@ -41,7 +41,7 @@ abstract class RecursiveIterator[T](root: JsValue) extends AbstractIterator[JsVa
 
   protected def visit(t: T): Unit
 
-  override def hasNext(): Boolean =
+  override def hasNext: Boolean =
     (nextNode != null && !finished) || {
       pause = false
       if (stack == null) {

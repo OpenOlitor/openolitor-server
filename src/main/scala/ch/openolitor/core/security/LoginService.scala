@@ -1,7 +1,10 @@
 package ch.openolitor.core.security
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.ActorReferences
+import akka.http.caching.scaladsl.{ Cache, CachingSettings }
+import akka.http.caching.LfuCache
+import akka.pattern.ask
+import akka.util.Timeout
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware, SystemConfigReference }
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
@@ -9,53 +12,46 @@ import ch.openolitor.core.mailservice.Mail
 import ch.openolitor.core.mailservice.MailService.{ SendMailCommand, SendMailEvent }
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.StammdatenCommandHandler.{ PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand }
-import ch.openolitor.stammdaten.models.{ Einladung, EinladungId, EmailSecondFactorType, OtpSecondFactorType, Person, PersonSummary, Projekt, SecondFactorType }
+import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
+import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.util.OtpUtil
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
 import scalaz.EitherT
-import scalaz.Scalaz.ToEitherOps
-import spray.caching.LruCache
-import spray.routing.authentication.UserPass
-
-import scala.concurrent.duration._
-import akka.pattern.ask
+import scalaz.Scalaz._
 
 import java.util.UUID
+import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Random
-import scalaz._
-import Scalaz._
-import akka.util.Timeout
-import ch.openolitor.util.ConfigUtil._
 
 trait LoginService extends LazyLogging
   with AsyncConnectionPoolContextAware
   with XSRFTokenSessionAuthenticatorProvider
-  with ActorReferences {
+  with ActorReferences
+  with SystemConfigReference
+  with ExecutionContextAware {
   self: StammdatenReadRepositoryAsyncComponent =>
 
-  type EitherFuture[A] = EitherT[Future, RequestFailed, A]
+  type EitherFuture[A] = EitherT[RequestFailed, Future, A]
 
-  val secondFactorTokenCache = LruCache[SecondFactor](
-    maxCapacity = 1000,
-    timeToLive = 20 minutes,
-    timeToIdle = 10 minutes
-  )
+  private lazy val defaultCachingSettings = CachingSettings(system)
+  private lazy val lfuCachingSettings = defaultCachingSettings.lfuCacheSettings
+    .withMaxCapacity(1000)
+    .withTimeToLive(20 minutes)
+    .withTimeToIdle(10 minutes)
+  private lazy val cachingSettings = defaultCachingSettings.withLfuCacheSettings(lfuCachingSettings)
 
-  val secondFactorResetTokenCache = LruCache[String](
-    maxCapacity = 1000,
-    timeToLive = 20 minutes,
-    timeToIdle = 10 minutes
-  )
+  lazy val secondFactorTokenCache: Cache[String, SecondFactor] = LfuCache(cachingSettings)
+
+  lazy val secondFactorResetTokenCache: Cache[String, String] = LfuCache(cachingSettings)
 
   implicit val actorAskTimeout = Timeout(5.seconds)
 
   import SystemEvents._
 
-  lazy val config = sysConfig.mandantConfiguration.config
   lazy val requireSecondFactorAuthentication = config.getBooleanOption(s"security.second-factor-auth.require").getOrElse(true)
   override lazy val maxRequestDelay: Option[Duration] = config.getLongOption(s"security.max-request-delay").map(_ millis)
 
@@ -76,11 +72,13 @@ trait LoginService extends LazyLogging
   /**
    * Route validation methods
    */
-
-  def doLogout(implicit subject: Subject) = {
+  protected def doLogout(implicit subject: Subject): Future[Subject] = {
     logger.debug(s"Logout user:${subject.personId}, invalidate token:${subject.token}")
     //remove token from cache
-    loginTokenCache.remove(subject.token).getOrElse(Future.successful(subject))
+    loginTokenCache.get(subject.token).map { f =>
+      loginTokenCache.remove(subject.token)
+      f
+    }.getOrElse(Future.successful(subject))
   }
 
   def validateOtpResetRequest(form: OtpSecretResetRequest)(implicit subject: Subject): EitherFuture[OtpSecretResetResponse] = {
@@ -153,7 +151,7 @@ trait LoginService extends LazyLogging
 
   def validatePasswordChange(form: ChangePasswordForm)(implicit subject: Subject): EitherFuture[FormResult] = {
     for {
-      projekt <- getProjekt
+      projekt <- getProjekt()
       person <- personById(subject.personId)
       _ <- validatePassword(form.alt, person)
       _ <- validateNewPassword(form.neu)
@@ -165,20 +163,19 @@ trait LoginService extends LazyLogging
    * Validate user password used by basic authentication. Using basic auth we never to a two factor
    * authentication
    */
-  def basicAuthValidation(userPass: Option[UserPass]): Future[Option[Subject]] = {
+  def basicAuthValidation(username: String, password: String): Future[Option[Subject]] = {
     logger.debug(s"Perform basic authentication")
     (for {
-      up <- validateUserPass(userPass)
-      person <- personByEmail(up.user)
-      _ <- validatePassword(up.pass, person)
+      person <- personByEmail(username)
+      _ <- validatePassword(password, person)
       _ <- validatePerson(person)
       result <- doLogin(person, None)
-    } yield Subject(result.token.get, person.id, person.kundeId, person.rolle, None)).run.map(_.toOption)
+    } yield Subject(result.token.get, person.id, person.kundeId, person.rolle, person.secondFactorType)).run.map(_.toOption)
   }
 
   def personById(personId: PersonId): EitherFuture[Person] = {
     EitherT {
-      stammdatenReadRepository.getPerson(personId) map (_ map (_.right) getOrElse (errorPersonNotFound.left))
+      stammdatenReadRepository.getPerson(personId) map (_ map (_.right[RequestFailed]) getOrElse (errorPersonNotFound.left))
     }
   }
 
@@ -256,7 +253,7 @@ trait LoginService extends LazyLogging
     val secret = generateOtp
     val personSummary = copyTo[Person, PersonSummary](person)
     val response = OtpSecretResetResponse(token, personSummary, secret)
-    secondFactorResetTokenCache(token)(secret) map (_ => response.right)
+    secondFactorResetTokenCache(token, () => Future.successful(secret)).map(_ => response.right[RequestFailed])
   }
 
   private def validateOtpSecretFromCache(form: OtpSecretResetConfirm): EitherFuture[String] = {
@@ -270,7 +267,7 @@ trait LoginService extends LazyLogging
 
   private def getProjekt(): EitherFuture[Projekt] = {
     EitherT {
-      stammdatenReadRepository.getProjekt map (_ map (_.right) getOrElse {
+      stammdatenReadRepository.getProjekt map (_ map (_.right[RequestFailed]) getOrElse {
         logger.debug(s"Could not load project")
         errorConfigurationError.left
       })
@@ -284,8 +281,8 @@ trait LoginService extends LazyLogging
   private def readTokenFromCache(token: String): EitherFuture[SecondFactor] = {
     EitherT {
       transform(secondFactorTokenCache.get(token)) map {
-        case Some(factor @ EmailSecondFactor(token, _, _)) => factor.right
-        case Some(factor @ OtpSecondFactor(token, _)) => factor.right
+        case Some(factor @ EmailSecondFactor(token, _, _)) => (factor: SecondFactor).right[RequestFailed]
+        case Some(factor @ OtpSecondFactor(token, _)) => (factor: SecondFactor).right[RequestFailed]
         case _ => errorTokenOrCodeMismatch.left
       }
     }
@@ -295,9 +292,9 @@ trait LoginService extends LazyLogging
     EitherT {
       Future {
         (secondFactor, person.otpSecret) match {
-          case (OtpSecondFactor(_, person.id), secret) if OtpUtil.checkCodeWithSecret(code, secret) => true.right
+          case (OtpSecondFactor(_, person.id), secret) if OtpUtil.checkCodeWithSecret(code, secret) => true.right[RequestFailed]
           case (_: OtpSecondFactor, _) => errorTokenOrCodeMismatch.left
-          case (EmailSecondFactor(_, `code`, _), _) => true.right
+          case (EmailSecondFactor(_, `code`, _), _) => true.right[RequestFailed]
           case (_: EmailSecondFactor, _) => errorTokenOrCodeMismatch.left
         }
       }
@@ -305,7 +302,7 @@ trait LoginService extends LazyLogging
 
   private def personByEmail(email: String): EitherFuture[Person] = {
     EitherT {
-      stammdatenReadRepository.getPersonByEmail(email) map (_ map (_.right) getOrElse {
+      stammdatenReadRepository.getPersonByEmail(email) map (_ map (_.right[RequestFailed]) getOrElse {
         logger.debug(s"No person found for email")
         errorPersonNotFound.left
       })
@@ -316,7 +313,7 @@ trait LoginService extends LazyLogging
     //generate token
     val token = generateToken
     EitherT {
-      loginTokenCache(token)(Subject(token, person.id, person.kundeId, person.rolle, secondFactorType)) map { _ =>
+      loginTokenCache(token, () => Future.successful(Subject(token, person.id, person.kundeId, person.rolle, person.secondFactorType))) map { _ =>
         val personSummary = copyTo[Person, PersonSummary](person)
 
         eventStore ! PersonLoggedIn(person.id, org.joda.time.DateTime.now, secondFactorType)
@@ -339,7 +336,7 @@ trait LoginService extends LazyLogging
           EmailSecondFactor(token, code, person.id)
         case OtpSecondFactorType => OtpSecondFactor(token, person.id)
       }
-      secondFactorTokenCache(token)(secondFactor) map (_.right)
+      secondFactorTokenCache(token, () => Future.successful(secondFactor)).map(_.right[RequestFailed])
     }
   }
 
@@ -365,13 +362,13 @@ trait LoginService extends LazyLogging
   private def requireSecondFactorAuthentifcation(projekt: Projekt, person: Person): EitherFuture[Boolean] = EitherT {
     Future {
       requireSecondFactorAuthentication match {
-        case false                          => false.right
-        case true if (person.rolle.isEmpty) => true.right
+        case false                          => false.right[RequestFailed]
+        case true if (person.rolle.isEmpty) => true.right[RequestFailed]
         case true => projekt.twoFactorAuthentication.get(person.rolle.get).map {
-          case true => true.right
-          case false if person.secondFactorType.isDefined => true.right
-          case _ => false.right
-        }.getOrElse(true.right)
+          case true => true.right[RequestFailed]
+          case false if person.secondFactorType.isDefined => true.right[RequestFailed]
+          case _ => false.right[RequestFailed]
+        }.getOrElse(true.right[RequestFailed])
       }
     }
   }
@@ -380,14 +377,14 @@ trait LoginService extends LazyLogging
     Future {
       person.passwort map { pwd =>
         BCrypt.checkpw(password, new String(pwd)) match {
-          case true => true.right
+          case true => true.right[RequestFailed]
           case false =>
             logger.debug(s"Password mismatch")
-            errorUsernameOrPasswordMismatch.left
+            errorUsernameOrPasswordMismatch.left[Boolean]
         }
       } getOrElse {
         logger.debug(s"No password for user")
-        errorUsernameOrPasswordMismatch.left
+        errorUsernameOrPasswordMismatch.left[Boolean]
       }
     }
   }
@@ -395,7 +392,7 @@ trait LoginService extends LazyLogging
   private def validatePerson(person: Person): EitherFuture[Boolean] = EitherT {
     Future {
       person.loginAktiv match {
-        case true  => true.right
+        case true  => true.right[RequestFailed]
         case false => errorPersonLoginNotActive.left
       }
     }
@@ -405,13 +402,13 @@ trait LoginService extends LazyLogging
     EitherT {
       stammdatenReadRepository.getEinladung(token) map (_ map { einladung =>
         if (einladung.expires.isAfter(DateTime.now)) {
-          einladung.right
+          einladung.right[RequestFailed]
         } else {
-          RequestFailed("Die Einladung mit diesem Token ist abgelaufen").left
+          RequestFailed("Die Einladung mit diesem Token ist abgelaufen").left[Einladung]
         }
       } getOrElse {
         logger.debug(s"Token not found in Einladung")
-        RequestFailed("Keine Einladung mit diesem Token gefunden").left
+        RequestFailed("Keine Einladung mit diesem Token gefunden").left[Einladung]
       })
     }
   }
@@ -422,7 +419,7 @@ trait LoginService extends LazyLogging
         case false => None
         case true  => Some(form.secondFactorType)
       })
-      FormResult(status = Ok, None, None).right
+      FormResult(status = Ok, None, None).right[RequestFailed]
     }
   }
 
@@ -462,10 +459,4 @@ trait LoginService extends LazyLogging
   private def generateToken = UUID.randomUUID.toString
   private def generateCode = (Random.alphanumeric take 6).mkString.toLowerCase
   private def generateOtp = OtpUtil.generateOtpSecretString
-
-  private def validateUserPass(userPass: Option[UserPass]): EitherFuture[UserPass] = EitherT {
-    Future {
-      userPass map (_.right) getOrElse (errorUsernameOrPasswordMismatch.left)
-    }
-  }
 }

@@ -22,41 +22,42 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
-import akka.actor.{ ActorRef, ActorRefFactory, ActorSystem }
+import akka.actor.{ ActorRef, ActorSystem }
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import ch.openolitor.core._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
-import ch.openolitor.core.filestore.FileStore
+import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent }
 import ch.openolitor.core.security.Subject
 import ch.openolitor.mailtemplates.eventsourcing._
 import ch.openolitor.mailtemplates.model._
 import ch.openolitor.mailtemplates.repositories.{ DefaultMailTemplateReadRepositoryComponent, MailTemplateDBMappings, MailTemplateReadRepositoryComponent }
 import ch.openolitor.util.parsing.{ FilterExpr, UriQueryParamFilterParser }
 import com.typesafe.scalalogging.LazyLogging
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
-import spray.routing._
 
-trait MailTemplateRoutes extends HttpService
+import scala.concurrent.ExecutionContext
+
+trait MailTemplateRoutes extends BaseRouteService
+  with ActorReferences
   with AsyncConnectionPoolContextAware
-  with SprayDeserializers
-  with DefaultRouteService
+  with AkkaHttpDeserializers
   with LazyLogging
   with MailTemplateJsonProtocol
   with MailTemplateDBMappings
   with MailTemplateEventStoreSerializer {
-  self: MailTemplateReadRepositoryComponent =>
+  self: MailTemplateReadRepositoryComponent with FileStoreComponent =>
 
   implicit val mailTemplateIdPath = long2BaseIdPathMatcher(MailTemplateId.apply)
 
-  def mailRoute(implicit subect: Subject) =
-    parameters('f.?) { (f) =>
+  def mailRoute(implicit subect: Subject): Route =
+    parameter("f".?) { f =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
       mailTemplateRoute
     }
 
-  def mailTemplateRoute(implicit subject: Subject, filter: Option[FilterExpr]) =
+  def mailTemplateRoute(implicit subject: Subject, filter: Option[FilterExpr]): Route =
     path("mailtemplates") {
       get(list(mailTemplateReadRepositoryAsync.getMailTemplates())) ~
         post(create[MailTemplateModify, MailTemplateId](MailTemplateId.apply _))
@@ -80,9 +81,10 @@ class DefaultMailTemplateRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 ) extends MailTemplateRoutes
   with DefaultMailTemplateReadRepositoryComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

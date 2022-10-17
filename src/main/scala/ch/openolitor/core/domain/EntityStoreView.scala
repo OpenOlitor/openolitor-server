@@ -23,19 +23,22 @@
 package ch.openolitor.core.domain
 
 import java.util.concurrent.TimeUnit
-
-import akka.persistence.PersistentView
 import akka.actor.SupervisorStrategy.Restart
 import DefaultMessages._
 
 import scala.concurrent.duration._
 import akka.actor._
+import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
+import akka.persistence.query.{ EventEnvelope, PersistenceQuery }
+import akka.NotUsed
+import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 
 import scala.util._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.{ AirbrakeNotifierReference, DBEvolutionReference }
 import ch.openolitor.core.models.BaseId
-import ch.openolitor.util.AirbrakeNotifier.{ AirbrakeNotificationTermination }
+import ch.openolitor.util.AirbrakeNotifier.AirbrakeNotificationTermination
 
 trait EventService[E <: PersistentEvent] {
   type Handle = PartialFunction[E, Unit]
@@ -63,20 +66,31 @@ object EntityStoreView
 /**
  * Diese generische EntityStoreView delelegiert die Events an die jeweilige modulspezifische ActorRef
  */
-trait EntityStoreView extends PersistentView with DBEvolutionReference with LazyLogging with PersistenceEventStateSupport with AirbrakeNotifierReference {
+trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging with PersistenceEventStateSupport with AirbrakeNotifierReference {
   self: EntityStoreViewComponent =>
-
   import EntityStore._
 
   final case object PrepareTerminate
   final case object Terminate
   var failures = 0
 
-  override protected def onReplayError(cause: Throwable): Unit = {
-    super.onReplayError(cause)
-    failures = failures + 1
-    if (failures == 1) {
-      context.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.HOURS), context.self, PrepareTerminate)
+  lazy val readJournal: JdbcReadJournal =
+    PersistenceQuery(context.system)
+      .readJournalFor[JdbcReadJournal](JdbcReadJournal.Identifier, sysConfig.mandantConfiguration.config)
+
+  def journalSource(fromSequenceNr: Long): Source[Any, NotUsed] =
+    readJournal
+      .eventsByPersistenceId(
+        persistenceId,
+        fromSequenceNr = fromSequenceNr,
+        toSequenceNr = Long.MaxValue
+      )
+
+  def replayJournalSource(fromSequenceNr: Long): Unit = {
+    log.debug(s"replayJournalSource: $fromSequenceNr")
+    implicit val materializer = Materializer.matFromSystem(context.system)
+    journalSource(fromSequenceNr).runForeach {
+      case event: EventEnvelope => context.self ! event.event
     }
   }
 
@@ -93,12 +107,10 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
 
   val module: String
 
-  override val persistenceId = EntityStore.persistenceId
-  override def viewId: String = s"$module-entity-store"
+  val persistenceId = EntityStore.persistenceId
+  def viewId: String = s"$module-entity-store"
 
   override def persistenceStateStoreId: String = viewId
-
-  override def autoUpdateInterval: FiniteDuration = 300 millis
 
   /**
    * Delegate to
@@ -107,7 +119,7 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
     case Startup =>
       log.debug("Received Startup command")
       startup()
-      sender ! Started
+      sender() ! Started
     case PrepareTerminate =>
       log.debug("The prepareTerminate was called")
       prepareTerminate()
@@ -124,12 +136,13 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
       processNewEvents(e)
   }
 
-  def startup(): Unit = {}
+  def startup(): Unit = {
+    replayJournalSource(lastProcessedSequenceNr)
+  }
 
   val processNewEvents: Receive = {
-    case e: EntityStoreInitialized =>
+    case _: EntityStoreInitialized =>
       log.debug(s"Received EntityStoreInitialized")
-      initializeEntityStoreView()
     case e: EntityInsertedEvent[_, _] =>
       runSafe(insertService.handle, e)
     case e: EntityUpdatedEvent[_, _] =>
@@ -152,6 +165,4 @@ trait EntityStoreView extends PersistentView with DBEvolutionReference with Lazy
         throw e
     }
   }
-
-  def initializeEntityStoreView(): Unit
 }

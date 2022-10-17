@@ -33,7 +33,7 @@ trait ArbeitseinsatzWriteRepository extends ArbeitseinsatzReadRepositorySync
   with ArbeitseinsatzDeleteRepository
   with BaseWriteRepository
   with EventStream {
-  def cleanupDatabase(implicit cpContext: ConnectionPoolContext)
+  def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit
 }
 
 trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzReadRepositorySyncImpl
@@ -43,7 +43,7 @@ trait ArbeitseinsatzWriteRepositoryImpl extends ArbeitseinsatzReadRepositorySync
   with ArbeitseinsatzWriteRepository
   with LazyLogging
   with ArbeitseinsatzRepositoryQueries {
-  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext) = {
+  override def cleanupDatabase(implicit cpContext: ConnectionPoolContext): Unit = {
     DB autoCommit { implicit session =>
       sql"truncate table ${arbeitskategorieMapping.table}".execute.apply()
       sql"truncate table ${arbeitsangebotMapping.table}".execute.apply()

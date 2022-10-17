@@ -22,32 +22,30 @@
 \*                                                                           */
 package ch.openolitor.reports
 
-import spray.routing._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
+import akka.actor._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import ch.openolitor.core._
 import ch.openolitor.core.db._
-
-import scala.concurrent.Future
+import ch.openolitor.core.filestore._
+import ch.openolitor.core.security.Subject
 import ch.openolitor.reports.eventsourcing.ReportsEventStoreSerializer
 import ch.openolitor.reports.models._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.filestore._
-import akka.actor._
-import ch.openolitor.core.security.Subject
+import ch.openolitor.reports.repositories.{ DefaultReportsReadRepositorySyncComponent, ReportsReadRepositorySyncComponent }
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.reports.repositories.DefaultReportsReadRepositorySyncComponent
-import ch.openolitor.reports.repositories.ReportsReadRepositorySyncComponent
+import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc.DB
-import spray.http.StatusCodes
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * This is using a Sync-Repository as there is no way to fetch the MetaData on the
  * scalikejdbc-async - RowDataResultSet
  * TODO Revert as soon as possible
  */
-trait SyncReportsRoutes extends HttpService with ActorReferences
-  with ConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+trait SyncReportsRoutes extends BaseRouteService with ActorReferences
+  with ConnectionPoolContextAware with AkkaHttpDeserializers with LazyLogging
   with ReportsJsonProtocol
   with ReportsEventStoreSerializer
   with ReportsDBMappings {
@@ -55,20 +53,23 @@ trait SyncReportsRoutes extends HttpService with ActorReferences
 
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
 
-  def syncReportsRoute(implicit subect: Subject) =
-    parameters('f.?) { (f) =>
+  def syncReportsRoute(implicit subect: Subject): Route =
+    parameter("f".?) { f =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
-      path("reports" / reportIdPath / "execute" ~ exportFormatPath.?) { (id, exportFormat) =>
+      path("reports" / reportIdPath / "execute" ~ exportFormatPath.?) { (_, exportFormat) =>
         post {
-          requestInstance { request =>
+          extractRequestContext { requestContext =>
+            implicit val materializer = requestContext.materializer
             entity(as[ReportExecute]) { reportExecute =>
               try {
                 val result = DB readOnly {
                   implicit session => reportsReadRepository.executeReport(reportExecute, exportFormat)
                 }
-                list(Future.successful { result }, exportFormat)
+                list(Future.successful {
+                  result
+                }, exportFormat)
               } catch {
                 case e: Exception =>
                   complete(StatusCodes.BadRequest, s"$e")
@@ -89,10 +90,10 @@ class DefaultSyncReportsRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
-)
-  extends SyncReportsRoutes
+) extends SyncReportsRoutes
   with DefaultReportsReadRepositorySyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

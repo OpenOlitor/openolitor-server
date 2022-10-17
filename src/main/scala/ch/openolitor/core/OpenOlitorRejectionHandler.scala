@@ -22,38 +22,27 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import spray.routing._
-import spray.http._
-import spray.http.StatusCodes._
-import Directives._
-import spray.httpx.SprayJsonSupport._
-import com.typesafe.scalalogging.LazyLogging
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.RejectionHandler
 import ch.openolitor.core.security.AuthenticatorRejection
+import com.typesafe.scalalogging.LazyLogging
 
 case class RejectionMessage(message: String, cause: String)
 
 /** Custom RejectionHandler for dealing with AuthenticatorRejections. */
-object OpenOlitorRejectionHandler extends LazyLogging with BaseJsonProtocol {
-  import spray.httpx.marshalling
+object OpenOlitorRejectionHandler extends LazyLogging with BaseJsonProtocol with SprayJsonSupport {
+  override implicit val rejectionMessageFormat = jsonFormat2(RejectionMessage)
 
-  def apply(corsSupport: CORSSupport): RejectionHandler = RejectionHandler {
-    case rejections if rejections.find(_.isInstanceOf[AuthenticatorRejection]).isDefined =>
-      val reason = rejections.find(_.isInstanceOf[AuthenticatorRejection]).get.asInstanceOf[AuthenticatorRejection].reason
-
+  def apply(corsSupport: CORSSupport): RejectionHandler = RejectionHandler.newBuilder().handle({
+    case AuthenticatorRejection(reason) =>
       logger.debug(s"AuthenticatorRejection: $reason")
-
-      complete(HttpResponse(Unauthorized).withHeaders(
-        corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders
-      ).withEntity(marshalling.marshalUnsafe(RejectionMessage("Unauthorized", ""))))
-
-    case others if RejectionHandler.Default.isDefinedAt(others) =>
-      ctx => RejectionHandler.Default(others) {
-        ctx.withHttpResponseMapped {
-          case resp @ HttpResponse(_, HttpEntity.NonEmpty(_, msg), _, _) =>
-            resp.withHeaders(
-              corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders
-            ).withEntity(marshalling.marshalUnsafe(RejectionMessage(msg.asString, "")))
-        }
-      }
-  }
+      complete(Unauthorized, corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders, RejectionMessage("Unauthorized", ""))
+  }).result().withFallback(RejectionHandler.default.mapRejectionResponse {
+    case response @ HttpResponse(_, _, entity: HttpEntity.Strict, _) =>
+      response.withHeaders(corsSupport.allowCredentialsHeader :: corsSupport.allowOriginHeader :: corsSupport.exposeHeaders :: corsSupport.optionsCorsHeaders).withEntity(RejectionMessage(entity.data.utf8String, "").toString)
+    case x => x
+  })
 }

@@ -22,27 +22,26 @@
 \*                                                                           */
 package ch.openolitor.core.reporting
 
-import ch.openolitor.core.ActorReferences
+import ch.openolitor.core.{ ActorReferences, DateFormats, ExecutionContextAware, JSONSerializable }
 import scalaz._
 import Scalaz._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.reporting.ReportSystem._
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import scala.concurrent.Future
 import spray.json.JsonFormat
-import ch.openolitor.core.JSONSerializable
 import com.typesafe.scalalogging.LazyLogging
-import scala.util.{ Success => TrySuccess, Failure => TryFailure }
+
+import scala.util.{ Failure => TryFailure, Success => TrySuccess }
 import ch.openolitor.util.InputStreamUtil._
+
 import java.util.Locale
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models.ProjektVorlageId
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import spray.json._
-import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.JobId
-import ch.openolitor.core.JSONSerializable
 
 sealed trait BerichtsVorlage extends Product
 case object DatenExtrakt extends BerichtsVorlage
@@ -69,16 +68,16 @@ case class ReportServiceResult[I](jobId: JobId, validationErrors: Seq[Validation
   val hasErrors = !validationErrors.isEmpty
 }
 case class AsyncReportServiceResult(jobId: JobId, validationErrors: Seq[JsValue]) extends JSONSerializable {
-  val hasErrors = !validationErrors.isEmpty
+  def hasErrors = !validationErrors.isEmpty
 }
 
-trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware with FileTypeFilenameMapping with DateFormats {
+trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware with FileTypeFilenameMapping with DateFormats with ExecutionContextAware {
   self: ActorReferences with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
 
   implicit val actorSystem = system
 
   import ReportSystem._
-  type ServiceResult[T] = EitherT[Future, ServiceFailed, T]
+  type ServiceResult[T] = EitherT[ServiceFailed, Future, T]
 
   /**
    *
@@ -126,7 +125,7 @@ trait ReportService extends LazyLogging with AsyncConnectionPoolContextAware wit
 
   def generateReport[I, E](vorlage: Array[Byte], data: ReportData[E], pdfGenerieren: Boolean,
     pdfAblage: Option[FileStoreParameters[E]], downloadFile: Boolean, pdfMerge: Boolean, jobId: JobId)(implicit personId: PersonId): ServiceResult[JobId] = EitherT {
-    logger.debug(s"generateReport: vorlage: $vorlage, pdfGenerieren: $pdfGenerieren, pdfAblage: $pdfAblage, downloadFile: $downloadFile, pdfMerge: $pdfMerge, jobId: $jobId")
+    logger.debug(s"generateReport: vorlage: ${vorlage.length}, pdfGenerieren: $pdfGenerieren, pdfAblage: $pdfAblage, downloadFile: $downloadFile, pdfMerge: $pdfMerge, jobId: $jobId")
     val collector =
       if (pdfAblage.isDefined) FileStoreReportResultCollector.props(reportSystem, jobQueueService, downloadFile, pdfMerge)
       else if (data.rows.size == 1) HeadReportResultCollector.props(reportSystem, jobQueueService)

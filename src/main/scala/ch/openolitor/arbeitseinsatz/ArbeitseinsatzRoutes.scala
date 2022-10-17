@@ -23,37 +23,34 @@
 package ch.openolitor.arbeitseinsatz
 
 import akka.actor._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
-import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
-import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
+import akka.http.scaladsl.server.Route
 import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
 import ch.openolitor.arbeitseinsatz.models._
-import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.arbeitseinsatz.reporting._
+import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
+import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.core.filestore._
 import ch.openolitor.core.models._
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.models.KundeId
-import com.typesafe.scalalogging.LazyLogging
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
-import spray.routing._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import ch.openolitor.core.domain.EntityStore._
 import ch.openolitor.util.parsing.UriQueryFilterParser
 import ch.openolitor.util.parsing.QueryFilter
+import ch.openolitor.stammdaten.repositories.{ DefaultStammdatenReadRepositoryAsyncComponent, StammdatenReadRepositoryAsyncComponent }
 
-trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+import scala.concurrent.ExecutionContext
+
+trait ArbeitseinsatzRoutes extends BaseRouteService
+  with ActorReferences
+  with AsyncConnectionPoolContextAware
   with ArbeitseinsatzJsonProtocol
   with ArbeitseinsatzEventStoreSerializer
   with ArbeitsangebotReportService
   with ArbeitseinsatzReportService
-  with ArbeitseinsatzPaths
   with FileTypeFilenameMapping
   with Defaults {
   self: ArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with StammdatenReadRepositoryAsyncComponent =>
@@ -64,105 +61,121 @@ trait ArbeitseinsatzRoutes extends HttpService with ActorReferences
   implicit val arbeitsangebotIdPath = long2BaseIdPathMatcher(ArbeitsangebotId.apply)
   implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
 
-  def arbeitseinsatzRoutes(implicit subject: Subject): Route =
-    parameters('q.?) { q =>
-      implicit val queryFilter = q flatMap { queryFilter =>
-        UriQueryFilterParser.parse(queryFilter)
+  def arbeitseinsatzRoute(implicit subject: Subject): Route =
+    parameters("q".?) { q =>
+      implicit val queryFilter = q flatMap {
+        queryFilter =>
+          UriQueryFilterParser.parse(queryFilter)
       }
-      arbeitseinsatzRoute
+      path("arbeitskategorien" ~ exportFormatPath.?) {
+        exportFormat =>
+          get(list(arbeitseinsatzReadRepository.getArbeitskategorien, exportFormat)) ~
+            post(create[ArbeitskategorieModify, ArbeitskategorieId](ArbeitskategorieId.apply _))
+      } ~
+        path("arbeitskategorien" / arbeitskategorieIdPath) {
+          id =>
+            (put | post)(update[ArbeitskategorieModify, ArbeitskategorieId](id)) ~
+              delete(remove(id))
+        } ~
+        path("arbeitsangebote" ~ exportFormatPath.?) {
+          exportFormat =>
+            get(list(arbeitseinsatzReadRepository.getArbeitsangebote, exportFormat)) ~
+              post(create[ArbeitsangebotModify, ArbeitsangebotId](ArbeitsangebotId.apply _))
+        } ~
+        path("arbeitsangebote" / "zukunft" ~ exportFormatPath.?) {
+          exportFormat =>
+            get(list(arbeitseinsatzReadRepository.getFutureArbeitsangebote, exportFormat))
+        } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath) {
+          id =>
+            get(detail(arbeitseinsatzReadRepository.getArbeitsangebot(id))) ~
+              (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
+              delete(remove(id))
+        } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "duplizieren") {
+          id =>
+            post {
+              extractRequest {
+                request =>
+                  entity(as[ArbeitsangeboteDuplicate]) {
+                    entity =>
+                      created(request)(entity)
+                  }
+              }
+            }
+        } ~
+        path("arbeitsangebote" / "berichte" / "arbeitsangebote") {
+          implicit val personId = subject.personId
+          generateReport[ArbeitsangebotId](None, generateArbeitsangebotReports(VorlageArbeitangebot) _)(ArbeitsangebotId.apply)
+        } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath / "berichte" / "arbeitseinsatzbrief") {
+          id =>
+            (post) {
+              implicit val personId = subject.personId
+              generateReport[ArbeitsangebotId](Some(id), generateArbeitsangebotReports(VorlageArbeitangebot) _)(ArbeitsangebotId.apply)
+            }
+        } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze") {
+          id =>
+            get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(id))) ~
+              post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
+        } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze" / arbeitseinsatzIdPath) {
+          (arbeitsangebotId, arbeitseinsatzId) =>
+            get(detail(arbeitseinsatzReadRepository.getArbeitseinsatz(arbeitseinsatzId))) ~
+              (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](arbeitseinsatzId)) ~
+              delete(remove(arbeitseinsatzId))
+        } ~
+        path("arbeitseinsaetze" ~ exportFormatPath.?) {
+          exportFormat =>
+            get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze, exportFormat)) ~
+              post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
+        } ~
+        path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) {
+          (kundeId, exportFormat) =>
+            get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kundeId), exportFormat))
+        } ~
+        path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) {
+          exportFormat =>
+            get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze, exportFormat))
+        } ~
+        path("arbeitseinsaetze" / arbeitseinsatzIdPath) {
+          id =>
+            get(detail(arbeitseinsatzReadRepository.getArbeitseinsatz(id))) ~
+              (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](id)) ~
+              delete(remove(id))
+        } ~
+        path("arbeitseinsaetze" / "berichte" / "arbeitseinsatzbrief") {
+          implicit val personId = subject.personId
+          generateReport[ArbeitseinsatzId](None, generateArbeitseinsatzReports(VorlageArbeitseinsatz) _)(ArbeitseinsatzId.apply)
+        } ~
+        path("arbeitseinsaetze" / arbeitseinsatzIdPath / "berichte" / "arbeitseinsatzbrief") {
+          id =>
+            post {
+              implicit val personId = subject.personId
+              generateReport[ArbeitseinsatzId](Some(id), generateArbeitseinsatzReports(VorlageArbeitseinsatz) _)(ArbeitseinsatzId.apply)
+            }
+        } ~
+        path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) {
+          (kunedId, exportFormat) =>
+            get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId), exportFormat))
+        } ~
+        path("arbeitseinsatzabrechnung" ~ exportFormatPath.?) {
+          exportFormat =>
+            parameter("x".as[ArbeitsComplexFlags] ?) {
+              xFlags: Option[ArbeitsComplexFlags] =>
+                get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung(xFlags), exportFormat))
+            }
+        } ~
+        path("mailing" / "sendEmailToArbeitsangebotPersonen") {
+          post {
+            entity(as[ArbeitsangebotMailRequest]) {
+              arbeitsangebotMailRequest =>
+                sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.replyTo, arbeitsangebotMailRequest.ids)
+            }
+          }
+        }
     }
-
-  def arbeitseinsatzRoute(implicit subject: Subject, queryString: Option[QueryFilter]): Route =
-    path("arbeitskategorien" ~ exportFormatPath.?) { exportFormat =>
-      get(list(arbeitseinsatzReadRepository.getArbeitskategorien, exportFormat)) ~
-        post(create[ArbeitskategorieModify, ArbeitskategorieId](ArbeitskategorieId.apply _))
-    } ~
-      path("arbeitskategorien" / arbeitskategorieIdPath) { id =>
-        (put | post)(update[ArbeitskategorieModify, ArbeitskategorieId](id)) ~
-          delete(remove(id))
-      } ~
-      path("arbeitsangebote" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitsangebote, exportFormat)) ~
-          post(create[ArbeitsangebotModify, ArbeitsangebotId](ArbeitsangebotId.apply _))
-      } ~
-      path("arbeitsangebote" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getFutureArbeitsangebote, exportFormat))
-      } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath) { id =>
-        get(detail(arbeitseinsatzReadRepository.getArbeitsangebot(id))) ~
-          (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
-          delete(remove(id))
-      } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "duplizieren") { id =>
-        post {
-          requestInstance { request =>
-            entity(as[ArbeitsangeboteDuplicate]) { entity =>
-              created(request)(entity)
-            }
-          }
-        }
-      } ~
-      path("arbeitsangebote" / "berichte" / "arbeitsangebote") {
-        implicit val personId = subject.personId
-        generateReport[ArbeitsangebotId](None, generateArbeitsangebotReports(VorlageArbeitangebot) _)(ArbeitsangebotId.apply)
-      } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath / "berichte" / "arbeitseinsatzbrief") { id =>
-        (post) {
-          implicit val personId = subject.personId
-          generateReport[ArbeitsangebotId](Some(id), generateArbeitsangebotReports(VorlageArbeitangebot) _)(ArbeitsangebotId.apply)
-        }
-      } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze") { id =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(id))) ~
-          post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
-      } ~
-      path("arbeitsangebote" / arbeitsangebotIdPath / "arbeitseinsaetze" / arbeitseinsatzIdPath) { (arbeitsangebotId, arbeitseinsatzId) =>
-        get(detail(arbeitseinsatzReadRepository.getArbeitseinsatz(arbeitseinsatzId))) ~
-          (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](arbeitseinsatzId)) ~
-          delete(remove(arbeitseinsatzId))
-      } ~
-      path("arbeitseinsaetze" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze, exportFormat)) ~
-          post(create[ArbeitseinsatzModify, ArbeitseinsatzId](ArbeitseinsatzId.apply _))
-      } ~
-      path("arbeitseinsaetze" / kundeIdPath ~ exportFormatPath.?) { (kundeId, exportFormat) =>
-        get(list(arbeitseinsatzReadRepository.getArbeitseinsaetze(kundeId), exportFormat))
-      } ~
-      path("arbeitseinsaetze" / "zukunft" ~ exportFormatPath.?) { exportFormat =>
-        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze, exportFormat))
-      } ~
-      path("arbeitseinsaetze" / arbeitseinsatzIdPath) { id =>
-        get(detail(arbeitseinsatzReadRepository.getArbeitseinsatz(id))) ~
-          (put | post)(update[ArbeitseinsatzModify, ArbeitseinsatzId](id)) ~
-          delete(remove(id))
-      } ~
-      path("arbeitseinsaetze" / "berichte" / "arbeitseinsatzbrief") {
-        implicit val personId = subject.personId
-        generateReport[ArbeitseinsatzId](None, generateArbeitseinsatzReports(VorlageArbeitseinsatz) _)(ArbeitseinsatzId.apply)
-      } ~
-      path("arbeitseinsaetze" / arbeitseinsatzIdPath / "berichte" / "arbeitseinsatzbrief") { id =>
-        (post) {
-          implicit val personId = subject.personId
-          generateReport[ArbeitseinsatzId](Some(id), generateArbeitseinsatzReports(VorlageArbeitseinsatz) _)(ArbeitseinsatzId.apply)
-        }
-      } ~
-      path("arbeitseinsaetze" / kundeIdPath / "zukunft" ~ exportFormatPath.?) { (kunedId, exportFormat) =>
-        get(list(arbeitseinsatzReadRepository.getFutureArbeitseinsaetze(kunedId), exportFormat))
-      } ~
-      path("arbeitseinsatzabrechnung" ~ exportFormatPath.?) { exportFormat =>
-        parameter('x.?.as[ArbeitsComplexFlags]) { xFlags: ArbeitsComplexFlags =>
-          get(list(arbeitseinsatzReadRepository.getArbeitseinsatzabrechnung(Option(xFlags)), exportFormat))
-        }
-      } ~
-      path("mailing" / "sendEmailToArbeitsangebotPersonen") {
-        post {
-          requestInstance { request =>
-            entity(as[ArbeitsangebotMailRequest]) { arbeitsangebotMailRequest =>
-              sendEmailToArbeitsangebotPersonen(arbeitsangebotMailRequest.subject, arbeitsangebotMailRequest.body, arbeitsangebotMailRequest.replyTo, arbeitsangebotMailRequest.ids)
-            }
-          }
-        }
-      }
 
   private def sendEmailToArbeitsangebotPersonen(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId])(implicit subject: Subject) = {
     onSuccess((entityStore ? ArbeitseinsatzCommandHandler.SendEmailToArbeitsangebotPersonenCommand(subject.personId, emailSubject, body, replyTo, ids))) {
@@ -183,10 +196,11 @@ class DefaultArbeitseinsatzRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
-)
-  extends ArbeitseinsatzRoutes
-  with DefaultArbeitseinsatzReadRepositoryAsyncComponent with FileStoreComponent with DefaultStammdatenReadRepositoryAsyncComponent
+) extends ArbeitseinsatzRoutes
+  with DefaultArbeitseinsatzReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent
+  with DefaultStammdatenReadRepositoryAsyncComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

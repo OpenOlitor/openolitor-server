@@ -22,24 +22,22 @@
 \*                                                                           */
 package ch.openolitor.reports
 
-import spray.routing._
-
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive._
+import akka.actor._
+import akka.http.scaladsl.server.Directives._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
+import ch.openolitor.core.filestore._
+import ch.openolitor.core.security.Subject
 import ch.openolitor.reports.eventsourcing.ReportsEventStoreSerializer
 import ch.openolitor.reports.models._
-import com.typesafe.scalalogging.LazyLogging
-import ch.openolitor.core.filestore._
-import akka.actor._
-import ch.openolitor.core.security.Subject
+import ch.openolitor.reports.repositories.{ DefaultReportsReadRepositoryAsyncComponent, ReportsReadRepositoryAsyncComponent }
 import ch.openolitor.util.parsing.UriQueryParamFilterParser
-import ch.openolitor.reports.repositories.DefaultReportsReadRepositoryAsyncComponent
-import ch.openolitor.reports.repositories.ReportsReadRepositoryAsyncComponent
+import com.typesafe.scalalogging.LazyLogging
 
-trait ReportsRoutes extends HttpService with ActorReferences
-  with AsyncConnectionPoolContextAware with SprayDeserializers with DefaultRouteService with LazyLogging
+import scala.concurrent.ExecutionContext
+
+trait ReportsRoutes extends BaseRouteService with ActorReferences
+  with AsyncConnectionPoolContextAware with AkkaHttpDeserializers with LazyLogging
   with ReportsJsonProtocol
   with ReportsEventStoreSerializer
   with ReportsDBMappings {
@@ -48,13 +46,16 @@ trait ReportsRoutes extends HttpService with ActorReferences
   implicit val reportIdPath = long2BaseIdPathMatcher(ReportId.apply)
 
   def reportsRoute(implicit subect: Subject) =
-    parameters('f.?) { (f) =>
+    parameter("f".?) { f =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }
       path("reports" ~ exportFormatPath.?) { exportFormat =>
-        get(list(reportsReadRepository.getReports, exportFormat)) ~
-          post(create[ReportCreate, ReportId](ReportId.apply _))
+        extractRequestContext { requestContext =>
+          implicit val materializer = requestContext.materializer
+          get(list(reportsReadRepository.getReports, exportFormat)) ~
+            post(create[ReportCreate, ReportId](ReportId.apply _))
+        }
       } ~
         path("reports" / reportIdPath) { id =>
           get(detail(reportsReadRepository.getReport(id))) ~
@@ -73,10 +74,11 @@ class DefaultReportsRoutes(
   override val reportSystem: ActorRef,
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
   override val airbrakeNotifier: ActorRef,
   override val jobQueueService: ActorRef
 )
   extends ReportsRoutes
   with DefaultReportsReadRepositoryAsyncComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
+}

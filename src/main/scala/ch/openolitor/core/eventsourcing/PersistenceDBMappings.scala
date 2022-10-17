@@ -25,14 +25,15 @@ package ch.openolitor.core.eventsourcing
 import scalikejdbc._
 import scalikejdbc.TypeBinder._
 import ch.openolitor.core.models._
-import stamina.DefaultPersistedCodec
-import scala.util.{ Try, Success, Failure }
-import stamina.Persisters
+import stamina.{ DefaultPersistedCodec, Persisted, Persisters }
+
+import scala.util.{ Failure, Success, Try }
 import spray.json.JsValue
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.repositories.DBMappings
 import akka.util.ByteString
 import akka.util.ByteStringBuilder
+
 import java.io.InputStream
 import scala.annotation.tailrec
 import akka.serialization.SerializationExtension
@@ -57,10 +58,10 @@ trait PersistenceDBMappings extends DBMappings with ActorSystemReference {
   private def readStream(is: InputStream, builder: ByteStringBuilder): ByteString = {
     val buffer = new Array[Byte](1024)
     is.read(buffer) match {
-      case l if l <= 0 => builder.result
+      case l if l <= 0 => builder.result()
       case l =>
         for (i <- 0 to l) {
-          print(buffer(i) + " ")
+          print(s"${buffer(i)} ")
           builder.putByte(buffer(i))
         }
         readStream(is, builder)
@@ -69,32 +70,40 @@ trait PersistenceDBMappings extends DBMappings with ActorSystemReference {
 
   val serialization: Serialization = SerializationExtension(system)
 
+  private def decodePayload(payload: Any): Option[PersistedMessage] = payload match {
+    case payload: JsValue =>
+      Some(PersistedMessage(payload))
+    case x: AnyRef if persisters.canPersist(x) =>
+      // decapitalize
+      val chars = x.getClass.getSimpleName.toCharArray()
+      if (chars.length > 1) {
+        chars(0) = chars(0).toLower
+      }
+      // add name to object
+      val name = new String(chars)
+      val bytes = persisters.persist(x).bytes
+      val json = JsonParser(ParserInput(bytes.toArray))
+      val result = JsObject(name -> json)
+      Some(PersistedMessage(result))
+    case _ =>
+      None
+  }
+
   implicit val persistedMessageBinder: TypeBinder[Option[PersistedMessage]] = bytes map { message =>
     Try {
       serialization.deserialize(message, classOf[PersistentRepr]) match {
-        case Success(m: PersistentRepr) =>
-          m.payload match {
-            case payload: JsValue =>
-              Some(PersistedMessage(m.persistenceId, m.sequenceNr, payload))
-            case x: AnyRef if persisters.canPersist(x) =>
-              // decapitalize
-              val chars = x.getClass.getSimpleName.toCharArray()
-              if (chars.length > 1) {
-                chars(0) = chars(0).toLower
-              }
-              // add name to object
-              val name = new String(chars)
-              val bytes = persisters.persist(x).bytes
-              val json = JsonParser(ParserInput(bytes.toArray))
-              val result = JsObject(name -> json)
-              Some(PersistedMessage(m.persistenceId, m.sequenceNr, result))
+        case Success(m: PersistentRepr) => decodePayload(m.payload)
+        case _ =>
+          // plain deserialization of PersistentEvent
+          serialization.deserialize(message, classOf[PersistentEvent]) match {
+            case Success(persisted) => decodePayload(persisted)
+            case _ =>
+              None
           }
-        case _ => None
       }
     } match {
       case Success(msg) => msg
       case Failure(e) =>
-        println(s">>>>>>Errro:$e")
         e.printStackTrace()
         None
     }
@@ -116,37 +125,20 @@ trait PersistenceDBMappings extends DBMappings with ActorSystemReference {
     }
   }
 
-  implicit val persistenceJournalMapping = new SQLSyntaxSupport[PersistenceJournal] with LazyLogging with DBMappings {
-    override val tableName = "persistence_journal"
+  implicit val persistenceJournalViewMapping = new SQLSyntaxSupport[PersistenceJournalView] with LazyLogging with DBMappings {
+    override val tableName = "journal_view"
 
-    override lazy val columns = autoColumns[PersistenceJournal]()
+    override lazy val columns = autoColumns[PersistenceJournalView]()
 
     //override def columnNames
-    def apply(p: SyntaxProvider[PersistenceJournal])(rs: WrappedResultSet): PersistenceJournal = apply(p.resultName)(rs)
+    def apply(p: SyntaxProvider[PersistenceJournalView])(rs: WrappedResultSet): PersistenceJournalView = apply(p.resultName)(rs)
 
-    def opt(e: SyntaxProvider[PersistenceJournal])(rs: WrappedResultSet): Option[PersistenceJournal] = try {
+    def opt(e: SyntaxProvider[PersistenceJournalView])(rs: WrappedResultSet): Option[PersistenceJournalView] = try {
       Option(apply(e)(rs))
     } catch {
       case e: IllegalArgumentException => None
     }
 
-    def apply(rn: ResultName[PersistenceJournal])(rs: WrappedResultSet): PersistenceJournal = autoConstruct(rs, rn)
-  }
-
-  implicit val persistenceMetadataMapping = new SQLSyntaxSupport[PersistenceMetadata] with LazyLogging with DBMappings {
-    override val tableName = "persistence_metadata"
-
-    override lazy val columns = autoColumns[PersistenceMetadata]()
-
-    //override def columnNames
-    def apply(p: SyntaxProvider[PersistenceMetadata])(rs: WrappedResultSet): PersistenceMetadata = apply(p.resultName)(rs)
-
-    def opt(e: SyntaxProvider[PersistenceMetadata])(rs: WrappedResultSet): Option[PersistenceMetadata] = try {
-      Option(apply(e)(rs))
-    } catch {
-      case e: IllegalArgumentException => None
-    }
-
-    def apply(rn: ResultName[PersistenceMetadata])(rs: WrappedResultSet): PersistenceMetadata = autoConstruct(rs, rn)
+    def apply(rn: ResultName[PersistenceJournalView])(rs: WrappedResultSet): PersistenceJournalView = autoConstruct(rs, rn)
   }
 }

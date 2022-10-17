@@ -157,7 +157,7 @@ trait KorbHandler extends KorbStatusHandler
         }
         (dateFormat.print(lieferung.datum), lieferung.abotypBeschrieb)
       }
-      val abotypDates = (abotypDepotTour.groupBy(_._1).mapValues(_ map { _._2 }) map {
+      val abotypDates = (abotypDepotTour.groupBy(_._1).view.mapValues(_ map { _._2 }) map {
         case (datum, abotypBeschrieb) =>
           datum + ": " + abotypBeschrieb.mkString(", ")
       }).mkString("; ")
@@ -175,7 +175,7 @@ trait KorbHandler extends KorbStatusHandler
       (dateFormat.print(lieferung.datum), lieferung.abotypBeschrieb)
     }
 
-    val abotypDates = (abotypDepotTour.groupBy(_._1).mapValues(_ map { _._2 }) map {
+    val abotypDates = (abotypDepotTour.groupBy(_._1).view.mapValues(_ map { _._2 }) map {
       case (datum, abotypBeschrieb) =>
         datum + ": " + abotypBeschrieb.mkString(", ")
     }).mkString("; ")
@@ -412,7 +412,7 @@ trait KorbHandler extends KorbStatusHandler
     val stati: List[KorbStatus] = stammdatenWriteRepository.getKoerbe(lieferung.id).map(_.status)
     val counts: Map[KorbStatus, Int] = stati.groupBy {
       s => s
-    }.mapValues(_.size)
+    }.view.mapValues(_.size).toMap
 
     val zuLiefern: Int = counts.getOrElse(WirdGeliefert, 0)
     val abwesenheiten: Int = counts.getOrElse(FaelltAusAbwesend, 0)

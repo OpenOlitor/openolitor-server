@@ -22,60 +22,38 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
-import spray.routing._
-import ch.openolitor.core.db.ConnectionPoolContextAware
-import com.typesafe.scalalogging.LazyLogging
 import akka.actor._
-import spray.routing._
-import spray.http._
-import spray.httpx.marshalling.ToResponseMarshallable._
-import spray.httpx.SprayJsonSupport._
-import spray.routing.Directive.pimpApply
-import java.io.ByteArrayInputStream
-import ch.openolitor.core.SystemConfig
-import ch.openolitor.core.ActorReferences
-import ch.openolitor.core.SprayDeserializers
-import ch.openolitor.core.DefaultRouteService
-import ch.openolitor.core.data.DataImportService
-import akka.util.Timeout
-import scala.concurrent.duration._
-import ch.openolitor.core.data.DataImportService.ImportData
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import ch.openolitor.core.data.DataImportService.ImportResult
-import spray.json._
-import scala.concurrent.ExecutionContext.Implicits.global
-import ch.openolitor.core.filestore.FileStore
-import ch.openolitor.core.security.Subject
-import ch.openolitor.core.repositories._
-import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import akka.stream.Materializer
+import akka.util.Timeout
+import ch.openolitor.core.{ ActorReferences, BaseRouteService, AkkaHttpDeserializers, SystemConfig }
+import ch.openolitor.core.data.DataImportService
+import ch.openolitor.core.data.DataImportService.{ ImportData, ImportResult }
+import ch.openolitor.core.db.{ AsyncConnectionPoolContextAware, ConnectionPoolContextAware }
 import ch.openolitor.core.eventsourcing._
-import ch.openolitor.util.parsing.UriQueryParamFilterParser
+import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent }
 import ch.openolitor.core.jobs.JobQueueRoutes
+import ch.openolitor.core.repositories._
+import ch.openolitor.core.security.Subject
+import ch.openolitor.util.parsing.UriQueryParamFilterParser
+import com.typesafe.scalalogging.LazyLogging
+import spray.json._
 
-class DefaultSystemRouteService(
-  override val dbEvolutionActor: ActorRef,
-  override val entityStore: ActorRef,
-  override val eventStore: ActorRef,
-  override val mailService: ActorRef,
-  override val reportSystem: ActorRef,
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val fileStore: FileStore,
-  override val actorRefFactory: ActorRefFactory,
-  override val airbrakeNotifier: ActorRef,
-  override val jobQueueService: ActorRef
-) extends SystemRouteService with DefaultCoreReadRepositoryComponent
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
-trait SystemRouteService extends HttpService with ActorReferences
-  with ConnectionPoolContextAware with SprayDeserializers
-  with DefaultRouteService
+trait SystemRouteService extends BaseRouteService with ActorReferences
+  with ConnectionPoolContextAware with AkkaHttpDeserializers
   with LazyLogging
   with StatusRoutes
   with SystemJsonProtocol
   with AsyncConnectionPoolContextAware
   with PersistenceJsonProtocol
   with JobQueueRoutes {
-  self: CoreReadRepositoryComponent =>
+  self: CoreReadRepositoryComponent with FileStoreComponent =>
 
   private var error: Option[Throwable] = None
   val system: ActorSystem
@@ -108,48 +86,59 @@ trait SystemRouteService extends HttpService with ActorReferences
     } ~
       path("import") {
         post {
-          entity(as[MultipartFormData]) { formData =>
-            logger.debug(s"import requested")
-            val file = formData.fields.collectFirst {
-              case b @ BodyPart(entity, headers) if b.name == Some("file") =>
-                logger.debug(s"parse file bodypart")
-                val content = new ByteArrayInputStream(entity.data.toByteArray)
-                val fileName = headers.find(h => h.is("content-disposition")).get.value.split("filename=").last
-                (content, fileName)
+          extractRequestContext { requestContext =>
+            implicit val materializer: Materializer = requestContext.materializer
+            uploadUndispatchedConsume() {
+              case (content, fileName) =>
+                formFieldMap { fields =>
+                  implicit val timeout = Timeout(300 seconds)
+
+                  val clearBeforeImport = fields.get("clear").map(_.toBoolean).getOrElse(false)
+
+                  logger.debug(s"File:${fileName}, clearBeforeImport:$clearBeforeImport: ")
+
+                  onSuccess(importService.flatMap(_ ? ImportData(clearBeforeImport, content))) {
+                    case ImportResult(Some(error), _) =>
+                      logger.warn(s"Couldn't import data, received error:$error")
+                      complete(StatusCodes.BadRequest, error)
+                    case r @ ImportResult(None, _) =>
+                      complete(r.toJson.compactPrint)
+                    case x =>
+                      logger.warn(s"Couldn't import data, unexpected result:$x")
+                      complete(StatusCodes.BadRequest)
+                  }
+                }
             }
-
-            val clearBeforeImport = formData.fields.collectFirst {
-              case b @ BodyPart(entity, headers) if b.name == Some("clear") =>
-                entity.asString.toBoolean
-            }.getOrElse(false)
-            logger.debug(s"File:${file.isDefined}, clearBeforeImport:$clearBeforeImport: ")
-
-            implicit val timeout = Timeout(300.seconds)
-            file.map { file =>
-              onSuccess(importService.flatMap(_ ? ImportData(clearBeforeImport, file._1))) {
-                case ImportResult(Some(error), _) =>
-                  logger.warn(s"Couldn't import data, received error:$error")
-                  complete(StatusCodes.BadRequest, error)
-                case r @ ImportResult(None, result) =>
-                  complete(r.toJson.compactPrint)
-                case x =>
-                  logger.warn(s"Couldn't import data, unexpected result:$x")
-                  complete(StatusCodes.BadRequest)
-              }
-            }.getOrElse(complete(StatusCodes.BadRequest, "No file found"))
           }
         }
       } ~
       path("events") {
         get {
-          parameters('f.?, 'limit ? 100) { (f: Option[String], limit: Int) =>
+          parameters("f".?, "limit" ? 100) { (f: Option[String], limit: Int) =>
             implicit val filter = f flatMap { filterString =>
               UriQueryParamFilterParser.parse(filterString)
             }
             onSuccess(coreReadRepository.queryPersistenceJournal(limit)) {
-              case result => complete(result)
+              case result =>
+                complete(result)
             }
           }
         }
       }
+}
+
+class DefaultSystemRouteService(
+  override val dbEvolutionActor: ActorRef,
+  override val entityStore: ActorRef,
+  override val eventStore: ActorRef,
+  override val mailService: ActorRef,
+  override val reportSystem: ActorRef,
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef
+) extends SystemRouteService
+  with DefaultCoreReadRepositoryComponent
+  with DefaultFileStoreComponent {
+  override implicit protected val executionContext: ExecutionContext = system.dispatcher
 }

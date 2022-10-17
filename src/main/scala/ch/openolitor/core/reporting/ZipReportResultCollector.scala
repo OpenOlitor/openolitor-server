@@ -23,13 +23,13 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
+import akka.http.scaladsl.model.MediaTypes
 import ch.openolitor.core.reporting.ReportSystem._
-import scala.util._
-import ch.openolitor.util.ZipBuilder
-import spray.http.MediaTypes
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
-import ch.openolitor.util.ZipBuilderWithFile
+import ch.openolitor.util.{ ZipBuilder, ZipBuilderWithFile }
+
+import scala.util._
 
 object ZipReportResultCollector {
   def props(reportSystem: ActorRef, jobQueueService: ActorRef): Props = Props(classOf[ZipReportResultCollector], reportSystem, jobQueueService)
@@ -47,7 +47,7 @@ class ZipReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
 
   val receive: Receive = {
     case request: GenerateReports[_] =>
-      origSender = Some(sender)
+      origSender = Some(sender())
       reportSystem ! request
       context become waitingForResult
   }
@@ -59,7 +59,7 @@ class ZipReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
     case SingleReportResult(id, stats, Right(result: ReportResultWithDocument)) =>
       log.debug(s"Add Zip Entry:${result.name}")
       zipBuilder.addZipEntry(result.name, result.document) match {
-        case Success(r) =>
+        case Success(_) =>
           result.document.delete()
         case Failure(error) =>
           log.warning(s"Coulnd't att document to  zip file:$error")
@@ -67,12 +67,12 @@ class ZipReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
       }
       notifyProgress(stats)
     case result: GenerateReportsStats if result.numberOfReportsInProgress == 0 =>
-      log.debug(s"Close Zip, job finished:${result}")
+      log.debug(s"Close Zip, job finished:$result")
       //finished, send back zip result
-      zipBuilder.close() map { zip =>
+      zipBuilder.close() foreach { zip =>
         val fileName = "Report_" + filenameDateFormat.print(System.currentTimeMillis()) + ".zip"
         val payload = FileResultPayload(fileName, MediaTypes.`application/zip`, zip)
-        log.debug(s"Send payload as result:${fileName}")
+        log.debug(s"Send payload as result:$fileName")
         jobFinished(result, Some(payload))
       }
       log.debug(s"Stop collector PoisonPill")

@@ -38,35 +38,35 @@ object SingleDocumentStoreReportPDFProcessorActor {
 class SingleDocumentStoreReportPDFProcessorActor(fileStore: FileStore, sysConfig: SystemConfig, fileType: FileType, idOpt: Option[String], name: String, locale: Locale) extends Actor with ActorLogging {
   import ReportSystem._
 
-  val generatePdfActor = context.actorOf(SingleDocumentReportPDFProcessorActor.props(sysConfig, name, locale), "generate-pdf-" + System.currentTimeMillis)
-  val fileStoreActor = context.actorOf(FileStoreActor.props(fileStore), "file-store-" + System.currentTimeMillis)
+  val generatePdfActor: ActorRef = context.actorOf(SingleDocumentReportPDFProcessorActor.props(sysConfig, name, locale), "generate-pdf-" + System.currentTimeMillis)
+  val fileStoreActor: ActorRef = context.actorOf(FileStoreActor.props(fileStore), "file-store-" + System.currentTimeMillis)
 
   var origSender: Option[ActorRef] = None
   var id: Any = null
 
   val receive: Receive = {
     case cmd: GenerateReport =>
-      origSender = Some(sender)
+      origSender = Some(sender())
       id = cmd.id
       generatePdfActor ! cmd
       context become waitingForDocumentResult
   }
 
   val waitingForDocumentResult: Receive = {
-    case PdfReportResult(id, result, name) =>
+    case PdfReportResult(_, result, name) =>
       fileStoreActor ! StoreFile(fileType.bucket, Some(name), FileStoreFileMetadata(name, fileType), result)
       context become waitigForStoreCompleted
     case e: ReportError =>
-      origSender map (_ ! e)
+      origSender foreach (_ ! e)
       self ! PoisonPill
   }
 
   val waitigForStoreCompleted: Receive = {
     case FileStoreError(message) =>
-      origSender map (_ ! ReportError(Some(id), message))
+      origSender foreach (_ ! ReportError(Some(id), message))
       self ! PoisonPill
     case FileStoreFileMetadata(name, _) =>
-      origSender map (_ ! StoredPdfReportResult(id, fileType, FileStoreFileId(name)))
+      origSender foreach (_ ! StoredPdfReportResult(id, fileType, FileStoreFileId(name)))
       self ! PoisonPill
 
   }

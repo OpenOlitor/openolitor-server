@@ -22,49 +22,42 @@
 \*                                                                           */
 package ch.openolitor.core.reporting.pdf
 
-import scala.util.Try
-
-import ch.openolitor.core.SystemConfig
 import akka.actor.ActorSystem
-import spray.http._
-import spray.client.pipelining._
-import spray.util._
-import scala.concurrent.Future
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.Http
+import akka.stream.scaladsl.FileIO
+import ch.openolitor.core.SystemConfig
+import com.tegonal.CFEnvConfigLoader.ConfigLoader
+
+import java.io.File
+import java.nio.file.Files
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.actor.ActorRefFactory
-import scala.concurrent.ExecutionContext
-import akka.util.Timeout
-import akka.io.IO
-import spray.can.server.UHttp
-import java.io.File
-import ch.openolitor.util.FileUtil._
+import scala.util.Try
 
 trait PDFGeneratorService {
   def sysConfig: SystemConfig
+  lazy val DefaultChunkSize: Int = ConfigLoader.loadConfig.getBytes("akka.http.parsing.max-chunk-size").toInt
 
-  lazy val endpointUri = sysConfig.mandantConfiguration.config.getString("converttopdf.endpoint")
+  lazy val endpointUri: String = sysConfig.mandantConfiguration.config.getString("converttopdf.endpoint")
 
   implicit val system: ActorSystem
   import system.dispatcher
 
-  def uSendReceive(implicit refFactory: ActorRefFactory, executionContext: ExecutionContext,
-    futureTimeout: Timeout = 600.seconds): SendReceive =
-    sendReceive(IO(UHttp)(actorSystem))
-
-  val pipeline: HttpRequest => Future[HttpResponse] = uSendReceive
-
   def generatePDF(input: File, name: String): Try[File] = synchronized {
     Try {
       val uri = Uri(endpointUri)
-      val formFile = FormFile(Some(name + ".odt"), HttpEntity(HttpData(input)).asInstanceOf[HttpEntity.NonEmpty])
-      val formData = MultipartFormData(Seq(BodyPart(formFile, "data"), BodyPart(HttpEntity(name + ".odt"), "name")))
+      val formData = Multipart.FormData(
+        Multipart.FormData.BodyPart.fromFile("data", ContentTypes.`application/octet-stream`, input, DefaultChunkSize),
+        Multipart.FormData.BodyPart.Strict("name", name + ".odt")
+      )
 
-      val result = pipeline(Post(uri, formData)) map {
-        case HttpResponse(StatusCodes.OK, entity, headers, _) =>
-          entity.data.toByteArray.asTempFile("report_pdf", ".pdf")
-        case other =>
-          throw new RequestProcessingException(StatusCodes.InternalServerError, s"PDF konnte nicht generiert werden ${other}")
+      val result = Http().singleRequest(HttpRequest(HttpMethods.POST, uri, entity = formData.toEntity)).flatMap {
+        case HttpResponse(StatusCodes.OK, _, entity, _) =>
+          val file = Files.createTempFile("report_pdf", ".pdf")
+          entity.dataBytes.runWith(FileIO.toPath(file)).map(_ => file.toFile)
+        case other: Any =>
+          throw new IllegalStateException(s"PDF konnte nicht generiert werden $other")
       }
 
       Await.result(result, 600 seconds)

@@ -20,20 +20,42 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.rechnungsexport
+package ch.openolitor.core
 
-sealed trait Transaktionsart
-case object Gutschrift extends Transaktionsart
-case object Storno extends Transaktionsart
-case object Korrektur extends Transaktionsart
+import akka.http.scaladsl.server.{ PathMatcher1, PathMatchers }
+import akka.http.scaladsl.unmarshalling.{ FromStringUnmarshaller, Unmarshaller }
+import akka.http.scaladsl.util.FastFuture
+import akka.stream.Materializer
+import ch.openolitor.core.models.BaseId
 
-trait RechnungExportRecordResult {
-  val betrag: BigDecimal
-  val transaktionsart: Transaktionsart
+import scala.concurrent.{ ExecutionContext, Future }
+
+trait AkkaHttpDeserializers {
+  implicit val stringToBooleanConverter = new FromStringUnmarshaller[Boolean] {
+    override def apply(value: String)(implicit ec: ExecutionContext, materializer: Materializer): Future[Boolean] = {
+      value.toLowerCase match {
+        case "true" | "yes" | "on"  => FastFuture.successful(true)
+        case "false" | "no" | "off" => FastFuture.successful(false)
+        case x                      => FastFuture.failed(new IllegalArgumentException("'" + x + "' is not a valid Boolean value"))
+      }
+    }
+  }
+
+  def long2BaseIdPathMatcher[T <: BaseId](implicit f: Long => T): PathMatcher1[T] = {
+    PathMatchers.LongNumber.flatMap(id => Some(f(id)))
+  }
+
+  def enumPathMatcher[T](implicit f: String => Option[T]): PathMatcher1[T] = {
+    PathMatchers.Segment.flatMap(id => f(id))
+  }
+
+  def longToBaseIdConverter[T <: BaseId](implicit f: Long => T) = new Unmarshaller[Long, T] {
+    override def apply(value: Long)(implicit ec: ExecutionContext, materializer: Materializer): Future[T] =
+      try {
+        FastFuture.successful(f(value))
+      } catch {
+        case e: Exception =>
+          FastFuture.failed(new IllegalArgumentException(s"'$value' is not a valid id:$e", e))
+      }
+  }
 }
-
-trait RechnungExportRecord extends RechnungExportRecordResult {
-  val iban: Option[String]
-}
-
-case class RechnungExportResult(records: Seq[RechnungExportRecordResult])

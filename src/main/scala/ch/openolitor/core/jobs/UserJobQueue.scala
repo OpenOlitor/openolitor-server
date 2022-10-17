@@ -47,13 +47,13 @@ class UserJobQueue(personId: PersonId, mandantConfiguration: MandantConfiguratio
   with AkkaEventStream {
   import JobQueueService._
 
-  override val system = context.system
+  override val system: ActorSystem = context.system
 
-  val maxJobResults = mandantConfiguration.config.getIntOption("jobqueue.max_results").getOrElse(50)
-  val expiresAfterHours = mandantConfiguration.config.getIntOption("jobqueue.expires_after_hours").getOrElse(24)
-  val expiresAfterAccessHours = mandantConfiguration.config.getIntOption("jobqueue.expires_after_access_hours").getOrElse(4)
+  val maxJobResults: Int = mandantConfiguration.config.getIntOption("jobqueue.max_results").getOrElse(50)
+  val expiresAfterHours: Int = mandantConfiguration.config.getIntOption("jobqueue.expires_after_hours").getOrElse(24)
+  val expiresAfterAccessHours: Int = mandantConfiguration.config.getIntOption("jobqueue.expires_after_access_hours").getOrElse(4)
 
-  var progressMap = Map[JobId, JobProgress]()
+  var progressMap: Map[JobId, JobProgress] = Map[JobId, JobProgress]()
 
   private def cleanupResult(result: JobResult) = {
     result.payload match {
@@ -71,7 +71,7 @@ class UserJobQueue(personId: PersonId, mandantConfiguration: MandantConfiguratio
       .expireAfterWrite(expiresAfterHours.hours)
       .maximumSize(maxJobResults)
       .expireAfterAccess(expiresAfterAccessHours.hours)
-      .removalListener { (key: JobId, value: JobResult, cause) =>
+      .removalListener { (_: JobId, value: JobResult, cause) =>
         cause match {
           case RemovalCause.EXPIRED =>
             cleanupResult(value)
@@ -89,29 +89,29 @@ class UserJobQueue(personId: PersonId, mandantConfiguration: MandantConfiguratio
       send(personId, PendingJobs(personId, progressMap.values.toSeq))
     case r: JobResult if r.payload isEmpty =>
       log.debug(s"Received JobResult without payload:$r")
-      progressMap = progressMap - (r.jobId)
+      progressMap = progressMap - r.jobId
       send(personId, PendingJobs(personId, progressMap.values.toSeq))
     case r: JobResult =>
       log.debug(s"Received JobResult:$r")
-      progressMap = progressMap - (r.jobId)
+      progressMap = progressMap - r.jobId
       jobResults.put(r.jobId, r)
       send(personId, PendingJobs(personId, progressMap.values.toSeq))
-      send(personId, PendingJobResults(jobResults.asMap.values.map(_.toNotificatication).toSeq))
+      send(personId, PendingJobResults(jobResults.asMap().values.map(_.toNotificatication).toSeq))
     case _: GetPendingJobs =>
-      sender ! PendingJobs(personId, progressMap.values.toSeq)
+      sender() ! PendingJobs(personId, progressMap.values.toSeq)
     case _: GetPendingJobResults =>
-      sender ! PendingJobResults(jobResults.asMap.values.map(_.toNotificatication).toSeq)
+      sender() ! PendingJobResults(jobResults.asMap().values.map(_.toNotificatication).toSeq)
     case r: FetchJobResult =>
-      jobResults.asMap.find(_._1.id == r.jobId) map {
+      jobResults.asMap().find(_._1.id == r.jobId) map {
         case (id, result) =>
-          sender ! result
+          sender() ! result
 
           // notify other users session that job result was already fetched
           send(personId, JobFetched(personId, id))
 
           jobResults.invalidate(id)
       } getOrElse {
-        sender ! JobResultUnavailable(personId, r.jobId)
+        sender() ! JobResultUnavailable(personId, r.jobId)
       }
   }
 }

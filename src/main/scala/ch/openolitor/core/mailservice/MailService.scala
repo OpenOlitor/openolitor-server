@@ -23,7 +23,6 @@
 package ch.openolitor.core.mailservice
 
 import java.util.UUID
-
 import akka.actor._
 import akka.persistence.SnapshotMetadata
 import ch.openolitor.core.domain.{ AggregateRoot, _ }
@@ -33,11 +32,12 @@ import ch.openolitor.core.{ JSONSerializable, SystemConfig }
 import ch.openolitor.core.filestore._
 import ch.openolitor.util.ConfigUtil._
 import courier._
+
 import javax.mail.internet.InternetAddress
 import org.joda.time.DateTime
-import spray.util._
 import stamina.Persister
 
+import scala.collection.compat.immutable.ArraySeq
 import scala.collection.immutable.TreeSet
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -78,48 +78,45 @@ trait MailService extends AggregateRoot
   override val fileStore: FileStore = null
   override def persistenceId: String = MailService.persistenceId
   type S = MailServiceState
-  lazy val fromAddress = sysConfig.mandantConfiguration.config.getString("smtp.from")
-  lazy val maxNumberOfRetries = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
-  lazy val sendEmailOutbound = sysConfig.mandantConfiguration.config.getBooleanOption("smtp.send-email").getOrElse(true)
-  lazy val DefaultChunkSize = sysConfig.mandantConfiguration.config.getIntBytes("smtp.max-chunk-size")
-  lazy val security = sysConfig.mandantConfiguration.config.getString("smtp.security")
+  lazy val fromAddress: String = sysConfig.mandantConfiguration.config.getString("smtp.from")
+  lazy val maxNumberOfRetries: Int = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
+  lazy val sendEmailOutbound: Boolean = sysConfig.mandantConfiguration.config.getBooleanOption("smtp.send-email").getOrElse(true)
+  lazy val DefaultChunkSize: Int = sysConfig.mandantConfiguration.config.getBytes("smtp.max-chunk-size").toInt
+  lazy val security: String = sysConfig.mandantConfiguration.config.getString("smtp.security")
 
   lazy val mailer = security match {
-    case "STARTTLS" => {
+    case "STARTTLS" =>
       Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
         .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).startTls(true)()
-    }
-    case "SSL" => {
+    case "SSL" =>
       Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
         .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password")).ssl(true)()
-    }
-    case _ => {
+    case _ =>
       Mailer(sysConfig.mandantConfiguration.config.getString("smtp.endpoint"), sysConfig.mandantConfiguration.config.getInt("smtp.port")).auth(true)
         .as(sysConfig.mandantConfiguration.config.getString("smtp.user"), sysConfig.mandantConfiguration.config.getString("smtp.password"))()
-    }
   }
 
   override var state: MailServiceState = MailServiceState(DateTime.now, TreeSet.empty[MailEnqueued])
 
   override protected def afterEventPersisted(evt: PersistentEvent): Unit = {
-    updateState(false)(evt)
+    updateState(recovery = false)(evt)
     publish(evt)
   }
 
   def initialize(): Unit = {
     // start mail queue checker
-    context.system.scheduler.schedule(0 seconds, 10 seconds, self, CheckMailQueue)(context.system.dispatcher)
+    context.system.scheduler.scheduleWithFixedDelay(0 seconds, 10 seconds, self, CheckMailQueue)(context.system.dispatcher)
   }
 
   def checkMailQueue(): Unit = {
-    if (!state.mailQueue.isEmpty) {
-      state.mailQueue map { enqueued =>
+    if (state.mailQueue.nonEmpty) {
+      state.mailQueue foreach { enqueued =>
         // sending a mail has to be blocking, otherwise there will be concurrent mail queue access
         sendMail(enqueued.meta, enqueued.uid, enqueued.mail, enqueued.commandMeta) match {
           case Right(event) =>
             persist(event)(afterEventPersisted)
           case Left(e) =>
-            log.warning(s"Failed to send mail ${e}. Trying again later.")
+            log.warning(s"Failed to send mail $e. Trying again later.")
 
             calculateRetryEnqueued(enqueued).fold(
               _ => {
@@ -146,18 +143,17 @@ trait MailService extends AggregateRoot
         case Some(_) => {
           inputStreamfile match {
             case Right(f) => {
+
               Right(baseEnvelope(mail)
                 .content(Multipart()
-                  .attachBytes(f.file.toByteArrayStream(DefaultChunkSize).flatten.toArray, "rechnung.pdf", "application/pdf")
+                  .attachBytes(LazyList.continually(f.file.read).takeWhile(-1 !=).map(_.toByte).toArray, "rechnung.pdf", "application/pdf")
                   .text(s"${mail.content}")))
             }
             case Left(e) => Left(e)
           }
         }
         case None =>
-          {
-            Right(baseEnvelope(mail).content(Text(mail.content)))
-          }
+          Right(baseEnvelope(mail).content(Text(mail.content)))
       }
 
       // we have to await the result, maybe switch to standard javax.mail later
@@ -192,10 +188,10 @@ trait MailService extends AggregateRoot
 
   private def baseEnvelope(mail: Mail): Envelope = {
     Envelope.from(new InternetAddress(fromAddress))
-      .to(InternetAddress.parse(mail.to): _*)
-      .bcc(InternetAddress.parse(mail.bcc.getOrElse("")): _*)
-      .cc(InternetAddress.parse(mail.cc.getOrElse("")): _*)
-      .replyTo(InternetAddress.parse(mail.replyTo.getOrElse(fromAddress))(0))
+      .to(ArraySeq.unsafeWrapArray(InternetAddress.parse(mail.to)): _*)
+      .bcc(ArraySeq.unsafeWrapArray(InternetAddress.parse(mail.bcc.getOrElse(""))): _*)
+      .cc(ArraySeq.unsafeWrapArray(InternetAddress.parse(mail.cc.getOrElse(""))): _*)
+      .replyTo(ArraySeq.unsafeWrapArray(InternetAddress.parse(mail.replyTo.getOrElse(fromAddress)))(0))
       .subject(mail.subject)
   }
 
@@ -204,7 +200,7 @@ trait MailService extends AggregateRoot
   }
 
   def dequeueMail(uid: String): Unit = {
-    state.mailQueue.find(_.uid == uid) map { dequeue =>
+    state.mailQueue.find(_.uid == uid) foreach { dequeue =>
       state = state.copy(mailQueue = state.mailQueue - dequeue)
     }
   }
@@ -226,20 +222,20 @@ trait MailService extends AggregateRoot
     }
   }
 
-  override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State) = {
+  override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State): Unit = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
       case Removed             => context become removed
       case Created             => context become uninitialized
       case s: MailServiceState => this.state = s
-      case other               => log.error(s"Received unsupported state:$other")
+      case other: Any          => log.error(s"Received unsupported state:$other")
     }
   }
 
   val uninitialized: Receive = {
     case GetState =>
       log.debug(s"uninitialized => GetState: $state")
-      sender ! state
+      sender() ! state
     case Initialize(state) =>
       // testing
       log.debug(s"uninitialized => Initialize: $state")
@@ -255,7 +251,7 @@ trait MailService extends AggregateRoot
       context.stop(self)
     case GetState =>
       log.debug(s"created => GetState")
-      sender ! state
+      sender() ! state
     case CheckMailQueue =>
       context.become(checkingMailQueue)
       checkMailQueue()
@@ -265,7 +261,7 @@ trait MailService extends AggregateRoot
       val event = SendMailEvent(meta, id, mail, calculateExpires(retryDuration), Some(commandMeta))
       persist(event) { result =>
         afterEventPersisted(result)
-        sender ! result
+        sender() ! result
       }
     case SendMailCommand(personId, mail, retryDuration) =>
       val meta = metadata(personId)
@@ -273,9 +269,9 @@ trait MailService extends AggregateRoot
       val event = SendMailEvent(meta, id, mail, calculateExpires(retryDuration), None)
       persist(event) { result =>
         afterEventPersisted(result)
-        sender ! result
+        sender() ! result
       }
-    case other =>
+    case other: Any =>
       log.warning(s"Received unknown command:$other")
   }
 
@@ -300,22 +296,22 @@ trait MailService extends AggregateRoot
       context.stop(self)
   }
 
-  def metadata(personId: PersonId) = {
+  def metadata(personId: PersonId): EventMetadata = {
     EventMetadata(personId, VERSION, DateTime.now, aquireTransactionNr(), 1L, persistenceId)
   }
 
   def newId: String = UUID.randomUUID.toString
 
-  override def afterRecoveryCompleted(): Unit = {
+  override def afterRecoveryCompleted(sequenceNr: Long, state: State): Unit = {
     context become created
     initialize()
   }
 
-  override val receiveCommand = uninitialized
+  override val receiveCommand: Receive = uninitialized
 }
 
 class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val fileStore: FileStore) extends MailService
   with DefaultCommandHandlerComponent
   with DefaultMailRetryHandler {
-  lazy val system = context.system
+  lazy val system: ActorSystem = context.system
 }

@@ -24,6 +24,7 @@ package ch.openolitor.util
 
 import ch.openolitor.core.models.{ BaseId, BaseStringId }
 
+import scala.collection.compat.immutable.ArraySeq
 import scala.collection.immutable.HashSet
 
 object ProductUtil {
@@ -33,7 +34,8 @@ object ProductUtil {
     "toString",
     "productArity",
     "productPrefix",
-    "productIterator"
+    "productIterator",
+    "productElementNames"
   )
 
   implicit class Product2MapSupport(self: Product) {
@@ -59,7 +61,7 @@ object ProductUtil {
       val converters = customConverter orElse defaultMapper
       def toVals(x: Any): Any = x match {
         case m: Map[_, _]                     => m.map { case (key, value) => toVals(key).toString -> toVals(value) }
-        case t: Traversable[_]                => t.map(toVals(_))
+        case t: Iterable[_]                   => t.map(toVals(_))
         case i: BaseId                        => i.id
         case s: BaseStringId                  => s.id
         case o: Option[_]                     => o.map(toVals(_)).getOrElse(converters(None))
@@ -80,7 +82,7 @@ object ProductUtil {
 
       // extract values returned from defs
       val methodsAsPairs: Seq[Option[(String, Any)]] = for {
-        method <- self.getClass.getDeclaredMethods
+        method <- ArraySeq.unsafeWrapArray(self.getClass.getDeclaredMethods)
         // only conside methods without parameters
         if (method.getParameterCount == 0)
         // ignore system methods
@@ -101,7 +103,7 @@ object ProductUtil {
       }
       // concat field values and method return types, append methods after field that hidden methods for
       // lazy vals will overrite field value which will always be set to null
-      val allTuples = fieldsAsPairs ++ methodsAsPairs.flatten
+      val allTuples = ArraySeq.unsafeWrapArray(fieldsAsPairs ++ methodsAsPairs.flatten)
 
       Map(allTuples: _*)
     }

@@ -59,7 +59,7 @@ object ReportDocumentProcessorApp extends App with DocumentProcessor {
 
   // load json data
   println(s"Load json data...")
-  val jsonData = Source.fromFile(jsonDataFile).getLines.mkString.parseJson
+  val jsonData = Source.fromFile(jsonDataFile).getLines().mkString.parseJson
 
   def processData(data: JsValue): Unit = {
     processDocument(doc, data, Locale.GERMAN) match {

@@ -24,14 +24,14 @@ package ch.openolitor.core.db
 
 import scalikejdbc.async.AsyncConnectionPool
 
-case class MultipleAsyncConnectionPoolContext(contexts: (Any, AsyncConnectionPool)*) {
-  def this() {
+case class MultipleAsyncConnectionPoolContext(contexts: (Symbol, AsyncConnectionPool)*) {
+  def this() = {
     this(Nil: _*)
   }
 
   private lazy val pools = contexts.toMap
 
-  def get(name: Any = AsyncConnectionPool.DEFAULT_NAME): AsyncConnectionPool = pools.get(name).getOrElse {
+  def get(name: Symbol = AsyncConnectionPool.DEFAULT_NAME): AsyncConnectionPool = pools.get(name).getOrElse {
     throw new IllegalStateException("No connection context for " + name + ".")
   }
 }
