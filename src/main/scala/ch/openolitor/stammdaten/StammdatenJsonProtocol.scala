@@ -1541,7 +1541,15 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
         "erstelldat" -> obj.erstelldat.toJson,
         "ersteller" -> obj.ersteller.toJson,
         "modifidat" -> obj.modifidat.toJson,
-        "modifikator" -> obj.modifikator.toJson
+        "modifikator" -> obj.modifikator.toJson,
+        // additional fields
+        "strasseUndNummer" -> JsString(obj.strasseUndNummer),
+        "plzOrt" -> JsString(obj.plzOrt),
+        "strasseUndNummerLieferung" -> JsString(obj.strasseUndNummerLieferung),
+        "plzOrtLieferung" -> JsString(obj.plzOrtLieferung),
+        "adresszeilen" -> JsArray(obj.adresszeilen.map(JsString(_)).toVector),
+        "lieferAdresszeilen" -> JsArray(obj.lieferAdresszeilen.map(JsString(_)).toVector),
+        "telefonNummern" -> JsString(obj.telefonNummern)
       ).filterNot(_._2 == JsNull)
     )
   }
