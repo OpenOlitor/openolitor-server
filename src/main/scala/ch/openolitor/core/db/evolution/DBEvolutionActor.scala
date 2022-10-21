@@ -24,15 +24,14 @@ package ch.openolitor.core.db.evolution
 
 import akka.actor._
 import ch.openolitor.core.SystemConfig
-
-import scala.util.{ Failure, Success, Try }
-import ch.openolitor.core.Boot
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.models.PersonId
 import scalikejdbc.DB
 
+import scala.util.{ Failure, Success, Try }
+
 object DBEvolutionActor {
-  case object CheckDBEvolution
+  case class CheckDBEvolution(replyTo: ActorRef)
 
   case class DBEvolutionState(dbRevision: Int)
 
@@ -47,28 +46,28 @@ trait DBEvolutionActor extends Actor with ActorLogging with ConnectionPoolContex
   var exception: Throwable = _
 
   val created: Receive = {
-    case CheckDBEvolution =>
+    case CheckDBEvolution(replyTo) =>
       log.debug(s"received additional CheckDBEvolution; evolution has been successful, otherwise I would be in uncheckedDB")
-      sender() ! Success(state)
+      replyTo ! Success(state)
   }
 
   val failed: Receive = {
-    case CheckDBEvolution =>
+    case CheckDBEvolution(replyTo) =>
       log.debug(s"received additional CheckDBEvolution; evolution has been successful, otherwise I would be in uncheckedDB")
-      sender() ! Failure(exception)
+      replyTo ! Failure(exception)
   }
 
   val uncheckedDB: Receive = {
-    case CheckDBEvolution =>
+    case CheckDBEvolution(replyTo) =>
       log.debug(s"uncheckedDB => check db evolution")
-      sender() ! checkDBEvolution()
+      replyTo ! checkDBEvolution()
     case x: Any =>
       log.error(s"uncheckedDB => unsupported command:$x")
   }
 
   def checkDBEvolution(): Try[DBEvolutionState] = {
     log.debug(s"Check DB Evolution: current revision=${state.dbRevision}")
-    implicit val personId: PersonId = Boot.systemPersonId
+    implicit val personId: PersonId = PersonId(0)
     evolution.evolveDatabase(state.dbRevision) match {
       case Success(rev) =>
         log.debug(s"Successfully updated to db rev:$rev")

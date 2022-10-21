@@ -162,7 +162,7 @@ class Evolution(sysConfig: SystemConfig, scripts: Seq[Script]) extends CoreDBMap
   }
 
   def evolve(scripts: Seq[Script], currentRevision: Int)(implicit cpContext: ConnectionPoolContext, personId: PersonId): Try[Int] = {
-    logger.debug(s"evolve database from:$currentRevision")
+    logger.debug(s"evolve database from:$currentRevision as person: ${personId}")
     val x = scripts.zipWithIndex.view.map {
       case (script, index) =>
         try {

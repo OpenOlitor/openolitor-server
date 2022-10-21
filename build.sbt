@@ -33,6 +33,7 @@ val sprayV = "1.3.+"
 val scalalikeV = "4.0.0"
 val akkaHttpVersion = "10.2.9"
 val akkaVersion = "2.6.19"
+val testContainersVersion = "1.16.3"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -82,6 +83,7 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.0.+",
     "com.h2database"               %  "h2"                                 % "2.1.212"                               % "test",
+    "org.testcontainers"           % "mariadb"                             % testContainersVersion                   % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.2.11",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.0.4",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.29",
