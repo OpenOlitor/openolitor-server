@@ -674,9 +674,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(depotlieferungAboMapping as depotlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${depotlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} =  true")
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo))
-        .append(sqls"""or""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", depotlieferungAbo))
+        .where.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", depotlieferungAbo))
+          .append(sqls"""or""")
+          .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", depotlieferungAbo)))
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, depotlieferungAbo))
     }.one(depotlieferungAboMapping(depotlieferungAbo))
       .toMany(
@@ -807,9 +807,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(heimlieferungAboMapping as heimlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${heimlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} = true")
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo))
-        .append(sqls"""or""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", heimlieferungAbo))
+        .where.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", heimlieferungAbo))
+          .append(sqls"""or""")
+          .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", heimlieferungAbo)))
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, heimlieferungAbo))
     }.one(heimlieferungAboMapping(heimlieferungAbo))
       .toMany(
@@ -844,9 +844,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       select
         .from(postlieferungAboMapping as postlieferungAbo)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(sqls"${postlieferungAbo.id} = ${zusatzAbo.hauptAboId} and ${zusatzAbo.aktiv} =  true")
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo))
-        .append(sqls"""or""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", postlieferungAbo))
+        .where.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", postlieferungAbo))
+          .append(sqls"""or""")
+          .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", postlieferungAbo)))
         .and(UriQueryParamToSQLSyntaxBuilder.build(filter, postlieferungAbo))
     }.one(postlieferungAboMapping(postlieferungAbo))
       .toMany(
