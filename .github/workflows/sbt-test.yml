@@ -23,13 +23,15 @@ jobs:
       with:
         filename: target/scala-2.13/coverage-report/cobertura.xml
         badge: true
-        format: markdown
+        format: 'markdown'
         indicators: false
         hide_complexity: true
-        output: both
+        output: 'both'
     - name: Coverage Report Pull Request Comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
       with:
         recreate: true
         path: code-coverage-results.md
+    - name: Coverage Summary
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
