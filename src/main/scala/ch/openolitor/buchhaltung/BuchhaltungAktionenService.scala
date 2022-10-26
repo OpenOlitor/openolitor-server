@@ -263,10 +263,8 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
   private def zahlungsEingangErledigen(meta: EventMetadata, entity: ZahlungsEingangModifyErledigt)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       buchhaltungWriteRepository.modifyEntity[ZahlungsEingang, ZahlungsEingangId](entity.id) { eingang =>
-        if (eingang.status == Ok) {
-          eingang.rechnungId map { rechnungId =>
-            rechnungBezahlenUpdate(rechnungId, RechnungModifyBezahlt(eingang.betrag, eingang.gutschriftsDatum))
-          }
+        eingang.rechnungId map { rechnungId =>
+          rechnungBezahlenUpdate(rechnungId, RechnungModifyBezahlt(eingang.betrag, eingang.gutschriftsDatum))
         }
 
         Map(
