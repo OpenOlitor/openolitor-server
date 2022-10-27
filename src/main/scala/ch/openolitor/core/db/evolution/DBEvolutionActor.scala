@@ -31,7 +31,7 @@ import scalikejdbc.DB
 import scala.util.{ Failure, Success, Try }
 
 object DBEvolutionActor {
-  case class CheckDBEvolution(replyTo: ActorRef)
+  case object CheckDBEvolution
 
   case class DBEvolutionState(dbRevision: Int)
 
@@ -46,21 +46,21 @@ trait DBEvolutionActor extends Actor with ActorLogging with ConnectionPoolContex
   var exception: Throwable = _
 
   val created: Receive = {
-    case CheckDBEvolution(replyTo) =>
+    case CheckDBEvolution =>
       log.debug(s"received additional CheckDBEvolution; evolution has been successful, otherwise I would be in uncheckedDB")
-      replyTo ! Success(state)
+      sender() ! Success(state)
   }
 
   val failed: Receive = {
-    case CheckDBEvolution(replyTo) =>
+    case CheckDBEvolution =>
       log.debug(s"received additional CheckDBEvolution; evolution has been successful, otherwise I would be in uncheckedDB")
-      replyTo ! Failure(exception)
+      sender() ! Failure(exception)
   }
 
   val uncheckedDB: Receive = {
-    case CheckDBEvolution(replyTo) =>
+    case CheckDBEvolution =>
       log.debug(s"uncheckedDB => check db evolution")
-      replyTo ! checkDBEvolution()
+      sender() ! checkDBEvolution()
     case x: Any =>
       log.error(s"uncheckedDB => unsupported command:$x")
   }

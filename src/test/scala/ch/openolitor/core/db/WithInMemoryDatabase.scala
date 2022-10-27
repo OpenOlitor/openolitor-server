@@ -7,22 +7,21 @@ import ch.openolitor.core.mailservice.ActorTestScope
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import com.typesafe.scalalogging.LazyLogging
 import org.specs2.mutable.Specification
-import org.specs2.specification.BeforeAfterEach
+import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.{ MariaDBContainer => JavaMariaDBContainer }
 import org.testcontainers.utility.MountableFile
 
 import java.util.Collections
-import akka.pattern.ask
 import akka.testkit.TestProbe
 import akka.util.Timeout
 import ch.openolitor.core.db.evolution.scripts.Scripts
-import ch.openolitor.core.db.evolution.DBEvolutionActor.{ props, CheckDBEvolution, DBEvolutionState }
+import ch.openolitor.core.db.evolution.DBEvolutionActor.{ CheckDBEvolution, DBEvolutionState }
 import com.tegonal.CFEnvConfigLoader.ConfigLoader
 import scalikejdbc.ConnectionPool
 
 import scala.util.{ Failure, Random, Success, Try }
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.ExecutionContext
 
 // Define adapter class to match strange self type of testcontainers
 class MariaDBContainer(dockerImageName: String) extends JavaMariaDBContainer[MariaDBContainer](dockerImageName)
@@ -32,7 +31,7 @@ class MariaDBContainer(dockerImageName: String) extends JavaMariaDBContainer[Mar
  * components used in the test class use the same config, they will be using the same mock database identified by the
  * jdbcUrl.
  */
-trait WithInMemoryDatabase extends ModifyingSystemConfigReference with BeforeAfterEach with MockDBComponent {
+trait WithInMemoryDatabase extends ModifyingSystemConfigReference with BeforeAfterAll with MockDBComponent {
   self: Specification =>
   // run each test using WithInMemoryDatabase sequential as we use the same database instance for all tests within a spec
   // but re-pump template database to the same database for every test case
@@ -45,24 +44,37 @@ trait WithInMemoryDatabase extends ModifyingSystemConfigReference with BeforeAft
     val driver = ConfigValueFactory.fromAnyRef("com.mysql.cj.jdbc.Driver")
     val user = ConfigValueFactory.fromAnyRef("tegonal")
     val password = ConfigValueFactory.fromAnyRef("tegonal")
+
     // we have to setup slick.db.* and db.default.*
     super
       .modifyConfig()
-      .withValue("slick.db.url", url)
-      .withValue("slick.db.driver", driver)
-      .withValue("slick.db.user", user)
-      .withValue("slick.db.password", password)
-      .withValue("db.default.url", url)
-      .withValue("db.default.driver", driver)
-      .withValue("db.default.user", user)
-      .withValue("db.default.password", password)
+      .withValue("openolitor.try.slick.db.url", url)
+      .withValue("openolitor.try.slick.db.driver", driver)
+      .withValue("openolitor.try.slick.db.user", user)
+      .withValue("openolitor.try.slick.db.password", password)
+      .withValue("openolitor.try.jdbc-journal.slick.db.url", url)
+      .withValue("openolitor.try.jdbc-journal.slick.db.driver", driver)
+      .withValue("openolitor.try.jdbc-journal.slick.db.user", user)
+      .withValue("openolitor.try.jdbc-journal.slick.db.password", password)
+      .withValue("openolitor.try.jdbc-snapshot-store.slick.db.url", url)
+      .withValue("openolitor.try.jdbc-snapshot-store.slick.db.driver", driver)
+      .withValue("openolitor.try.jdbc-snapshot-store.slick.db.user", user)
+      .withValue("openolitor.try.jdbc-snapshot-store.slick.db.password", password)
+      .withValue("openolitor.try.jdbc-read-journal.slick.db.url", url)
+      .withValue("openolitor.try.jdbc-read-journal.slick.db.driver", driver)
+      .withValue("openolitor.try.jdbc-read-journal.slick.db.user", user)
+      .withValue("openolitor.try.jdbc-read-journal.slick.db.password", password)
+      .withValue("openolitor.try.db.default.url", url)
+      .withValue("openolitor.try.db.default.driver", driver)
+      .withValue("openolitor.try.db.default.user", user)
+      .withValue("openolitor.try.db.default.password", password)
   }
 
   protected lazy val dbName = WithInMemoryDatabase.getAndRegisterUniqueDbName()
 
   lazy val mariaDB = WithInMemoryDatabase.initSnapshotSql
 
-  override protected def before: Any = {
+  override def beforeAll(): Unit = {
     // execInContainer seems to be hanging after some time
     val result = mariaDB.execInContainer(s"./mock_db_pump.sh", s"$dbName")
 
@@ -70,9 +82,6 @@ trait WithInMemoryDatabase extends ModifyingSystemConfigReference with BeforeAft
       throw new IllegalStateException(s"Failed to pump into $dbName ${result.getStderr}")
     }
   }
-
-  override protected def after: Any = {}
-
 }
 
 object WithInMemoryDatabase extends ActorTestScope with LazyLogging {
@@ -158,8 +167,7 @@ object WithInMemoryDatabase extends ActorTestScope with LazyLogging {
     val dbEvolutionActor = system.actorOf(DBEvolutionActor.props(evolution), "db-evolution")
 
     val probe = TestProbe()
-
-    dbEvolutionActor ! CheckDBEvolution(probe.ref)
+    probe.send(dbEvolutionActor, CheckDBEvolution)
 
     val result = probe.expectMsgType[Try[DBEvolutionState]](60 seconds)
 

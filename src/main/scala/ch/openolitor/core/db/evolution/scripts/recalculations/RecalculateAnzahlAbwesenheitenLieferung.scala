@@ -33,8 +33,8 @@ import scala.util.Success
 import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.core.security.SystemSubject
 
 import scala.annotation.nowarn
 
@@ -47,7 +47,7 @@ object RecalculateAnzahlAbwesenheitenLieferung {
       sql"""update Lieferung set anzahl_abwesenheiten = 0""".execute.apply()
 
       val abw = abwesenheitMapping.syntax("abw")
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
 
       getProjektV1 map { projekt =>
         withSQL {

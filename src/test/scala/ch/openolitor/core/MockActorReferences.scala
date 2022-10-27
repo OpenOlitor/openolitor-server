@@ -5,23 +5,23 @@ import akka.testkit.TestProbe
 
 trait MockActorReferences extends ActorReferences with SystemConfigReference with ActorSystemReference {
   private lazy val mailServiceProbe = TestProbe()(system)
-  override val mailService: ActorRef = mailServiceProbe.ref
+  override lazy val mailService: ActorRef = mailServiceProbe.ref
 
-  private val dbEvolutionActorProbe = TestProbe()(system)
-  override val dbEvolutionActor: ActorRef = dbEvolutionActorProbe.ref
+  private lazy val dbEvolutionActorProbe = TestProbe()(system)
+  override lazy val dbEvolutionActor: ActorRef = dbEvolutionActorProbe.ref
 
   private lazy val airbrakeNotifierProbe = TestProbe()(system)
-  override val airbrakeNotifier: ActorRef = airbrakeNotifierProbe.ref
+  override lazy val airbrakeNotifier: ActorRef = airbrakeNotifierProbe.ref
 
   private lazy val entityStoreProbe = TestProbe()(system)
-  override val entityStore: ActorRef = entityStoreProbe.ref
+  override lazy val entityStore: ActorRef = entityStoreProbe.ref
 
   private lazy val eventStoreProbe = TestProbe()(system)
-  override val eventStore: ActorRef = eventStoreProbe.ref
+  override lazy val eventStore: ActorRef = eventStoreProbe.ref
 
   private lazy val jobQueueServiceProbe = TestProbe()(system)
-  override val jobQueueService: ActorRef = jobQueueServiceProbe.ref
+  override lazy val jobQueueService: ActorRef = jobQueueServiceProbe.ref
 
   private lazy val reportSystemProbe = TestProbe()(system)
-  override val reportSystem: ActorRef = reportSystemProbe.ref
+  override lazy val reportSystem: ActorRef = reportSystemProbe.ref
 }

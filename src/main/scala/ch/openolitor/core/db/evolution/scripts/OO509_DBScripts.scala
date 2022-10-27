@@ -27,13 +27,14 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
+
 import scala.util.Try
 import scala.util.Success
 import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Boot
 import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.security.SystemSubject
 
 /**
  * Recalculate sort field on Person
@@ -42,7 +43,7 @@ object OO509_DBScripts extends DefaultDBScripts {
   val script = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with StammdatenWriteRepositoryImpl with NoPublishEventStream {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       logger.debug(s"Recalculate sort field on Person")
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
 
       val persons = getPersonen
       val sortedPersons = persons.groupBy(_.kundeId)

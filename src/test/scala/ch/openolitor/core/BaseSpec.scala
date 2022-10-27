@@ -21,6 +21,12 @@ trait BaseRoutesSpec extends BaseSpec with Specs2RouteTest with SprayJsonSupport
   implicit val timeout = RouteTestTimeout(defaultTimeout.dilated)
 }
 
-trait BaseRoutesWithDBSpec extends BaseRoutesSpec with WithInMemoryDatabase {
+trait BaseRoutesWithDBSpec extends BaseRoutesSpec with WithInMemoryDatabase with StartingServices with MockInMemoryActorReferences {
+  override def beforeAll() = {
+    super.beforeAll()
 
+    initializeConnectionPool()
+
+    MockInMemoryActorReferences.initialize(config, sysConfig)
+  }
 }

@@ -4,7 +4,9 @@ import ch.openolitor.core.SystemConfigReference
 import scalikejdbc.ConnectionPool
 
 trait MockDBComponent extends SystemConfigReference with ConnectionPoolContextAware with AsyncConnectionPoolContextAware {
-  ConnectionPool.singleton(config.getString("db.default.url"), "tegonal", "tegonal")
+  def initializeConnectionPool(): Unit = {
+    ConnectionPool.singleton(sysConfig.mandantConfiguration.config.getString("db.default.url"), "tegonal", "tegonal")
+  }
 
   override implicit def connectionPoolContext = MandantDBs(sysConfig.mandantConfiguration).connectionPoolContext()
 

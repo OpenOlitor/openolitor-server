@@ -37,8 +37,8 @@ import ch.openolitor.stammdaten.models.Abwesenheit
 import scala.collection.immutable.TreeMap
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.core.security.SystemSubject
 
 import scala.annotation.nowarn
 
@@ -56,7 +56,7 @@ object RecalculateAnzahlAbwesenheiten {
       // recalculate abwesenheiten
 
       val abw = abwesenheitMapping.syntax("abw")
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
 
       getProjektV1 map { projekt =>
         withSQL {

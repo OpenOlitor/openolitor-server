@@ -23,19 +23,19 @@
 package ch.openolitor.core.domain
 
 import akka.actor._
-import ch.openolitor.core.repositories.CoreDBMappings
+import akka.pattern.ask
+import akka.util.Timeout
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import scalikejdbc._
-import ch.openolitor.core.models.PersistenceEventState
-import ch.openolitor.core.Boot
-import org.joda.time.DateTime
-import ch.openolitor.core.models.PersistenceEventStateId
+import ch.openolitor.core.models.{ PersistenceEventState, PersistenceEventStateId }
+import ch.openolitor.core.repositories.CoreDBMappings
 import ch.openolitor.core.DBEvolutionReference
 import ch.openolitor.core.db.evolution.DBEvolutionActor
-import akka.util.Timeout
+import ch.openolitor.core.security.SystemSubject
+import org.joda.time.DateTime
+import scalikejdbc._
+
 import scala.concurrent.duration._
-import scala.util.{ Success, Failure }
-import akka.pattern.ask
+import scala.util.{ Failure, Success }
 
 /**
  * This trait provides helper methods to keep track of latest processed sequenceNr of messages to limit reprocessing after a specified sequence nr per persistenceId
@@ -49,7 +49,7 @@ trait PersistenceEventStateSupport extends Actor with ActorLogging with CoreDBMa
   private var lastSequenceNr = 0L
   var dbState: DBEvolutionActor.DBEvolutionState = _
 
-  val personId = Boot.systemPersonId
+  val personId = SystemSubject.systemPersonId
   implicit val excecutionContext = context.dispatcher
 
   /**

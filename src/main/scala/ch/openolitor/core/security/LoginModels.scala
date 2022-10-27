@@ -79,6 +79,10 @@ case class RequestFailed(msg: String)
 
 case class Subject(token: String, personId: PersonId, kundeId: KundeId, rolle: Option[Rolle], secondFactorType: Option[SecondFactorType]) extends JSONSerializable
 
+object SystemSubject {
+  val systemPersonId = PersonId(0)
+}
+
 case class User(user: PersonDetail, subject: Subject) extends JSONSerializable
 
 case class LoginSettings(secondFactorRequired: Boolean, secondFactorEnabled: Boolean, secondFactorType: SecondFactorType) extends JSONSerializable

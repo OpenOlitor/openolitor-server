@@ -104,8 +104,6 @@ object Boot extends App with LazyLogging {
   // This config represents the whole configuration and therefore includes the http configuration
   val config = ConfigLoader.loadConfig
 
-  val systemPersonId: PersonId = PersonId(0)
-
   // instanciate actor system per mandant, with mandantenspecific configuration
   // This config is a subset of config (i.e. without http configuration)
   val ooConfig = config.getConfig("openolitor")

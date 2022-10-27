@@ -31,13 +31,13 @@ import scalikejdbc._
 
 import scala.util.{ Success, Try }
 import org.joda.time.DateTime
-import ch.openolitor.core.Boot
 import ch.openolitor.core.repositories.CoreRepositoryQueries
 import ch.openolitor.core.models.PersistenceEventState
 import ch.openolitor.core.models.PersistenceEventStateId
 import akka.actor.ActorSystem
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
+import ch.openolitor.core.security.SystemSubject
 
 import scala.annotation.nowarn
 
@@ -66,17 +66,17 @@ object V2Scripts {
       val persistentActorStates = queryLatestPersistenceMessageByPersistenceIdQuery.apply() map { messagePerPersistenceId =>
         //find latest sequence nr
         logger.debug(s"OO-656: latest persistence id of persistentactor:${messagePerPersistenceId.persistenceId}, sequenceNr:${messagePerPersistenceId.sequenceNr}")
-        PersistenceEventState(PersistenceEventStateId(), messagePerPersistenceId.persistenceId, messagePerPersistenceId.sequenceNr, 0L, DateTime.now, Boot.systemPersonId, DateTime.now, Boot.systemPersonId)
+        PersistenceEventState(PersistenceEventStateId(), messagePerPersistenceId.persistenceId, messagePerPersistenceId.sequenceNr, 0L, DateTime.now, SystemSubject.systemPersonId, DateTime.now, SystemSubject.systemPersonId)
       }
 
       // append persistent views
       val persistentViewStates = persistentActorStates filter (_.persistenceId == "entity-store") flatMap (newState =>
         Seq("buchhaltung", "stammdaten") map { module =>
           logger.debug(s"OO-656: latest persistence id of persistentview:$module-entity-store, sequenceNr:${newState.lastTransactionNr}")
-          PersistenceEventState(PersistenceEventStateId(), s"$module-entity-store", newState.lastTransactionNr, 0L, DateTime.now, Boot.systemPersonId, DateTime.now, Boot.systemPersonId)
+          PersistenceEventState(PersistenceEventStateId(), s"$module-entity-store", newState.lastTransactionNr, 0L, DateTime.now, SystemSubject.systemPersonId, DateTime.now, SystemSubject.systemPersonId)
         })
 
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
       (persistentActorStates ++ persistentViewStates) map { entity =>
         val params = persistenceEventStateMapping.parameterMappings(entity)
         withSQL(insertInto(persistenceEventStateMapping).values(params: _*)).update.apply()
