@@ -130,7 +130,11 @@ lazy val scalaxbSettings = Seq(
 lazy val macroSub = (project in file("macro")).settings(buildSettings,
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value)
 
-lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ Seq(
+lazy val coverageSettings = Seq(
+  coverageExcludedPackages := "$:;<empty>;ch.openolitor.core.Boot;.*Default.*;scalaxb.*"
+)
+
+lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ coverageSettings ++ Seq(
     (sourceGenerators in Compile) += task[Seq[File]]{
       val dir = (sourceManaged in Compile).value
       val maxParams = 30
