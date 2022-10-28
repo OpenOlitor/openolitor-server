@@ -1,11 +1,11 @@
 package ch.openolitor.stammdaten
 
 import akka.actor.ActorSystem
-import ch.openolitor.buchhaltung.repositories.{ DefaultBuchhaltungReadRepositoryAsyncComponent, MockBuchhaltungReadRepositoryComponent }
-import ch.openolitor.core.filestore.MockFileStoreComponent
-import ch.openolitor.core.{ MockActorReferences, MockInMemoryActorReferences, SystemConfig }
+import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
+import ch.openolitor.core.{ MockInMemoryActorReferences, SystemConfig }
 import ch.openolitor.core.db.MockDBComponent
-import ch.openolitor.stammdaten.repositories.{ DefaultStammdatenReadRepositoryAsyncComponent, MockStammdatenReadRepositoryComponent }
+import ch.openolitor.core.filestore.MockFileStoreComponent
+import ch.openolitor.stammdaten.repositories.DefaultStammdatenReadRepositoryAsyncComponent
 
 import scala.concurrent.ExecutionContext
 

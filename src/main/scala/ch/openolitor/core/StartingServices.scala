@@ -8,13 +8,11 @@ import akka.stream.scaladsl.SourceQueueWithComplete
 import akka.util.Timeout
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
 import ch.openolitor.buchhaltung.{ BuchhaltungDBEventEntityListener, BuchhaltungEntityStoreView, BuchhaltungReportEventListener }
-import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
 import ch.openolitor.core.batch.OpenOlitorBatchJobs
 import ch.openolitor.core.db.{ AsyncMandantDBs, MandantDBs }
 import ch.openolitor.core.db.evolution.{ DBEvolutionActor, Evolution }
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.core.domain.{ DefaultMessages, EntityStore, SystemEventStore }
-import ch.openolitor.core.domain.SystemEvents.SystemStarted
 import ch.openolitor.core.filestore.S3FileStore
 import ch.openolitor.core.jobs.JobQueueService
 import ch.openolitor.core.mailservice.MailService
@@ -28,22 +26,19 @@ import ch.openolitor.stammdaten.{ StammdatenDBEventEntityListener, StammdatenEnt
 import ch.openolitor.util.AirbrakeNotifier
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.DateTime
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-case class StartedServices(dbEvolutionActor: ActorRef, entityStore: ActorRef, eventStore: ActorRef, mailService: ActorRef, reportSystem: ActorRef, fileStore: S3FileStore, airbrakeNotifier: ActorRef, jobQueueService: ActorRef, sysCfg: SystemConfig, app: ActorSystem, loginTokenCache: Cache[String, Subject], streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]])
+case class StartedServices(dbEvolutionActor: ActorRef, entityStore: ActorRef, eventStore: ActorRef, mailService: ActorRef, reportSystem: ActorRef, batchJobs: ActorRef, fileStore: S3FileStore, airbrakeNotifier: ActorRef, jobQueueService: ActorRef, sysCfg: SystemConfig, app: ActorSystem, loginTokenCache: Cache[String, Subject], streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]])
 
 trait StartingServices extends LazyLogging {
   def startServicesForConfiguration(baseConfig: Config, cfg: MandantConfiguration): StartedServices = {
     implicit val timeout = Timeout(5 seconds)
     implicit val app = ActorSystem(cfg.name, baseConfig.getConfig(cfg.configKey).withFallback(baseConfig))
 
-    val connectionPoolContext = MandantDBs(cfg).connectionPoolContext()
-    val asyncConnectionPoolContext = AsyncMandantDBs(cfg).connectionPoolContext()
-    implicit val sysCfg = SystemConfig(cfg, connectionPoolContext, asyncConnectionPoolContext)
+    implicit val sysCfg = systemConfig(cfg)
 
     // declare token cache used in multiple locations in app
     val defaultCachingSettings = CachingSettings(app)
@@ -120,13 +115,14 @@ trait StartingServices extends LazyLogging {
     reportsEntityStoreView ? DefaultMessages.Startup
     mailTemplateEntityStoreView ? DefaultMessages.Startup
 
-    batchJobs ! InitializeBatchJob
-
-    // persist timestamp of system startup
-    eventStore ! SystemStarted(DateTime.now)
-
-    StartedServices(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, fileStore, airbrakeNotifier, jobQueueService, sysCfg, app, loginTokenCache, streamsByUser)
+    StartedServices(dbEvolutionActor, entityStore, eventStore, mailService, reportSystem, batchJobs, fileStore, airbrakeNotifier, jobQueueService, sysCfg, app, loginTokenCache, streamsByUser)
   }
+
+  def systemConfig(mandant: MandantConfiguration) = SystemConfig(mandant, connectionPoolContext(mandant), asyncConnectionPoolContext(mandant))
+
+  def connectionPoolContext(mandantConfig: MandantConfiguration) = MandantDBs(mandantConfig).connectionPoolContext()
+
+  def asyncConnectionPoolContext(mandantConfig: MandantConfiguration) = AsyncMandantDBs(mandantConfig).connectionPoolContext()
 
   def startAirbrakeService(implicit systemConfig: SystemConfig) = {
     implicit val airbrakeNotifierSystem = ActorSystem(s"oo-airbrake-notifier-system-${systemConfig.mandantConfiguration.name}")

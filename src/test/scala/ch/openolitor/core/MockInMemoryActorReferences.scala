@@ -2,7 +2,10 @@ package ch.openolitor.core
 
 import akka.actor.ActorRef
 import ch.openolitor.core.MockInMemoryActorReferences.MockStartedServices
+import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
+import ch.openolitor.core.domain.SystemEvents.SystemStarted
 import com.typesafe.config.Config
+import org.joda.time.DateTime
 
 import scala.collection.concurrent.TrieMap
 
@@ -31,6 +34,11 @@ object MockInMemoryActorReferences extends StartingServices {
 
   def initialize(baseConfig: Config, systemConfig: SystemConfig) = {
     val services = startServicesForConfiguration(baseConfig, systemConfig.mandantConfiguration)
+
+    services.batchJobs ! InitializeBatchJob
+
+    // persist timestamp of system startup
+    services.eventStore ! SystemStarted(DateTime.now)
 
     jdbcUrlToServices.getOrElseUpdate(systemConfig.mandantConfiguration.config.getString("db.default.url"), services)
   }
