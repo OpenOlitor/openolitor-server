@@ -131,7 +131,7 @@ lazy val macroSub = (project in file("macro")).settings(buildSettings,
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value)
 
 lazy val coverageSettings = Seq(
-  coverageExcludedPackages := "$:;<empty>;ch.openolitor.core.Boot;.*Default.*;scalaxb.*"
+  coverageExcludedPackages := "$:;<empty>;ch.openolitor.core.Boot;.*Default.*;scalaxb.*;ch.openolitor.generated.*;ch.openolitor.core.scalax.*;ch.openolitor.core.repositories.Parameters*"
 )
 
 lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ coverageSettings ++ Seq(
