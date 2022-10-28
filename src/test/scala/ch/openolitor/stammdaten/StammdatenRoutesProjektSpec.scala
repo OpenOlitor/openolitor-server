@@ -15,7 +15,7 @@ class StammdatenRoutesProjektSpec extends BaseRoutesWithDBSpec with SpecSubjects
   private val service = new MockStammdatenRoutes(sysConfig, system)
   implicit val subject: Subject = adminSubject
 
-  "StammdatenRoutes" should {
+  "StammdatenRoutes for Projekt" should {
     "return Projekt" in {
       Get("/projekt") ~> service.stammdatenRoute ~> check {
         val response = responseAs[Option[Projekt]]
