@@ -23,8 +23,8 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       Post("/depots", depot) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
-        // wait for modification to happen
         dbEventProbe.expectMsgType[EntityCreated[Depot]]
+        dbEventProbe.expectNoMessage()
 
         val result = Await.result(service.stammdatenReadRepository.getDepots, defaultTimeout)
         result.size === 1
@@ -39,7 +39,6 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       Post("/abotypen", abotyp) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
-        // wait for modification to happen
         dbEventProbe.expectMsgType[EntityCreated[Abotyp]]
 
         val result = Await.result(service.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
@@ -59,6 +58,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
             status === StatusCodes.Created
 
             dbEventProbe.expectMsgType[EntityCreated[Depotlieferung]]
+            dbEventProbe.expectNoMessage()
 
             Await.result(service.stammdatenReadRepository.getVertriebsarten(vertrieb.entity.id), defaultTimeout).size === 1
 
@@ -68,6 +68,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
               status === StatusCodes.Created
 
               expectCRUDEvents(5) { (creations, _, _) =>
+                dbEventProbe.expectNoMessage()
                 withEvents[Lieferung](creations)(_.abotypId === abotypId)
               }
             }
@@ -82,8 +83,8 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       Post("/zusatzAbotypen", zusatzAbotyp) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
-        // wait for modification to happen
         dbEventProbe.expectMsgType[EntityCreated[ZusatzAbotyp]]
+        dbEventProbe.expectNoMessage()
 
         val result = Await.result(service.stammdatenReadRepository.getZusatzAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
         result.size === 1
@@ -98,10 +99,10 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       Post("/kunden", kundeCreate) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
-        // wait for modification to happen
         val kunde = dbEventProbe.expectMsgType[EntityCreated[Kunde]]
         dbEventProbe.expectMsgType[EntityCreated[KontoDaten]]
         dbEventProbe.expectMsgType[EntityCreated[Person]]
+        dbEventProbe.expectNoMessage()
 
         val kunden = Await.result(service.stammdatenReadRepository.getKunden, defaultTimeout)
         // the result list includes system administrator
