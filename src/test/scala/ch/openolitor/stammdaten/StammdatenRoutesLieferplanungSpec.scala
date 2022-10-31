@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import ch.openolitor.core.{ BaseRoutesWithDBSpec, SpecSubjects }
 import ch.openolitor.core.models.EntityCreated
 import ch.openolitor.core.security.Subject
-import ch.openolitor.stammdaten.models.{ LieferungenAbotypCreate, _ }
+import ch.openolitor.stammdaten.models._
 import org.joda.time.{ DateTime, LocalDate, Months }
 import spray.json.{ JsNumber, JsObject, JsString }
 
@@ -67,9 +67,9 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
             Post(s"/abotypen/${abotypId.id}/vertriebe/${vertrieb.entity.id.id}/lieferungen/aktionen/generieren", lieferungenAbotypCreate) ~> service.stammdatenRoute ~> check {
               status === StatusCodes.Created
 
-              expectCRUDEvents(5) { (creations, _, _) =>
+              expectDBEvents(5) { (creations, _, _, _) =>
                 dbEventProbe.expectNoMessage()
-                withEvents[Lieferung](creations)(_.abotypId === abotypId)
+                oneEventMatches[Lieferung](creations)(_.abotypId === abotypId)
               }
             }
           }
@@ -122,18 +122,18 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
           Post(s"/kunden/${kunde.entity.id.id}/abos/${created.entity.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> service.stammdatenRoute ~> check {
             status === StatusCodes.Accepted
 
-            expectCRUDEvents(9) { (creations, modifications, _) =>
+            expectDBEvents(9) { (creations, modifications, _, _) =>
               creations.size === 1
               modifications.size === 8
 
-              withEvents[Pendenz](creations)(_.bemerkung.get must contain("You deserve it"))
+              oneEventMatches[Pendenz](creations)(_.bemerkung.get must contain("You deserve it"))
 
-              withEvents[Depot](modifications)(_.anzahlAbonnentenAktiv === 1)
-              withEvents[Abotyp](modifications)(_.anzahlAbonnentenAktiv === 1)
-              withEvents[Kunde](modifications)(_.anzahlAbosAktiv === 1)
-              withEvents[Vertrieb](modifications)(_.anzahlAbosAktiv === 1)
-              withEvents[Depotlieferung](modifications)(_.anzahlAbosAktiv === 1)
-              withEvents[DepotlieferungAbo](modifications)(_.guthaben === 12)
+              oneEventMatches[Depot](modifications)(_.anzahlAbonnentenAktiv === 1)
+              oneEventMatches[Abotyp](modifications)(_.anzahlAbonnentenAktiv === 1)
+              oneEventMatches[Kunde](modifications)(_.anzahlAbosAktiv === 1)
+              oneEventMatches[Vertrieb](modifications)(_.anzahlAbosAktiv === 1)
+              oneEventMatches[Depotlieferung](modifications)(_.anzahlAbosAktiv === 1)
+              oneEventMatches[DepotlieferungAbo](modifications)(_.guthaben === 12)
             }
           }
         }
@@ -146,9 +146,11 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       Post("/lieferplanungen", lieferplanungCreate) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
-        val lieferplanung = dbEventProbe.expectMsgType[EntityCreated[Lieferplanung]]
+        expectDBEvents(6) { (creations, _, _, _) =>
+          oneEventMatches[Lieferplanung](creations)(_.status === Offen)
 
-        lieferplanung.entity.status === Offen
+          allEventsMatch[Korb](creations)(_.status === WirdGeliefert)
+        }
       }
     }
   }
