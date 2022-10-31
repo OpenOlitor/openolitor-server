@@ -31,13 +31,11 @@ class StammdatenRoutesProjektSpec extends BaseRoutesWithDBSpec with SpecSubjects
       val projekt = Await.result(service.stammdatenReadRepository.getProjekt, defaultTimeout).get
       val update = copyTo[Projekt, ProjektModify](projekt).copy(bezeichnung = "Updated")
 
-      val probe = dbEventProbe()
-
       Post(s"/projekt/${projekt.id.id}", update) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Accepted
 
         // wait for modification to happen
-        probe.expectMsgType[EntityModified[Projekt]]
+        dbEventProbe.expectMsgType[EntityModified[Projekt]]
 
         val updated = Await.result(service.stammdatenReadRepository.getProjekt, defaultTimeout).get
         updated.bezeichnung === "Updated"
