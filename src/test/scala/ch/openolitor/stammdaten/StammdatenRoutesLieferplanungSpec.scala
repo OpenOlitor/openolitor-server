@@ -1,11 +1,18 @@
 package ch.openolitor.stammdaten
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ Multipart, StatusCodes }
+import akka.http.scaladsl.testkit.WSProbe
+import akka.testkit.TestProbe
 import ch.openolitor.core.{ BaseRoutesWithDBSpec, SpecSubjects }
+import ch.openolitor.core.jobs.JobQueueService.{ FetchJobResult, FileResultPayload, JobResult }
 import ch.openolitor.core.models.EntityCreated
+import ch.openolitor.core.reporting.AsyncReportServiceResult
 import ch.openolitor.core.security.Subject
+import ch.openolitor.core.ws.MockClientMessagesRouteService
 import ch.openolitor.stammdaten.models._
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import org.joda.time.{ DateTime, LocalDate, Months }
+import org.odftoolkit.odfdom.doc.OdfDocument
 import spray.json.{ JsNumber, JsObject, JsString }
 
 import scala.concurrent.Await
@@ -14,6 +21,8 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
   sequential
 
   private val service = new MockStammdatenRoutes(sysConfig, system)
+  private val clientMessagesService = new MockClientMessagesRouteService(sysConfig, system)
+
   implicit val subject: Subject = adminSubject
 
   "StammdatenRoutes for Lieferplanung" should {
@@ -150,6 +159,79 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
           oneEventMatches[Lieferplanung](creations)(_.status === Offen)
 
           allEventsMatch[Korb](creations)(_.status === WirdGeliefert)
+        }
+      }
+    }
+
+    "close Lieferplanung" in {
+      val lieferplanung = Await.result(service.stammdatenReadRepository.getLatestLieferplanung, defaultTimeout).get
+
+      Post(s"/lieferplanungen/${lieferplanung.id.id}/aktionen/abschliessen") ~> service.stammdatenRoute ~> check {
+        status === StatusCodes.OK
+
+        expectDBEvents(5) { (creations, _, _, _) =>
+          oneEventMatches[DepotAuslieferung](creations)(_.status === Erfasst)
+        }
+      }
+    }
+
+    "generate Lieferetiketten" in {
+      implicit val filter: Option[FilterExpr] = None
+      implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
+      implicit val queryString: Option[QueryFilter] = None
+
+      val depotAuslieferungen = Await.result(service.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
+
+      depotAuslieferungen.size === 1
+
+      val formData = Multipart.FormData(
+        Multipart.FormData.BodyPart.Strict("report", "true"),
+        Multipart.FormData.BodyPart.Strict("pdfDownloaden", "true"),
+        Multipart.FormData.BodyPart.Strict("pdfMerge", "zip"),
+        Multipart.FormData.BodyPart.Strict("ids", s"${depotAuslieferungen.head.id.id}")
+      )
+
+      val wsClient = WSProbe()
+
+      WS("/", wsClient.flow) ~> clientMessagesService.routes ~> check {
+        isWebSocketUpgrade === true
+
+        // logging in manually via ws to attach our wsClient
+        wsClient.sendMessage(s"""{"type":"Login","token":"${adminSubjectToken}"}""")
+        val loginOkMessage = wsClient.expectMessage()
+        loginOkMessage.asTextMessage.getStrictText must contain("LoggedIn")
+
+        Post(s"/depotauslieferungen/berichte/lieferetiketten", formData) ~> service.stammdatenRoute ~> check {
+          status === StatusCodes.OK
+
+          val reportServiceResult = responseAs[AsyncReportServiceResult]
+
+          reportServiceResult.hasErrors === false
+
+          // receive progress update
+          val progressMessage = wsClient.expectMessage()
+          progressMessage.asTextMessage.getStrictText must contain(""""numberOfTasksInProgress":1""")
+
+          // receive task completion
+          val completionMessage = wsClient.expectMessage()
+          completionMessage.asTextMessage.getStrictText must contain(""""progresses":[]""")
+
+          // fetch the result directly from jobQueueService
+          val probe = TestProbe()
+          probe.send(jobQueueService, FetchJobResult(subject.personId, reportServiceResult.jobId.id))
+
+          val message = probe.expectMsgType[JobResult]
+
+          message.payload must beSome
+
+          val file = message.payload.get.asInstanceOf[FileResultPayload].file
+
+          val odt = OdfDocument.loadDocument(file)
+          val contentAsString = odt.getContentRoot.getChildNodes.toString
+          contentAsString must contain("Deep Oh")
+          contentAsString must contain("Untertor Oski")
+
+          file.isFile must beTrue
         }
       }
     }

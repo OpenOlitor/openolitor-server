@@ -30,5 +30,6 @@ trait SpecSubjects {
   val personAdminInactive = Person(personId, KundeId(1), None, "Test", "Test", Some(email), None, None, None, None, 1, false, Some(pwdHashed.toCharArray), None,
     false, Some(AdministratorZugang), Set.empty, None, otpSecret, false, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
   val projekt = Projekt(ProjektId(1), "Test", None, None, None, None, None, true, true, true, CHF, 1, 1, Map(AdministratorZugang -> true, KundenZugang -> false), EmailSecondFactorType, Locale.GERMAN, None, None, None, false, false, EinsatzEinheit("Tage"), 1, false, false, DateTime.now, PersonId(1), DateTime.now, PersonId(1))
-  val adminSubject = Subject("someToken", personId, KundeId(1), None, None)
+  val adminSubjectToken = "someToken"
+  val adminSubject = Subject(adminSubjectToken, personId, KundeId(1), None, None)
 }
