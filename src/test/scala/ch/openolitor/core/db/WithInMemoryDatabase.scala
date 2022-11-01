@@ -16,6 +16,7 @@ import akka.testkit.TestProbe
 import akka.util.Timeout
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.core.db.evolution.DBEvolutionActor.{ CheckDBEvolution, DBEvolutionState }
+import ch.openolitor.stammdaten.models.KundeId
 import com.tegonal.CFEnvConfigLoader.ConfigLoader
 import scalikejdbc.ConnectionPool
 
@@ -158,7 +159,7 @@ object WithInMemoryDatabase extends ActorTestScope with LazyLogging {
     // inline temporary config to connect to the jdbcUrl separately
     ConnectionPool.singleton(config.getString("db.default.url"), "tegonal", "tegonal")
 
-    val mandant = MandantConfiguration("", "", "", 0, 0, Map(), config)
+    val mandant = MandantConfiguration("", "", "", 0, 0, Map(classOf[KundeId] -> 30000), config)
     val connectionPoolContext = MandantDBs(mandant).connectionPoolContext()
     val asyncConnectionPoolContext = AsyncMandantDBs(mandant).connectionPoolContext()
     implicit val sysCfg = SystemConfig(mandant, connectionPoolContext, asyncConnectionPoolContext)
