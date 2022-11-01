@@ -75,13 +75,16 @@ trait WithInMemoryDatabase extends ModifyingSystemConfigReference with BeforeAft
 
   lazy val mariaDB = WithInMemoryDatabase.initSnapshotSql
 
-  override def beforeAll(): Unit = {
-    // execInContainer seems to be hanging after some time
+  def initializeInMemoryDatabase(): Unit = {
     val result = mariaDB.execInContainer(s"./mock_db_pump.sh", s"$dbName")
 
     if (result.getExitCode != 0) {
       throw new IllegalStateException(s"Failed to pump into $dbName ${result.getStderr}")
     }
+  }
+
+  override def beforeAll(): Unit = {
+    initializeInMemoryDatabase()
   }
 }
 

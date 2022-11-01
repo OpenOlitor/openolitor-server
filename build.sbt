@@ -83,7 +83,8 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.0.+",
     "com.h2database"               %  "h2"                                 % "2.1.212"                               % "test",
-    "org.testcontainers"           % "mariadb"                             % testContainersVersion                   % "test",
+    "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
+    "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.2.11",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.0.4",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.29",

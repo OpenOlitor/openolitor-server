@@ -21,6 +21,8 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
 
   implicit val subject = adminSubject
 
+  private val validIban = "AD12000120302003591001000000000001"
+
   override def beforeAll() = {
     super.beforeAll()
 
@@ -76,33 +78,29 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
     }
 
     "modify Projekt Kontodaten accordingly" in {
-      val iban = "AD12000120302003591001000000000001"
-
       val kontoDaten = Await.result(service.stammdatenReadRepository.getKontoDatenProjekt, defaultTimeout).get
-      val kontoDatenModify = copyTo[KontoDaten, KontoDatenModify](kontoDaten).copy(iban = Some(iban), creditorIdentifier = Some("Street Creditor"))
+      val kontoDatenModify = copyTo[KontoDaten, KontoDatenModify](kontoDaten).copy(iban = Some(validIban), creditorIdentifier = Some("Street Creditor"))
 
       Post(s"/kontodaten/${kontoDaten.id.id}", kontoDatenModify) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Accepted
 
         expectDBEvents(1) { (_, modifications, _, _) =>
-          oneEventMatches[KontoDaten](modifications)(_.iban === Some(iban))
+          oneEventMatches[KontoDaten](modifications)(_.iban === Some(validIban))
         }
       }
     }
 
     "modify Kunde Kontodaten accordingly" in {
-      val iban = "AD12000120302003591001000000000001"
-
       val kunden = Await.result(service.stammdatenReadRepository.getKunden, defaultTimeout)
       val kunde = kunden.find(_.bezeichnung.contains(kundeCreateUntertorOski.ansprechpersonen.head.name)).get
       val kontoDaten = Await.result(service.stammdatenReadRepository.getKontoDatenKunde(kunde.id), defaultTimeout).get
-      val kontoDatenModify = copyTo[KontoDaten, KontoDatenModify](kontoDaten).copy(iban = Some(iban), nameAccountHolder = Some("Oski"))
+      val kontoDatenModify = copyTo[KontoDaten, KontoDatenModify](kontoDaten).copy(iban = Some(validIban), nameAccountHolder = Some("Oski"))
 
       Post(s"/kontodaten/${kontoDaten.id.id}", kontoDatenModify) ~> service.stammdatenRoute ~> check {
         status === StatusCodes.Accepted
 
         expectDBEvents(1) { (_, modifications, _, _) =>
-          oneEventMatches[KontoDaten](modifications)(_.iban === Some(iban))
+          oneEventMatches[KontoDaten](modifications)(_.iban === Some(validIban))
         }
       }
     }
@@ -125,6 +123,9 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
 
     Post(s"/rechnungen/aktionen/pain_008_001_$version", rechnungsIds) ~> buchhaltungRouteService.buchhaltungRoute ~> check {
       status === StatusCodes.OK
+      val result = responseAs[String]
+
+      result must contain(validIban)
     }
   }
 

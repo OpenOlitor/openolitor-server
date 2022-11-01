@@ -4,7 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.testkit.{ RouteTestTimeout, Specs2RouteTest }
 import akka.testkit.TestProbe
 import ch.openolitor.core.db.WithInMemoryDatabase
-import ch.openolitor.core.filestore.MockFileStoreComponent
+import ch.openolitor.core.filestore.{ MockFileStoreComponent, WithInMemoryFileStore }
 import ch.openolitor.core.models._
 import com.typesafe.scalalogging.LazyLogging
 import org.specs2.matcher.Matchers
@@ -39,15 +39,17 @@ trait BaseRoutesSpec extends BaseSpec with Specs2RouteTest with SprayJsonSupport
  *
  * Feel free to extend this class and implement a reset of both the database and actors in [[org.specs2.specification.Before#before()]] to have a clean state for each test case.
  */
-trait BaseRoutesWithDBSpec extends BaseRoutesSpec with WithInMemoryDatabase with StartingServices with MockInMemoryActorReferences with EventMatchers {
+trait BaseRoutesWithDBSpec extends BaseRoutesSpec with WithInMemoryFileStore with WithInMemoryDatabase with StartingServices with MockInMemoryActorReferences with EventMatchers {
   sequential
 
   var dbEventProbe: TestProbe = null
 
   override def beforeAll() = {
-    super.beforeAll()
+    initializeInMemoryDatabase()
 
     initializeConnectionPool()
+
+    initializeInMemoryFileStore()
 
     MockInMemoryActorReferences.initialize(config, sysConfig)
 
