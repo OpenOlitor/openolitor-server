@@ -1,6 +1,6 @@
 package ch.openolitor.stammdaten
 
-import akka.http.scaladsl.model.{ Multipart, StatusCodes }
+import akka.http.scaladsl.model.{ ContentTypes, Multipart, StatusCodes }
 import akka.http.scaladsl.testkit.WSProbe
 import akka.testkit.TestProbe
 import ch.openolitor.core.{ BaseRoutesWithDBSpec, SpecSubjects }
@@ -11,10 +11,10 @@ import ch.openolitor.core.security.Subject
 import ch.openolitor.core.ws.MockClientMessagesRouteService
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
-import org.joda.time.{ DateTime, LocalDate, Months }
 import org.odftoolkit.odfdom.doc.OdfDocument
-import spray.json.{ JsNumber, JsObject, JsString }
+import org.specs2.matcher.MatchResult
 
+import java.io.File
 import scala.concurrent.Await
 
 class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSubjects with StammdatenRouteServiceInteractions with StammdatenJsonProtocol {
@@ -126,14 +126,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
 
       val wsClient = WSProbe()
 
-      WS("/", wsClient.flow) ~> clientMessagesService.routes ~> check {
-        isWebSocketUpgrade === true
-
-        // logging in manually via ws to attach our wsClient
-        wsClient.sendMessage(s"""{"type":"Login","token":"${adminSubjectToken}"}""")
-        val loginOkMessage = wsClient.expectMessage()
-        loginOkMessage.asTextMessage.getStrictText must contain("LoggedIn")
-
+      withWsProbeFakeLogin(wsClient) { wsClient =>
         Post(s"/depotauslieferungen/berichte/lieferetiketten", formData) ~> service.stammdatenRoute ~> check {
           status === StatusCodes.OK
 
@@ -141,23 +134,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
 
           reportServiceResult.hasErrors === false
 
-          // receive progress update
-          val progressMessage = wsClient.expectMessage()
-          progressMessage.asTextMessage.getStrictText must contain(""""numberOfTasksInProgress":1""")
-
-          // receive task completion
-          val completionMessage = wsClient.expectMessage()
-          completionMessage.asTextMessage.getStrictText must contain(""""progresses":[]""")
-
-          // fetch the result directly from jobQueueService
-          val probe = TestProbe()
-          probe.send(jobQueueService, FetchJobResult(subject.personId, reportServiceResult.jobId.id))
-
-          val message = probe.expectMsgType[JobResult]
-
-          message.payload must beSome
-
-          val file = message.payload.get.asInstanceOf[FileResultPayload].file
+          val file = awaitFileViaWebsocket(wsClient, reportServiceResult)
 
           val odt = OdfDocument.loadDocument(file)
           val contentAsString = odt.getContentRoot.getChildNodes.toString
@@ -168,5 +145,77 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
         }
       }
     }
+
+    "generate Korbuebersicht using custom vorlage" in {
+      implicit val filter: Option[FilterExpr] = None
+      implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
+      implicit val queryString: Option[QueryFilter] = None
+
+      val depotAuslieferungen = Await.result(service.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
+
+      depotAuslieferungen.size === 1
+
+      val formData = Multipart.FormData(
+        Multipart.FormData.BodyPart.Strict("report", "true"),
+        Multipart.FormData.BodyPart.Strict("pdfGenerieren", "false"),
+        Multipart.FormData.BodyPart.Strict("pdfDownloaden", "true"),
+        Multipart.FormData.BodyPart.Strict("pdfMerge", "zip"),
+        Multipart.FormData.BodyPart.Strict("ids", s"${depotAuslieferungen.head.id.id}"),
+        Multipart.FormData.BodyPart.fromFile("vorlage", ContentTypes.`application/octet-stream`, new File(getClass.getClassLoader.getResource("VorlageKorbUebersichtGnu.odt").getPath))
+      )
+
+      val wsClient = WSProbe()
+
+      withWsProbeFakeLogin(wsClient) { wsClient =>
+        Post(s"/depotauslieferungen/berichte/korbuebersicht", formData) ~> service.stammdatenRoute ~> check {
+          status === StatusCodes.OK
+
+          val reportServiceResult = responseAs[AsyncReportServiceResult]
+
+          reportServiceResult.hasErrors === false
+
+          val file = awaitFileViaWebsocket(wsClient, reportServiceResult)
+
+          val odt = OdfDocument.loadDocument(file)
+          val contentAsString = odt.getContentRoot.getChildNodes.toString
+          contentAsString must contain("Deep Oh")
+
+          file.isFile must beTrue
+        }
+      }
+    }
+  }
+
+  private def withWsProbeFakeLogin(wsClient: WSProbe)(block: WSProbe => MatchResult[_]) = {
+    WS("/", wsClient.flow) ~> clientMessagesService.routes ~> check {
+      isWebSocketUpgrade === true
+
+      // logging in manually via ws to attach our wsClient
+      wsClient.sendMessage(s"""{"type":"Login","token":"${adminSubjectToken}"}""")
+      val loginOkMessage = wsClient.expectMessage()
+      loginOkMessage.asTextMessage.getStrictText must contain("LoggedIn")
+
+      block(wsClient)
+    }
+  }
+
+  private def awaitFileViaWebsocket(wsClient: WSProbe, reportServiceResult: AsyncReportServiceResult) = {
+    // receive progress update
+    val progressMessage = wsClient.expectMessage()
+    progressMessage.asTextMessage.getStrictText must contain(""""numberOfTasksInProgress":1""")
+
+    // receive task completion
+    val completionMessage = wsClient.expectMessage()
+    completionMessage.asTextMessage.getStrictText must contain(""""progresses":[]""")
+
+    // fetch the result directly from jobQueueService
+    val probe = TestProbe()
+    probe.send(jobQueueService, FetchJobResult(subject.personId, reportServiceResult.jobId.id))
+
+    val message = probe.expectMsgType[JobResult]
+
+    message.payload must beSome
+
+    message.payload.get.asInstanceOf[FileResultPayload].file
   }
 }
