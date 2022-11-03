@@ -81,31 +81,11 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
     }
 
     "create Lieferplanung" in {
-      val lieferplanungCreate = LieferplanungCreate(None)
-
-      Post("/lieferplanungen", lieferplanungCreate) ~> service.stammdatenRoute ~> check {
-        status === StatusCodes.Created
-
-        expectDBEvents(6) { (creations, _, _, _) =>
-          oneEventMatches[Lieferplanung](creations)(_.status === Offen)
-
-          allEventsMatch[Korb](creations)(_.status === WirdGeliefert)
-        }
-      }
+      createLieferplanung(service)
     }
 
     "close Lieferplanung" in {
-      val lieferplanung = Await.result(service.stammdatenReadRepository.getLatestLieferplanung, defaultTimeout).get
-
-      Post(s"/lieferplanungen/${lieferplanung.id.id}/aktionen/abschliessen") ~> service.stammdatenRoute ~> check {
-        status === StatusCodes.OK
-
-        expectDBEvents(5) { (creations, modifications, _, _) =>
-          creations.size === 1
-          modifications.size === 4
-          allEventsMatch[DepotAuslieferung](creations)(_.status === Erfasst)
-        }
-      }
+      closeLieferplanung(service)
     }
 
     "generate Lieferetiketten" in {

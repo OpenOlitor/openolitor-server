@@ -28,4 +28,8 @@ trait EventMatchers extends SpecificationLike {
   protected def allEventsMatch[E <: BaseEntity[_ <: BaseId]](events: Seq[DBEvent[_]])(assertion: E => MatchResult[Any])(implicit classTag: ClassTag[E]) = {
     events.filter(_.entity.getClass == classTag.runtimeClass).forall(element => assertion(element.entity.asInstanceOf[E]).isSuccess) === true
   }
+
+  protected def oneOf[E <: BaseEntity[_ <: BaseId]](events: Seq[DBEvent[_]])(predicate: E => Boolean)(implicit classTag: ClassTag[E]): E = {
+    events.filter(_.entity.getClass == classTag.runtimeClass).filter(element => predicate(element.entity.asInstanceOf[E])).head.entity.asInstanceOf[E]
+  }
 }

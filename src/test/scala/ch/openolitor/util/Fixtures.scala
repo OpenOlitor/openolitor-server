@@ -46,7 +46,7 @@ object Fixtures extends SpecSubjects {
   val zusatzAbotypEier = ZusatzAbotypModify("Eier", None, Some(LocalDate.now().withDayOfWeek(1).minus(Months.TWO)), None, BigDecimal(5.2), ProLieferung, None, Unbeschraenkt, Some(Frist(2, Monatsfrist)), Some(Frist(1, Monatsfrist)), Some(2), None, "#ffcc00", Some(BigDecimal(5)), BigDecimal(10), true, CHF)
 
   val kundeCreateUntertorOski = KundeModify(true, None, "Wasserwerkgasse", Some("2"), None, "3011", "Bern", None, false, None, None, None, None, None, None, None, None, None, Set(), Seq(), Seq(PersonModify(
-    None, None, "Untertor", "Oski", Some("info@example.com"), None, None, None, Set(), None, None, false
+    None, None, "Untertor", "Oski", Some("oski@example.com"), None, None, None, Set(), None, None, false
   )), None, None)
 
   val vertriebId = VertriebId(1)
