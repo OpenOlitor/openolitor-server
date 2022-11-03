@@ -19,9 +19,9 @@ trait WithInMemoryFileStore extends ModifyingSystemConfigReference with BeforeAf
   override protected def modifyConfig(): Config =
     super
       .modifyConfig()
-      .withValue("openolitor.try.s3.aws-endpoint", ConfigValueFactory.fromAnyRef(s"http://localhost:$randomPort"))
-      .withValue("openolitor.try.s3.aws-access-key-id", ConfigValueFactory.fromAnyRef("accessKey1"))
-      .withValue("openolitor.try.s3.aws-secret-access-key", ConfigValueFactory.fromAnyRef("verySecretKey1"))
+      .withValue("openolitor.test.s3.aws-endpoint", ConfigValueFactory.fromAnyRef(s"http://localhost:$randomPort"))
+      .withValue("openolitor.test.s3.aws-access-key-id", ConfigValueFactory.fromAnyRef("accessKey1"))
+      .withValue("openolitor.test.s3.aws-secret-access-key", ConfigValueFactory.fromAnyRef("verySecretKey1"))
 
   def initializeInMemoryFileStore(): Unit = {
     api.start

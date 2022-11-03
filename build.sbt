@@ -135,7 +135,17 @@ lazy val coverageSettings = Seq(
   coverageExcludedPackages := "$:;<empty>;ch.openolitor.core.Boot;.*Default.*;scalaxb.*;ch.openolitor.generated.*;ch.openolitor.core.scalax.*;ch.openolitor.core.repositories.Parameters*"
 )
 
-lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ coverageSettings ++ Seq(
+lazy val testSettings = Seq(
+  Test / parallelExecution := true,
+  Test / fork := true,
+  Test / testForkedParallel := true,
+  testOptions += Tests.Argument("timefactor", "5"),
+  Test / javaOptions ++= Seq(
+    "-Dconfig.resource=application-test.conf"
+  )
+)
+
+lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ coverageSettings ++ testSettings ++ Seq(
     (sourceGenerators in Compile) += task[Seq[File]]{
       val dir = (sourceManaged in Compile).value
       val maxParams = 30
