@@ -157,7 +157,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
 
       val formData = Multipart.FormData(
         Multipart.FormData.BodyPart.Strict("report", "true"),
-        Multipart.FormData.BodyPart.Strict("pdfGenerieren", "false"),
+        Multipart.FormData.BodyPart.Strict("pdfGenerieren", "true"),
         Multipart.FormData.BodyPart.Strict("pdfDownloaden", "true"),
         Multipart.FormData.BodyPart.Strict("pdfMerge", "zip"),
         Multipart.FormData.BodyPart.Strict("ids", s"${depotAuslieferungen.head.id.id}"),
@@ -175,12 +175,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
           reportServiceResult.hasErrors === false
 
           val file = awaitFileViaWebsocket(wsClient, reportServiceResult)
-
-          val odt = OdfDocument.loadDocument(file)
-          val contentAsString = odt.getContentRoot.getChildNodes.toString
-          contentAsString must contain("Deep Oh")
-
-          file.isFile must beTrue
+          file.getName must endWith(".pdf")
         }
       }
     }

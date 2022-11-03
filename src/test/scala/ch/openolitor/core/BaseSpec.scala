@@ -6,6 +6,7 @@ import akka.testkit.TestProbe
 import ch.openolitor.core.db.WithInMemoryDatabase
 import ch.openolitor.core.filestore.{ MockFileStoreComponent, WithInMemoryFileStore }
 import ch.openolitor.core.models._
+import ch.openolitor.core.util.WithInMemoryPdfGenerator
 import com.typesafe.scalalogging.LazyLogging
 import org.specs2.matcher.Matchers
 import org.specs2.mutable.Specification
@@ -39,7 +40,7 @@ trait BaseRoutesSpec extends BaseSpec with Specs2RouteTest with SprayJsonSupport
  *
  * Feel free to extend this class and implement a reset of both the database and actors in [[org.specs2.specification.Before#before()]] to have a clean state for each test case.
  */
-trait BaseRoutesWithDBSpec extends BaseRoutesSpec with WithInMemoryFileStore with WithInMemoryDatabase with StartingServices with MockInMemoryActorReferences with EventMatchers {
+trait BaseRoutesWithDBSpec extends BaseRoutesSpec with WithInMemoryPdfGenerator with WithInMemoryFileStore with WithInMemoryDatabase with StartingServices with MockInMemoryActorReferences with EventMatchers {
   sequential
 
   var dbEventProbe: TestProbe = null
