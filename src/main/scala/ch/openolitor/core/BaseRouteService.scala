@@ -419,10 +419,12 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
   }
 
   protected def uploadOpt(fileProperty: String = "file")(onUpload: Option[(InputStream, String)] => Route)(implicit materializer: Materializer): Route = {
-    entity(as[Multipart.FormData]) { formData =>
-      onSuccess(formData.parts.filter(_.name == fileProperty).runFold[Option[Multipart.FormData.BodyPart]](None)((_, part) => Some(part))) {
-        case Some(_) => uploadUndispatchedConsume(fileProperty) { (stream, name) => onUpload(Some((stream, name))) }
-        case _       => onUpload(None)
+    toStrictEntity(60 seconds) {
+      entity(as[Multipart.FormData]) { formData =>
+        onSuccess(formData.parts.filter(_.name == fileProperty).runFold[Option[Multipart.FormData.BodyPart]](None)((_, part) => Some(part))) {
+          case Some(_) => uploadUndispatchedConsume(fileProperty) { (stream, name) => onUpload(Some((stream, name))) }
+          case _       => onUpload(None)
+        }
       }
     }
   }
@@ -436,8 +438,10 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
   }
 
   protected def uploadStored(fileType: FileType, name: Option[String] = None)(onUpload: (String, FileStoreFileMetadata) => Route, onError: Option[FileStoreError => Route] = None)(implicit materializer: Materializer): Route = {
-    uploadUndispatchedConsume() { (content, fileName) =>
-      storeToFileStore(fileType, name, content, fileName)(onUpload, onError)
+    toStrictEntity(60 seconds) {
+      uploadUndispatchedConsume() { (content, fileName) =>
+        storeToFileStore(fileType, name, content, fileName)(onUpload, onError)
+      }
     }
   }
 
