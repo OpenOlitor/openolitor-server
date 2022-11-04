@@ -16,8 +16,8 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
 
   import ch.openolitor.util.Fixtures._
 
-  private val service = new MockStammdatenRoutes(sysConfig, system)
-  private val buchhaltungRouteService = new MockBuchhaltungRoutes(sysConfig, system)
+  protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
+  protected val buchhaltungRouteService = new MockBuchhaltungRoutes(sysConfig, system)
 
   implicit val subject = adminSubject
 
@@ -33,7 +33,7 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
     "create manual Rechnung" in {
       val aboRechnungsPositionBisAnzahlLieferungenCreate = AboRechnungsPositionBisAnzahlLieferungenCreate(Seq(AboId(1)), "The Title", 6, None, CHF)
 
-      Post("/abos/aktionen/anzahllieferungenrechnungspositionen", aboRechnungsPositionBisAnzahlLieferungenCreate) ~> service.stammdatenRoute ~> check {
+      Post("/abos/aktionen/anzahllieferungenrechnungspositionen", aboRechnungsPositionBisAnzahlLieferungenCreate) ~> stammdatenRouteService.stammdatenRoute ~> check {
         expectDBEvents(1) { (creations, _, _, _) =>
           oneEventMatches[RechnungsPosition](creations)(_.betrag === abotypVegi.preis * 6)
         }
@@ -78,10 +78,10 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
     }
 
     "modify Projekt Kontodaten accordingly" in {
-      val kontoDaten = Await.result(service.stammdatenReadRepository.getKontoDatenProjekt, defaultTimeout).get
+      val kontoDaten = Await.result(stammdatenRouteService.stammdatenReadRepository.getKontoDatenProjekt, defaultTimeout).get
       val kontoDatenModify = copyTo[KontoDaten, KontoDatenModify](kontoDaten).copy(iban = Some(validIban), creditorIdentifier = Some("Street Creditor"))
 
-      Post(s"/kontodaten/${kontoDaten.id.id}", kontoDatenModify) ~> service.stammdatenRoute ~> check {
+      Post(s"/kontodaten/${kontoDaten.id.id}", kontoDatenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
         status === StatusCodes.Accepted
 
         expectDBEvents(1) { (_, modifications, _, _) =>
@@ -91,12 +91,12 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
     }
 
     "modify Kunde Kontodaten accordingly" in {
-      val kunden = Await.result(service.stammdatenReadRepository.getKunden, defaultTimeout)
+      val kunden = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden, defaultTimeout)
       val kunde = kunden.find(_.bezeichnung.contains(kundeCreateUntertorOski.ansprechpersonen.head.name)).get
-      val kontoDaten = Await.result(service.stammdatenReadRepository.getKontoDatenKunde(kunde.id), defaultTimeout).get
+      val kontoDaten = Await.result(stammdatenRouteService.stammdatenReadRepository.getKontoDatenKunde(kunde.id), defaultTimeout).get
       val kontoDatenModify = copyTo[KontoDaten, KontoDatenModify](kontoDaten).copy(iban = Some(validIban), nameAccountHolder = Some("Oski"))
 
-      Post(s"/kontodaten/${kontoDaten.id.id}", kontoDatenModify) ~> service.stammdatenRoute ~> check {
+      Post(s"/kontodaten/${kontoDaten.id.id}", kontoDatenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
         status === StatusCodes.Accepted
 
         expectDBEvents(1) { (_, modifications, _, _) =>
@@ -136,10 +136,12 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
 
     insertEntity[Abotyp, AbotypId](abotypVegi)
 
-    insertEntity[Vertrieb, VertriebId](vertriebDonnerstag)
+    insertEntity[Vertrieb, VertriebId](vertriebDonnerstagDepot)
 
-    createSimpleVertriebVertriebsart(service)
+    createDepotVertriebVertriebsart()
 
-    createSimpleAbo(service)
+    createKunde(kundeCreateUntertorOski)
+
+    createDepotlieferungAbo(kundeCreateUntertorOski)
   }
 }

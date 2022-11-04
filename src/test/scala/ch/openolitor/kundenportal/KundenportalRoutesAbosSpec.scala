@@ -14,10 +14,10 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
 
   import ch.openolitor.util.Fixtures._
 
-  private val service = new MockStammdatenRoutes(sysConfig, system)
-  private val kundenportalRouteService = new MockKundenportalRoutes(sysConfig, system)
+  protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
+  protected val kundenportalRouteService = new MockKundenportalRoutes(sysConfig, system)
 
-  private var oskiKunde: KundeDetail = null
+  protected var oskiKunde: KundeDetail = null
 
   override def beforeAll() = {
     super.beforeAll()
@@ -29,7 +29,7 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
     "list Lieferungen" in {
       implicit val subject = Subject("oski", oskiKunde.ansprechpersonen.head.id, oskiKunde.id, Some(KundenZugang), None)
 
-      Get(s"/kundenportal/abos/${abotypId.id}/vertriebe/${vertriebId.id}/lieferungen") ~> kundenportalRouteService.kundenportalRoute ~> check {
+      Get(s"/kundenportal/abos/${abotypId.id}/vertriebe/${vertriebIdDepot.id}/lieferungen") ~> kundenportalRouteService.kundenportalRoute ~> check {
         val result = responseAs[List[LieferungDetail]]
 
         result.size === 1
@@ -41,23 +41,26 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
 
   private def setupAbo(): KundeDetail = {
     implicit val adminPersonId = adminSubject.personId
+    implicit val subject = adminSubject
 
     insertEntity[Depot, DepotId](depotWwg)
 
     insertEntity[Abotyp, AbotypId](abotypVegi)
 
-    insertEntity[Vertrieb, VertriebId](vertriebDonnerstag)
+    insertEntity[Vertrieb, VertriebId](vertriebDonnerstagDepot)
 
-    createSimpleVertriebVertriebsart(service)(adminSubject)
+    createDepotVertriebVertriebsart()
 
-    createSimpleAbo(service)(adminSubject)
+    createKunde(kundeCreateUntertorOski)
 
-    createLieferplanung(service)(adminSubject)
+    createDepotlieferungAbo(kundeCreateUntertorOski)
 
-    closeLieferplanung(service)(adminSubject)
+    createLieferplanung()
 
-    val kunde = Await.result(service.stammdatenReadRepository.getKunden, defaultTimeout).filter(_.bezeichnung.contains("Oski")).head
+    closeLieferplanung()
 
-    Await.result(service.stammdatenReadRepository.getKundeDetail(kunde.id), defaultTimeout).get
+    val kunde = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden, defaultTimeout).filter(_.bezeichnung.contains("Oski")).head
+
+    Await.result(stammdatenRouteService.stammdatenReadRepository.getKundeDetail(kunde.id), defaultTimeout).get
   }
 }

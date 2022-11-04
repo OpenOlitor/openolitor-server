@@ -12,12 +12,12 @@ import scala.concurrent.Await
 class StammdatenRoutesProjektSpec extends BaseRoutesWithDBSpec with SpecSubjects with StammdatenJsonProtocol {
   sequential
 
-  private val service = new MockStammdatenRoutes(sysConfig, system)
+  protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
   implicit val subject: Subject = adminSubject
 
   "StammdatenRoutes for Projekt" should {
     "return Projekt" in {
-      Get("/projekt") ~> service.stammdatenRoute ~> check {
+      Get("/projekt") ~> stammdatenRouteService.stammdatenRoute ~> check {
         val response = responseAs[Option[Projekt]]
         status === StatusCodes.OK
         response.headOption.map { head =>
@@ -28,15 +28,15 @@ class StammdatenRoutesProjektSpec extends BaseRoutesWithDBSpec with SpecSubjects
     }
 
     "update Projekt" in {
-      val projekt = Await.result(service.stammdatenReadRepository.getProjekt, defaultTimeout).get
+      val projekt = Await.result(stammdatenRouteService.stammdatenReadRepository.getProjekt, defaultTimeout).get
       val update = copyTo[Projekt, ProjektModify](projekt).copy(bezeichnung = "Updated")
 
-      Post(s"/projekt/${projekt.id.id}", update) ~> service.stammdatenRoute ~> check {
+      Post(s"/projekt/${projekt.id.id}", update) ~> stammdatenRouteService.stammdatenRoute ~> check {
         status === StatusCodes.Accepted
 
         dbEventProbe.expectMsgType[EntityModified[Projekt]]
 
-        val updated = Await.result(service.stammdatenReadRepository.getProjekt, defaultTimeout).get
+        val updated = Await.result(stammdatenRouteService.stammdatenReadRepository.getProjekt, defaultTimeout).get
         updated.bezeichnung === "Updated"
       }
     }

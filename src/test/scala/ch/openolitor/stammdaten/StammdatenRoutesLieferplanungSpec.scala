@@ -22,70 +22,90 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
 
   import ch.openolitor.util.Fixtures._
 
-  private val service = new MockStammdatenRoutes(sysConfig, system)
-  private val clientMessagesService = new MockClientMessagesRouteService(sysConfig, system)
+  protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
+  protected val clientMessagesService = new MockClientMessagesRouteService(sysConfig, system)
 
   implicit val subject: Subject = adminSubject
 
   "StammdatenRoutes for Lieferplanung" should {
     "create Depot" in {
-      Post("/depots", depotWwgModify) ~> service.stammdatenRoute ~> check {
-        status === StatusCodes.Created
-
-        dbEventProbe.expectMsgType[EntityCreated[Depot]]
-        dbEventProbe.expectNoMessage()
-
-        val result = Await.result(service.stammdatenReadRepository.getDepots, defaultTimeout)
-        result.size === 1
-      }
+      createDepotWwg()
     }
 
-    "create Abotyp with Vertrieb and Vertriebsart" in {
-      val depot = Await.result(service.stammdatenReadRepository.getDepots, defaultTimeout).head
+    "create Tour" in {
+      createTour()
+    }
 
-      Post("/abotypen", abotypVegiModify) ~> service.stammdatenRoute ~> check {
+    "create Abotyp with Vertrieb and Vertriebsarten" in {
+      Post("/abotypen", abotypVegiModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
         dbEventProbe.expectMsgType[EntityCreated[Abotyp]]
 
-        val result = Await.result(service.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
+        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
         result.size === 1
         val abotypId = result(0).id
 
-        Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModify) ~> service.stammdatenRoute ~> check {
+        Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyDepot) ~> stammdatenRouteService.stammdatenRoute ~> check {
           status === StatusCodes.Created
 
           val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
 
-          Await.result(service.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 1
+          Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 1
 
-          createSimpleVertriebVertriebsart(service)
+          createDepotVertriebVertriebsart()
+        }
+
+        Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyTour) ~> stammdatenRouteService.stammdatenRoute ~> check {
+          status === StatusCodes.Created
+
+          val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
+
+          Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 2
+
+          createTourVertriebVertriebsart()
         }
       }
     }
 
     "create ZusatzAbotyp" in {
-      Post("/zusatzAbotypen", zusatzAbotypEier) ~> service.stammdatenRoute ~> check {
+      Post("/zusatzAbotypen", zusatzAbotypEier) ~> stammdatenRouteService.stammdatenRoute ~> check {
         status === StatusCodes.Created
 
         dbEventProbe.expectMsgType[EntityCreated[ZusatzAbotyp]]
         dbEventProbe.expectNoMessage()
 
-        val result = Await.result(service.stammdatenReadRepository.getZusatzAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
+        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getZusatzAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
         result.size === 1
       }
     }
 
-    "create Kunde with Abo" in {
-      createSimpleAbo(service)
+    "create Kunden" in {
+      createKunde(kundeCreateUntertorOski)
+      createKunde(kundeCreateMatteEdi)
+      createKunde(kundeCreateHaseFritz)
     }
 
+    "create Abo for Kunde (Depot)" in {
+      createDepotlieferungAbo(kundeCreateUntertorOski)
+    }
+
+    "create Abo for Kunde (Tour)" in {
+      createTourlieferungAbo(kundeCreateMatteEdi)
+    }
+
+    /*
+    "create Abo for Kunde (Post)" in {
+      createPostlieferungAbo(kundeCreateHaseFritz)
+    }
+     */
+
     "create Lieferplanung" in {
-      createLieferplanung(service)
+      createLieferplanung()
     }
 
     "close Lieferplanung" in {
-      closeLieferplanung(service)
+      closeLieferplanung()
     }
 
     "generate Lieferetiketten" in {
@@ -93,7 +113,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
       implicit val queryString: Option[QueryFilter] = None
 
-      val depotAuslieferungen = Await.result(service.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
+      val depotAuslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
 
       depotAuslieferungen.size === 1
 
@@ -107,7 +127,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       val wsClient = WSProbe()
 
       withWsProbeFakeLogin(wsClient) { wsClient =>
-        Post(s"/depotauslieferungen/berichte/lieferetiketten", formData) ~> service.stammdatenRoute ~> check {
+        Post(s"/depotauslieferungen/berichte/lieferetiketten", formData) ~> stammdatenRouteService.stammdatenRoute ~> check {
           status === StatusCodes.OK
 
           val reportServiceResult = responseAs[AsyncReportServiceResult]
@@ -120,6 +140,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
           val contentAsString = odt.getContentRoot.getChildNodes.toString
           contentAsString must contain("Deep Oh")
           contentAsString must contain("Untertor Oski")
+          contentAsString must not contain ("Matte Edi")
 
           file.isFile must beTrue
         }
@@ -131,7 +152,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
       implicit val queryString: Option[QueryFilter] = None
 
-      val depotAuslieferungen = Await.result(service.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
+      val depotAuslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
 
       depotAuslieferungen.size === 1
 
@@ -147,7 +168,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       val wsClient = WSProbe()
 
       withWsProbeFakeLogin(wsClient) { wsClient =>
-        Post(s"/depotauslieferungen/berichte/korbuebersicht", formData) ~> service.stammdatenRoute ~> check {
+        Post(s"/depotauslieferungen/berichte/korbuebersicht", formData) ~> stammdatenRouteService.stammdatenRoute ~> check {
           status === StatusCodes.OK
 
           val reportServiceResult = responseAs[AsyncReportServiceResult]
