@@ -37,35 +37,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
     }
 
     "create Abotyp with Vertrieb and Vertriebsarten" in {
-      Post("/abotypen", abotypVegiModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
-        status === StatusCodes.Created
-
-        dbEventProbe.expectMsgType[EntityCreated[Abotyp]]
-
-        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
-        result.size === 1
-        val abotypId = result(0).id
-
-        Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyDepot) ~> stammdatenRouteService.stammdatenRoute ~> check {
-          status === StatusCodes.Created
-
-          val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
-
-          Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 1
-
-          createDepotVertriebVertriebsart()
-        }
-
-        Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyTour) ~> stammdatenRouteService.stammdatenRoute ~> check {
-          status === StatusCodes.Created
-
-          val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
-
-          Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 2
-
-          createTourVertriebVertriebsart()
-        }
-      }
+      createAbotypWithVertriebeAndVertriebsarten()
     }
 
     "create ZusatzAbotyp" in {
@@ -94,11 +66,9 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       createTourlieferungAbo(kundeCreateMatteEdi)
     }
 
-    /*
     "create Abo for Kunde (Post)" in {
       createPostlieferungAbo(kundeCreateHaseFritz)
     }
-     */
 
     "create Lieferplanung" in {
       createLieferplanung()
@@ -108,7 +78,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       closeLieferplanung()
     }
 
-    "generate Lieferetiketten" in {
+    "generate Lieferetiketten (Depot)" in {
       implicit val filter: Option[FilterExpr] = None
       implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
       implicit val queryString: Option[QueryFilter] = None
@@ -147,7 +117,7 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       }
     }
 
-    "generate Korbuebersicht using custom vorlage" in {
+    "generate Korbuebersicht using custom vorlage (Depot)" in {
       implicit val filter: Option[FilterExpr] = None
       implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
       implicit val queryString: Option[QueryFilter] = None

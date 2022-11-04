@@ -89,4 +89,19 @@ object Fixtures extends SpecSubjects {
     "modifidat" -> now,
     "modifikator" -> personId
   )
+
+  val vertriebIdPost = VertriebId(3)
+  val vertriebDonnerstagModifyPost = VertriebModify(abotypId, Donnerstag, None)
+  val vertriebDonnerstagPost = copyTo[VertriebModify, Vertrieb](
+    vertriebDonnerstagModifyPost,
+    "id" -> vertriebIdPost,
+    "anzahlAbos" -> ZERO,
+    "anzahlAbosAktiv" -> ZERO,
+    "durchschnittspreis" -> emptyDecimalMap,
+    "anzahlLieferungen" -> emptyIntMap,
+    "erstelldat" -> now,
+    "ersteller" -> personId,
+    "modifidat" -> now,
+    "modifikator" -> personId
+  )
 }

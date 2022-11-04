@@ -43,17 +43,7 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
     implicit val adminPersonId = adminSubject.personId
     implicit val subject = adminSubject
 
-    insertEntity[Depot, DepotId](depotWwg)
-
-    insertEntity[Abotyp, AbotypId](abotypVegi)
-
-    insertEntity[Vertrieb, VertriebId](vertriebDonnerstagDepot)
-
-    createDepotVertriebVertriebsart()
-
-    createKunde(kundeCreateUntertorOski)
-
-    createDepotlieferungAbo(kundeCreateUntertorOski)
+    createTrinityOfAbos()
 
     createLieferplanung()
 

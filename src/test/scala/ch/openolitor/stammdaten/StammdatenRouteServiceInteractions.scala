@@ -40,6 +40,48 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     }
   }
 
+  protected def createAbotypWithVertriebeAndVertriebsarten()(implicit subject: Subject): MatchResult[_] = {
+    Post("/abotypen", abotypVegiModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
+      status === StatusCodes.Created
+
+      dbEventProbe.expectMsgType[EntityCreated[Abotyp]]
+
+      val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
+      result.size === 1
+      val abotypId = result(0).id
+
+      Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyDepot) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        status === StatusCodes.Created
+
+        val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
+
+        Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 1
+
+        createDepotVertriebVertriebsart()
+      }
+
+      Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyTour) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        status === StatusCodes.Created
+
+        val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
+
+        Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 2
+
+        createTourVertriebVertriebsart()
+      }
+
+      Post(s"/abotypen/${abotypId.id}/vertriebe", vertriebDonnerstagModifyPost) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        status === StatusCodes.Created
+
+        val vertrieb = dbEventProbe.expectMsgType[EntityCreated[Vertrieb]]
+
+        Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotypId), defaultTimeout).size === 3
+
+        createPostVertriebVertriebsart()
+      }
+    }
+  }
+
   protected def createKunde(kundeModify: KundeModify)(implicit subject: Subject): MatchResult[_] = {
     Post("/kunden", kundeModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.Created
@@ -70,13 +112,13 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
         oneEventMatches[Kunde](modifications)(_.anzahlAbosAktiv === 1)
         oneEventMatches[Vertrieb](modifications)(_.anzahlAbosAktiv === 1)
 
-        val depotlieferungAbo = oneOf[DepotlieferungAbo](creations)(_ => true)
+        val abo = oneOf[DepotlieferungAbo](creations)(_ => true)
 
-        Await.result(stammdatenRouteService.stammdatenReadRepository.getAboDetail(depotlieferungAbo.id), defaultTimeout) must beSome
+        Await.result(stammdatenRouteService.stammdatenReadRepository.getAboDetail(abo.id), defaultTimeout) must beSome
 
         val guthabenModify = AboGuthabenModify(0, 12, "You deserve it")
 
-        Post(s"/kunden/${kunde.id.id}/abos/${depotlieferungAbo.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        Post(s"/kunden/${kunde.id.id}/abos/${abo.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
           status === StatusCodes.Accepted
 
           expectDBEvents(4) { (creations, modifications, _, _) =>
@@ -108,13 +150,13 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
         oneEventMatches[Kunde](modifications)(_.anzahlAbosAktiv === 1)
         oneEventMatches[Vertrieb](modifications)(_.anzahlAbosAktiv === 1)
 
-        val heimlieferungAbo = oneOf[HeimlieferungAbo](creations)(_ => true)
+        val abo = oneOf[HeimlieferungAbo](creations)(_ => true)
 
-        Await.result(stammdatenRouteService.stammdatenReadRepository.getAboDetail(heimlieferungAbo.id), defaultTimeout) must beSome
+        Await.result(stammdatenRouteService.stammdatenReadRepository.getAboDetail(abo.id), defaultTimeout) must beSome
 
         val guthabenModify = AboGuthabenModify(0, 12, "You deserve it")
 
-        Post(s"/kunden/${kunde.id.id}/abos/${heimlieferungAbo.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        Post(s"/kunden/${kunde.id.id}/abos/${abo.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
           status === StatusCodes.Accepted
 
           expectDBEvents(4) { (creations, modifications, _, _) =>
@@ -133,35 +175,33 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     val kunden = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden, defaultTimeout)
     val kunde = kunden.filter(_.bezeichnung.contains(kundeModify.ansprechpersonen.head.name)).head
 
-    val abo = PostlieferungAboCreate(kunde.id, s"PostlieferungAbo für ${kunde.bezeichnung}", VertriebsartId(1), LocalDate.now().withDayOfWeek(1).minus(Months.ONE), None, None)
+    val abo = PostlieferungAboCreate(kunde.id, s"PostlieferungAbo für ${kunde.bezeichnung}", VertriebsartId(3), LocalDate.now().withDayOfWeek(1).minus(Months.ONE), None, None)
 
     Post(s"/kunden/${kunde.id.id}/abos", abo) ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.Created
 
-      expectDBEvents(1) { (creations, _, _, _) =>
-        oneEventMatches[DepotlieferungAbo](creations)(_.aktiv must beTrue)
+      expectDBEvents(6) { (creations, modifications, _, _) =>
+        oneEventMatches[PostlieferungAbo](creations)(_.aktiv must beTrue)
 
-        val depotlieferungAbo = oneOf[DepotlieferungAbo](creations)(_ => true)
+        oneEventMatches[Abotyp](modifications)(_.anzahlAbonnentenAktiv === 1)
+        oneEventMatches[Kunde](modifications)(_.anzahlAbosAktiv === 1)
+        oneEventMatches[Vertrieb](modifications)(_.anzahlAbosAktiv === 1)
 
-        Await.result(stammdatenRouteService.stammdatenReadRepository.getAboDetail(depotlieferungAbo.id), defaultTimeout) must beSome
+        val abo = oneOf[PostlieferungAbo](creations)(_ => true)
+
+        Await.result(stammdatenRouteService.stammdatenReadRepository.getAboDetail(abo.id), defaultTimeout) must beSome
 
         val guthabenModify = AboGuthabenModify(0, 12, "You deserve it")
 
-        Post(s"/kunden/${kunde.id.id}/abos/${depotlieferungAbo.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        Post(s"/kunden/${kunde.id.id}/abos/${abo.id.id}/aktionen/guthabenanpassen", guthabenModify) ~> stammdatenRouteService.stammdatenRoute ~> check {
           status === StatusCodes.Accepted
 
-          expectDBEvents(9) { (creations, modifications, _, _) =>
+          expectDBEvents(4) { (creations, modifications, _, _) =>
             creations.size === 1
-            modifications.size === 8
+            modifications.size === 3
 
             oneEventMatches[Pendenz](creations)(_.bemerkung.get must contain("You deserve it"))
-
-            oneEventMatches[Depot](modifications)(_.anzahlAbonnentenAktiv === 1)
-            oneEventMatches[Abotyp](modifications)(_.anzahlAbonnentenAktiv === 1)
-            oneEventMatches[Kunde](modifications)(_.anzahlAbosAktiv === 1)
-            oneEventMatches[Vertrieb](modifications)(_.anzahlAbosAktiv === 1)
-            oneEventMatches[Depotlieferung](modifications)(_.anzahlAbosAktiv === 1)
-            oneEventMatches[DepotlieferungAbo](modifications)(_.guthaben === 12)
+            oneEventMatches[PostlieferungAbo](modifications)(_.guthaben === 12)
           }
         }
       }
@@ -176,6 +216,11 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
   protected def createTourVertriebVertriebsart()(implicit subject: Subject): MatchResult[_] = {
     val json = JsObject(Map("tourId" -> JsNumber(tourId.id), "abotypId" -> JsNumber(abotypId.id), "vertriebId" -> JsNumber(vertriebIdTour.id), "typ" -> JsString("Heimlieferung")))
     createVertriebVertriebsart(json, vertriebIdTour)
+  }
+
+  protected def createPostVertriebVertriebsart()(implicit subject: Subject): MatchResult[_] = {
+    val json = JsObject(Map("tourId" -> JsNumber(tourId.id), "abotypId" -> JsNumber(abotypId.id), "vertriebId" -> JsNumber(vertriebIdPost.id), "typ" -> JsString("Postlieferung")))
+    createVertriebVertriebsart(json, vertriebIdPost)
   }
 
   private def createVertriebVertriebsart(json: JsObject, vertriebId: VertriebId)(implicit subject: Subject): MatchResult[_] = {
@@ -206,7 +251,7 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     Post("/lieferplanungen", lieferplanungCreate) ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.Created
 
-      expectDBEvents(11) { (creations, _, _, _) =>
+      expectDBEvents(13) { (creations, _, _, _) =>
         oneEventMatches[Lieferplanung](creations)(_.status === Offen)
         allEventsMatch[Korb](creations)(_.status === WirdGeliefert)
       }
@@ -219,13 +264,30 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     Post(s"/lieferplanungen/${lieferplanung.id.id}/aktionen/abschliessen") ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.OK
 
-      expectDBEvents(9) { (creations, modifications, _, _) =>
-        creations.size === 2
-        modifications.size === 7
+      expectDBEvents(13) { (creations, modifications, _, _) =>
+        creations.size === 3
+        modifications.size === 10
 
         oneEventMatches[DepotAuslieferung](creations)(_.status === Erfasst)
         oneEventMatches[TourAuslieferung](creations)(_.status === Erfasst)
+        oneEventMatches[PostAuslieferung](creations)(_.status === Erfasst)
       }
     }
+  }
+
+  protected def createTrinityOfAbos()(implicit subject: Subject): MatchResult[_] = {
+    createDepotWwg()
+
+    createTour()
+
+    createAbotypWithVertriebeAndVertriebsarten()
+
+    createKunde(kundeCreateUntertorOski)
+    createKunde(kundeCreateMatteEdi)
+    createKunde(kundeCreateHaseFritz)
+
+    createDepotlieferungAbo(kundeCreateUntertorOski)
+    createTourlieferungAbo(kundeCreateMatteEdi)
+    createPostlieferungAbo(kundeCreateHaseFritz)
   }
 }
