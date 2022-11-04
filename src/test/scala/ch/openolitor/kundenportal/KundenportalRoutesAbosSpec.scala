@@ -18,6 +18,7 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
   protected val kundenportalRouteService = new MockKundenportalRoutes(sysConfig, system)
 
   protected var oskiKunde: KundeDetail = null
+  protected lazy val oskiSubject: Subject = Subject("oski", oskiKunde.ansprechpersonen.head.id, oskiKunde.id, Some(KundenZugang), None)
 
   override def beforeAll() = {
     super.beforeAll()
@@ -26,8 +27,17 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
   }
 
   "KundenportalRoutes for Abos" should {
+    "list Abos" in {
+      implicit val subject = oskiSubject
+      Get(s"/kundenportal/abos") ~> kundenportalRouteService.kundenportalRoute ~> check {
+        val abos = responseAs[List[AboDetail]]
+        abos.size === 1
+        abos.head.abotypId === abotypId
+      }
+    }
+
     "list Lieferungen" in {
-      implicit val subject = Subject("oski", oskiKunde.ansprechpersonen.head.id, oskiKunde.id, Some(KundenZugang), None)
+      implicit val subject = oskiSubject
 
       Get(s"/kundenportal/abos/${abotypId.id}/vertriebe/${vertriebIdDepot.id}/lieferungen") ~> kundenportalRouteService.kundenportalRoute ~> check {
         val result = responseAs[List[LieferungDetail]]

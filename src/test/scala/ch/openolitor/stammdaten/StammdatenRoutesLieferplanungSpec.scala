@@ -32,12 +32,51 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       createDepotWwg()
     }
 
+    "get Depot" in {
+      Get(s"/depots") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Depot]]
+
+        result.size === 1
+
+        result.head.ort === depotWwg.ort
+      }
+    }
+
     "create Tour" in {
       createTour()
     }
 
+    "get Tour" in {
+      Get(s"/touren") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Tour]]
+
+        result.size === 1
+
+        result.head.name === tourCreate.name
+      }
+    }
+
     "create Abotyp with Vertrieb and Vertriebsarten" in {
       createAbotypWithVertriebeAndVertriebsarten()
+    }
+
+    "get Abotypen" in {
+      Get(s"/abotypen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Abotyp]]
+
+        result.size === 1
+        result.head.name === abotypVegiModify.name
+      }
+    }
+
+    "get Vertriebe" in {
+      Get(s"/vertriebe") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Vertrieb]]
+
+        result.size === 3
+
+        result.map(_.id) must containTheSameElementsAs(Seq(vertriebIdDepot, vertriebIdTour, vertriebIdPost))
+      }
     }
 
     "create ZusatzAbotyp" in {
@@ -52,10 +91,34 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       }
     }
 
+    "get ZusatzAbotyp" in {
+      Get(s"/zusatzAbotypen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[ZusatzAbotyp]]
+
+        result.size === 1
+        result.head.name === zusatzAbotypEier.name
+      }
+    }
+
     "create Kunden" in {
       createKunde(kundeCreateUntertorOski)
       createKunde(kundeCreateMatteEdi)
       createKunde(kundeCreateHaseFritz)
+    }
+
+    "get Kunden" in {
+      Get(s"/kunden") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[KundeUebersicht]]
+
+        result.map(_.bezeichnung) must containAllOf(Seq("Untertor Oski", "Matte Edi", "Hase Fritz"))
+
+        result.map { kundeUebersicht =>
+          Get(s"/kunden/${kundeUebersicht.id.id}") ~> stammdatenRouteService.stammdatenRoute ~> check {
+            val result = responseAs[KundeDetail]
+            result.bezeichnung === kundeUebersicht.bezeichnung
+          }
+        }
+      }
     }
 
     "create Abo for Kunde (Depot)" in {
@@ -70,8 +133,24 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
       createPostlieferungAbo(kundeCreateHaseFritz)
     }
 
+    "get Abos" in {
+      Get(s"/abos") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Abo]]
+
+        result.size === 3
+      }
+    }
+
     "create Lieferplanung" in {
       createLieferplanung()
+    }
+
+    "get Lieferplanung" in {
+      Get(s"/lieferplanungen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Lieferplanung]]
+
+        result.size === 1
+      }
     }
 
     "close Lieferplanung" in {
