@@ -20,8 +20,6 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
 
   implicit val subject = adminSubject
 
-  private val validIban = "AD12000120302003591001000000000001"
-
   override def beforeAll() = {
     super.beforeAll()
 

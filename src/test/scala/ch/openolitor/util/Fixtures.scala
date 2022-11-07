@@ -104,4 +104,6 @@ object Fixtures extends SpecSubjects {
     "modifidat" -> now,
     "modifikator" -> personId
   )
+
+  val validIban = "AD12000120302003591001000000000001"
 }

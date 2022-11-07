@@ -215,6 +215,75 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
         }
       }
     }
+
+    "get Depotauslieferungen" in {
+      Get(s"/depotauslieferungen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[DepotAuslieferung]]
+
+        result.size === 1
+        result.head.anzahlKoerbe === 1
+        result.head.status === Erfasst
+      }
+    }
+
+    "get Tourauslieferungen" in {
+      Get(s"/tourauslieferungen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[TourAuslieferung]]
+
+        result.size === 1
+        result.head.anzahlKoerbe === 1
+        result.head.status === Erfasst
+      }
+    }
+
+    "get Postauslieferungen" in {
+      Get(s"/postauslieferungen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[PostAuslieferung]]
+
+        result.size === 1
+        result.head.anzahlKoerbe === 1
+        result.head.status === Erfasst
+      }
+    }
+
+    "Depotauslieferungen als ausgeliefert markieren" in {
+      val auslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
+
+      Post("/depotauslieferungen/aktionen/ausliefern", auslieferungen.map(_.id.id)) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        status === StatusCodes.OK
+
+        expectDBEvents(6) { (_, modifications, _, _) =>
+          modifications.size === 6
+          oneEventMatches[DepotAuslieferung](modifications)(_.status === Ausgeliefert)
+        }
+      }
+    }
+
+    "Tourauslieferungen als ausgeliefert markieren" in {
+      val auslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getTourAuslieferungen, defaultTimeout)
+
+      Post("/tourauslieferungen/aktionen/ausliefern", auslieferungen.map(_.id.id)) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        status === StatusCodes.OK
+
+        expectDBEvents(5) { (_, modifications, _, _) =>
+          modifications.size === 5
+          oneEventMatches[TourAuslieferung](modifications)(_.status === Ausgeliefert)
+        }
+      }
+    }
+
+    "Postauslieferungen als ausgeliefert markieren" in {
+      val auslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getPostAuslieferungen, defaultTimeout)
+
+      Post("/postauslieferungen/aktionen/ausliefern", auslieferungen.map(_.id.id)) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        status === StatusCodes.OK
+
+        expectDBEvents(5) { (_, modifications, _, _) =>
+          modifications.size === 5
+          oneEventMatches[PostAuslieferung](modifications)(_.status === Ausgeliefert)
+        }
+      }
+    }
   }
 
 }
