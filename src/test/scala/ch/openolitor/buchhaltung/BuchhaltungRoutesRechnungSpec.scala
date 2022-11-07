@@ -7,7 +7,6 @@ import ch.openolitor.core.db.WithWriteRepositories
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.stammdaten.{ MockStammdatenRoutes, StammdatenJsonProtocol, StammdatenRouteServiceInteractions }
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 
 import scala.concurrent.Await
 
@@ -50,9 +49,6 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
     }
 
     "create Rechnungen" in {
-      implicit val filter: Option[FilterExpr] = None
-      implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
-      implicit val queryString: Option[QueryFilter] = None
       val rechnungsPositionen = Await.result(buchhaltungRouteService.buchhaltungReadRepository.getRechnungsPositionen, defaultTimeout)
 
       rechnungsPositionen.size === 1
@@ -115,9 +111,6 @@ class BuchhaltungRoutesRechnungSpec extends BaseRoutesWithDBSpec with SpecSubjec
   }
 
   private def pain008(version: String) = {
-    implicit val filter: Option[FilterExpr] = None
-    implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
-    implicit val queryString: Option[QueryFilter] = None
     val rechnungen = Await.result(buchhaltungRouteService.buchhaltungReadRepository.getRechnungen, defaultTimeout)
     val rechnungsIds = RechnungenContainer(rechnungen.map(_.id))
 

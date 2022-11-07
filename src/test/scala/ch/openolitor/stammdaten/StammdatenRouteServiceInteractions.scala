@@ -180,7 +180,7 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     Post(s"/kunden/${kunde.id.id}/abos", abo) ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.Created
 
-      expectDBEvents(6) { (creations, modifications, _, _) =>
+      expectDBEvents(7) { (creations, modifications, _, _) =>
         oneEventMatches[PostlieferungAbo](creations)(_.aktiv must beTrue)
 
         oneEventMatches[Abotyp](modifications)(_.anzahlAbonnentenAktiv === 1)
@@ -251,7 +251,7 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     Post("/lieferplanungen", lieferplanungCreate) ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.Created
 
-      expectDBEvents(13) { (creations, _, _, _) =>
+      expectDBEvents(12) { (creations, _, _, _) =>
         oneEventMatches[Lieferplanung](creations)(_.status === Offen)
         allEventsMatch[Korb](creations)(_.status === WirdGeliefert)
       }
@@ -264,9 +264,9 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
     Post(s"/lieferplanungen/${lieferplanung.id.id}/aktionen/abschliessen") ~> stammdatenRouteService.stammdatenRoute ~> check {
       status === StatusCodes.OK
 
-      expectDBEvents(13) { (creations, modifications, _, _) =>
+      expectDBEvents(12) { (creations, modifications, _, _) =>
         creations.size === 3
-        modifications.size === 10
+        modifications.size === 9
 
         oneEventMatches[DepotAuslieferung](creations)(_.status === Erfasst)
         oneEventMatches[TourAuslieferung](creations)(_.status === Erfasst)

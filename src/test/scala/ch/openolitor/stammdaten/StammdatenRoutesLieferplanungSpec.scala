@@ -2,17 +2,12 @@ package ch.openolitor.stammdaten
 
 import akka.http.scaladsl.model.{ ContentTypes, Multipart, StatusCodes }
 import akka.http.scaladsl.testkit.WSProbe
-import akka.testkit.TestProbe
 import ch.openolitor.core.{ BaseRoutesWithDBSpec, SpecSubjects }
-import ch.openolitor.core.jobs.JobQueueService.{ FetchJobResult, FileResultPayload, JobResult }
 import ch.openolitor.core.models.EntityCreated
 import ch.openolitor.core.reporting.AsyncReportServiceResult
 import ch.openolitor.core.security.Subject
-import ch.openolitor.core.ws.MockClientMessagesRouteService
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import org.odftoolkit.odfdom.doc.OdfDocument
-import org.specs2.matcher.MatchResult
 
 import java.io.File
 import scala.concurrent.Await
@@ -23,7 +18,6 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
   import ch.openolitor.util.Fixtures._
 
   protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
-  protected val clientMessagesService = new MockClientMessagesRouteService(sysConfig, system)
 
   implicit val subject: Subject = adminSubject
 
@@ -158,10 +152,6 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
     }
 
     "generate Lieferetiketten (Depot)" in {
-      implicit val filter: Option[FilterExpr] = None
-      implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
-      implicit val queryString: Option[QueryFilter] = None
-
       val depotAuslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
 
       depotAuslieferungen.size === 1
@@ -197,10 +187,6 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
     }
 
     "generate Korbuebersicht using custom vorlage (Depot)" in {
-      implicit val filter: Option[FilterExpr] = None
-      implicit val gjFilter: Option[GeschaeftsjahrFilter] = None
-      implicit val queryString: Option[QueryFilter] = None
-
       val depotAuslieferungen = Await.result(stammdatenRouteService.stammdatenReadRepository.getDepotAuslieferungen, defaultTimeout)
 
       depotAuslieferungen.size === 1
@@ -231,36 +217,4 @@ class StammdatenRoutesLieferplanungSpec extends BaseRoutesWithDBSpec with SpecSu
     }
   }
 
-  private def withWsProbeFakeLogin(wsClient: WSProbe)(block: WSProbe => MatchResult[_]) = {
-    WS("/", wsClient.flow) ~> clientMessagesService.routes ~> check {
-      isWebSocketUpgrade === true
-
-      // logging in manually via ws to attach our wsClient
-      wsClient.sendMessage(s"""{"type":"Login","token":"${adminSubjectToken}"}""")
-      val loginOkMessage = wsClient.expectMessage()
-      loginOkMessage.asTextMessage.getStrictText must contain("LoggedIn")
-
-      block(wsClient)
-    }
-  }
-
-  private def awaitFileViaWebsocket(wsClient: WSProbe, reportServiceResult: AsyncReportServiceResult) = {
-    // receive progress update
-    val progressMessage = wsClient.expectMessage()
-    progressMessage.asTextMessage.getStrictText must contain(""""numberOfTasksInProgress":1""")
-
-    // receive task completion
-    val completionMessage = wsClient.expectMessage()
-    completionMessage.asTextMessage.getStrictText must contain(""""progresses":[]""")
-
-    // fetch the result directly from jobQueueService
-    val probe = TestProbe()
-    probe.send(jobQueueService, FetchJobResult(subject.personId, reportServiceResult.jobId.id))
-
-    val message = probe.expectMsgType[JobResult]
-
-    message.payload must beSome
-
-    message.payload.get.asInstanceOf[FileResultPayload].file
-  }
 }
