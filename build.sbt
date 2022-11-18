@@ -33,6 +33,7 @@ val sprayV = "1.3.+"
 val scalalikeV = "4.0.0"
 val akkaHttpVersion = "10.2.9"
 val akkaVersion = "2.6.19"
+val testContainersVersion = "1.16.3"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -82,6 +83,8 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.0.+",
     "com.h2database"               %  "h2"                                 % "2.1.212"                               % "test",
+    "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
+    "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.2.11",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.0.4",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.29",
@@ -128,7 +131,21 @@ lazy val scalaxbSettings = Seq(
 lazy val macroSub = (project in file("macro")).settings(buildSettings,
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value)
 
-lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ Seq(
+lazy val coverageSettings = Seq(
+  coverageExcludedPackages := "$:;<empty>;ch.openolitor.core.Boot;.*Default.*;scalaxb.*;ch.openolitor.generated.*;ch.openolitor.core.scalax.*;ch.openolitor.core.repositories.Parameters*"
+)
+
+lazy val testSettings = Seq(
+  Test / parallelExecution := true,
+  Test / fork := true,
+  Test / testForkedParallel := true,
+  testOptions += Tests.Argument("timefactor", "5"),
+  Test / javaOptions ++= Seq(
+    "-Dconfig.resource=application-test.conf"
+  )
+)
+
+lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ coverageSettings ++ testSettings ++ Seq(
     (sourceGenerators in Compile) += task[Seq[File]]{
       val dir = (sourceManaged in Compile).value
       val maxParams = 30

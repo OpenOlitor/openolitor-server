@@ -24,12 +24,11 @@ package ch.openolitor.core.db.evolution
 
 import akka.actor._
 import ch.openolitor.core.SystemConfig
-
-import scala.util.{ Failure, Success, Try }
-import ch.openolitor.core.Boot
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.models.PersonId
 import scalikejdbc.DB
+
+import scala.util.{ Failure, Success, Try }
 
 object DBEvolutionActor {
   case object CheckDBEvolution
@@ -68,7 +67,7 @@ trait DBEvolutionActor extends Actor with ActorLogging with ConnectionPoolContex
 
   def checkDBEvolution(): Try[DBEvolutionState] = {
     log.debug(s"Check DB Evolution: current revision=${state.dbRevision}")
-    implicit val personId: PersonId = Boot.systemPersonId
+    implicit val personId: PersonId = PersonId(0)
     evolution.evolveDatabase(state.dbRevision) match {
       case Success(rev) =>
         log.debug(s"Successfully updated to db rev:$rev")

@@ -13,7 +13,6 @@ object MockFileStoreComponent {
   private val s3UrlToFileStore = TrieMap.empty[String, S3FileStore]
 
   def MockFileStore(mandantConfiguration: MandantConfiguration, actorSystem: ActorSystem) = {
-
     s3UrlToFileStore.getOrElseUpdate(mandantConfiguration.config.getString("s3.aws-access-key-id"), S3FileStore(mandantConfiguration, actorSystem))
   }
 }

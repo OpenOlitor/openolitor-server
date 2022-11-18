@@ -23,12 +23,13 @@
 package ch.openolitor.core.db.evolution.scripts.v2
 
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
-import ch.openolitor.core.{ Boot, NoPublishEventStream, SystemConfig }
+import ch.openolitor.core.{ NoPublishEventStream, SystemConfig }
 import ch.openolitor.core.db.evolution.Script
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models.Person
 import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.security.SystemSubject
 import ch.openolitor.stammdaten.repositories.StammdatenWriteRepositoryImpl
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.util.OtpUtil
@@ -56,7 +57,7 @@ object OO_add_otp_second_factor {
       sql"""UPDATE Person SET otp_reset='1'""".execute.apply()
 
       // generate otpSecret for all persons
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
 
       val persons = getPersonen
       persons map { person =>

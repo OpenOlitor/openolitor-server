@@ -23,13 +23,14 @@
 package ch.openolitor.core.reporting
 
 import akka.actor._
+
 import scala.util._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.Boot
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.JobId
+import ch.openolitor.core.security.SystemSubject
 
 object ReportProcessorActor {
   def props(fileStore: FileStore, sysConfig: SystemConfig): Props = Props(classOf[ReportProcessorActor], fileStore, sysConfig)
@@ -43,7 +44,7 @@ object ReportProcessorActor {
 class ReportProcessorActor(fileStore: FileStore, sysConfig: SystemConfig) extends Actor with ActorLogging with DateFormats {
   import ReportSystem._
 
-  var stats: GenerateReportsStats = GenerateReportsStats(Boot.systemPersonId, JobId("Dummy"), 0, 0, 0)
+  var stats: GenerateReportsStats = GenerateReportsStats(SystemSubject.systemPersonId, JobId("Dummy"), 0, 0, 0)
   var origSender: Option[ActorRef] = None
 
   val receive: Receive = {

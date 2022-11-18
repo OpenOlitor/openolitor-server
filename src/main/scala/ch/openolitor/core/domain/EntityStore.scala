@@ -25,7 +25,6 @@ package ch.openolitor.core.domain
 import akka.actor._
 import akka.persistence._
 import ch.openolitor.core.models._
-import ch.openolitor.core.Boot
 import ch.openolitor.core.db.evolution.Evolution
 
 import scala.util._
@@ -38,6 +37,7 @@ import scala.reflect._
 import DefaultMessages._
 import ch.openolitor.core.DBEvolutionReference
 import ch.openolitor.core.domain.SystemEvents.{ PersonChangedOtpSecret, PersonChangedSecondFactorType, PersonLoggedIn, SystemStarted }
+import ch.openolitor.core.security.SystemSubject
 import spray.json.RootJsonFormat
 
 /**
@@ -175,7 +175,7 @@ trait EntityStore extends AggregateRoot
   }
 
   def readDBSeeds(): Unit = {
-    implicit val personId: PersonId = Boot.systemPersonId
+    implicit val personId: PersonId = SystemSubject.systemPersonId
     evolution.checkDBSeeds match {
       case Success(newSeeds) =>
         log.debug(s"Read dbseeds:$newSeeds")
@@ -212,7 +212,7 @@ trait EntityStore extends AggregateRoot
       sender() ! Started
     case e: Any =>
       log.debug(s"uninitialized => Initialize eventstore with event:$e, $self")
-      persist(EntityStoreInitialized(metadata(Boot.systemPersonId).toMetadata(1L)))(afterEventPersisted)
+      persist(EntityStoreInitialized(metadata(SystemSubject.systemPersonId).toMetadata(1L)))(afterEventPersisted)
       context become created
       //reprocess event
       created(e)

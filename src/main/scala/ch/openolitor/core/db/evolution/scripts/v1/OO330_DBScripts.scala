@@ -27,14 +27,15 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
+
 import scala.util.Try
 import scala.util.Success
 import ch.openolitor.stammdaten.StammdatenInsertService
-import ch.openolitor.core.Boot
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.core.db.evolution.scripts.recalculations.RecalulateLieferungCounter
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.core.security.SystemSubject
 import ch.openolitor.mailtemplates.repositories._
 
 object OO330_DBScripts {
@@ -55,7 +56,7 @@ object OO330_DBScripts {
   val StammdatenScripts = new Script with LazyLogging with StammdatenDBMappings with DefaultDBScripts with NoPublishEventStream {
     def execute(sysConfig: SystemConfig)(implicit session: DBSession): Try[Boolean] = {
       //create missing koerbe due to older releases
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
       lazy val lieferung = lieferungMapping.syntax("lieferung")
       lazy val korb = korbMapping.syntax("korb")
 

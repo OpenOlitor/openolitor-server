@@ -27,14 +27,17 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.core.SystemConfig
 import scalikejdbc._
+
 import scala.util.Try
 import scala.util.Success
 import ch.openolitor.core.repositories.BaseWriteRepository
+
 import scala.collection.immutable.TreeMap
 import ch.openolitor.stammdaten.models._
-import ch.openolitor.core.Boot
 import ch.openolitor.core.NoPublishEventStream
 import ch.openolitor.core.db.evolution.scripts.DefaultDBScripts
+import ch.openolitor.core.security.SystemSubject
+
 import scala.math.BigDecimal.int2bigDecimal
 
 object OO314_DBScripts {
@@ -56,7 +59,7 @@ object OO314_DBScripts {
       lazy val l = lieferungMapping.syntax("l")
       lazy val lp = lieferplanungMapping.syntax("lp")
       lazy val p = projektMapping.syntax("p")
-      implicit val personId = Boot.systemPersonId
+      implicit val personId = SystemSubject.systemPersonId
       withSQL { select.from(vertriebMapping as v) }.map(vertriebMapping(v)).list.apply() map { vertrieb =>
         //get call abeschlossenen lieferplanungen
 
