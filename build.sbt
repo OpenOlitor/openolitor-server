@@ -1,4 +1,4 @@
-scalaVersion := "2.13.8"
+scalaVersion := "2.13.10"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -27,13 +27,13 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 
-val specs2V = "4.15.0" // based on spray 1.3.x built in support
-val akkaV = "2.6.+"
+val specs2V = "4.19.0" // based on spray 1.3.x built in support
+val akkaV = "2.7.+"
 val sprayV = "1.3.+"
 val scalalikeV = "4.0.0"
-val akkaHttpVersion = "10.2.9"
-val akkaVersion = "2.6.19"
-val testContainersVersion = "1.16.3"
+val akkaHttpVersion = "10.2.10"
+val akkaVersion = "2.7.0"
+val testContainersVersion = "1.17.6"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -43,8 +43,8 @@ val buildSettings = Seq(
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
   version := "2.6.16",
-  scalaVersion := "2.13.8",
-  crossScalaVersions := Seq("2.10.2", "2.10.3", "2.10.4", "2.10.5", "2.11.0", "2.11.1", "2.11.2", "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.11", "2.13.8"),
+  scalaVersion := "2.13.10",
+  crossScalaVersions := Seq("2.13.8", "2.13.10"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += Resolver.sonatypeRepo("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -82,23 +82,23 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.0.+",
-    "com.h2database"               %  "h2"                                 % "2.1.212"                               % "test",
+    "com.h2database"               %  "h2"                                 % "2.1.214"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.2.11",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.0.4",
-    "mysql"	                       %  "mysql-connector-java"               % "8.0.29",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.4.5",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.0",
+    "mysql"	                       %  "mysql-connector-java"               % "8.0.31",
     // Libreoffice document API
     "org.apache.odftoolkit"        %  "simple-odf"					               % "0.8.2-incubating" withSources(),
     "org.apache.odftoolkit"        %  "simple-odf"        					       % "0.8.2-incubating" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.213",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.348",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
-    "com.github.daddykotex"        %% "courier"                            % "3.1.0", // ### Scala 3
-    "com.github.nscala-time"       %% "nscala-time"                        % "2.30.0", // ### Scala 3
-    "com.github.blemale"           %% "scaffeine"                          % "5.1.2", // ### Scala 3
+    "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
+    "com.github.nscala-time"       %% "nscala-time"                        % "2.32.0", // ### Scala 3
+    "com.github.blemale"           %% "scaffeine"                          % "5.2.1", // ### Scala 3
     "de.zalando"                   %% "beard"                              % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
     // transitive dependencies of legacy de.zalando.beard
     "org.antlr"                    %  "antlr4"                             % "4.8-1",
@@ -115,7 +115,7 @@ val buildSettings = Seq(
   )
 },
   dependencyOverrides ++= Seq(
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0"
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1"
   )
 )
 

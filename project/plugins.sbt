@@ -1,11 +1,13 @@
-addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.11")
 
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.3")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
 
-addSbtPlugin("org.scalaxb" % "sbt-scalaxb" % "1.8.3")
+addSbtPlugin("org.scalaxb" % "sbt-scalaxb" % "1.9.0")
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.6")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.0.0")
 //addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.10")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.6")
+
+dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.1.0"
