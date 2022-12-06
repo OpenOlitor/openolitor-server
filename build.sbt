@@ -89,8 +89,7 @@ val buildSettings = Seq(
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.0",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.31",
     // Libreoffice document API
-    "org.apache.odftoolkit"        %  "simple-odf"					               % "0.8.2-incubating" withSources(),
-    "org.apache.odftoolkit"        %  "simple-odf"        					       % "0.8.2-incubating" withSources(),
+    "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
@@ -115,7 +114,8 @@ val buildSettings = Seq(
   )
 },
   dependencyOverrides ++= Seq(
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1"
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
+    "log4j" %% "log4j" % "1.2.17"
   )
 )
 
