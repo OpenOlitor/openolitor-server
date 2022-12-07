@@ -10,7 +10,7 @@ Compile / mainClass := Some("ch.openolitor.core.Boot")
 
 assembly / assemblyJarName := "openolitor-server.jar"
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
   case PathList("org", "slf4j", xs @ _*)         => MergeStrategy.first
   case "library.properties"                      => MergeStrategy.discard
   case x =>
@@ -45,8 +45,8 @@ val buildSettings = Seq(
   version := "2.6.16",
   scalaVersion := "2.13.10",
   crossScalaVersions := Seq("2.13.8", "2.13.10"),
-  resolvers += Resolver.sonatypeRepo("snapshots"),
-  resolvers += Resolver.sonatypeRepo("releases"),
+  resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
+  resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   // add -Xcheckinit to scalac options to check for null val's during initialization see also: https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-feature", "-language:_", "-language:postfixOps"),
@@ -75,13 +75,13 @@ val buildSettings = Seq(
     "org.mockito"                  %% "mockito-scala"                      % "1.17.7"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
-    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.4", // ### Scala 3
+    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.15.0",
     "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
-    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.0.+",
+    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.1.+",
     "com.h2database"               %  "h2"                                 % "2.1.214"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
@@ -104,25 +104,27 @@ val buildSettings = Seq(
     "io.monix"                     %% "monix"                              % "3.4.0", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "2.4.3",
     "io.nayuki"                    %  "qrcodegen"                          % "1.6.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.20",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.20" pomOnly(),
-    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.10",
-    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.9",
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.26",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.26" pomOnly(),
+    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.16",
+    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.16",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
-    "com.eatthepath"               %  "java-otp"                           % "0.2.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.2"
+    "com.eatthepath"               %  "java-otp"                           % "0.4.0",
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.27"
   )
 },
   dependencyOverrides ++= Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
-    "log4j" %% "log4j" % "1.2.17"
+    "xerces" % "xercesImpl" % "2.12.2",
+    "org.apache.common" %% "commons-compress" % "1.22",
+    "io.netty" % "netty-handler" % "4.1.85.Final"
   )
 )
 
 lazy val scalaxbSettings = Seq(
-   scalaxbXsdSource in (Compile, scalaxb) := baseDirectory.value / "src" / "main" / "resources" / "xsd",
-   scalaxbPackageName in (Compile, scalaxb) := "ch.openolitor.generated.xsd",
-   scalaxbPackageNames in (Compile, scalaxb) := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",
+   Compile / scalaxb / scalaxbXsdSource := baseDirectory.value / "src" / "main" / "resources" / "xsd",
+   Compile / scalaxb / scalaxbPackageName := "ch.openolitor.generated.xsd",
+   Compile / scalaxb / scalaxbPackageNames  := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.04") -> "ch.openolitor.generated.xsd.camt054_001_04",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.02") -> "ch.openolitor.generated.xsd.pain008_001_02")
@@ -146,8 +148,8 @@ lazy val testSettings = Seq(
 )
 
 lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).settings(buildSettings ++ scalaxbSettings ++ coverageSettings ++ testSettings ++ Seq(
-    (sourceGenerators in Compile) += task[Seq[File]]{
-      val dir = (sourceManaged in Compile).value
+  Compile / sourceGenerators += task[Seq[File]]{
+      val dir = (Compile / sourceManaged).value
       val maxParams = 30
       val mappings = (1 to maxParams).map{ n =>
         val file = dir / "openolitor" / "ch" / "openolitor" / "core" / "repositories" / s"Parameters${n}.scala"
@@ -166,9 +168,9 @@ lazy val main = (project in file(".")).enablePlugins(sbtscalaxb.ScalaxbPlugin).s
       }
       mappings ++ tuples :+ paramsTrait
     },
-    mappings in (Compile, packageSrc) ++= (managedSources in Compile).value.map{ f =>
+  Compile / packageSrc / mappings ++= (Compile / managedSources).value.map{ f =>
       // to merge generated sources into sources.jar as well
-      (f, f.relativeTo((sourceManaged in Compile).value).get.getPath)
+    (f, f.relativeTo((Compile / sourceManaged).value).get.getPath)
     }
   )) dependsOn (macroSub)
 
@@ -189,7 +191,7 @@ dockerExposedPorts ++= Seq(9003)
 
 // the directories created, e.g. /var/log/openolitor-server, are created using user id 1000,
 // but the default user starting the app has id 1001 which wouldn't have access to it
-daemonUserUid in Docker := Some("1000")
+Docker / daemonUserUid := Some("1000")
 
 val todayD = Calendar.getInstance.getTime
 val today = new SimpleDateFormat("yyyyMMdd").format(todayD)
