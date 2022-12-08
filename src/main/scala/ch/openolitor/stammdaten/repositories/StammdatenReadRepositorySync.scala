@@ -123,6 +123,8 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getLieferungenOffenByAbotyp(abotypId: AbotypId)(implicit session: DBSession): List[Lieferung]
   def getLieferungenOffenByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Lieferung]
 
+  def getAbwesenheit(aboId: AboId, datum: DateTime)(implicit session: DBSession): List[Abwesenheit]
+
   def getTourlieferungenByKunde(id: KundeId)(implicit session: DBSession): List[Tourlieferung]
 
   def getDepotAuslieferung(depotId: DepotId, datum: DateTime)(implicit session: DBSession): Option[DepotAuslieferung]
@@ -626,4 +628,9 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
   def getLieferungenOffenByVertrieb(vertriebId: VertriebId)(implicit session: DBSession): List[Lieferung] = {
     getLieferungenOffenByVertriebQuery(vertriebId)()
   }
+
+  def getAbwesenheit(aboId: AboId, datum: DateTime)(implicit session: DBSession): List[Abwesenheit] = {
+    getAbwesenheitQuery(aboId, datum)()
+  }
+
 }
