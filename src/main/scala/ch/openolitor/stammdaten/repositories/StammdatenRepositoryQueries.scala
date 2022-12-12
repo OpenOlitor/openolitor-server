@@ -498,22 +498,36 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getZusatzAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
-    withSQL {
-      select
-        .from(zusatzAboMapping as zusatzAbo)
-        .join(projektMapping as projekt)
-        .where.append(
-          UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
-        ).and(
-            UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
-          ).and.append(
-              UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", zusatzAbo)
-                .append(sqls"""or""")
-                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", zusatzAbo))
-                .append(sqls"""or""")
-                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "hauptAboId", zusatzAbo))
-            )
-    }.map(zusatzAboMapping(zusatzAbo)).list
+    queryString match {
+      case None =>
+        withSQL {
+          select
+            .from(zusatzAboMapping as zusatzAbo)
+            .join(projektMapping as projekt)
+            .where.append(
+              UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
+            ).and(
+                UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+              )
+        }.map(zusatzAboMapping(zusatzAbo)).list
+      case Some(_) =>
+        withSQL {
+          select
+            .from(zusatzAboMapping as zusatzAbo)
+            .join(projektMapping as projekt)
+            .where.append(
+              UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
+            ).and(
+                UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+              ).and.append(
+                  UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", zusatzAbo)
+                    .append(sqls"""or""")
+                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", zusatzAbo))
+                    .append(sqls"""or""")
+                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "hauptAboId", zusatzAbo))
+                )
+        }.map(zusatzAboMapping(zusatzAbo)).list
+    }
   }
 
   protected def getDepotlieferungQuery(vertriebId: VertriebId): OneToOneSQLToList[Depotlieferung, Option[Depot], HasExtractor, DepotlieferungDetail] = {
