@@ -1681,18 +1681,32 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getSammelbestellungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
-    withSQL {
-      select
-        .from(sammelbestellungMapping as sammelbestellung)
-        .join(projektMapping as projekt)
-        .where.append(
-          UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
-        ).and(
-            UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
-          )
-        .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung)
-          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", sammelbestellung)))
-    }.map(sammelbestellungMapping(sammelbestellung)).list
+    queryString match {
+      case None =>
+        withSQL {
+          select
+            .from(sammelbestellungMapping as sammelbestellung)
+            .join(projektMapping as projekt)
+            .where.append(
+              UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
+            ).and(
+                UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
+              )
+        }.map(sammelbestellungMapping(sammelbestellung)).list
+      case Some(_) =>
+        withSQL {
+          select
+            .from(sammelbestellungMapping as sammelbestellung)
+            .join(projektMapping as projekt)
+            .where.append(
+              UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
+            ).and(
+                UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
+              )
+            .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung)
+              .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", sammelbestellung)))
+        }.map(sammelbestellungMapping(sammelbestellung)).list
+    }
   }
 
   protected def getSammelbestellungenByProduzentQuery(produzent: ProduzentId, lieferplanungId: LieferplanungId) = {
