@@ -153,27 +153,39 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getKundenUebersichtQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
-    withSQL[Kunde] {
-      select
-        .from(kundeMapping as kunde)
-        .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
-        .append(sqls"""OR""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
-        .append(sqls"""OR""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
-        .append(sqls"""OR""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
-        .append(sqls"""OR""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
-        .append(sqls"""OR""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
-        .append(sqls"""OR""")
-        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
-        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
-        .orderBy(person.sort)
-    }.one(kundeMapping(kunde))
+    val whatever = queryString match {
+      case None =>
+        withSQL[Kunde] {
+          select
+            .from(kundeMapping as kunde)
+            .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+            .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
+            .where(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
+            .orderBy(person.sort)
+        }
+      case Some(_) =>
+        withSQL[Kunde] {
+          select
+            .from(kundeMapping as kunde)
+            .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+            .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
+            .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
+            .append(sqls"""OR""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
+            .append(sqls"""OR""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
+            .append(sqls"""OR""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
+            .append(sqls"""OR""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
+            .append(sqls"""OR""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
+            .append(sqls"""OR""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
+            .orderBy(person.sort)
+        }
+    }
+    whatever.one(kundeMapping(kunde))
       .toManies(
         rs => personMapping.opt(person)(rs),
         rs => kontoDatenMapping.opt(kontoDaten)(rs)
