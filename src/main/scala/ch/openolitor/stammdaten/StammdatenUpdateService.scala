@@ -606,12 +606,22 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     })
   }
 
-  private def updateAbscences(meta: EventMetadata, abo: Abo)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
+  private def updateAbscences(meta: EventMetadata, abo: Abo, vertriebIdNeu: VertriebId)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
+    val newLieferungen = stammdatenWriteRepository.getLieferungen(vertriebIdNeu)
     stammdatenWriteRepository.getById(vertriebMapping, abo.vertriebId) map { vertrieb =>
       stammdatenWriteRepository.getLieferungen(vertrieb.id) map { lieferungOld =>
-        if (lieferungOld.datum isAfter DateTime.now) {
+        if ((lieferungOld.datum isAfter DateTime.now) && (newLieferungen.filter(l => l.datum == lieferungOld.datum).length == 0)) {
           stammdatenWriteRepository.getAbwesenheit(abo.id, lieferungOld.datum) map { abwesenheit =>
-            val copy = abwesenheit.copy(bemerkung = Some("To Check"))
+            val copy = abwesenheit.copy(bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!"))
+            stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
+            val lastPendenz = stammdatenWriteRepository.getPendenzen(abo.kundeId).sortBy(_.datum.getMillis)(Ordering.Long.reverse).head
+            val copyPendenz = lastPendenz.copy(status = Ausstehend, bemerkung = Some(lastPendenz.bemerkung + ": Bitte Absenzen prüfen!"))
+            stammdatenWriteRepository.updateEntityFully[Pendenz, PendenzId](copyPendenz)
+          }
+        } else if (lieferungOld.datum isAfter DateTime.now) {
+          val lieferungNew = newLieferungen.filter(l => l.datum == lieferungOld.datum)
+          stammdatenWriteRepository.getAbwesenheit(abo.id, lieferungOld.datum) map { abwesenheit =>
+            val copy = abwesenheit.copy(lieferungId = lieferungNew.head.id)
             stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
           }
         }
@@ -623,19 +633,19 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
         val updatedAbo: HauptAbo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-        updateAbscences(meta, abo);
+        updateAbscences(meta, abo, update.vertriebIdNeu);
         swapOrUpdateAboVertriebsart(meta, abo, update)
         modifyKoerbeForAboVertriebChange(updatedAbo, Some(abo))
       } getOrElse {
         stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
           val updatedAbo: HauptAbo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-          updateAbscences(meta, abo);
+          updateAbscences(meta, abo, update.vertriebIdNeu);
           swapOrUpdateAboVertriebsart(meta, abo, update)
           modifyKoerbeForAboVertriebChange(updatedAbo, Some(abo))
         } getOrElse {
           stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
             val updatedAbo: HauptAbo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-            updateAbscences(meta, abo);
+            updateAbscences(meta, abo, update.vertriebIdNeu);
             swapOrUpdateAboVertriebsart(meta, abo, update)
             modifyKoerbeForAboVertriebChange(updatedAbo, Some(abo))
           }
