@@ -606,22 +606,25 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     })
   }
 
-  private def updateAbscences(meta: EventMetadata, abo: Abo, vertriebIdNeu: VertriebId)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
-    val newLieferungen = stammdatenWriteRepository.getLieferungen(vertriebIdNeu)
-    stammdatenWriteRepository.getById(vertriebMapping, abo.vertriebId) map { vertrieb =>
-      stammdatenWriteRepository.getLieferungen(vertrieb.id) map { lieferungOld =>
-        if ((lieferungOld.datum isAfter DateTime.now) && (newLieferungen.filter(l => l.datum == lieferungOld.datum).length == 0)) {
-          stammdatenWriteRepository.getAbwesenheit(abo.id, lieferungOld.datum) map { abwesenheit =>
-            val copy = abwesenheit.copy(bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!"))
-            stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
-            val lastPendenz = stammdatenWriteRepository.getPendenzen(abo.kundeId).sortBy(_.datum.getMillis)(Ordering.Long.reverse).head
-            val copyPendenz = lastPendenz.copy(status = Ausstehend, bemerkung = Some(lastPendenz.bemerkung + ": Bitte Absenzen prüfen!"))
-            stammdatenWriteRepository.updateEntityFully[Pendenz, PendenzId](copyPendenz)
+  private def updateAbsences(meta: EventMetadata, abo: Abo, vertriebIdNeu: VertriebId)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
+    val newLieferungen = stammdatenWriteRepository.getLieferungen(vertriebIdNeu).filter(l => l.datum isAfter DateTime.now)
+    stammdatenWriteRepository.getById(vertriebMapping, abo.vertriebId) map { vertriebCurrent =>
+      stammdatenWriteRepository.getLieferungen(vertriebCurrent.id).filter(lc => lc.datum isAfter DateTime.now) map { lieferungCurrent =>
+        if (newLieferungen.count(l => l.datum == lieferungCurrent.datum) == 0) {
+          stammdatenWriteRepository.getAbwesenheiten(abo.id).filter(a => a.datum.toDateTimeAtCurrentTime() isAfter DateTime.now) map { abwesenheit =>
+            val copy = if (newLieferungen.count(l => l.datum.toLocalDate == abwesenheit.datum) > 0) {
+              abwesenheit.copy(bemerkung = None)
+            } else {
+              abwesenheit.copy(bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!"))
+            }
+            if (!copy.bemerkung.equals(abwesenheit.bemerkung)) {
+              stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
+            }
           }
-        } else if (lieferungOld.datum isAfter DateTime.now) {
-          val lieferungNew = newLieferungen.filter(l => l.datum == lieferungOld.datum)
-          stammdatenWriteRepository.getAbwesenheit(abo.id, lieferungOld.datum) map { abwesenheit =>
-            val copy = abwesenheit.copy(lieferungId = lieferungNew.head.id)
+        } else {
+          val lieferungNew = newLieferungen.filter(l => l.datum == lieferungCurrent.datum)
+          stammdatenWriteRepository.getAbwesenheit(abo.id, lieferungCurrent.datum) map { abwesenheit =>
+            val copy = abwesenheit.copy(lieferungId = lieferungNew.head.id, bemerkung = None)
             stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
           }
         }
@@ -633,19 +636,19 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
         val updatedAbo: HauptAbo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-        updateAbscences(meta, abo, update.vertriebIdNeu);
+        updateAbsences(meta, abo, update.vertriebIdNeu);
         swapOrUpdateAboVertriebsart(meta, abo, update)
         modifyKoerbeForAboVertriebChange(updatedAbo, Some(abo))
       } getOrElse {
         stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
           val updatedAbo: HauptAbo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-          updateAbscences(meta, abo, update.vertriebIdNeu);
+          updateAbsences(meta, abo, update.vertriebIdNeu);
           swapOrUpdateAboVertriebsart(meta, abo, update)
           modifyKoerbeForAboVertriebChange(updatedAbo, Some(abo))
         } getOrElse {
           stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
             val updatedAbo: HauptAbo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-            updateAbscences(meta, abo, update.vertriebIdNeu);
+            updateAbsences(meta, abo, update.vertriebIdNeu);
             swapOrUpdateAboVertriebsart(meta, abo, update)
             modifyKoerbeForAboVertriebChange(updatedAbo, Some(abo))
           }
