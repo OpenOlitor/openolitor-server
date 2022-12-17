@@ -607,28 +607,42 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   }
 
   private def updateAbsences(meta: EventMetadata, abo: Abo, vertriebIdNeu: VertriebId)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
-    val newLieferungen = stammdatenWriteRepository.getLieferungen(vertriebIdNeu).filter(l => l.datum isAfter DateTime.now)
-    stammdatenWriteRepository.getById(vertriebMapping, abo.vertriebId) map { vertriebCurrent =>
-      stammdatenWriteRepository.getLieferungen(vertriebCurrent.id).filter(lc => lc.datum isAfter DateTime.now) map { lieferungCurrent =>
-        if (newLieferungen.count(l => l.datum == lieferungCurrent.datum) == 0) {
-          stammdatenWriteRepository.getAbwesenheiten(abo.id).filter(a => a.datum.toDateTimeAtCurrentTime() isAfter DateTime.now) map { abwesenheit =>
-            val copy = if (newLieferungen.count(l => l.datum.toLocalDate == abwesenheit.datum) > 0) {
-              abwesenheit.copy(bemerkung = None)
-            } else {
-              abwesenheit.copy(bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!"))
-            }
-            if (!copy.bemerkung.equals(abwesenheit.bemerkung)) {
-              stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
-            }
-          }
-        } else {
-          val lieferungNew = newLieferungen.filter(l => l.datum == lieferungCurrent.datum)
-          stammdatenWriteRepository.getAbwesenheit(abo.id, lieferungCurrent.datum) map { abwesenheit =>
-            val copy = abwesenheit.copy(lieferungId = lieferungNew.head.id, bemerkung = None)
-            stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
-          }
+    stammdatenWriteRepository.getLieferungen(vertriebIdNeu).filter(l => l.datum isAfter DateTime.now) match {
+      case Nil =>
+        stammdatenWriteRepository.getAbwesenheiten(abo.id).filter(a => a.datum.toDateTimeAtCurrentTime isAfter DateTime.now) map { futureAbwesenheit =>
+          stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](futureAbwesenheit.copy(bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!")))
         }
-      }
+      case futureLieferungenNewVertrieb =>
+        stammdatenWriteRepository.getById(vertriebMapping, abo.vertriebId) match {
+          case Some(vertriebCurrent) =>
+            stammdatenWriteRepository.getLieferungen(vertriebCurrent.id).filter(lc => lc.datum isAfter DateTime.now) map { futureLieferungCurrentVertrieb =>
+              futureLieferungenNewVertrieb.filter(l => l.datum == futureLieferungCurrentVertrieb.datum) match {
+                case Nil =>
+                  stammdatenWriteRepository.getAbwesenheiten(abo.id).filter(a => a.datum.toDateTimeAtCurrentTime isAfter DateTime.now) map { futureAbwesenheit =>
+                    val copy = if (futureLieferungenNewVertrieb.count(l => l.datum.toLocalDate == futureAbwesenheit.datum) > 0) {
+                      futureAbwesenheit.copy(lieferungId = futureLieferungenNewVertrieb.filter(ln => ln.datum.toLocalDate == futureAbwesenheit.datum).head.id, bemerkung = None)
+                    } else {
+                      futureAbwesenheit.copy(lieferungId = futureLieferungenNewVertrieb.head.id, bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!"))
+                    }
+                    if (!copy.bemerkung.equals(futureAbwesenheit.bemerkung)) {
+                      stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
+                    }
+                  }
+                case sameDateLieferungNewVertrieb: List[Lieferung] =>
+                  stammdatenWriteRepository.getAbwesenheit(abo.id, futureLieferungCurrentVertrieb.datum) map { abwesenheit =>
+                    val copy = if (futureLieferungenNewVertrieb.count(l => l.datum.toLocalDate == abwesenheit.datum) > 0) {
+                      abwesenheit.copy(lieferungId = sameDateLieferungNewVertrieb.filter(ln => ln.datum.toLocalDate == abwesenheit.datum).head.id, bemerkung = None)
+                    } else {
+                      abwesenheit.copy(lieferungId = sameDateLieferungNewVertrieb.head.id, bemerkung = Some("Bitte überprüfen Sie diese Abwesenheit!"))
+                    }
+                    if (!copy.bemerkung.equals(abwesenheit.bemerkung)) {
+                      stammdatenWriteRepository.updateEntityFully[Abwesenheit, AbwesenheitId](copy)
+                    }
+                  }
+              }
+            }
+          case None =>
+        }
     }
   }
 

@@ -557,7 +557,7 @@ trait StammdatenCommandHandler extends CommandHandler
             var pendenzStatus: PendenzStatus = Erledigt
             stammdatenReadRepository.getById(vertriebMapping, abo.vertriebId) match {
               case Some(vertrieb) =>
-                stammdatenReadRepository.getLieferungen(vertrieb.id).filter(lOld => (lOld.datum isAfter DateTime.now) && (newLieferungen.filter(l => l.datum == lOld.datum).length == 0)) map { l =>
+                stammdatenReadRepository.getLieferungen(vertrieb.id).filter(lOld => (lOld.datum isAfter DateTime.now) && (newLieferungen.count(l => l.datum == lOld.datum) == 0)) map { l =>
                   if (stammdatenReadRepository.getAbwesenheit(abo.id, l.datum).length > 0) {
                     abscencesText = s"; Bitte Absenzen prüfen!"
                     pendenzStatus = Ausstehend
