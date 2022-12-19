@@ -559,7 +559,7 @@ trait StammdatenCommandHandler extends CommandHandler
               case Some(vertrieb) =>
                 stammdatenReadRepository.getLieferungen(vertrieb.id).filter(lOld => (lOld.datum isAfter DateTime.now) && (newLieferungen.count(l => l.datum == lOld.datum) == 0)) map { l =>
                   if (stammdatenReadRepository.getAbwesenheit(abo.id, l.datum).length > 0) {
-                    abscencesText = s"; Bitte Absenzen prüfen!"
+                    abscencesText = s"; Bitte Abwesenheiten prüfen!"
                     pendenzStatus = Ausstehend
                   }
                 }
