@@ -553,19 +553,19 @@ trait StammdatenCommandHandler extends CommandHandler
         stammdatenReadRepository.getById(depotlieferungAboMapping, id) match {
           case Some(abo) =>
             val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
-            var abscencesText = ""
+            var absencesText = ""
             var pendenzStatus: PendenzStatus = Erledigt
             stammdatenReadRepository.getById(vertriebMapping, abo.vertriebId) match {
               case Some(vertrieb) =>
                 stammdatenReadRepository.getLieferungen(vertrieb.id).filter(lOld => (lOld.datum isAfter DateTime.now) && (newLieferungen.count(l => l.datum == lOld.datum) == 0)) map { l =>
                   if (stammdatenReadRepository.getAbwesenheit(abo.id, l.datum).length > 0) {
-                    abscencesText = s"; Bitte Abwesenheiten prüfen!"
+                    absencesText = s"; Bitte Abwesenheiten prüfen!"
                     pendenzStatus = Ausstehend
                   }
                 }
               case None => Failure(new InvalidStateException(s"UpdateEntityCommand: Some error happened when creating a pendenz"))
             }
-            val pendenzEvent = addKundenPendenz(idFactory, meta, id, text + abscencesText, pendenzStatus)
+            val pendenzEvent = addKundenPendenz(idFactory, meta, id, text + absencesText, pendenzStatus)
             Success(Seq(Some(EntityUpdateEvent(id, entity)), pendenzEvent).flatten)
           case None =>
             Failure(new InvalidStateException(s"UpdateEntityCommand: Some error happened when creating a pendenz"))
