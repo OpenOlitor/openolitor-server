@@ -41,7 +41,7 @@ import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.buchhaltung.models.RechnungsPositionCreate
 import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import ch.openolitor.util.OtpUtil
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 
 import java.util.UUID
 import scalikejdbc.DBSession
@@ -539,7 +539,7 @@ trait StammdatenCommandHandler extends CommandHandler
         stammdatenReadRepository.getAboDetail(id) match {
           case Some(abo) => {
             val text = s"Guthaben manuell angepasst. Abo Nr.: ${id.id}; Bisher: ${abo.guthaben}; Neu: ${entity.guthabenNeu}; Grund: ${entity.bemerkung}"
-            val pendenzEvent = addKundenPendenz(idFactory, meta, id, text)
+            val pendenzEvent = addKundenPendenz(idFactory, meta, id, text, Erledigt)
             Success(Seq(Some(EntityUpdateEvent(id, entity)), pendenzEvent).flatten)
           }
           case None =>
@@ -549,13 +549,31 @@ trait StammdatenCommandHandler extends CommandHandler
     case UpdateEntityCommand(_, id: AboId, entity: AboVertriebsartModify) => idFactory => meta =>
       DB readOnly { implicit session =>
         //TODO: assemble text using gettext
-        val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
-        val pendenzEvent = addKundenPendenz(idFactory, meta, id, text)
-        Success(Seq(Some(EntityUpdateEvent(id, entity)), pendenzEvent).flatten)
+        val newLieferungen = stammdatenReadRepository.getLieferungen(entity.vertriebIdNeu)
+        stammdatenReadRepository.getById(depotlieferungAboMapping, id) match {
+          case Some(abo) =>
+            val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
+            var absencesText = ""
+            var pendenzStatus: PendenzStatus = Erledigt
+            stammdatenReadRepository.getById(vertriebMapping, abo.vertriebId) match {
+              case Some(vertrieb) =>
+                stammdatenReadRepository.getLieferungen(vertrieb.id).filter(lOld => (lOld.datum isAfter DateTime.now) && (newLieferungen.count(l => l.datum == lOld.datum) == 0)) map { l =>
+                  if (stammdatenReadRepository.getAbwesenheit(abo.id, l.datum).length > 0) {
+                    absencesText = s"; Bitte Abwesenheiten prüfen!"
+                    pendenzStatus = Ausstehend
+                  }
+                }
+              case None => Failure(new InvalidStateException(s"UpdateEntityCommand: Some error happened when creating a pendenz"))
+            }
+            val pendenzEvent = addKundenPendenz(idFactory, meta, id, text + absencesText, pendenzStatus)
+            Success(Seq(Some(EntityUpdateEvent(id, entity)), pendenzEvent).flatten)
+          case None =>
+            Failure(new InvalidStateException(s"UpdateEntityCommand: Some error happened when creating a pendenz"))
+        }
       }
   }
 
-  def addKundenPendenz(idFactory: IdFactory, meta: EventTransactionMetadata, id: AboId, bemerkung: String)(implicit session: DBSession): Option[ResultingEvent] = {
+  def addKundenPendenz(idFactory: IdFactory, meta: EventTransactionMetadata, id: AboId, bemerkung: String, status: PendenzStatus)(implicit session: DBSession): Option[ResultingEvent] = {
     // zusätzlich eine pendenz erstellen
     ((stammdatenReadRepository.getById(depotlieferungAboMapping, id) map { abo =>
       DepotlieferungAboModify
@@ -567,7 +585,7 @@ trait StammdatenCommandHandler extends CommandHandler
     })) map { kundeId =>
       //TODO: assemble text using gettext
       val title = "Guthaben angepasst: "
-      val pendenzCreate = PendenzCreate(kundeId, meta.timestamp, Some(bemerkung), Erledigt, true)
+      val pendenzCreate = PendenzCreate(kundeId, meta.timestamp, Some(bemerkung), status, true)
       EntityInsertEvent[PendenzId, PendenzCreate](idFactory.newId(PendenzId.apply), pendenzCreate)
     }
   }
