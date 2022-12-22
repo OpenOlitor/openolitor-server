@@ -256,5 +256,6 @@ object V2Scripts {
     OO_add_otp_second_factor.scripts ++
     OO89_user_information_in_zahlungeingang.scripts ++
     OO69_kunde_aktiv.scripts ++
-    OO103_views_for_filter_optimization.scripts
+    OO103_views_for_filter_optimization.scripts ++
+    OO111_Change_menge_type.scripts
 }
