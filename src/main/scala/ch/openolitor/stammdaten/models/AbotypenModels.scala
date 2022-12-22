@@ -234,6 +234,10 @@ case class AbotypMailContext(
   abotyp: IAbotyp
 ) extends JSONSerializable
 
+case class AbotypLetzteLieferungModify(
+  letzteLieferung: Option[DateTime]
+) extends JSONSerializable
+
 case class ZusatzAbotyp(
   id: AbotypId,
   name: String,

@@ -108,6 +108,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case EntityUpdatedEvent(meta, id: KorbId, entity: KorbAuslieferungModify) => updateKorbAuslieferungId(meta, id, entity)
     case EntityUpdatedEvent(meta, id: VertriebId, entity: VertriebRecalculationsModify) => updateVertriebRecalculationsModify(meta, id, entity)
     case EntityUpdatedEvent(meta, id: PersonId, entity: PersonContactPermissionModify) => updatePersonContactPermissionModify(meta, id, entity)
+    case EntityUpdatedEvent(meta, id: AbotypId, entity: AbotypLetzteLieferungModify) => updateAbotypLetzteLieferungModify(meta, id, entity)
     case e =>
   }
 
@@ -984,6 +985,15 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
       stammdatenWriteRepository.getById(lieferungMapping, id) map { lieferung =>
         val copy = copyFrom(lieferung, entity)
         stammdatenWriteRepository.updateEntityFully[Lieferung, LieferungId](copy)
+      }
+    }
+  }
+
+  private def updateAbotypLetzteLieferungModify(meta: EventMetadata, id: AbotypId, entity: AbotypLetzteLieferungModify)(implicit personId: PersonId = meta.originator): Unit = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(abotypMapping, id) map { abotyp =>
+        val copy = copyFrom(abotyp, entity)
+        stammdatenWriteRepository.updateEntityFully[Abotyp, AbotypId](copy)
       }
     }
   }

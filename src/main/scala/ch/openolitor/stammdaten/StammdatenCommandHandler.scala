@@ -1008,6 +1008,10 @@ trait StammdatenCommandHandler extends CommandHandler
       val total = stammdatenReadRepository.getLieferpositionenByLieferung(lieferung.id).map(_.preis.getOrElse(0.asInstanceOf[BigDecimal])).sum
       val lieferungCopy = lieferung.copy(preisTotal = total, status = Abgeschlossen)
       val lieferungModifyCopy = LieferungAbgeschlossenModify(Abgeschlossen, total)
+      stammdatenReadRepository.getById(abotypMapping, lieferung.abotypId) map { abotyp =>
+        val abotypLetzteLieferungModifyCopy = AbotypLetzteLieferungModify(Some(lieferung.datum))
+        EntityUpdateEvent(abotyp.id, abotypLetzteLieferungModifyCopy) :: Nil
+      }
 
       //update durchschnittspreis
       val updates = (stammdatenReadRepository.getProjekt flatMap { projekt =>
