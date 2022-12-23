@@ -395,6 +395,9 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         get(list(stammdatenReadRepository.getAbos(xFlags), exportFormat))
       }
     } ~
+      path("abos" / "lieferung" / lieferungIdPath / "abweisenheit") { lieferungId =>
+        get(list(stammdatenReadRepository.getAbweisenheitByLieferung(lieferungId)))
+      } ~
       path("abos" / "aktionen" / "anzahllieferungenrechnungspositionen") {
         post {
           entity(as[AboRechnungsPositionBisAnzahlLieferungenCreate]) { rechnungCreate =>

@@ -153,39 +153,27 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getKundenUebersichtQuery(filter: Option[FilterExpr], queryString: Option[QueryFilter]) = {
-    val whatever = queryString match {
-      case None =>
-        withSQL[Kunde] {
-          select
-            .from(kundeMapping as kunde)
-            .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-            .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
-            .where(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
-            .orderBy(person.sort)
-        }
-      case Some(_) =>
-        withSQL[Kunde] {
-          select
-            .from(kundeMapping as kunde)
-            .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
-            .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
-            .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
-            .append(sqls"""OR""")
-            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
-            .append(sqls"""OR""")
-            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
-            .append(sqls"""OR""")
-            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
-            .append(sqls"""OR""")
-            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
-            .append(sqls"""OR""")
-            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
-            .append(sqls"""OR""")
-            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
-            .orderBy(person.sort)
-        }
-    }
-    whatever.one(kundeMapping(kunde))
+    withSQL[Kunde] {
+      select
+        .from(kundeMapping as kunde)
+        .leftJoin(personMapping as person).on(kunde.id, person.kundeId)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kunde.id, kontoDaten.kunde)
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "name", person))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "vorname", person))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "strasse", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "ort", kunde))
+        .append(sqls"""OR""")
+        .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "plz", kunde))
+        .and(UriQueryParamToSQLSyntaxBuilder.build(filter, kunde))
+        .orderBy(person.sort)
+    }.one(kundeMapping(kunde))
       .toManies(
         rs => personMapping.opt(person)(rs),
         rs => kontoDatenMapping.opt(kontoDaten)(rs)
@@ -510,36 +498,22 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getZusatzAbosQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
-    queryString match {
-      case None =>
-        withSQL {
-          select
-            .from(zusatzAboMapping as zusatzAbo)
-            .join(projektMapping as projekt)
-            .where.append(
-              UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
-            ).and(
-                UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
-              )
-        }.map(zusatzAboMapping(zusatzAbo)).list
-      case Some(_) =>
-        withSQL {
-          select
-            .from(zusatzAboMapping as zusatzAbo)
-            .join(projektMapping as projekt)
-            .where.append(
-              UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
-            ).and(
-                UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
-              ).and.append(
-                  UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", zusatzAbo)
-                    .append(sqls"""or""")
-                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", zusatzAbo))
-                    .append(sqls"""or""")
-                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "hauptAboId", zusatzAbo))
-                )
-        }.map(zusatzAboMapping(zusatzAbo)).list
-    }
+    withSQL {
+      select
+        .from(zusatzAboMapping as zusatzAbo)
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[ZusatzAbo](gjFilter, zusatzAbo)
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, zusatzAbo)
+          ).and.append(
+              UriQueryParamToSQLSyntaxBuilder.build(queryString, "kunde", zusatzAbo)
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", zusatzAbo))
+                .append(sqls"""or""")
+                .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "hauptAboId", zusatzAbo))
+            )
+    }.map(zusatzAboMapping(zusatzAbo)).list
   }
 
   protected def getDepotlieferungQuery(vertriebId: VertriebId): OneToOneSQLToList[Depotlieferung, Option[Depot], HasExtractor, DepotlieferungDetail] = {
@@ -1707,32 +1681,18 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getSammelbestellungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
-    queryString match {
-      case None =>
-        withSQL {
-          select
-            .from(sammelbestellungMapping as sammelbestellung)
-            .join(projektMapping as projekt)
-            .where.append(
-              UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
-            ).and(
-                UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
-              )
-        }.map(sammelbestellungMapping(sammelbestellung)).list
-      case Some(_) =>
-        withSQL {
-          select
-            .from(sammelbestellungMapping as sammelbestellung)
-            .join(projektMapping as projekt)
-            .where.append(
-              UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
-            ).and(
-                UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
-              )
-            .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung)
-              .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", sammelbestellung)))
-        }.map(sammelbestellungMapping(sammelbestellung)).list
-    }
+    withSQL {
+      select
+        .from(sammelbestellungMapping as sammelbestellung)
+        .join(projektMapping as projekt)
+        .where.append(
+          UriQueryParamToSQLSyntaxBuilder.build[Sammelbestellung](gjFilter, sammelbestellung, "datum")
+        ).and(
+            UriQueryParamToSQLSyntaxBuilder.build(filter, sammelbestellung)
+          )
+        .and.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "produzent_kurzzeichen", sammelbestellung)
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", sammelbestellung)))
+    }.map(sammelbestellungMapping(sammelbestellung)).list
   }
 
   protected def getSammelbestellungenByProduzentQuery(produzent: ProduzentId, lieferplanungId: LieferplanungId) = {
@@ -2656,4 +2616,11 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
+  protected def getAbweisenheitByLieferungQuery(lieferungId: LieferungId) = {
+    withSQL[Lieferplanung] {
+      select
+        .from(abwesenheitMapping as abwesenheit)
+        .where.eq(abwesenheit.lieferungId, lieferungId)
+    }.map(abwesenheitMapping(abwesenheit)).list
+  }
 }
