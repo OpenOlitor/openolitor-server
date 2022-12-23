@@ -340,6 +340,7 @@ trait StammdatenJsonProtocol extends BaseJsonProtocol with ReportJsonProtocol wi
   implicit val fristFormat: RootJsonFormat[Frist] = jsonFormat2(Frist)
 
   implicit val abotypModifyFormat: RootJsonFormat[AbotypModify] = jsonFormat18(AbotypModify)
+  implicit val abotypLetzteLieferungModifyFormat: RootJsonFormat[AbotypLetzteLieferungModify] = jsonFormat1(AbotypLetzteLieferungModify)
 
   implicit val baseAbotypFormat = new RootJsonFormat[Abotyp] {
     override def read(json: JsValue): Abotyp = {
