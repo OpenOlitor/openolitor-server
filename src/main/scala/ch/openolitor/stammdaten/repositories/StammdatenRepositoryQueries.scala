@@ -2656,4 +2656,11 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       }).list
   }
 
+  protected def getAbweisenheitByLieferungQuery(lieferungId: LieferungId) = {
+    withSQL {
+      select
+        .from(abwesenheitMapping as abwesenheit)
+        .where.eq(abwesenheit.lieferungId, lieferungId)
+    }.map(abwesenheitMapping(abwesenheit)).list
+  }
 }

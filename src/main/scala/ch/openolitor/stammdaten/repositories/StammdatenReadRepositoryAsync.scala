@@ -166,6 +166,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getEinladung(token: String)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Einladung]]
 
   def getLastClosedLieferplanungenDetail(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferplanungOpenDetail]]
+  def getAbweisenheitByLieferung(lieferungId: LieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Abwesenheit]]
 }
 
 class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with StammdatenReadRepositoryAsync with LazyLogging with StammdatenRepositoryQueries {
@@ -850,5 +851,10 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
 
   def getLastClosedLieferplanungenDetail(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferplanungOpenDetail]] = {
     getLastClosedLieferplanungenDetailQuery.future() map (_.take(5))
+  }
+
+  def getAbweisenheitByLieferung(lieferungId: LieferungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Abwesenheit]] = {
+    import scalikejdbc.async.makeSQLToListAsync
+    getAbweisenheitByLieferungQuery(lieferungId).future()
   }
 }
