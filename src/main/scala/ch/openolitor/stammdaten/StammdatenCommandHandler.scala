@@ -550,7 +550,7 @@ trait StammdatenCommandHandler extends CommandHandler
       DB readOnly { implicit session =>
         //TODO: assemble text using gettext
         val newLieferungen = stammdatenReadRepository.getLieferungen(entity.vertriebIdNeu)
-        stammdatenReadRepository.getById(depotlieferungAboMapping, id) match {
+        stammdatenReadRepository.getAbo(id) match {
           case Some(abo) =>
             val text = s"Vertriebsart angepasst. Abo Nr.: ${id.id}, Neu: ${entity.vertriebsartIdNeu}; Grund: ${entity.bemerkung}"
             var absencesText = ""
