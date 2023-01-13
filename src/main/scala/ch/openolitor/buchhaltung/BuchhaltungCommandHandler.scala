@@ -261,7 +261,8 @@ trait BuchhaltungCommandHandler extends CommandHandler
                 val personEmailData = copyTo[Person, PersonEmailData](person)
                 val mailContext = RechnungMailContext(personEmailData, rechnung)
                 if (attachInvoice) {
-                  DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, rechnung.fileStoreId, mailContext))
+                  val documentToAttach = if (rechnung.mahnungFileStoreIds.isEmpty) rechnung.fileStoreId else Some(rechnung.mahnungFileStoreIds.head)
+                  DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, documentToAttach, mailContext))
                 } else {
                   DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, None, mailContext))
                 }
