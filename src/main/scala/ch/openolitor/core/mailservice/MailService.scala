@@ -143,10 +143,10 @@ trait MailService extends AggregateRoot
         case Some(_) => {
           inputStreamfile match {
             case Right(f) => {
-
+              val fileName = if (f.metaData.name.contains("mahnung")) "mahnung.pdf" else "rechnung.pdf"
               Right(baseEnvelope(mail)
                 .content(Multipart()
-                  .attachBytes(LazyList.continually(f.file.read).takeWhile(-1 !=).map(_.toByte).toArray, "rechnung.pdf", "application/pdf")
+                  .attachBytes(LazyList.continually(f.file.read).takeWhile(-1 !=).map(_.toByte).toArray, fileName, "application/pdf")
                   .text(s"${mail.content}")))
             }
             case Left(e) => Left(e)
