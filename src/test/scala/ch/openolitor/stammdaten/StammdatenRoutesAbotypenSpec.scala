@@ -9,76 +9,51 @@ import org.joda.time.LocalDate
 
 import scala.concurrent.Await
 
-class StammdatenRoutesKundenSpec extends BaseRoutesWithDBSpec with SpecSubjects with StammdatenRouteServiceInteractions with StammdatenJsonProtocol {
+class StammdatenRoutesAbotypenSpec extends BaseRoutesWithDBSpec with SpecSubjects with StammdatenRouteServiceInteractions with StammdatenJsonProtocol {
   sequential
 
   protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
 
   implicit val subject: Subject = adminSubject
 
-  "StammdatenRoutes for Kunden and Personen" should {
-    "create Kunden" in {
-      val person = PersonModify(None, None, "Name", "Vorname", None, None, None, None, Set.empty, None, None, false)
-      val create = KundeModify(true, Some("bezeichnung"), "strasse", Some("02"), None, "383832", "Bern", Some("Bern"), false, None, None, None, None, None, None, Some(""), None, None, Set.empty, Seq.empty, Seq(person), None, None)
+  "StammdatenRoutes for abotypen" should {
+    "create abotyp" in {
+      val create = AbotypModify("abotyp", None, Monatlich, None, None, BigDecimal(30), ProLieferung, None, Lieferungen, None, None, None, None, "red", None, 1, BigDecimal(10), true)
 
-      Post("/kunden", create) ~> stammdatenRouteService.stammdatenRoute ~> check {
+      Post("/abotypen", create) ~> stammdatenRouteService.stammdatenRoute ~> check {
         //expectDBEvents(3) { (creations, _, _, _) =>
         //  oneEventMatches[Kunde](creations)(_.bezeichnung === "bezeichnung")
         //}
-        dbEventProbe.expectMsgType[EntityCreated[Kunde]]
-        dbEventProbe.expectMsgType[EntityCreated[KontoDaten]]
-        dbEventProbe.expectMsgType[EntityCreated[Person]]
+        dbEventProbe.expectMsgType[EntityCreated[Abotyp]]
         dbEventProbe.expectNoMessage()
 
-        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden(asyncConnectionPoolContext), defaultTimeout)
-        result.size === 2
-        result.head.bezeichnung === "bezeichnung"
+        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
+        result.size === 1
+        result.head.name === "abotyp"
       }
     }
 
-    "get kunde" in {
-      Get("/kunden") ~> stammdatenRouteService.stammdatenRoute ~> check {
-        val result = responseAs[List[KundeUebersicht]]
+    "get abotyp" in {
+      Get("/abotypen") ~> stammdatenRouteService.stammdatenRoute ~> check {
+        val result = responseAs[List[Abotyp]]
 
-        result.size === 2
-        result.find(k => k.bezeichnung == "bezeichnung").head.strasse === "strasse"
+        result.size === 1
+        result.head.name === "abotyp"
       }
     }
 
-    "modify kunde" in {
-      val kunde = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden, defaultTimeout).find(k => k.bezeichnung == "bezeichnung").head
-      val person = Seq(PersonModify(None, None, "Name", "Vorname", None, None, None, None, Set.empty, None, None, false))
-      val modify = copyTo[Kunde, Kunde](kunde).copy(strasse = "STRASSE")
-      val modify1 = copyTo[Kunde, KundeModify](modify, "pendenzen" -> Seq.empty, "ansprechpersonen" -> person, "kontoDaten" -> None, "bezeichnung" -> None)
-
-      Post(s"/kunden/${kunde.id.id}", modify1) ~> stammdatenRouteService.stammdatenRoute ~> check {
-        dbEventProbe.expectMsgType[EntityModified[Kunde]]
-        dbEventProbe.expectMsgType[EntityCreated[Person]]
-        dbEventProbe.expectNoMessage()
-
-        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden(asyncConnectionPoolContext), defaultTimeout)
-        result.size === 2
-        result.head.strasse === "STRASSE"
-      }
-    }
-
-    "create abo " in {
-      val kunde = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden, defaultTimeout).head
+    "modify abotyp" in {
       val abotyp = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbotypen, defaultTimeout).head
-      val vertrieb = Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebe(abotyp.id), defaultTimeout).head
-      val vertriebSart = Await.result(stammdatenRouteService.stammdatenReadRepository.getVertriebsarten(vertrieb.id), defaultTimeout).head
-      val depot = Await.result(stammdatenRouteService.stammdatenReadRepository.getDepots, defaultTimeout).head
-      val aboCreate = DepotlieferungAboCreate(kunde.id, kunde.bezeichnung, vertriebSart.id, depot.id, LocalDate.now(), None, Some(BigDecimal(32)))
+      val modify = copyTo[Abotyp, Abotyp](abotyp).copy(name = "ABOTYP")
 
-      Post(s"/kunden/${kunde.id.id}/abos", aboCreate) ~> stammdatenRouteService.stammdatenRoute ~> check {
-        expectDBEvents(7) { (creations, _, _, _) =>
-          oneEventMatches[DepotlieferungAbo](creations)(_.price === "32")
-        }
-        //val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getKunden(asyncConnectionPoolContext), defaultTimeout)
-        //result.size === 2
-        //result.head.strasse === "STRASSE"
+      Post(s"/abotypen/${abotyp.id.id}", modify) ~> stammdatenRouteService.stammdatenRoute ~> check {
+        dbEventProbe.expectMsgType[EntityModified[Abotyp]]
+        dbEventProbe.expectNoMessage()
+
+        val result = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbotypen(asyncConnectionPoolContext, None, None), defaultTimeout)
+        result.size === 1
+        result.head.name === "ABOTYP"
       }
-
     }
   }
 }
