@@ -8,7 +8,7 @@ import ch.openolitor.stammdaten.models._
 
 import scala.concurrent.Await
 
-class StammdatenRoutesDeposSpec extends BaseRoutesWithDBSpec with SpecSubjects with StammdatenRouteServiceInteractions with StammdatenJsonProtocol {
+class StammdatenRoutesDepotsSpec extends BaseRoutesWithDBSpec with SpecSubjects with StammdatenRouteServiceInteractions with StammdatenJsonProtocol {
   sequential
 
   protected val stammdatenRouteService = new MockStammdatenRoutes(sysConfig, system)
