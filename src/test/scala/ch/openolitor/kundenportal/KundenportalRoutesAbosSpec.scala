@@ -35,7 +35,14 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
         abos.head.abotypId === abotypId
       }
     }
-
+    "list Zusatzabos" in {
+      implicit val subject = oskiSubject
+      val abos = Await.result(stammdatenRouteService.stammdatenReadRepository.getAbos(None), defaultTimeout).head
+      Get(s"/kundenportal/abos/${abos.id.id}/zusatzabos") ~> kundenportalRouteService.kundenportalRoute ~> check {
+        val zusatzabos = responseAs[List[ZusatzAboDetail]]
+        zusatzabos.size === 1
+      }
+    }
     "list Lieferungen" in {
       implicit val subject = oskiSubject
 
@@ -53,6 +60,7 @@ class KundenportalRoutesAbosSpec extends BaseRoutesWithDBSpec with SpecSubjects 
     implicit val adminPersonId = adminSubject.personId
     implicit val subject = adminSubject
 
+    createZusatzaboTyp()
     createTrinityOfAbos()
 
     createLieferplanung()
