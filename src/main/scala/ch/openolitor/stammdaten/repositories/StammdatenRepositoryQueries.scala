@@ -36,7 +36,6 @@ import org.joda.time.LocalDate
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import scalikejdbc.jodatime.JodaParameterBinderFactory
 
-import java.text.SimpleDateFormat
 import scala.annotation.nowarn
 
 trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
