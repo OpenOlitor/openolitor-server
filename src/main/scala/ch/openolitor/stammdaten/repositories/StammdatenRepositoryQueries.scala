@@ -1575,6 +1575,9 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def sumPreisTotalGeplanteLieferungenVorherQuery(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime) = {
+
+    val datumLocalDateTime = datum.toLocalDateTime.withTime(0, 0, 0, 0)
+    val startGeschaeftsjahrLocalDateTime = startGeschaeftsjahr.toLocalDateTime.withTime(0, 0, 0, 0)
     sql"""
       select
         sum(${lieferung.preisTotal})
@@ -1584,8 +1587,8 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         ${lieferung.vertriebId} = ${vertriebId.id}
         and ${lieferung.abotypId} = ${abotypId.id}
         and ${lieferung.lieferplanungId} IS NOT NULL
-        and ${lieferung.datum} < ${datum}
-        and ${lieferung.datum} >= ${startGeschaeftsjahr}
+        and ${lieferung.datum} < ${datumLocalDateTime}
+        and ${lieferung.datum} >= ${startGeschaeftsjahrLocalDateTime}
       """
       .map(x => BigDecimal(x.bigDecimalOpt(1).getOrElse(java.math.BigDecimal.ZERO))).single
   }
