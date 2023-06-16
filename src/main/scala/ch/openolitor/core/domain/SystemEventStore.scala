@@ -97,7 +97,7 @@ trait SystemEventStore extends AggregateRoot {
   }
 
   def metadata: EventMetadata = {
-    EventMetadata(SystemPersonId, VERSION, DateTime.now, aquireTransactionNr(), 1L, persistenceId)
+    EventMetadata(SystemPersonId, VERSION, DateTime.now, aquireTransactionNr(), aquireSequenceNr(), persistenceId)
   }
 
   def incState: SystemEventStoreState = {

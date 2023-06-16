@@ -292,7 +292,7 @@ trait MailService extends AggregateRoot
   }
 
   def metadata(personId: PersonId): EventMetadata = {
-    EventMetadata(personId, VERSION, DateTime.now, aquireTransactionNr(), 1L, persistenceId)
+    EventMetadata(personId, VERSION, DateTime.now, aquireTransactionNr(), aquireSequenceNr(), persistenceId)
   }
 
   def newId: String = UUID.randomUUID.toString

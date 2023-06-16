@@ -52,6 +52,7 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
   type S <: State
   var state: S
   private var lastAquiredTransactionNr: Long = 0L
+  private var lastAquiredSequenceNr: Long = 0L
 
   case class Initialize(state: S) extends Command
 
@@ -66,7 +67,8 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
 
   override def dbInitialized(): Unit = {
     lastAquiredTransactionNr = lastProcessedTransactionNr
-    log.debug(s"$persistenceId: initialize aquire transaction nr to $lastAquiredTransactionNr")
+    lastAquiredSequenceNr = lastProcessedSequenceNr
+    log.debug(s"$persistenceId: initialize aquire transaction nr to $lastAquiredTransactionNr and sequence nr to $lastAquiredSequenceNr")
   }
 
   protected def afterEventPersisted(evt: PersistentEvent): Unit = {
@@ -83,6 +85,10 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
     lastAquiredTransactionNr
   }
 
+  protected def aquireSequenceNr(): Long = {
+    lastAquiredSequenceNr += 1
+    lastAquiredSequenceNr
+  }
   protected def publish(event: Object): Unit =
     context.system.eventStream.publish(event)
 
