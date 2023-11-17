@@ -98,6 +98,11 @@ trait MailService extends AggregateRoot
 
   override var state: MailServiceState = MailServiceState(DateTime.now, TreeSet.empty[MailEnqueued])
 
+  override protected def afterEventPersisted(evt: PersistentEvent): Unit = {
+    updateState(recovery = false)(evt)
+    publish(evt)
+  }
+
   def initialize(): Unit = {
     // start mail queue checker
     context.system.scheduler.scheduleWithFixedDelay(0 seconds, 10 seconds, self, CheckMailQueue)(context.system.dispatcher)
