@@ -38,8 +38,7 @@ import ch.openolitor.core.filestore._
 import ch.openolitor.core.models._
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.models.KundeId
-import ch.openolitor.util.parsing.UriQueryFilterParser
-import ch.openolitor.util.parsing.QueryFilter
+import ch.openolitor.util.parsing.{ QueryFilter, UriQueryFilterParser, UriQueryParamGeschaeftsjahrParser }
 import ch.openolitor.stammdaten.repositories.{ DefaultStammdatenReadRepositoryAsyncComponent, StammdatenReadRepositoryAsyncComponent }
 
 import scala.concurrent.ExecutionContext
@@ -62,10 +61,13 @@ trait ArbeitseinsatzRoutes extends BaseRouteService
   implicit val arbeitseinsatzIdPath = long2BaseIdPathMatcher(ArbeitseinsatzId.apply)
 
   def arbeitseinsatzRoute(implicit subject: Subject): Route =
-    parameters("q".?) { q =>
+    parameters("q".?, "g".?) { (q, g) =>
       implicit val queryFilter = q flatMap {
         queryFilter =>
           UriQueryFilterParser.parse(queryFilter)
+      }
+      implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
+        UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
       }
       path("arbeitskategorien" ~ exportFormatPath.?) {
         exportFormat =>

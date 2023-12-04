@@ -25,14 +25,14 @@ package ch.openolitor.arbeitseinsatz.repositories
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models.{ KundeId, Person, Projekt }
-import ch.openolitor.util.parsing.QueryFilter
+import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, QueryFilter }
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc.DBSession
 
 trait ArbeitseinsatzReadRepositorySync extends BaseReadRepositorySync {
   def getArbeitskategorien(implicit session: DBSession): List[Arbeitskategorie]
 
-  def getArbeitsangebote(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitsangebot]
+  def getArbeitsangebote(implicit session: DBSession, gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): List[Arbeitsangebot]
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot]
   def getFutureArbeitsangebote(implicit session: DBSession): List[Arbeitsangebot]
   def getArbeitseinsaetze(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitseinsatz]
@@ -51,8 +51,8 @@ trait ArbeitseinsatzReadRepositorySyncImpl extends ArbeitseinsatzReadRepositoryS
     getArbeitskategorienQuery.apply()
   }
 
-  def getArbeitsangebote(implicit session: DBSession, queryString: Option[QueryFilter]): List[Arbeitsangebot] = {
-    getArbeitsangeboteQuery(queryString).apply()
+  def getArbeitsangebote(implicit session: DBSession, gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): List[Arbeitsangebot] = {
+    getArbeitsangeboteQuery(gjFilter, queryString).apply()
   }
 
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit session: DBSession): Option[Arbeitsangebot] = {

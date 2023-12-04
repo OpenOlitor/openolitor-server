@@ -29,7 +29,7 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models.KundeId
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.util.parsing.QueryFilter
+import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, QueryFilter }
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import scalikejdbc._
@@ -57,12 +57,14 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
     }.map(arbeitskategorieMapping(arbeitskategorie)).list
   }
 
-  protected def getArbeitsangeboteQuery(queryString: Option[QueryFilter]) = {
+  protected def getArbeitsangeboteQuery(gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     withSQL {
       select
         .from(arbeitsangebotMapping as arbeitsangebot)
-        .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", arbeitsangebot))
-        .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", arbeitsangebot))
+        .join(projektMapping as projekt)
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build[Arbeitsangebot](gjFilter, arbeitsangebot, "zeitVon"))
+        .and.withRoundBracket(_.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", arbeitsangebot))
+          .or.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", arbeitsangebot)))
         .orderBy(arbeitsangebot.zeitVon)
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
