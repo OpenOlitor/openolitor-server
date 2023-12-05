@@ -42,7 +42,7 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-  version := "2.6.24",
+  version := "2.6.25",
   scalaVersion := "2.13.10",
   crossScalaVersions := Seq("2.13.8", "2.13.10"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
