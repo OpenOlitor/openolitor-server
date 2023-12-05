@@ -27,16 +27,16 @@ import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.core.db._
 import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models.KundeId
-import ch.openolitor.util.parsing.QueryFilter
+import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, QueryFilter }
 import com.typesafe.scalalogging.LazyLogging
-import scalikejdbc.async.{ makeSQLToOptionAsync => _, makeSQLToListAsync => _, _ }
+import scalikejdbc.async.{ makeSQLToListAsync => _, makeSQLToOptionAsync => _, _ }
 
 import scala.concurrent._
 
 trait ArbeitseinsatzReadRepositoryAsync extends BaseReadRepositoryAsync {
   def getArbeitskategorien(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitskategorie]]
 
-  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[Arbeitsangebot]]
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Future[List[Arbeitsangebot]]
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]]
   def getFutureArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Arbeitsangebot]]
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[Arbeitseinsatz]]
@@ -56,9 +56,9 @@ class ArbeitseinsatzReadRepositoryAsyncImpl extends ArbeitseinsatzReadRepository
     getArbeitskategorienQuery.future()
   }
 
-  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, queryString: Option[QueryFilter]): Future[List[Arbeitsangebot]] = {
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Future[List[Arbeitsangebot]] = {
     import scalikejdbc.async.makeSQLToListAsync
-    getArbeitsangeboteQuery(queryString).future()
+    getArbeitsangeboteQuery(gjFilter, queryString).future()
   }
 
   def getArbeitsangebot(arbeitsangebotId: ArbeitsangebotId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Arbeitsangebot]] = {
