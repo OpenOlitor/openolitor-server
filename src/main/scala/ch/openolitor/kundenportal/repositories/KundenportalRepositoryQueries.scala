@@ -30,7 +30,7 @@ import ch.openolitor.core.Macros._
 import ch.openolitor.util.DateTimeUtil._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
 import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.arbeitseinsatz.models._
@@ -352,11 +352,12 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
       }).single
   }
 
-  protected def getArbeitsangeboteQuery(implicit owner: Subject) = {
+  protected def getArbeitsangeboteQuery(gjFilter: Option[GeschaeftsjahrFilter])(implicit owner: Subject) = {
     withSQL {
       select
         .from(arbeitsangebotMapping as arbeitsangebot)
-        .where.eq(arbeitsangebot.status, ch.openolitor.arbeitseinsatz.models.Bereit)
+        .where.append(UriQueryParamToSQLSyntaxBuilder.build[Arbeitsangebot](gjFilter, arbeitsangebot, "zeitVon"))
+        .and.eq(arbeitsangebot.status, ch.openolitor.arbeitseinsatz.models.Bereit)
         .orderBy(arbeitsangebot.zeitVon)
     }.map(arbeitsangebotMapping(arbeitsangebot)).list
   }
