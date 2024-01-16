@@ -356,6 +356,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
     withSQL {
       select
         .from(arbeitsangebotMapping as arbeitsangebot)
+        .join(projektMapping as projekt)
         .where.append(UriQueryParamToSQLSyntaxBuilder.build[Arbeitsangebot](gjFilter, arbeitsangebot, "zeitVon"))
         .and.eq(arbeitsangebot.status, ch.openolitor.arbeitseinsatz.models.Bereit)
         .orderBy(arbeitsangebot.zeitVon)
