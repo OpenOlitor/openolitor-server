@@ -42,7 +42,7 @@ import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadReposito
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
-import ch.openolitor.util.parsing.{ FilterExpr, UriQueryParamFilterParser }
+import ch.openolitor.util.parsing.{ QueryFilter, UriQueryFilterParser, FilterExpr, GeschaeftsjahrFilter, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser }
 
 import scala.concurrent.ExecutionContext
 
@@ -71,9 +71,12 @@ trait KundenportalRoutes
   import EntityStore._
 
   def kundenportalRoute(implicit subject: Subject) =
-    parameter("f".?) { f =>
+    akka.http.scaladsl.server.Directives.parameters("f".?, "g".?) { (f, g) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
+      }
+      implicit val datumsFilter = g flatMap { geschaeftsjahrString =>
+        UriQueryParamGeschaeftsjahrParser.parse(geschaeftsjahrString)
       }
       pathPrefix("kundenportal") {
         abosRoute ~ arbeitRoute ~ rechnungenRoute ~ projektRoute ~ kontoDatenRoute ~ personenRoute
@@ -141,7 +144,7 @@ trait KundenportalRoutes
       }
   }
 
-  def arbeitRoute(implicit subject: Subject, filter: Option[FilterExpr]) = {
+  def arbeitRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter]) = {
     path("arbeitsangebote") {
       get {
         list(kundenportalReadRepository.getArbeitsangebote)

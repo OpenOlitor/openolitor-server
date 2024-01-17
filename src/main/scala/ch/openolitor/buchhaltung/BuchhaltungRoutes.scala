@@ -75,7 +75,7 @@ trait BuchhaltungRoutes
 
   import EntityStore._
 
-  def buchhaltungRoute(implicit subect: Subject): Route =
+  def buchhaltungRoute(implicit subject: Subject): Route =
     httpParameters("f".?, "g".?, "q".?) { (f, g, q) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
@@ -90,7 +90,7 @@ trait BuchhaltungRoutes
       rechnungenRoute ~ rechnungspositionenRoute ~ zahlungsImportsRoute ~ mailingRoute ~ zahlungsExportsRoute
     }
 
-  private def pain008Route(version: String)(implicit subect: Subject): Route = post {
+  private def pain008Route(version: String)(implicit subject: Subject): Route = post {
     extractRequest { _ =>
       entity(as[RechnungenContainer]) { cont =>
         onSuccess(buchhaltungReadRepository.getByIds(rechnungMapping, cont.ids)) { rechnungen =>
@@ -111,7 +111,7 @@ trait BuchhaltungRoutes
     }
   }
 
-  def rechnungenRoute(implicit subect: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) =
+  def rechnungenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) =
     path("rechnungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungen, exportFormat)) ~
         post(create[RechnungCreateFromRechnungsPositionen, RechnungId](RechnungId.apply _))
@@ -219,7 +219,7 @@ trait BuchhaltungRoutes
         (post)(mahnungBericht(id))
       }
 
-  def rechnungspositionenRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
+  def rechnungspositionenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("rechnungspositionen" ~ exportFormatPath.?) { exportFormat =>
       get(list(buchhaltungReadRepository.getRechnungsPositionen, exportFormat))
     } ~
@@ -235,7 +235,7 @@ trait BuchhaltungRoutes
         }
       }
 
-  def zahlungsImportsRoute(implicit subect: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
+  def zahlungsImportsRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]) =
     path("zahlungsimports") {
       get(list(buchhaltungReadRepository.getZahlungsImports)) ~
         (put | post) {
@@ -276,7 +276,7 @@ trait BuchhaltungRoutes
         }
       }
     }
-  def zahlungsExportsRoute(implicit subect: Subject) =
+  def zahlungsExportsRoute(implicit subject: Subject) =
     path("zahlungsexports") {
       get(list(buchhaltungReadRepository.getZahlungsExports))
     } ~
@@ -457,7 +457,7 @@ trait BuchhaltungRoutes
     }
   }
 
-  def generatePain008(ids: List[Rechnung], version: String = "02")(implicit subect: Subject): Either[String, String] = {
+  def generatePain008(ids: List[Rechnung], version: String = "02")(implicit subject: Subject): Either[String, String] = {
     val NbOfTxs = ids.size.toString
 
     val rechnungenWithFutures: Future[List[(Rechnung, KontoDaten)]] = Future.sequence(ids.map { rechnung =>
@@ -495,7 +495,7 @@ trait BuchhaltungRoutes
     }
   }
 
-  def checkEmptyIban(rechnungen: List[(Rechnung, KontoDaten)])(implicit subect: Subject): List[KundeId] = {
+  def checkEmptyIban(rechnungen: List[(Rechnung, KontoDaten)])(implicit subject: Subject): List[KundeId] = {
     rechnungen flatMap { rechnung =>
       (rechnung._2.iban, rechnung._2.nameAccountHolder) match {
         case (None, _)          => Some(rechnung._1.kundeId)

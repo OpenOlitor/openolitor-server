@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.kundenportal.repositories
 
-import scalikejdbc.async.{ makeSQLToOptionAsync => _, makeSQLToListAsync => _, _ }
+import scalikejdbc.async.{ makeSQLToListAsync => _, makeSQLToOptionAsync => _, _ }
 
 import scala.concurrent.ExecutionContext
 import ch.openolitor.core.db._
@@ -32,7 +32,7 @@ import scala.concurrent._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.Macros._
-import ch.openolitor.util.parsing.FilterExpr
+import ch.openolitor.util.parsing.{ FilterExpr, GeschaeftsjahrFilter }
 import ch.openolitor.core.security.Subject
 import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.buchhaltung.models.Rechnung
@@ -55,7 +55,7 @@ trait KundenportalReadRepositoryAsync {
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[RechnungDetail]]
 
   def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[ArbeitseinsatzDetail]]
-  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Arbeitsangebot]]
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Arbeitsangebot]]
 }
 
 class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsync with LazyLogging with KundenportalRepositoryQueries {
@@ -134,8 +134,8 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
     getArbeitseinsaetzeQuery.future()
   }
 
-  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Arbeitsangebot]] = {
+  def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Arbeitsangebot]] = {
     import scalikejdbc.async.makeSQLToListAsync
-    getArbeitsangeboteQuery.future()
+    getArbeitsangeboteQuery(gjFilter).future()
   }
 }
