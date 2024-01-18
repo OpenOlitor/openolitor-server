@@ -91,6 +91,9 @@ trait KundenportalRoutes
     } ~
       path("projekt" / projektIdPath / "logo") { id =>
         get(download(ProjektStammdaten, "logo"))
+      } ~
+      path("projekt" / projektIdPath / "geschaeftsjahre") { id =>
+        get(list(kundenportalReadRepository.getGeschaeftsjahre))
       }
   }
 

@@ -41,6 +41,7 @@ import ch.openolitor.arbeitseinsatz.models._
 
 trait KundenportalReadRepositoryAsync {
   def getProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[ProjektKundenportal]]
+  def getGeschaeftsjahre(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[GeschaeftsjahrStart]]
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]]
 
   def getHauptabos(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr], owner: Subject): Future[List[AboDetail]]
@@ -65,6 +66,11 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
       val t = copyTo[Projekt, ProjektKundenportal](projekt)
       t
     }))
+  }
+
+  def getGeschaeftsjahre(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[GeschaeftsjahrStart]] = {
+    import scalikejdbc.async.makeSQLToListAsync
+    getGeschaeftsjahreQuery.future()
   }
 
   def getKontoDatenProjekt(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[KontoDaten]] = {
