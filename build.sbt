@@ -1,4 +1,4 @@
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.13"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -42,9 +42,15 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
+<<<<<<< Updated upstream
   version := "2.6.28",
   scalaVersion := "2.13.10",
   crossScalaVersions := Seq("2.13.8", "2.13.10"),
+=======
+  version := "2.6.17",
+  scalaVersion := "2.13.13",
+  crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.13"),
+>>>>>>> Stashed changes
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -82,10 +88,10 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.1.+",
-    "com.h2database"               %  "h2"                                 % "2.1.214"                               % "test",
+    "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.4.5",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.2",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.0",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.31",
     // Libreoffice document API
@@ -106,8 +112,8 @@ val buildSettings = Seq(
     "io.nayuki"                    %  "qrcodegen"                          % "1.6.0",
     "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.26",
     "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.26" pomOnly(),
-    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.16",
-    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.16",
+    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.17",
+    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.17",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
     "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.27"
@@ -116,11 +122,11 @@ val buildSettings = Seq(
   dependencyOverrides ++= Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
     "xerces" % "xercesImpl" % "2.12.2",
-    "org.apache.commons" % "commons-compress" % "1.22",
-    "io.netty" % "netty-handler" % "4.1.85.Final",
+    "org.apache.commons" % "commons-compress" % "1.26.0",
+    "io.netty" % "netty-handler" % "4.1.107.Final",
     "org.apache.jena" % "jena-core" % "4.6.1",
     "com.google.protobuf" % "protobuf-java" % "3.21.10",
-    "com.google.guava" % "guava" % "31.1-jre"
+    "com.google.guava" % "guava" % "33.0.0-jre"
   )
 )
 
