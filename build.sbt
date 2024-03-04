@@ -43,7 +43,7 @@ val buildSettings = Seq(
   .setPreference(AlignSingleLineCaseStatements, true),
   version := "2.6.29",
   scalaVersion := "2.13.11",
-  crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.11"),
+  crossScalaVersions := Seq("2.12.19", "2.13.8", "2.13.10", "2.13.11"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
