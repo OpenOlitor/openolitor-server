@@ -43,7 +43,7 @@ val buildSettings = Seq(
   .setPreference(AlignSingleLineCaseStatements, true),
   version := "2.6.29",
   scalaVersion := "2.13.11",
-  crossScalaVersions := Seq("2.12.19", "2.13.8", "2.13.10", "2.13.11"),
+  crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.11"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -52,7 +52,7 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"       %% "scala-xml"                          % "2.1.0",
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.2.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
@@ -71,8 +71,8 @@ val buildSettings = Seq(
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
-    "org.mockito"                  %% "mockito-scala"                      % "1.17.7"                                % "test",
-    "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
+    "org.mockito"                  %% "mockito-scala"                      % "1.17.30"                                % "test",
+    "org.scalaz" 		               %% "scalaz-core"						             % "7.3.8", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.19.0",
@@ -84,32 +84,32 @@ val buildSettings = Seq(
     "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.2",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.0",
-    "mysql"	                       %  "mysql-connector-java"               % "8.0.31",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.3",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.4",
+    "mysql"	                       %  "mysql-connector-java"               % "8.0.33",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.348",
-    "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.671",
+    "de.svenkubiak"                %  "jBCrypt"                            % "0.4.3",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.32.0", // ### Scala 3
     "com.github.blemale"           %% "scaffeine"                          % "5.2.1", // ### Scala 3
     "de.zalando"                   %% "beard"                              % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
     // transitive dependencies of legacy de.zalando.beard
     "org.antlr"                    %  "antlr4"                             % "4.8-1",
-    "io.monix"                     %% "monix"                              % "3.4.0", // ### Scala 3
-    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "2.4.3",
-    "io.nayuki"                    %  "qrcodegen"                          % "1.6.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.26",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.26" pomOnly(),
+    "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
+    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "2.5.4",
+    "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.30",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.30" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.17",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.17",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.27"
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.30"
   )
 },
   dependencyOverrides ++= Seq(
@@ -188,7 +188,7 @@ val updateLatest = sys.env.get("DOCKER_UPDATE_LATEST") match {
                       }
 
 dockerUpdateLatest := updateLatest
-dockerBaseImage := "eclipse-temurin:17-alpine"
+dockerBaseImage := "eclipse-temurin:21-alpine"
 dockerExposedPorts ++= Seq(9003)
 
 // the directories created, e.g. /var/log/openolitor-server, are created using user id 1000,
