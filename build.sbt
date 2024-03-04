@@ -42,15 +42,9 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
-<<<<<<< Updated upstream
-  version := "2.6.28",
-  scalaVersion := "2.13.10",
-  crossScalaVersions := Seq("2.13.8", "2.13.10"),
-=======
   version := "2.6.17",
   scalaVersion := "2.13.13",
   crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.13"),
->>>>>>> Stashed changes
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
