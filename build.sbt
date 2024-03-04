@@ -1,4 +1,4 @@
-scalaVersion := "2.13.13"
+scalaVersion := "2.13.11"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -27,13 +27,13 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 
-val specs2V = "4.19.0" // based on spray 1.3.x built in support
+val specs2V = "4.20.5" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 val sprayV = "1.3.+"
-val scalalikeV = "4.0.0"
-val akkaHttpVersion = "10.2.10"
-val akkaVersion = "2.7.0"
-val testContainersVersion = "1.17.6"
+val scalalikeV = "4.2.1"
+val akkaHttpVersion = "10.5.3"
+val akkaVersion = "2.8.5"
+val testContainersVersion = "1.19.6"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -41,10 +41,9 @@ val buildSettings = Seq(
   scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
-  organization := "ch.openolitor.scalamacros",
-  version := "2.6.17",
-  scalaVersion := "2.13.13",
-  crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.13"),
+  version := "2.6.29",
+  scalaVersion := "2.13.11",
+  crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.11"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -76,7 +75,7 @@ val buildSettings = Seq(
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
-    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.15.0",
+    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.19.0",
     "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
