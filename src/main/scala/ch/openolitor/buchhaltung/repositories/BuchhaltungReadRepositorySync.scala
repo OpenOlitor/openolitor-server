@@ -27,9 +27,10 @@ import ch.openolitor.core.repositories._
 import ch.openolitor.stammdaten.models._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.buchhaltung.models._
+import ch.openolitor.stammdaten.repositories.{ ProjektReadRepositorySync, ProjektReadRepositorySyncImpl }
 import ch.openolitor.util.parsing.{ FilterExpr, QueryFilter }
 
-trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
+trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync with ProjektReadRepositorySync {
   def getRechnungen(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung]
   def getKundenRechnungen(kundeId: KundeId)(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung]
   def getRechnungDetail(id: RechnungId)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[RechnungDetail]
@@ -47,10 +48,9 @@ trait BuchhaltungReadRepositorySync extends BaseReadRepositorySync {
 
   def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten]
   def getKontoDatenKunde(id: KundeId)(implicit session: DBSession): Option[KontoDaten]
-  def getProjekt(implicit session: DBSession): Option[Projekt]
 }
 
-trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync with LazyLogging with BuchhaltungRepositoryQueries {
+trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync with LazyLogging with BuchhaltungRepositoryQueries with ProjektReadRepositorySyncImpl {
   def getRechnungen(implicit session: DBSession, cpContext: ConnectionPoolContext): List[Rechnung] = {
     getRechnungenQuery(None, None, None).apply()
   }
@@ -101,9 +101,5 @@ trait BuchhaltungReadRepositorySyncImpl extends BuchhaltungReadRepositorySync wi
 
   def getZahlungsExportDetail(id: ZahlungsExportId)(implicit session: DBSession, cpContext: ConnectionPoolContext): Option[ZahlungsExport] = {
     getZahlungsExportQuery(id).apply()
-  }
-
-  def getProjekt(implicit session: DBSession): Option[Projekt] = {
-    getProjektQuery.apply()
   }
 }

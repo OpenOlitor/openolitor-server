@@ -20,44 +20,33 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.arbeitseinsatz
+package ch.openolitor.stammdaten
 
-import ch.openolitor.arbeitseinsatz.eventsourcing.ArbeitseinsatzEventStoreSerializer
-import ch.openolitor.arbeitseinsatz.repositories._
-import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler._
-import ch.openolitor.core._
-import ch.openolitor.core.db._
-import ch.openolitor.core.domain._
-import ch.openolitor.stammdaten.MailCommandForwarder
-import akka.util.Timeout
-
-import scala.concurrent.duration._
-import com.typesafe.scalalogging.LazyLogging
-import akka.actor.{ ActorRef, ActorSystem }
-import ch.openolitor.stammdaten.models.{ Person, PersonEmailData, Projekt }
-import scalikejdbc.DB
-import ch.openolitor.core.models.PersonId
+import ch.openolitor.core.models._
+import ch.openolitor.stammdaten.models._
+import ch.openolitor.core.domain.{ EventMetadata, EventTransactionMetadata }
+import ch.openolitor.mailtemplates.engine.MailTemplateService
+import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
+import ch.openolitor.core.db.AsyncConnectionPoolContextAware
+import ch.openolitor.stammdaten.eventsourcing.StammdatenEventStoreSerializer
+import ch.openolitor.core.EventStream
+import akka.actor.ActorRef
+import akka.pattern.ask
+import akka.util.Timeout
+import scalikejdbc._
+import com.typesafe.scalalogging.LazyLogging
 
-import scala.concurrent.ExecutionContext.Implicits._
+import scala.util._
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
-object ArbeitseinsatzAktionenService {
-  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzAktionenService = new DefaultArbeitseinsatzAktionenService(sysConfig, system)
+trait MailCommandForwarder {
+  def sendEmail(meta: EventTransactionMetadata, emailSubject: String, body: String, replyTo: Option[String], bcc: Option[String], person: PersonEmailData, docReference: Option[String], mailContext: Product)(implicit originator: PersonId = meta.originator, executionContext: ExecutionContext): Unit
 }
 
-class DefaultArbeitseinsatzAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
-  extends ArbeitseinsatzAktionenService(sysConfig) with DefaultArbeitseinsatzWriteRepositoryComponent {
-}
-
-/**
- * Actor zum Verarbeiten der Aktionen für das Arbeitseinsatz Modul
- */
-class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
-  with ArbeitseinsatzDBMappings with ArbeitseinsatzEventStoreSerializer {
-  self: ArbeitseinsatzWriteRepositoryComponent =>
-
-  val handle: Handle = {
-    case e =>
-      logger.warn(s"Unknown event:$e")
+object MailCommandForwarder {
+  def apply(mailService: ActorRef): MailCommandForwarder = {
+    new DefaultMailCommandForwarder(mailService)
   }
 }

@@ -60,12 +60,13 @@ trait StartingServices extends LazyLogging {
     logger.debug(s"oo-system:$system")
     val dbEvolutionActor = Await.result(system ? SystemActor.Child(DBEvolutionActor.props(evolution), "db-evolution"), duration).asInstanceOf[ActorRef]
     logger.debug(s"oo-system:$system -> dbEvolutionActor:$dbEvolutionActor")
-    val entityStore = Await.result(system ? SystemActor.Child(EntityStore.props(dbEvolutionActor, evolution), "entity-store"), duration).asInstanceOf[ActorRef]
+    val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor, fileStore), "mail-service"), duration).asInstanceOf[ActorRef]
+    logger.debug(s"oo-system:$system -> eventStore:$mailService")
+
+    val entityStore = Await.result(system ? SystemActor.Child(EntityStore.props(dbEvolutionActor, evolution, mailService), "entity-store"), duration).asInstanceOf[ActorRef]
     logger.debug(s"oo-system:$system -> entityStore:$entityStore")
     val eventStore = Await.result(system ? SystemActor.Child(SystemEventStore.props(dbEvolutionActor), "event-store"), duration).asInstanceOf[ActorRef]
     logger.debug(s"oo-system:$system -> eventStore:$eventStore")
-    val mailService = Await.result(system ? SystemActor.Child(MailService.props(dbEvolutionActor, fileStore), "mail-service"), duration).asInstanceOf[ActorRef]
-    logger.debug(s"oo-system:$system -> eventStore:$mailService")
 
     // STAMMDATEN
     val stammdatenEntityStoreView = Await.result(system ? SystemActor.Child(StammdatenEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "stammdaten-entity-store-view"), duration).asInstanceOf[ActorRef]
@@ -78,14 +79,14 @@ trait StartingServices extends LazyLogging {
     Await.result(system ? SystemActor.Child(StammdatenGeneratedEventsListener.props, "stammdaten-generated-events-listener"), duration).asInstanceOf[ActorRef]
 
     // BUCHHALTUNG
-    val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
+    val buchhaltungEntityStoreView = Await.result(system ? SystemActor.Child(BuchhaltungEntityStoreView.props(dbEvolutionActor, airbrakeNotifier), "buchhaltung-entity-store-view"), duration).asInstanceOf[ActorRef]
 
     // start listeners for buchhaltung
     Await.result(system ? SystemActor.Child(BuchhaltungDBEventEntityListener.props, "buchhaltung-dbevent-entity-listener"), duration).asInstanceOf[ActorRef]
     Await.result(system ? SystemActor.Child(BuchhaltungReportEventListener.props(entityStore), "buchhaltung-report-event-listener"), duration).asInstanceOf[ActorRef]
 
     // ARBEITSEINSATZ
-    val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(mailService, dbEvolutionActor, airbrakeNotifier), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
+    val arbeitseinsatzEntityStoreView = Await.result(system ? SystemActor.Child(ArbeitseinsatzEntityStoreView.props(dbEvolutionActor, airbrakeNotifier), "arbeitseinsatz-entity-store-view"), duration).asInstanceOf[ActorRef]
 
     // MAILTEMPLATE
     val mailTemplateEntityStoreView = Await.result(system ? SystemActor.Child(MailTemplateEntityStoreView.props(dbEvolutionActor, airbrakeNotifier), "mailtemplate-entity-store-view"), duration).asInstanceOf[ActorRef]

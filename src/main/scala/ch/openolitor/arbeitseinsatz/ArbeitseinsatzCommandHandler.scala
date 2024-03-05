@@ -32,8 +32,9 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models.{ Person, PersonContactPermissionModify, PersonEmailData }
 import ch.openolitor.mailtemplates.engine.MailTemplateService
-import akka.actor.ActorSystem
+import akka.actor.{ ActorRef, ActorSystem }
 import ch.openolitor.core.security.Subject
+import ch.openolitor.stammdaten.{ DefaultMailCommandForwarderComponent, MailCommandForwarderComponent, ProjektHelper }
 import scalikejdbc._
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -41,13 +42,17 @@ import scala.util._
 
 object ArbeitseinsatzCommandHandler {
   case class ArbeitsangebotArchivedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
+
   case class SendEmailToArbeitsangebotPersonenCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId]) extends UserCommand
+
   case class SendEmailToArbeitsangebotPersonenEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: ArbeitsangebotMailContext) extends PersistentGeneratedEvent with JSONSerializable
+
   case class ChangeContactPermissionForUserCommand(originator: PersonId, subject: Subject, personId: PersonId) extends UserCommand
 }
 
-trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware with MailTemplateService {
-  self: ArbeitseinsatzReadRepositorySyncComponent =>
+trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBMappings with ConnectionPoolContextAware with MailTemplateService with ProjektHelper {
+  self: ArbeitseinsatzReadRepositorySyncComponent with MailCommandForwarderComponent =>
+
   import ArbeitseinsatzCommandHandler._
   import EntityStore._
 
@@ -56,63 +61,73 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
     /*
     * Custom update command handling
     */
-    case ArbeitsangebotArchivedCommand(id, personId) => idFactory => meta =>
-      DB readOnly { implicit session =>
-        arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, id) map { arbeitsangebot =>
-          arbeitsangebot.status match {
-            case (Bereit) =>
-              val copy = arbeitsangebot.copy(status = Archiviert)
-              Success(Seq(EntityUpdateEvent(id, copy)))
-            case _ =>
-              Failure(new InvalidStateException("Der Arbeitseinsatz muss 'Bereit' sein."))
-          }
-        } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
-      }
+    case ArbeitsangebotArchivedCommand(id, personId) => idFactory =>
+      meta =>
+        DB readOnly { implicit session =>
+          arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, id) map { arbeitsangebot =>
+            arbeitsangebot.status match {
+              case (Bereit) =>
+                val copy = arbeitsangebot.copy(status = Archiviert)
+                Success(Seq(EntityUpdateEvent(id, copy)))
+              case _ =>
+                Failure(new InvalidStateException("Der Arbeitseinsatz muss 'Bereit' sein."))
+            }
+          } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
+        }
 
-    case SendEmailToArbeitsangebotPersonenCommand(personId, subject, body, replyTo, ids) => idFactory => meta =>
-      DB readOnly { implicit session =>
-        if (checkTemplateArbeitsangebot(body, subject, ids)) {
-          val events = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
-            arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitsangebotId) map { arbeitsangebot =>
-              arbeitseinsatzReadRepository.getPersonenByArbeitsangebot(arbeitsangebotId) map { person =>
-                val personEmailData = copyTo[Person, PersonEmailData](person)
-                val mailContext = ArbeitsangebotMailContext(personEmailData, arbeitsangebot)
-                DefaultResultingEvent(factory => SendEmailToArbeitsangebotPersonenEvent(factory.newMetadata(), subject, body, replyTo, mailContext))
+    case SendEmailToArbeitsangebotPersonenCommand(personId, subject, body, replyTo, ids) => idFactory =>
+      meta =>
+        DB readOnly { implicit session =>
+          if (checkTemplateArbeitsangebot(body, subject, ids)) {
+            val events = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
+              arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitsangebotId) map { arbeitsangebot =>
+                arbeitseinsatzReadRepository.getPersonenByArbeitsangebot(arbeitsangebotId) map { person =>
+                  val personEmailData = copyTo[Person, PersonEmailData](person)
+                  val mailContext = ArbeitsangebotMailContext(personEmailData, arbeitsangebot)
+
+                  mailCommandForwarder.sendEmail(meta, subject, body, replyTo, determineBcc, personEmailData, None, mailContext)
+
+                  DefaultResultingEvent(factory => SendEmailToArbeitsangebotPersonenEvent(factory.newMetadata(), subject, body, replyTo, mailContext))
+                }
               }
             }
+            Success(events.flatten)
+          } else {
+            Failure(new InvalidStateException("The template is not valid"))
           }
-          Success(events.flatten)
-        } else {
-          Failure(new InvalidStateException("The template is not valid"))
         }
-      }
 
-    case ChangeContactPermissionForUserCommand(originator, subject, personId) => idFactory => meta =>
-      DB readOnly { implicit session =>
-        val entityToSave = arbeitseinsatzReadRepository.getById(personMapping, personId) map { user =>
-          copyTo[Person, PersonContactPermissionModify](user, "contactPermission" -> !user.contactPermission)
+    case ChangeContactPermissionForUserCommand(originator, subject, personId) => idFactory =>
+      meta =>
+        DB readOnly { implicit session =>
+          val entityToSave = arbeitseinsatzReadRepository.getById(personMapping, personId) map { user =>
+            copyTo[Person, PersonContactPermissionModify](user, "contactPermission" -> !user.contactPermission)
+          }
+          entityToSave match {
+            case Some(personContactPermissionModify) => Success(Seq(EntityUpdateEvent(personId, personContactPermissionModify)))
+            case _                                   => Failure(new InvalidStateException(s"This person was not found."))
+          }
         }
-        entityToSave match {
-          case Some(personContactPermissionModify) => Success(Seq(EntityUpdateEvent(personId, personContactPermissionModify)))
-          case _                                   => Failure(new InvalidStateException(s"This person was not found."))
-        }
-      }
 
     /*
      * Insert command handling
      */
-    case e @ InsertEntityCommand(personId, entity: ArbeitskategorieModify) => idFactory => meta =>
-      handleEntityInsert[ArbeitskategorieModify, ArbeitskategorieId](idFactory, meta, entity, ArbeitskategorieId.apply)
-    case e @ InsertEntityCommand(personId, entity: ArbeitsangebotModify) => idFactory => meta =>
-      handleEntityInsert[ArbeitsangebotModify, ArbeitsangebotId](idFactory, meta, entity, ArbeitsangebotId.apply)
-    case e @ InsertEntityCommand(personId, entity: ArbeitseinsatzModify) => idFactory => meta =>
-      handleEntityInsert[ArbeitseinsatzModify, ArbeitseinsatzId](idFactory, meta, entity, ArbeitseinsatzId.apply)
-    case e @ InsertEntityCommand(personId, entity: ArbeitsangeboteDuplicate) => idFactory => meta =>
-      val events = entity.daten.map { datum =>
-        val arbeitsangebotDuplicate = copyTo[ArbeitsangeboteDuplicate, ArbeitsangebotDuplicate](entity, "zeitVon" -> datum)
-        insertEntityEvent[ArbeitsangebotDuplicate, ArbeitsangebotId](idFactory, meta, arbeitsangebotDuplicate, ArbeitsangebotId.apply)
-      }
-      Success(events)
+    case e @ InsertEntityCommand(personId, entity: ArbeitskategorieModify) => idFactory =>
+      meta =>
+        handleEntityInsert[ArbeitskategorieModify, ArbeitskategorieId](idFactory, meta, entity, ArbeitskategorieId.apply)
+    case e @ InsertEntityCommand(personId, entity: ArbeitsangebotModify) => idFactory =>
+      meta =>
+        handleEntityInsert[ArbeitsangebotModify, ArbeitsangebotId](idFactory, meta, entity, ArbeitsangebotId.apply)
+    case e @ InsertEntityCommand(personId, entity: ArbeitseinsatzModify) => idFactory =>
+      meta =>
+        handleEntityInsert[ArbeitseinsatzModify, ArbeitseinsatzId](idFactory, meta, entity, ArbeitseinsatzId.apply)
+    case e @ InsertEntityCommand(personId, entity: ArbeitsangeboteDuplicate) => idFactory =>
+      meta =>
+        val events = entity.daten.map { datum =>
+          val arbeitsangebotDuplicate = copyTo[ArbeitsangeboteDuplicate, ArbeitsangebotDuplicate](entity, "zeitVon" -> datum)
+          insertEntityEvent[ArbeitsangebotDuplicate, ArbeitsangebotId](idFactory, meta, arbeitsangebotDuplicate, ArbeitsangebotId.apply)
+        }
+        Success(events)
   }
 
   private def checkTemplateArbeitsangebot(body: String, subject: String, ids: Seq[ArbeitsangebotId])(implicit session: DBSession): Boolean = {
@@ -132,7 +147,9 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
   }
 }
 
-class DefaultArbeitseinsatzCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends ArbeitseinsatzCommandHandler
-  with DefaultArbeitseinsatzReadRepositorySyncComponent {
+class DefaultArbeitseinsatzCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef) extends ArbeitseinsatzCommandHandler
+  with DefaultArbeitseinsatzReadRepositorySyncComponent
+  with DefaultMailCommandForwarderComponent {
 
+  override def projektReadRepository = arbeitseinsatzReadRepository
 }

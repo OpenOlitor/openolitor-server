@@ -33,7 +33,7 @@ import scalikejdbc.DB
 import scalikejdbc.DBSession
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.exceptions.InvalidStateException
-import akka.actor.ActorSystem
+import akka.actor.{ ActorRef, ActorSystem }
 import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware
@@ -42,6 +42,7 @@ import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositorySyncComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositorySyncComponent
 import ch.openolitor.core.Macros.copyTo
+import ch.openolitor.stammdaten.{ DefaultMailCommandForwarderComponent, MailCommandForwarderComponent, ProjektHelper }
 
 import scala.concurrent.ExecutionContext
 
@@ -92,8 +93,9 @@ trait BuchhaltungCommandHandler extends CommandHandler
   with AsyncConnectionPoolContextAware
   with FileTypeFilenameMapping
   with MailTemplateService
+  with ProjektHelper
   with ExecutionContextAware {
-  self: BuchhaltungReadRepositorySyncComponent =>
+  self: BuchhaltungReadRepositorySyncComponent with MailCommandForwarderComponent =>
   import BuchhaltungCommandHandler._
   import EntityStore._
 
@@ -262,8 +264,13 @@ trait BuchhaltungCommandHandler extends CommandHandler
                 val mailContext = RechnungMailContext(personEmailData, rechnung)
                 if (attachInvoice) {
                   val documentToAttach = if (rechnung.mahnungFileStoreIds.isEmpty) rechnung.fileStoreId else Some(rechnung.mahnungFileStoreIds.head)
+
+                  mailCommandForwarder.sendEmail(meta, subject, body, replyTo, determineBcc, personEmailData, documentToAttach, mailContext)
+
                   DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, documentToAttach, mailContext))
                 } else {
+                  mailCommandForwarder.sendEmail(meta, subject, body, replyTo, determineBcc, personEmailData, None, mailContext)
+
                   DefaultResultingEvent(factory => SendEmailToInvoiceSubscribersEvent(factory.newMetadata(), subject, body, replyTo, None, mailContext))
                 }
               }
@@ -395,7 +402,9 @@ trait BuchhaltungCommandHandler extends CommandHandler
   }
 }
 
-class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem) extends BuchhaltungCommandHandler
-  with DefaultBuchhaltungReadRepositorySyncComponent {
+class DefaultBuchhaltungCommandHandler(override val sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef) extends BuchhaltungCommandHandler
+  with DefaultBuchhaltungReadRepositorySyncComponent with DefaultMailCommandForwarderComponent with MailServiceReference {
   override implicit protected val executionContext: ExecutionContext = system.dispatcher
+
+  override def projektReadRepository = buchhaltungReadRepository
 }

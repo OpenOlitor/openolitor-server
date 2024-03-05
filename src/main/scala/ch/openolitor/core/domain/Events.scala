@@ -40,6 +40,17 @@ case class EventTransactionMetadata(originator: PersonId, version: Int, timestam
   }
 }
 
+/**
+ * Event metadata managed by OpenOlitor.
+ *
+ * @param originator    the originator of the command that led to this event metadata.
+ * @param version       the version of the event store or more specific aggregate root.
+ * @param timestamp     the timestamp when the event has been created by the event store.
+ * @param transactionNr the transaction number identifying one or more events that resulted out of a command.
+ * @param seqNr         this is not to be confused with the sequenceNr which is managed by akka persistence. It is just representing the sequence nr of
+ *                      events within the given transactionNr. The name is misleading and unfortunately often mistaken for akka persistence's sequenceId.
+ * @param source        the persistence id of the aggregate root that created the event with this metadata.
+ */
 case class EventMetadata(originator: PersonId, version: Int, timestamp: DateTime, transactionNr: Long, seqNr: Long, source: String)
 
 trait PersistentEvent extends Serializable {
@@ -57,7 +68,10 @@ object SystemEvents {
   val SystemPersonId = PersonId(0)
 
   case class PersonLoggedIn(personId: PersonId, timestamp: DateTime, secondFactorType: Option[SecondFactorType]) extends SystemEvent with JSONSerializable
+
   case class PersonChangedOtpSecret(personId: PersonId, secret: String) extends SystemEvent with JSONSerializable
+
   case class PersonChangedSecondFactorType(personId: PersonId, secondFactorType: Option[SecondFactorType]) extends SystemEvent with JSONSerializable
+
   case class SystemStarted(timestamp: DateTime) extends SystemEvent
 }

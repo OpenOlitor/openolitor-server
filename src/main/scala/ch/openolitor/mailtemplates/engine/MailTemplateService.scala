@@ -14,7 +14,7 @@ import org.joda.time.DateTime
 /**
  * This trait provides functionality to generate mail payloads based on either custom or a default template
  */
-trait MailTemplateService extends SystemConfigReference with LazyLogging {
+trait MailTemplateService extends LazyLogging {
 
   val format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
   /**

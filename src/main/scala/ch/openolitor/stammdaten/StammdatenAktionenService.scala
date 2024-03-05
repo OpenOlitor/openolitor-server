@@ -44,6 +44,7 @@ import ch.openolitor.util.ConfigUtil._
 import scalikejdbc.DBSession
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
+import ch.openolitor.mailtemplates.engine.MailTemplateService
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scalikejdbc.DB
@@ -71,7 +72,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
   with SammelbestellungenHandler
   with LieferungHandler
   with SystemConfigReference
-  with EmailHandler {
+  with MailTemplateService {
   self: StammdatenWriteRepositoryComponent with MailTemplateReadRepositoryComponent =>
 
   // implicitly expose the eventStream
@@ -109,20 +110,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
       changeRolle(meta, personId, rolle)
     case OtpResetEvent(meta, _, personId, otpSecret) =>
       resetOtp(meta, personId, otpSecret)
-    case SendEmailToPersonEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
-    case SendEmailToKundeEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
-    case SendEmailToAbotypSubscriberEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
-    case SendEmailToZusatzabotypSubscriberEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
-    case SendEmailToTourSubscriberEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
-    case SendEmailToDepotSubscriberEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
-    case SendEmailToAboSubscriberEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -177,8 +164,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
   }
 
   def sammelbestellungVersenden(meta: EventMetadata, id: SammelbestellungId)(implicit personId: PersonId = meta.originator) = {
-    val format = DateTimeFormat.forPattern("dd.MM.yyyy")
-
     DB localTxPostPublish { implicit session => implicit publisher =>
       //send mails to Produzenten
       stammdatenWriteRepository.getProjekt map { projekt =>
@@ -259,18 +244,6 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
     // reset OTP with new secret
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Person, PersonId](personId)(personMapping.column.otpReset -> true, personMapping.column.otpSecret -> otpSecret)
-    }
-  }
-
-  def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
-    DB localTxPostPublish { implicit session => implicit publisher =>
-      lazy val bccAddress = config.getString("smtp.bcc")
-      stammdatenWriteRepository.getProjekt map { projekt =>
-        projekt.sendEmailToBcc match {
-          case true  => sendEmail(meta, subject, body, replyTo, Some(bccAddress), person, None, context, mailService)
-          case false => sendEmail(meta, subject, body, replyTo, None, person, None, context, mailService)
-        }
-      }
     }
   }
 

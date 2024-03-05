@@ -50,7 +50,7 @@ trait StammdatenEntityStoreView extends EntityStoreView
 /**
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
-trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with MailServiceReference with SystemConfigReference {
+trait StammdatenEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with SystemConfigReference with MailServiceReference {
 
   override val insertService = StammdatenInsertService(sysConfig, system)
   override val updateService = StammdatenUpdateService(sysConfig, system)

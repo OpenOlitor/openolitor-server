@@ -185,6 +185,4 @@ class MailTemplateServiceMock extends MailTemplateService with Mockito with Mail
   val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync = mock[MailTemplateReadRepositoryAsync]
   val mailTemplateReadRepositorySync: MailTemplateReadRepositorySync = mock[MailTemplateReadRepositorySync]
   val sysConfig: SystemConfig = mock[SystemConfig]
-
-  override lazy val config = ConfigFactory.parseString("""mailtemplates.max-file-store-resolve-timeout=1.day""")
 }

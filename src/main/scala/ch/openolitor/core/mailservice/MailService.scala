@@ -25,10 +25,10 @@ package ch.openolitor.core.mailservice
 import java.util.UUID
 import akka.actor._
 import akka.persistence.SnapshotMetadata
-import ch.openolitor.core.domain.{ AggregateRoot, _ }
+import ch.openolitor.core.domain.{AggregateRoot, _}
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.{ JSONSerializable, SystemConfig }
+import ch.openolitor.core.{JSONSerializable, SystemConfig}
 import ch.openolitor.core.filestore._
 import ch.openolitor.util.ConfigUtil._
 import courier._
@@ -41,7 +41,7 @@ import scala.collection.compat.immutable.ArraySeq
 import scala.collection.immutable.TreeSet
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 object MailService {
 
@@ -50,22 +50,62 @@ object MailService {
 
   case class MailServiceState(startTime: DateTime, mailQueue: TreeSet[MailEnqueued]) extends State
 
-  case class SendMailCommandWithCallback[M <: AnyRef](originator: PersonId, entity: Mail, retryDuration: Option[Duration], commandMeta: M)(implicit p: Persister[M, _]) extends UserCommand
+  case class SendMailCommandWithCallback[M <: AnyRef](originator: PersonId, entity: Mail, retryDuration: Option[Duration], commandMeta: M)(implicit
+                                                                                                                                           p: Persister[M,
+                                                                                                                                             _]) extends
+    UserCommand
+
   case class SendMailCommand(originator: PersonId, entity: Mail, retryDuration: Option[Duration]) extends UserCommand
 
   //events raised by this aggregateroot
   case class MailServiceInitialized(meta: EventMetadata) extends PersistentEvent
-  // resulting send mail event
-  case class SendMailEvent(meta: EventMetadata, uid: String, mail: Mail, expires: DateTime, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
-  case class MailSentEvent(meta: EventMetadata, uid: String, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
-  case class SendMailFailedEvent(meta: EventMetadata, uid: String, numberOfRetries: Int, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
 
-  def props(dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig, dbEvolutionActor, fileStore)
+  // resulting send mail event
+  case class SendMailEvent(meta: EventMetadata, uid: String, mail: Mail, expires: DateTime, commandMeta: Option[AnyRef]) extends PersistentEvent with
+    JSONSerializable
+
+  case class MailSentEvent(meta: EventMetadata, uid: String, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
+
+  case class SendMailFailedEvent(meta: EventMetadata, uid: String, numberOfRetries: Int, commandMeta: Option[AnyRef]) extends PersistentEvent with
+    JSONSerializable
+
+  def props(dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig,
+    dbEvolutionActor, fileStore)
 
   case object CheckMailQueue
+
   case object CheckMailQueueComplete
 }
 
+/**
+ * TODO: rename to MailEventStore or MailStore.
+ *
+ * The mail event store should be called from other commands and not out of event processing. Make sure to check and filter already sent mails beforehand
+ * when calling it from processing events. This can be achieved by managing an entity that has a `sent: Option[DateTime]`.
+ *
+ * The following pattern requires filtering as mentioned above:
+ * ┌─────────┐      ┌──────────┐    vvvvvv    ┌────────────┐      ┌──────────┐
+ * │ Command ├──────► Event(s) ├─── Filter ───► Command(s) ├──────► Event(s) │
+ * └─────────┘      └──────────┘    ^^^^^^    └────────────┘      └──────────┘
+ *
+ * The preferred method is to trigger it via [[ch.openolitor.stammdaten.MailCommandForwarder]] which can be caked in using the component:
+ * [[ch.openolitor.stammdaten.MailCommandForwarderComponent]].
+ *
+ * This results in mail sending commands being triggered by the initial command:
+ * ┌─────────┐      ┌────────────┐      ┌──────────┐
+ * │ Command ├──────► Command(s) ├──────► Event(s) │
+ * └────┬────┘      └────────────┘      └──────────┘
+ * │    │
+ * │    │           ┌──────────┐
+ * │    └───────────► Event(s) │
+ * │                └──────────┘
+ *
+ * Note that there is no [[EntityStoreView]] that reads the `journal` based on [[MailService.persistenceId]]. Therefore, this aggregate root only reacts to
+ * [[ch.openolitor.core.mailservice.MailService.SendMailEvent]]s in live mode and does not replay them on recovery.
+ *
+ * In the case of encountering resending of emails, we can assume that they are created because `entity-store` events are reprocessed that trigger sending
+ * email commands.
+ */
 trait MailService extends AggregateRoot
   with ConnectionPoolContextAware
   with FileStoreComponent
@@ -76,7 +116,9 @@ trait MailService extends AggregateRoot
   import MailService._
 
   override val fileStore: FileStore = null
+
   override def persistenceId: String = MailService.persistenceId
+
   type S = MailServiceState
   lazy val fromAddress: String = sysConfig.mandantConfiguration.config.getString("smtp.from")
   lazy val maxNumberOfRetries: Int = sysConfig.mandantConfiguration.config.getInt("smtp.number-of-retries")
@@ -97,11 +139,6 @@ trait MailService extends AggregateRoot
   }
 
   override var state: MailServiceState = MailServiceState(DateTime.now, TreeSet.empty[MailEnqueued])
-
-  override protected def afterEventPersisted(evt: PersistentEvent): Unit = {
-    updateState(recovery = false)(evt)
-    publish(evt)
-  }
 
   def initialize(): Unit = {
     // start mail queue checker
@@ -161,7 +198,7 @@ trait MailService extends AggregateRoot
         val result = envelope match {
           case Right(e) => Await.ready(mailer(e), 20 seconds).value match {
             case Some(e) => Right(e)
-            case None    => Left("Error sending the email")
+            case None => Left("Error sending the email")
           }
           case Left(e) => Left(e)
         }
@@ -225,10 +262,10 @@ trait MailService extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State): Unit = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed             => context become removed
-      case Created             => context become uninitialized
+      case Removed => context become removed
+      case Created => context become uninitialized
       case s: MailServiceState => this.state = s
-      case other: Any          => log.error(s"Received unsupported state:$other")
+      case other: Any => log.error(s"Received unsupported state:$other")
     }
   }
 
@@ -311,7 +348,6 @@ trait MailService extends AggregateRoot
 }
 
 class DefaultMailService(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val fileStore: FileStore) extends MailService
-  with DefaultCommandHandlerComponent
   with DefaultMailRetryHandler {
   lazy val system: ActorSystem = context.system
 }
