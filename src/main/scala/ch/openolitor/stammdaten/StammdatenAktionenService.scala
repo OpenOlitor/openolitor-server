@@ -188,7 +188,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
                       val mail = mailPayload.toMail(1, produzent.email, None, None, None, None)
                       mailService ? SendMailCommandWithCallback(personId, mail, Some(60 minutes), id) map
                         {
-                          case _: SendMailEvent =>
+                          case _: SendMailEvent | MailServiceState =>
                           //ok
                           case other =>
                             logger.debug(s"Sending Mail failed resulting in $other")
@@ -274,7 +274,7 @@ abstract class StammdatenAktionenService(override val sysConfig: SystemConfig, o
                   val mail = mailPayload.toMail(1, person.email.get, None, None, None, None)
                   mailService ? SendMailCommandWithCallback(originator, mail, Some(60 minutes), einladung.id) map
                     {
-                      case _: SendMailEvent =>
+                      case _: SendMailEvent | MailServiceState =>
                       //ok
                       case other =>
                         logger.debug(s"Sending Mail failed resulting in $other")

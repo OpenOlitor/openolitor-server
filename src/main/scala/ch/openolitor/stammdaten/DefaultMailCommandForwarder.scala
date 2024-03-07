@@ -52,7 +52,7 @@ class DefaultMailCommandForwarder(mailService: ActorRef) extends MailCommandForw
             case None             => mailPayload.toMail(1, email, None, None, replyTo, docReference)
           }
           mailService ? SendMailCommandWithCallback(originator, mail, Some(60 minutes), person.id) map {
-            case _: SendMailEvent =>
+            case _: SendMailEvent | MailServiceState =>
             //ok
             case other =>
               logger.debug(s"Sending Mail failed resulting in $other")

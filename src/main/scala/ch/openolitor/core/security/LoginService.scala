@@ -1,17 +1,17 @@
 package ch.openolitor.core.security
 
-import akka.http.caching.scaladsl.{ Cache, CachingSettings }
+import akka.http.caching.scaladsl.{Cache, CachingSettings}
 import akka.http.caching.LfuCache
 import akka.pattern.ask
 import akka.util.Timeout
-import ch.openolitor.core.{ ActorReferences, ExecutionContextAware, SystemConfigReference }
+import ch.openolitor.core.{ActorReferences, ExecutionContextAware, SystemConfigReference}
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
 import ch.openolitor.core.mailservice.Mail
-import ch.openolitor.core.mailservice.MailService.{ SendMailCommand, SendMailEvent }
+import ch.openolitor.core.mailservice.MailService.{MailServiceState, SendMailCommand, SendMailEvent}
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.StammdatenCommandHandler.{ PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand }
+import ch.openolitor.stammdaten.StammdatenCommandHandler.{PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand}
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.util.ConfigUtil._
@@ -351,7 +351,7 @@ trait LoginService extends LazyLogging
     val mail = Mail(1, person.email.get, None, None, None, "OpenOlitor Second Factor",
       s"""Code: ${secondFactor.code}""", None)
     mailService ? SendMailCommand(SystemEvents.SystemPersonId, mail, Some(5 minutes)) map {
-      case _: SendMailEvent =>
+      case _: SendMailEvent | MailServiceState =>
         true.right
       case other =>
         logger.debug(s"Sending Mail failed resulting in $other")
