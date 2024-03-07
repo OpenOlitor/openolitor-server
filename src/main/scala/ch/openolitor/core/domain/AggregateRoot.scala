@@ -74,8 +74,6 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
     publish(evt)
 
     setLastProcessedSequenceNr(evt.meta)
-
-    sender() ! state
   }
 
   protected def aquireTransactionNr(): Long = {
