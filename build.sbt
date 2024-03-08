@@ -103,7 +103,7 @@ val buildSettings = Seq(
     "org.antlr"                    %  "antlr4"                             % "4.8-1",
     "io.monix"                     %% "monix"                              % "3.4.0", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "2.4.3",
-    "io.nayuki"                    %  "qrcodegen"                          % "1.6.0",
+    "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
     "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.26",
     "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.26" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.16",
