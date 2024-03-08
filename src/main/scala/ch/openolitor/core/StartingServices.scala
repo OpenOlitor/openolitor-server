@@ -1,11 +1,11 @@
 package ch.openolitor.core
 
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.http.caching.scaladsl.{ Cache, CachingSettings }
-import akka.http.caching.LfuCache
-import akka.pattern.ask
-import akka.stream.scaladsl.SourceQueueWithComplete
-import akka.util.Timeout
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.http.caching.scaladsl.{ Cache, CachingSettings }
+import org.apache.pekko.http.caching.LfuCache
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.stream.scaladsl.SourceQueueWithComplete
+import org.apache.pekko.util.Timeout
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzEntityStoreView
 import ch.openolitor.buchhaltung.{ BuchhaltungDBEventEntityListener, BuchhaltungEntityStoreView, BuchhaltungReportEventListener }
 import ch.openolitor.core.batch.OpenOlitorBatchJobs

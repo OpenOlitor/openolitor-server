@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.ws
 
-import akka.actor._
-import akka.stream.scaladsl._
+import org.apache.pekko.actor._
+import org.apache.pekko.stream.scaladsl._
 import ch.openolitor.core._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.ws.ClientMessages._

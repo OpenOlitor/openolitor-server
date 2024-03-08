@@ -1,6 +1,6 @@
 package ch.openolitor.mailtemplates
 
-import akka.actor.{ ActorRef, ActorSystem, Props }
+import org.apache.pekko.actor.{ ActorRef, ActorSystem, Props }
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._

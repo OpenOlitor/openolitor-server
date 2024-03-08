@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.data
 
-import akka.event.LoggingAdapter
+import org.apache.pekko.event.LoggingAdapter
 import ch.openolitor.core.models._
 import org.joda.time.{ DateTime, LocalDate }
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }

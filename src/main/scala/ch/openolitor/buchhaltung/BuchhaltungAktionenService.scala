@@ -30,8 +30,8 @@ import ch.openolitor.stammdaten.models.{ KundeId, Person, PersonEmailData, Proje
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.util.Timeout
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.util.Timeout
 import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.core.Macros._

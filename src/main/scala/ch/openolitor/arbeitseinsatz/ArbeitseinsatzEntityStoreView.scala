@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware

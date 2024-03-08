@@ -24,7 +24,7 @@ package ch.openolitor.util
 
 import java.io.InputStream
 import scala.util.Try
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 
 object ByteStringUtil {
   def readFromInputStream(is: InputStream): Try[ByteString] = {

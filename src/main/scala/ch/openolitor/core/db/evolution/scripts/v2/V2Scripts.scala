@@ -34,7 +34,7 @@ import org.joda.time.DateTime
 import ch.openolitor.core.repositories.CoreRepositoryQueries
 import ch.openolitor.core.models.PersistenceEventState
 import ch.openolitor.core.models.PersistenceEventStateId
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.arbeitseinsatz.ArbeitseinsatzDBMappings
 import ch.openolitor.core.security.SystemSubject

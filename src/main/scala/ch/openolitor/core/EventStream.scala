@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.repositories.InstantEventPublisher
 
 /**

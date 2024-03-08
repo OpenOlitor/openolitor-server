@@ -1,9 +1,9 @@
 package ch.openolitor.core.security
 
-import akka.http.scaladsl.model.headers.{ BasicHttpCredentials, HttpChallenges }
-import akka.http.scaladsl.server.{ AuthenticationFailedRejection, Directive1 }
-import akka.http.scaladsl.server.AuthenticationFailedRejection.{ CredentialsMissing, CredentialsRejected }
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.model.headers.{ BasicHttpCredentials, HttpChallenges }
+import org.apache.pekko.http.scaladsl.server.{ AuthenticationFailedRejection, Directive1 }
+import org.apache.pekko.http.scaladsl.server.AuthenticationFailedRejection.{ CredentialsMissing, CredentialsRejected }
+import org.apache.pekko.http.scaladsl.server.Directives._
 
 import scala.concurrent.Future
 

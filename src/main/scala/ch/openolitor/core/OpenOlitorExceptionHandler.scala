@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpResponse, StatusCodes }
-import akka.http.scaladsl.server.ExceptionHandler
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import org.apache.pekko.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpResponse, StatusCodes }
+import org.apache.pekko.http.scaladsl.server.ExceptionHandler
 import ch.openolitor.util.AirbrakeNotifier.AirbrakeNotification
 import com.typesafe.scalalogging.LazyLogging
 import spray.json.enrichAny

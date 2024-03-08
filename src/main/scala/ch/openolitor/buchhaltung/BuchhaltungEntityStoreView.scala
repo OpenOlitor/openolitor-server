@@ -25,11 +25,11 @@ package ch.openolitor.buchhaltung
 import ch.openolitor.core.domain._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import akka.actor.Props
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.Props
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 
 object BuchhaltungEntityStoreView {
   def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultBuchhaltungEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)

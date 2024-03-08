@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.filestore.batch.housekeeping
 
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.batch.BaseBatchJob
 import ch.openolitor.core.batch.BatchJobs._

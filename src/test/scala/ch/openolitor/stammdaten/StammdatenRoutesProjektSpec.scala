@@ -1,6 +1,6 @@
 package ch.openolitor.stammdaten
 
-import akka.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.model.StatusCodes
 import ch.openolitor.core.{ BaseRoutesWithDBSpec, SpecSubjects }
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.models.{ Projekt, ProjektModify }

@@ -23,16 +23,16 @@
 package ch.openolitor.core.domain
 
 import java.util.concurrent.TimeUnit
-import akka.actor.SupervisorStrategy.Restart
+import org.apache.pekko.actor.SupervisorStrategy.Restart
 import DefaultMessages._
 
 import scala.concurrent.duration._
-import akka.actor._
-import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
-import akka.persistence.query.{ EventEnvelope, PersistenceQuery }
-import akka.NotUsed
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
+import org.apache.pekko.actor._
+import org.apache.pekko.persistence.jdbc.query.scaladsl.JdbcReadJournal
+import org.apache.pekko.persistence.query.{ EventEnvelope, PersistenceQuery }
+import org.apache.pekko.NotUsed
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
 
 import scala.util._
 import com.typesafe.scalalogging.LazyLogging

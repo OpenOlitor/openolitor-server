@@ -30,7 +30,7 @@ import ch.openolitor.stammdaten.repositories._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.models._
 import org.joda.time.LocalDate
 import ch.openolitor.core.Macros._

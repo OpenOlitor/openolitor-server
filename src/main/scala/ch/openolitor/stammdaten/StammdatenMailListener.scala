@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.mailservice.MailService._
 import ch.openolitor.stammdaten.models._

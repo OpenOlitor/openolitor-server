@@ -35,7 +35,7 @@ import ch.openolitor.kundenportal.repositories.{ DefaultKundenportalReadReposito
 import ch.openolitor.stammdaten.models.{ AboId, AbwesenheitCreate, AbwesenheitId, Lieferplanung, Verrechnet, Abgeschlossen, Offen, Person }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.Macros._
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime

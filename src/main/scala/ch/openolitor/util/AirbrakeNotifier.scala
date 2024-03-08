@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.util
 
-import akka.actor._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.Http
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.Http
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.util.ConfigUtil._
 

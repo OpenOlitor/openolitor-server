@@ -12,7 +12,10 @@ target/
 lib_managed/
 src_managed/
 project/boot/
+project/.bloop/
+project/project/
 project/plugins/project/
+.metals/
 
 # Scala-IDE specific
 .scala_dependencies

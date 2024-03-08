@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.RejectionHandler
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import org.apache.pekko.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import org.apache.pekko.http.scaladsl.model.StatusCodes._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.RejectionHandler
 import ch.openolitor.core.security.AuthenticatorRejection
 import com.typesafe.scalalogging.LazyLogging
 

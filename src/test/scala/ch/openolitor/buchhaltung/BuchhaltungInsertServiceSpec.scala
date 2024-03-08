@@ -28,7 +28,7 @@ import ch.openolitor.buchhaltung.models._
 import org.joda.time.DateTime
 import ch.openolitor.core.MandantConfiguration
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.models.PersonId
 
 class BuchhaltungInsertServiceSpec extends Specification {

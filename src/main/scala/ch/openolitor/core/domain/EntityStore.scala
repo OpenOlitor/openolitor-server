@@ -22,8 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.domain
 
-import akka.actor._
-import akka.persistence._
+import org.apache.pekko.actor._
+// import org.apache.pekko.persistence._
+import org.apache.pekko.persistence._
 import ch.openolitor.core.models._
 import ch.openolitor.core.db.evolution.Evolution
 

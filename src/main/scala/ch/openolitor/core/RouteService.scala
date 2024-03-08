@@ -22,13 +22,13 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor._
-import akka.http.caching.scaladsl.Cache
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{ ExceptionHandler, RejectionHandler, Route }
-import akka.http.scaladsl.server.Directives._
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.actor._
+import org.apache.pekko.http.caching.scaladsl.Cache
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.{ ExceptionHandler, RejectionHandler, Route }
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import ch.openolitor.arbeitseinsatz.{ ArbeitseinsatzRoutes, DefaultArbeitseinsatzRoutes }
 import ch.openolitor.buchhaltung._
 import ch.openolitor.core.db.evolution.DBEvolutionActor.CheckDBEvolution

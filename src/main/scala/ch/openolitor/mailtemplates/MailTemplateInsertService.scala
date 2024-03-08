@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware

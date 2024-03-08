@@ -33,7 +33,7 @@ import ch.openolitor.core.exceptions._
 import scalikejdbc.DB
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.stammdaten.models.AbotypModify
 import ch.openolitor.core.models.PersonId
 import scalikejdbc.DBSession

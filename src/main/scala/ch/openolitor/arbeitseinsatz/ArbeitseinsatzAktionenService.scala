@@ -29,11 +29,11 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.stammdaten.EmailHandler
-import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
-import akka.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
 import ch.openolitor.stammdaten.models.{ Person, PersonEmailData, Projekt }
 import scalikejdbc.DB
 import ch.openolitor.core.models.PersonId

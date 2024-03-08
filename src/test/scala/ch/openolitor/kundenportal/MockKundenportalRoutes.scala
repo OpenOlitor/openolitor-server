@@ -1,6 +1,6 @@
 package ch.openolitor.kundenportal
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.{ MockInMemoryActorReferences, SystemConfig }
 import ch.openolitor.core.db.MockDBComponent
 import ch.openolitor.core.filestore.MockFileStoreComponent

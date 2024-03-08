@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.reporting
 
-import akka.actor._
+import org.apache.pekko.actor._
 import spray.json._
 import ch.openolitor.core.filestore._
 import java.util.Locale

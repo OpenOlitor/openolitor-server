@@ -32,7 +32,7 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.Macros._
 import com.typesafe.scalalogging.LazyLogging
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.SystemConfig
 
 object MailTemplateUpdateService {

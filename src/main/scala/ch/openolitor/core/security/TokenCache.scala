@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.http.caching.scaladsl.Cache
+import org.apache.pekko.http.caching.scaladsl.Cache
 
 trait TokenCache {
   val loginTokenCache: Cache[String, Subject]

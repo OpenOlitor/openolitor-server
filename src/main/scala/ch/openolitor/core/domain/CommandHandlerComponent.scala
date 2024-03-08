@@ -28,7 +28,7 @@ import ch.openolitor.kundenportal.DefaultKundenportalCommandHandler
 import ch.openolitor.arbeitseinsatz.DefaultArbeitseinsatzCommandHandler
 import ch.openolitor.stammdaten.DefaultStammdatenCommandHandler
 import ch.openolitor.reports.DefaultReportsCommandHandler
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.mailtemplates.{ DefaultMailTemplateCommandHanlder }
 
 trait CommandHandlerComponent {

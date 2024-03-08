@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.http.caching.scaladsl.Cache
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.directives.MarshallingDirectives.{ as, entity }
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.http.caching.scaladsl.Cache
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.directives.MarshallingDirectives.{ as, entity }
 import ch.openolitor.core._
 import ch.openolitor.core.Macros._
 import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent }

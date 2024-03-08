@@ -22,12 +22,12 @@
 \*                                                                           */
 package ch.openolitor.core.ws
 
-import akka.{ Done, NotUsed }
-import akka.actor._
-import akka.http.caching.scaladsl.Cache
-import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
-import akka.stream.{ Materializer, OverflowStrategy }
-import akka.stream.scaladsl._
+import org.apache.pekko.{ Done, NotUsed }
+import org.apache.pekko.actor._
+import org.apache.pekko.http.caching.scaladsl.Cache
+import org.apache.pekko.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
+import org.apache.pekko.stream.{ Materializer, OverflowStrategy }
+import org.apache.pekko.stream.scaladsl._
 import ch.openolitor.core._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.security.Subject

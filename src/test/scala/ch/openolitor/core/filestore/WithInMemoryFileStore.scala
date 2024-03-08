@@ -1,20 +1,22 @@
 package ch.openolitor.core.filestore
 
-import akka.actor.ActorSystem
 import ch.openolitor.core.config.ModifyingSystemConfigReference
+import ch.openolitor.core.filestore.WithInMemoryFileStore.initMinio
 import com.typesafe.config.{ Config, ConfigValueFactory }
-import io.findify.s3mock.S3Mock
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 
 import java.util.concurrent.atomic.AtomicInteger
 
+//import org.testcontainers.containers.{ MinIOContainer => JavaMinIOContainer }
+import org.testcontainers.containers.MinIOContainer
+
+//class MinioIOContainer(dockerImageName: String) extends JavaMinIOContainer[MinioIOContainer](dockerImageName)
+
 trait WithInMemoryFileStore extends ModifyingSystemConfigReference with BeforeAfterAll {
   self: Specification =>
 
-  implicit protected val system: ActorSystem
   protected lazy val randomPort = WithInMemoryFileStore.getNextPort()
-  protected lazy val api = S3Mock(port = randomPort)
 
   override protected def modifyConfig(): Config =
     super
@@ -24,7 +26,7 @@ trait WithInMemoryFileStore extends ModifyingSystemConfigReference with BeforeAf
       .withValue("openolitor.test.s3.aws-secret-access-key", ConfigValueFactory.fromAnyRef("verySecretKey1"))
 
   def initializeInMemoryFileStore(): Unit = {
-    api.start
+    initMinio(randomPort)
   }
 
   override def beforeAll(): Unit = {
@@ -37,5 +39,10 @@ object WithInMemoryFileStore {
 
   def getNextPort() = {
     currentPort.incrementAndGet()
+  }
+
+  def initMinio(port: Integer) = {
+    new MinIOContainer("minio/minio:RELEASE.2022-10-24T18-35-07Z")
+      .withExposedPorts(port)
   }
 }

@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.stream.Materializer
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.stream.Materializer
 import ch.openolitor.core._
 import com.typesafe.scalalogging.LazyLogging
 

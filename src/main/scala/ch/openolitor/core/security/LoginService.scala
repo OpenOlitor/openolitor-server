@@ -1,9 +1,9 @@
 package ch.openolitor.core.security
 
-import akka.http.caching.scaladsl.{ Cache, CachingSettings }
-import akka.http.caching.LfuCache
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.http.caching.scaladsl.{ Cache, CachingSettings }
+import org.apache.pekko.http.caching.LfuCache
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import ch.openolitor.core.{ ActorReferences, ExecutionContextAware, SystemConfigReference }
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware

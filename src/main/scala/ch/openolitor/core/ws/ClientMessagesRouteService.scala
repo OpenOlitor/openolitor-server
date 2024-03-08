@@ -1,10 +1,10 @@
 package ch.openolitor.core.ws
 
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.http.caching.scaladsl.Cache
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.SourceQueueWithComplete
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.http.caching.scaladsl.Cache
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.stream.scaladsl.SourceQueueWithComplete
 import ch.openolitor.core.{ BaseRouteService, SystemConfig }
 import ch.openolitor.core.filestore.DefaultFileStoreComponent
 import ch.openolitor.core.models.PersonId

@@ -33,7 +33,7 @@ import scalikejdbc.DB
 import scalikejdbc.DBSession
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.core.exceptions.InvalidStateException
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core._
 import ch.openolitor.core.filestore.FileTypeFilenameMapping
 import ch.openolitor.core.db.ConnectionPoolContextAware

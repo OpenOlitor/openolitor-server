@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.db.evolution
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.models.PersonId

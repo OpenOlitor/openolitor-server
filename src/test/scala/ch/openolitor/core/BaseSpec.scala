@@ -1,8 +1,8 @@
 package ch.openolitor.core
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.testkit.{ RouteTestTimeout, Specs2RouteTest }
-import akka.testkit.TestProbe
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import org.apache.pekko.http.scaladsl.testkit.{ RouteTestTimeout, Specs2RouteTest }
+import org.apache.pekko.testkit.TestProbe
 import ch.openolitor.core.db.WithInMemoryDatabase
 import ch.openolitor.core.filestore.{ MockFileStoreComponent, WithInMemoryFileStore }
 import ch.openolitor.core.models._
@@ -20,7 +20,7 @@ trait BaseSpec extends Specification with ScalaCheck with Matchers {
 }
 
 trait BaseRoutesSpec extends BaseSpec with Specs2RouteTest with SprayJsonSupport with AkkaHttpDeserializers with BaseJsonProtocol with EntityStoreReference with MockFileStoreComponent with MockActorReferences with LazyLogging {
-  import akka.testkit._
+  import org.apache.pekko.testkit._
 
   implicit val timeout = RouteTestTimeout(defaultTimeout.dilated)
 

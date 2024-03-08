@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.reporting
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.reporting.ReportSystem._
 import scala.util._
 import ch.openolitor.core.filestore.FileStoreFileReference

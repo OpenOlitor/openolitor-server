@@ -26,7 +26,7 @@ import ch.openolitor.core.data.EntityParser
 import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
 import org.joda.time.DateTime
-import akka.event.LoggingAdapter
+import org.apache.pekko.event.LoggingAdapter
 
 object VertriebParser extends EntityParser {
   import EntityParser._

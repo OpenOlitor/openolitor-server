@@ -4,6 +4,9 @@ enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
 enablePlugins(AshScriptPlugin)
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+ThisBuild / evictionErrorLevel := Level.Info
+
 name := "openolitor-server"
 mainClass := Some("ch.openolitor.core.Boot")
 Compile / mainClass := Some("ch.openolitor.core.Boot")
@@ -28,11 +31,10 @@ import java.util.Calendar
 
 
 val specs2V = "4.20.5" // based on spray 1.3.x built in support
-val akkaV = "2.7.+"
 val sprayV = "1.3.+"
 val scalalikeV = "4.2.1"
-val akkaHttpVersion = "10.5.3"
-val akkaVersion = "2.8.5"
+val pekkoHttpVersion = "1.0.1"
+val pekkoVersion = "1.0.3-M1"
 val testContainersVersion = "1.19.6"
 
 resolvers += Resolver.typesafeRepo("releases")
@@ -52,21 +54,23 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
+  "org.scala-lang.modules"%%"scala-java8-compat"%"1.0.2",
     "org.scala-lang.modules"       %% "scala-xml"                          % "2.2.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
-    "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
-    "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
-    "com.typesafe.akka"            %% "akka-http-spray-json"               % akkaHttpVersion, // ### NO Scala 3
-    "com.typesafe.akka"            %% "akka-actor"    					           % akkaVersion, // ### Scala 3, experimental
-    "com.typesafe.akka"            %% "akka-persistence"                   % akkaVersion,
-    "com.typesafe.akka"            %% "akka-persistence-query"             % akkaVersion,
-    "com.typesafe.akka"            %% "akka-slf4j"    					           % akkaVersion,
-    "com.typesafe.akka"            %% "akka-stream"    					           % akkaVersion,
-    "com.typesafe.akka"            %% "akka-testkit"  			    	         % akkaVersion                             % "test",
-    "com.typesafe.akka"            %% "akka-http-testkit"  			    	     % akkaHttpVersion                         % "test",
-    "com.typesafe.akka"            %% "akka-stream-testkit"  			    	   % akkaVersion                             % "test",
-    "com.lightbend.akka"           %% "akka-persistence-jdbc"    					 % "5.0.4",
-    "com.github.dnvriend"          %% "akka-persistence-inmemory" 		     % "2.5.15.2"                              % "test", // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-http"                          % pekkoHttpVersion,
+    "org.apache.pekko"            %% "pekko-http-caching"                  % "1.0.1",
+    "org.apache.pekko"            %% "pekko-http-spray-json"               % pekkoHttpVersion, // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-actor"    					           % pekkoVersion, // ### Scala 3, experimental
+    "org.apache.pekko"            %% "pekko-persistence"                   % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-persistence-query"             % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-serialization-jackson"  			    	   % pekkoVersion                             % "test",
+    "org.apache.pekko"            %% "pekko-slf4j"    					           % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-stream"    					           % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-testkit"  			    	         % pekkoVersion                             % "test",
+    "org.apache.pekko"            %% "pekko-http-testkit"  			    	     % pekkoHttpVersion                         % "test",
+    "org.apache.pekko"            %% "pekko-stream-testkit"  			    	   % pekkoVersion                             % "test",
+    "org.apache.pekko"           %% "pekko-persistence-jdbc"    					 % "1.0.0",
+    "io.github.alstanchev"          %% "pekko-persistence-inmemory" 		     % "1.1.0"                              % "test", // ### NO Scala 3
     "org.specs2"                   %% "specs2-core"   					           % specs2V                                 % "test", // ### Scala 3
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
@@ -83,7 +87,7 @@ val buildSettings = Seq(
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.1.+",
     "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
-    "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
+    "org.testcontainers"           %  "minio"                            % testContainersVersion                   % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.3",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.4",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.33",

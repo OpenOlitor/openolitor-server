@@ -21,7 +21,7 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <logger name="akka.actor" level="INFO" additivity="false">
+    <logger name="org.apache.pekko.actor" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 

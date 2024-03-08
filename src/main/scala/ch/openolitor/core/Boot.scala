@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.util.Timeout
 import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain.SystemEvents.SystemStarted

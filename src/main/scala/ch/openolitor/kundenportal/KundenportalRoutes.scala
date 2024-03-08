@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.kundenportal
 
-import akka.actor._
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.pattern.ask
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.pattern.ask
 import ch.openolitor.arbeitseinsatz.{ ArbeitseinsatzCommandHandler, ArbeitseinsatzJsonProtocol }
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.buchhaltung.models._
@@ -71,7 +71,7 @@ trait KundenportalRoutes
   import EntityStore._
 
   def kundenportalRoute(implicit subject: Subject) =
-    akka.http.scaladsl.server.Directives.parameters("f".?, "g".?) { (f, g) =>
+    org.apache.pekko.http.scaladsl.server.Directives.parameters("f".?, "g".?) { (f, g) =>
       implicit val filter = f flatMap { filterString =>
         UriQueryParamFilterParser.parse(filterString)
       }

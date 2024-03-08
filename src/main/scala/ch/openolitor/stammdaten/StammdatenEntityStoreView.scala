@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._

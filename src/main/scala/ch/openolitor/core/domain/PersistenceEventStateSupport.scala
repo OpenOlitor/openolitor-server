@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.domain
 
-import akka.actor._
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.actor._
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.models.{ PersistenceEventState, PersistenceEventStateId }
 import ch.openolitor.core.repositories.CoreDBMappings

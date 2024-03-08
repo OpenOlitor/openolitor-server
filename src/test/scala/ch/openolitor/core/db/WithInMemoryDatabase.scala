@@ -12,8 +12,8 @@ import org.testcontainers.containers.{ MariaDBContainer => JavaMariaDBContainer 
 import org.testcontainers.utility.MountableFile
 
 import java.util.Collections
-import akka.testkit.TestProbe
-import akka.util.Timeout
+import org.apache.pekko.testkit.TestProbe
+import org.apache.pekko.util.Timeout
 import ch.openolitor.core.db.evolution.scripts.Scripts
 import ch.openolitor.core.db.evolution.DBEvolutionActor.{ CheckDBEvolution, DBEvolutionState }
 import ch.openolitor.stammdaten.models.KundeId

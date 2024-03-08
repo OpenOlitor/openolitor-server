@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.kundenportal.repositories
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core._
 
 trait KundenportalReadRepositorySyncComponent {

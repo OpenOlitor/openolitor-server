@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
 import org.joda.time.DateTime
 import spray.json._
 import ch.openolitor.core._
@@ -31,10 +31,10 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 
 import scala.util._
-import akka.pattern.ask
+import org.apache.pekko.pattern.ask
 
 import scala.concurrent.duration._
-import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.models._
 import ch.openolitor.core.Macros._
@@ -43,9 +43,9 @@ import stamina.Persister
 import ch.openolitor.stammdaten.reporting._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
-import akka.actor._
-import akka.http.scaladsl.model.headers.{ `Content-Disposition`, ContentDispositionTypes }
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.headers.{ `Content-Disposition`, ContentDispositionTypes }
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol

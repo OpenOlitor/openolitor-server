@@ -27,7 +27,7 @@ import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.data.ParseException
 import org.joda.time.DateTime
-import akka.event.LoggingAdapter
+import org.apache.pekko.event.LoggingAdapter
 
 object LieferpositionParser extends EntityParser {
   import EntityParser._

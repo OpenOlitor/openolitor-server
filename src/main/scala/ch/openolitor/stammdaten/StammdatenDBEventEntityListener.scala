@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.actor._
+import org.apache.pekko.actor._
 
 import spray.json._
 import scalikejdbc._

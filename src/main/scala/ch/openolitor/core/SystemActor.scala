@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor._
+import org.apache.pekko.actor._
 
 import scala.concurrent.duration._
-import akka.actor.SupervisorStrategy.Restart
-import akka.pattern.{ BackoffOpts, BackoffSupervisor }
+import org.apache.pekko.actor.SupervisorStrategy.Restart
+import org.apache.pekko.pattern.{ BackoffOpts, BackoffSupervisor }
 
 object SystemActor {
   case class Child(props: Props, name: String)

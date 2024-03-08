@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.reports
 
-import akka.actor._
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.server.Directives._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.filestore._

@@ -23,11 +23,11 @@
 package ch.openolitor.stammdaten.batch
 
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
 import ch.openolitor.core.batch.BaseBatchJobsSupervisor
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import ch.openolitor.stammdaten.batch.calculations.KorbStatusCalculation
 import ch.openolitor.stammdaten.batch.calculations.AktiveAbosCalculation
 import ch.openolitor.stammdaten.batch.calculations.LieferungCounterCalculation

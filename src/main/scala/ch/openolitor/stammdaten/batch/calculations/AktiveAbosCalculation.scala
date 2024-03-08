@@ -23,8 +23,8 @@
 package ch.openolitor.stammdaten.batch.calculations
 
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.core.batch.BaseBatchJob
 import scala.concurrent.duration._
 import ch.openolitor.core.batch.BatchJobs._
@@ -33,7 +33,7 @@ import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
 import scalikejdbc._
 import ch.openolitor.stammdaten.repositories.StammdatenRepositoryQueries
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 
 object AktiveAbosCalculation {
   def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[AktiveAbosCalculation], sysConfig, system, entityStore)

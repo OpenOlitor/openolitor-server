@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.helloworld
 
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.core._
 
 case class HelloWorld(message: String)

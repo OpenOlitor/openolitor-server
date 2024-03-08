@@ -1,7 +1,7 @@
 package ch.openolitor.arbeitseinsatz
 
-import akka.http.scaladsl.model.{ Multipart, StatusCodes }
-import akka.http.scaladsl.testkit.WSProbe
+import org.apache.pekko.http.scaladsl.model.{ Multipart, StatusCodes }
+import org.apache.pekko.http.scaladsl.testkit.WSProbe
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.core.{ BaseRoutesWithDBSpec, SpecSubjects }
 import ch.openolitor.core.db.WithWriteRepositories

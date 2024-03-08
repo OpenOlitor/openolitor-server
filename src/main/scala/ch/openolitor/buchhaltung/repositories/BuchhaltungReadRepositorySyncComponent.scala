@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung.repositories
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.DefaultActorSystemReference
 
 trait BuchhaltungReadRepositorySyncComponent {

@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
 
 trait EntityStoreReference {
   val entityStore: ActorRef
