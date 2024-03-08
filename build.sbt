@@ -104,8 +104,8 @@ val buildSettings = Seq(
     "io.monix"                     %% "monix"                              % "3.4.0", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "2.4.3",
     "io.nayuki"                    %  "qrcodegen"                          % "1.6.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.26",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.26" pomOnly(),
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.30",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.30" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.16",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.16",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
