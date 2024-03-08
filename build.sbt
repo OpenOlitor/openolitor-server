@@ -33,7 +33,7 @@ val sprayV = "1.3.+"
 val scalalikeV = "4.0.0"
 val akkaHttpVersion = "10.2.10"
 val akkaVersion = "2.7.0"
-val testContainersVersion = "1.17.6"
+val testContainersVersion = "1.19.7"
 
 resolvers += Resolver.typesafeRepo("releases")
 
