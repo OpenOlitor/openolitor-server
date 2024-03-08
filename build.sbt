@@ -1,4 +1,4 @@
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.13"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -43,8 +43,8 @@ val buildSettings = Seq(
   .setPreference(AlignSingleLineCaseStatements, true),
   organization := "ch.openolitor.scalamacros",
   version := "2.6.28",
-  scalaVersion := "2.13.10",
-  crossScalaVersions := Seq("2.13.8", "2.13.10"),
+  scalaVersion := "2.13.13",
+  crossScalaVersions := Seq("2.13.8", "2.13.13"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
