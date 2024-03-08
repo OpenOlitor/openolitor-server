@@ -30,7 +30,7 @@ import java.util.Calendar
 val specs2V = "4.19.0" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 val sprayV = "1.3.+"
-val scalalikeV = "4.0.0"
+val scalalikeV = "4.2.1"
 val akkaHttpVersion = "10.2.10"
 val akkaVersion = "2.7.0"
 val testContainersVersion = "1.17.6"
