@@ -110,7 +110,7 @@ val buildSettings = Seq(
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.16",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.27"
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.30"
   )
 },
   dependencyOverrides ++= Seq(
