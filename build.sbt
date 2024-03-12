@@ -93,7 +93,7 @@ val buildSettings = Seq(
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.348",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.677",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.3",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.32.0", // ### Scala 3
