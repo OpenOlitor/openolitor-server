@@ -70,7 +70,7 @@ val buildSettings = Seq(
     "org.specs2"                   %% "specs2-core"   					           % specs2V                                 % "test", // ### Scala 3
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
-    "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
+    "https://github.com/OpenOlitor/openolitor-server/pull/688/conflictsorg.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
     "org.mockito"                  %% "mockito-scala"                      % "1.17.30"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.8", // ### Scala 3
     //use scala logging to log outside of the actor system
