@@ -85,7 +85,7 @@ val buildSettings = Seq(
     "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.4.5",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.4.14",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.0",
     "mysql"	                       %  "mysql-connector-java"               % "8.0.31",
     // Libreoffice document API
