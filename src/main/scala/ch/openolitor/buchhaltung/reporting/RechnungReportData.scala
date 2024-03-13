@@ -94,7 +94,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
             case _              => Language.DE
           }
           billFormat.setLanguage(language)
-          billFormat.setOutputSize(OutputSize.QR_BILL_WITH_HORIZONTAL_LINE)
+          billFormat.setOutputSize(OutputSize.QR_BILL_EXTRA_SPACE)
           billFormat.setSeparatorType(SeparatorType.DASHED_LINE_WITH_SCISSORS)
           bill.setFormat(billFormat)
           //this value is mandatory for the qrCode. In case of generating qrCode
