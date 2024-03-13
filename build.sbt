@@ -80,8 +80,8 @@ val buildSettings = Seq(
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
-    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.1.+",
-    "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
+    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.4",
+    "com.h2database"               %  "h2"                                 % "2.1.214"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.3",
