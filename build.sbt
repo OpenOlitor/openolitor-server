@@ -35,6 +35,7 @@ val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
 val testContainersVersion = "1.19.6"
 
+
 resolvers += Resolver.typesafeRepo("releases")
 
 val buildSettings = Seq(
