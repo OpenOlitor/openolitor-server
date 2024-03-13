@@ -48,7 +48,8 @@ val buildSettings = Seq(
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  // add -Xcheckinit to scalac options to check for null val's during initialization see also: https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
+  // add -Xcheckinit to scalac options to check for null val's during initialization see also:
+  // https://docs.scala-lang.org/tutorials/FAQ/initialization-order.html
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-encoding", "utf8", "-feature", "-language:_", "-language:postfixOps"),
 
   libraryDependencies ++= {
@@ -58,7 +59,7 @@ val buildSettings = Seq(
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-spray-json"               % akkaHttpVersion, // ### NO Scala 3
-    "com.typesafe.akka"            %% "akka-actor"    					           % akkaVersion, // ### Scala 3, experimental
+    "com.typesafe.akka"            %% "akka-actor"                         % akkaVersion,
     "com.typesafe.akka"            %% "akka-persistence"                   % akkaVersion,
     "com.typesafe.akka"            %% "akka-persistence-query"             % akkaVersion,
     "com.typesafe.akka"            %% "akka-slf4j"    					           % akkaVersion,
@@ -82,7 +83,7 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.4",
-    "com.h2database"               %  "h2"                                 % "2.1.214"                               % "test",
+    "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.3",
@@ -93,7 +94,7 @@ val buildSettings = Seq(
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.677",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.671",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.3",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.32.0", // ### Scala 3
