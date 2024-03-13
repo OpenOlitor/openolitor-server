@@ -1,4 +1,4 @@
-scalaVersion := "2.13.11"
+scalaVersion := "2.13.13"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -42,8 +42,8 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   version := "2.6.29",
-  scalaVersion := "2.13.11",
-  crossScalaVersions := Seq("2.13.8", "2.13.10", "2.13.11"),
+  scalaVersion := "2.13.13",
+  crossScalaVersions := Seq("2.13.8", "2.13.13"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
