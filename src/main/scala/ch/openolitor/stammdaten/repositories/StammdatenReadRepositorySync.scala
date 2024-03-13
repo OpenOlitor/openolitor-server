@@ -29,7 +29,7 @@ import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import com.typesafe.scalalogging.LazyLogging
 
-trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
+trait StammdatenReadRepositorySync extends BaseReadRepositorySync with ProjektReadRepositorySync {
   def getAbotypDetail(id: AbotypId)(implicit session: DBSession): Option[Abotyp]
   def getZusatzAbotypDetail(id: AbotypId)(implicit session: DBSession): Option[ZusatzAbotyp]
   def getAboDetail(id: AboId)(implicit session: DBSession): Option[AboDetail]
@@ -45,8 +45,6 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getHauptAbo(id: AboId)(implicit session: DBSession): Option[HauptAbo]
   def getExistingZusatzAbotypen(lieferungId: LieferungId)(implicit session: DBSession): List[ZusatzAbotyp]
   def getAbotypById(id: AbotypId)(implicit session: DBSession): Option[IAbotyp]
-  def getProjekt(implicit session: DBSession): Option[Projekt]
-
   @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")
   def getProjektV1(implicit session: DBSession): Option[ProjektV1]
   def getKontoDatenProjekt(implicit session: DBSession): Option[KontoDaten]
@@ -144,7 +142,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync {
   def getAbo(id: AboId)(implicit session: DBSession): Option[Abo]
 }
 
-trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with LazyLogging with StammdatenRepositoryQueries {
+trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with LazyLogging with StammdatenRepositoryQueries with ProjektReadRepositorySyncImpl {
 
   def getAbotypById(id: AbotypId)(implicit session: DBSession): Option[IAbotyp] = {
     getById(abotypMapping, id) orElse getById(zusatzAbotypMapping, id)
@@ -230,10 +228,6 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
 
   def getExistingZusatzAbotypen(lieferungId: LieferungId)(implicit session: DBSession): List[ZusatzAbotyp] = {
     getExistingZusatzAbotypenQuery(lieferungId).apply()
-  }
-
-  def getProjekt(implicit session: DBSession): Option[Projekt] = {
-    getProjektQuery.apply()
   }
 
   @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")

@@ -26,10 +26,10 @@ import ch.openolitor.buchhaltung.DefaultBuchhaltungCommandHandler
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.kundenportal.DefaultKundenportalCommandHandler
 import ch.openolitor.arbeitseinsatz.DefaultArbeitseinsatzCommandHandler
-import ch.openolitor.stammdaten.DefaultStammdatenCommandHandler
+import ch.openolitor.stammdaten.{ DefaultMailCommandForwarderComponent, DefaultStammdatenCommandHandler, MailCommandForwarder }
 import ch.openolitor.reports.DefaultReportsCommandHandler
-import akka.actor.ActorSystem
-import ch.openolitor.mailtemplates.{ DefaultMailTemplateCommandHanlder }
+import akka.actor.{ ActorRef, ActorSystem }
+import ch.openolitor.mailtemplates.DefaultMailTemplateCommandHanlder
 
 trait CommandHandlerComponent {
   val stammdatenCommandHandler: CommandHandler
@@ -44,12 +44,13 @@ trait CommandHandlerComponent {
 trait DefaultCommandHandlerComponent extends CommandHandlerComponent {
   val sysConfig: SystemConfig
   val system: ActorSystem
+  val mailService: ActorRef
 
-  override val stammdatenCommandHandler = new DefaultStammdatenCommandHandler(sysConfig, system)
-  override val buchhaltungCommandHandler = new DefaultBuchhaltungCommandHandler(sysConfig, system)
-  override val arbeitseinsatzCommandHandler = new DefaultArbeitseinsatzCommandHandler(sysConfig, system)
-  override val reportsCommandHandler = new DefaultReportsCommandHandler(sysConfig, system)
+  override val stammdatenCommandHandler: CommandHandler = new DefaultStammdatenCommandHandler(sysConfig, system, mailService)
+  override val buchhaltungCommandHandler: CommandHandler = new DefaultBuchhaltungCommandHandler(sysConfig, system, mailService)
+  override val arbeitseinsatzCommandHandler: CommandHandler = new DefaultArbeitseinsatzCommandHandler(sysConfig, system, mailService)
+  override val reportsCommandHandler: CommandHandler = new DefaultReportsCommandHandler(sysConfig, system)
   override val mailTemplateCommandHandler: CommandHandler = new DefaultMailTemplateCommandHanlder(sysConfig, system)
-  override val kundenportalCommandHandler = new DefaultKundenportalCommandHandler(sysConfig, system)
-  override val baseCommandHandler = new BaseCommandHandler()
+  override val kundenportalCommandHandler: CommandHandler = new DefaultKundenportalCommandHandler(sysConfig, system)
+  override val baseCommandHandler: CommandHandler = new BaseCommandHandler()
 }

@@ -29,10 +29,10 @@ import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.domain._
 
 object ArbeitseinsatzEntityStoreView {
-  def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultArbeitseinsatzEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)
+  def props(dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultArbeitseinsatzEntityStoreView], dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultArbeitseinsatzEntityStoreView(override val mailService: ActorRef, val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends ArbeitseinsatzEntityStoreView
+class DefaultArbeitseinsatzEntityStoreView(val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends ArbeitseinsatzEntityStoreView
   with DefaultArbeitseinsatzWriteRepositoryComponent
 
 /**
@@ -48,11 +48,11 @@ trait ArbeitseinsatzEntityStoreView extends EntityStoreView
 /**
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
-trait ArbeitseinsatzEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with MailServiceReference with SystemConfigReference {
+trait ArbeitseinsatzEntityStoreViewComponent extends EntityStoreViewComponent with ActorSystemReference with SystemConfigReference {
 
   override val insertService = ArbeitseinsatzInsertService(sysConfig, system)
   override val updateService = ArbeitseinsatzUpdateService(sysConfig, system)
   override val deleteService = ArbeitseinsatzDeleteService(sysConfig, system)
 
-  override val aktionenService = ArbeitseinsatzAktionenService(sysConfig, system, mailService)
+  override val aktionenService = ArbeitseinsatzAktionenService(sysConfig, system)
 }

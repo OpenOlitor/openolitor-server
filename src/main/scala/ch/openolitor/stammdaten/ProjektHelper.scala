@@ -20,39 +20,21 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.ws
 
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.http.caching.scaladsl.Cache
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.SourceQueueWithComplete
-import ch.openolitor.core.{ BaseRouteService, SystemConfig }
-import ch.openolitor.core.filestore.DefaultFileStoreComponent
-import ch.openolitor.core.models.PersonId
-import ch.openolitor.core.security.{ Subject, XSRFTokenSessionAuthenticatorProvider }
+package ch.openolitor.stammdaten
 
-import scala.collection.concurrent.TrieMap
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.ExecutionContext
+import ch.openolitor.core.SystemConfigReference
+import ch.openolitor.stammdaten.repositories.ProjektReadRepositorySync
+import scalikejdbc.DBSession
 
-trait ClientMessagesRouteService extends BaseRouteService with XSRFTokenSessionAuthenticatorProvider {
-  val clientMessagesService: ClientMessagesService
+trait ProjektHelper extends SystemConfigReference {
+  lazy val bccAddress = config.getString("smtp.bcc")
 
-  lazy val routes: Route = path("") {
-    handleWebSocketMessages(clientMessagesService.handler())
+  def projektReadRepository: ProjektReadRepositorySync
+
+  def determineBcc(implicit session: DBSession): Option[String] = {
+    projektReadRepository.getProjekt flatMap { projekt =>
+      Option.when(projekt.sendEmailToBcc)(bccAddress)
+    }
   }
-}
-
-class DefaultClientMessagesRouteService(
-  override val entityStore: ActorRef,
-  override val sysConfig: SystemConfig,
-  override val system: ActorSystem,
-  override val loginTokenCache: Cache[String, Subject],
-  val streamsByUser: TrieMap[PersonId, scala.collection.concurrent.Map[String, SourceQueueWithComplete[String]]]
-) extends ClientMessagesRouteService
-  with DefaultFileStoreComponent {
-  override implicit protected val executionContext: ExecutionContext = system.dispatcher
-  override val clientMessagesService = new DefaultClientMessagesService(system, loginTokenCache, streamsByUser)
-  override val maxRequestDelay = Some(20 seconds)
 }

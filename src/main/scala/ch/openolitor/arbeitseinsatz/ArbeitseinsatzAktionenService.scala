@@ -28,7 +28,7 @@ import ch.openolitor.arbeitseinsatz.ArbeitseinsatzCommandHandler._
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
-import ch.openolitor.stammdaten.EmailHandler
+import ch.openolitor.stammdaten.MailCommandForwarder
 import akka.util.Timeout
 
 import scala.concurrent.duration._
@@ -42,39 +42,22 @@ import ch.openolitor.core.repositories.EventPublishingImplicits._
 import scala.concurrent.ExecutionContext.Implicits._
 
 object ArbeitseinsatzAktionenService {
-  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): ArbeitseinsatzAktionenService = new DefaultArbeitseinsatzAktionenService(sysConfig, system, mailService)
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): ArbeitseinsatzAktionenService = new DefaultArbeitseinsatzAktionenService(sysConfig, system)
 }
 
-class DefaultArbeitseinsatzAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-  extends ArbeitseinsatzAktionenService(sysConfig, mailService) with DefaultArbeitseinsatzWriteRepositoryComponent {
+class DefaultArbeitseinsatzAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
+  extends ArbeitseinsatzAktionenService(sysConfig) with DefaultArbeitseinsatzWriteRepositoryComponent {
 }
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Arbeitseinsatz Modul
  */
-class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware with EmailHandler
-  with ArbeitseinsatzDBMappings with MailServiceReference with ArbeitseinsatzEventStoreSerializer {
+class ArbeitseinsatzAktionenService(override val sysConfig: SystemConfig) extends EventService[PersistentEvent] with LazyLogging with AsyncConnectionPoolContextAware
+  with ArbeitseinsatzDBMappings with ArbeitseinsatzEventStoreSerializer {
   self: ArbeitseinsatzWriteRepositoryComponent =>
 
-  implicit val timeout = Timeout(15.seconds) //sending mails might take a little longer
-
   val handle: Handle = {
-    case SendEmailToArbeitsangebotPersonenEvent(meta, subject, body, replyTo, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
-
-  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
-    DB localTxPostPublish { implicit session => implicit publisher =>
-      lazy val bccAddress = config.getString("smtp.bcc")
-      arbeitseinsatzWriteRepository.getProjekt map { projekt: Projekt =>
-        projekt.sendEmailToBcc match {
-          case true  => sendEmail(meta, subject, body, replyTo, Some(bccAddress), person, None, context, mailService)
-          case false => sendEmail(meta, subject, body, replyTo, None, person, None, context, mailService)
-        }
-      }
-    }
-  }
-
 }

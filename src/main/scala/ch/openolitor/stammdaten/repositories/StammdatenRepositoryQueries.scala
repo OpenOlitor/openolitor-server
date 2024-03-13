@@ -38,7 +38,7 @@ import scalikejdbc.jodatime.JodaParameterBinderFactory
 
 import scala.annotation.nowarn
 
-trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings {
+trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings with ArbeitseinsatzDBMappings with StammdatenProjektRepositoryQueries {
 
   lazy val aboTyp = abotypMapping.syntax("atyp")
   lazy val zusatzAboTyp = zusatzAbotypMapping.syntax("zatyp")
@@ -68,7 +68,6 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   lazy val produkt = produktMapping.syntax("produkt")
   lazy val produktekategorie = produktekategorieMapping.syntax("produktekategorie")
   lazy val produzent = produzentMapping.syntax("produzent")
-  lazy val projekt = projektMapping.syntax("projekt")
   @nowarn("cat=deprecation")
   lazy val projektV1 = projektV1Mapping.syntax("projektV1")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
@@ -1293,13 +1292,6 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         );""".map(rs => {
       GeschaeftsjahrStart(rs.int(1), rs.int(2), rs.int(3))
     }).list
-  }
-
-  protected def getProjektQuery = {
-    withSQL {
-      select
-        .from(projektMapping as projekt)
-    }.map(projektMapping(projekt)).single
   }
 
   @deprecated("Exists for compatibility purposes only", "OO 2.2 (Arbeitseinsatz)")

@@ -26,7 +26,6 @@ import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.domain._
 import ch.openolitor.buchhaltung.models._
-import ch.openolitor.stammdaten.models.{ KundeId, Person, PersonEmailData, Projekt }
 import ch.openolitor.core.models.PersonId
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
@@ -42,35 +41,33 @@ import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryC
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.core.repositories.EventPublisher
-import ch.openolitor.stammdaten.EmailHandler
+import ch.openolitor.stammdaten.MailCommandForwarder
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 object BuchhaltungAktionenService {
-  def apply(implicit sysConfig: SystemConfig, system: ActorSystem, mailService: ActorRef): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system, mailService)
+  def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungAktionenService = new DefaultBuchhaltungAktionenService(sysConfig, system)
 }
 
-class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem, override val mailService: ActorRef)
-  extends BuchhaltungAktionenService(sysConfig, mailService, system.dispatcher) with DefaultBuchhaltungWriteRepositoryComponent {}
+class DefaultBuchhaltungAktionenService(sysConfig: SystemConfig, override val system: ActorSystem)
+  extends BuchhaltungAktionenService(sysConfig, system.dispatcher) with DefaultBuchhaltungWriteRepositoryComponent {}
 
 /**
  * Actor zum Verarbeiten der Aktionen für das Buchhaltung Modul
  */
-class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override val mailService: ActorRef, override implicit val executionContext: ExecutionContext) extends EventService[PersistentEvent]
+class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override implicit val executionContext: ExecutionContext) extends EventService[PersistentEvent]
   with LazyLogging
   with AsyncConnectionPoolContextAware
   with BuchhaltungDBMappings
-  with MailServiceReference
   with BuchhaltungEventStoreSerializer
   with MailTemplateService
-  with EmailHandler
   with SystemConfigReference
   with ExecutionContextAware {
   self: BuchhaltungWriteRepositoryComponent =>
 
   val Zero = 0
-  override val False = false
+  val False = false
 
   implicit val timeout = Timeout(config.getStringOption("openolitor.emailTimeOut").getOrElse("15").toInt.seconds)
 
@@ -97,8 +94,6 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
       rechnungPDFStored(meta, rechnungId, fileStoreId)
     case MahnungPDFStoredEvent(meta, rechnungId, fileStoreId) =>
       mahnungPDFStored(meta, rechnungId, fileStoreId)
-    case SendEmailToInvoiceSubscribersEvent(meta, subject, body, replyTo, invoice, context) =>
-      checkBccAndSend(meta, subject, body, replyTo, context.person, invoice, context, mailService)
     case e =>
       logger.warn(s"Unknown event:$e")
   }
@@ -282,18 +277,6 @@ class BuchhaltungAktionenService(override val sysConfig: SystemConfig, override 
           zahlungsEingangMapping.column.erledigt -> true,
           zahlungsEingangMapping.column.bemerkung -> entity.bemerkung
         )
-      }
-    }
-  }
-
-  protected def checkBccAndSend(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], person: PersonEmailData, invoiceReference: Option[String], context: Product, mailService: ActorRef)(implicit originator: PersonId = meta.originator): Unit = {
-    DB localTxPostPublish { implicit session => implicit publisher =>
-      lazy val bccAddress = config.getString("smtp.bcc")
-      buchhaltungWriteRepository.getProjekt map { projekt: Projekt =>
-        projekt.sendEmailToBcc match {
-          case true  => sendEmail(meta, subject, body, replyTo, Some(bccAddress), person, invoiceReference, context, mailService)
-          case false => sendEmail(meta, subject, body, replyTo, None, person, invoiceReference, context, mailService)
-        }
       }
     }
   }

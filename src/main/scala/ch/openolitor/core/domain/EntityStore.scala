@@ -51,7 +51,7 @@ object EntityStore {
   val persistenceId = "entity-store"
 
   case class EntityStoreState(dbSeeds: Map[Class[_ <: BaseId], Long]) extends State
-  def props(dbEvolutionActor: ActorRef, evolution: Evolution)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultEntityStore], sysConfig, dbEvolutionActor, evolution)
+  def props(dbEvolutionActor: ActorRef, evolution: Evolution, mailService: ActorRef)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultEntityStore], sysConfig, dbEvolutionActor, evolution, mailService)
 
   //base commands
   case class InsertEntityCommand[E <: AnyRef](originator: PersonId, entity: E) extends UserCommand {
@@ -288,7 +288,7 @@ trait EntityStore extends AggregateRoot
   override val receiveCommand: Receive = uninitialized
 }
 
-class DefaultEntityStore(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val evolution: Evolution) extends EntityStore
+class DefaultEntityStore(override val sysConfig: SystemConfig, override val dbEvolutionActor: ActorRef, override val evolution: Evolution, override val mailService: ActorRef) extends EntityStore
   with DefaultCommandHandlerComponent {
   lazy val system: ActorSystem = context.system
 }

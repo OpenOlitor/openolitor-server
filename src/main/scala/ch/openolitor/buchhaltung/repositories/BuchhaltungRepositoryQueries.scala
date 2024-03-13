@@ -27,12 +27,13 @@ import ch.openolitor.buchhaltung.BuchhaltungDBMappings
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.StammdatenDBMappings
+import ch.openolitor.stammdaten.repositories.StammdatenProjektRepositoryQueries
 import ch.openolitor.util.parsing.{ FilterAttributeList, FilterExpr, GeschaeftsjahrFilter, QueryFilter }
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import com.typesafe.scalalogging.LazyLogging
 import scalikejdbc._
 
-trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMappings with StammdatenDBMappings {
+trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMappings with StammdatenDBMappings with StammdatenProjektRepositoryQueries {
   lazy val rechnung = rechnungMapping.syntax("rechnung")
   lazy val rechnungsPosition = rechnungsPositionMapping.syntax("rechnungsPosition")
   lazy val kunde = kundeMapping.syntax("kunde")
@@ -45,7 +46,6 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
   lazy val zusatzAbo = zusatzAboMapping.syntax("zusatzAbo")
   lazy val kontoDaten = kontoDatenMapping.syntax("kontoDaten")
   lazy val person = personMapping.syntax("pers")
-  lazy val projekt = projektMapping.syntax("projekt")
 
   protected def getRechnungenQuery(filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]) = {
     queryString match {
@@ -253,12 +253,5 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         .from(kontoDatenMapping as kontoDaten)
         .where.eq(kontoDaten.kunde, kundeId)
     }.map(kontoDatenMapping(kontoDaten)).single
-  }
-
-  protected def getProjektQuery = {
-    withSQL {
-      select
-        .from(projektMapping as projekt)
-    }.map(projektMapping(projekt)).single
   }
 }
