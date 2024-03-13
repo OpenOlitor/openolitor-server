@@ -69,13 +69,11 @@ trait AggregateRoot extends PersistentActor with ActorLogging with PersistenceEv
     log.debug(s"$persistenceId: initialize aquire transaction nr to $lastAquiredTransactionNr")
   }
 
-  protected def afterEventPersisted(evt: PersistentEvent): Unit = {
+  protected final def afterEventPersisted(evt: PersistentEvent): Unit = {
     updateState(recovery = false)(evt)
     publish(evt)
 
     setLastProcessedSequenceNr(evt.meta)
-
-    sender() ! state
   }
 
   protected def aquireTransactionNr(): Long = {

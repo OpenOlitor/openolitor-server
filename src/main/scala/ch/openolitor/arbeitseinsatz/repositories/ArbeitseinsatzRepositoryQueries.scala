@@ -28,6 +28,7 @@ import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.Macros._
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import ch.openolitor.stammdaten.models.KundeId
+import ch.openolitor.stammdaten.repositories.StammdatenProjektRepositoryQueries
 import ch.openolitor.util.querybuilder.UriQueryParamToSQLSyntaxBuilder
 import ch.openolitor.util.parsing.{ GeschaeftsjahrFilter, QueryFilter }
 import com.typesafe.scalalogging.LazyLogging
@@ -36,7 +37,7 @@ import scalikejdbc._
 
 import scala.language.postfixOps
 
-trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings with StammdatenDBMappings {
+trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBMappings with StammdatenDBMappings with StammdatenProjektRepositoryQueries {
 
   lazy val arbeitskategorie = arbeitskategorieMapping.syntax("arbeitskategorie")
   lazy val arbeitsangebot = arbeitsangebotMapping.syntax("arbeitsangebot")
@@ -48,7 +49,6 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
   lazy val depotlieferungAbo = depotlieferungAboMapping.syntax("depotlieferungAbo")
   lazy val heimlieferungAbo = heimlieferungAboMapping.syntax("heimlieferungAbo")
   lazy val postlieferungAbo = postlieferungAboMapping.syntax("postlieferungAbo")
-  lazy val projekt = projektMapping.syntax("projekt")
 
   protected def getArbeitskategorienQuery = {
     withSQL {
@@ -252,12 +252,4 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
         .where.eq(arbeitseinsatz.arbeitsangebotId, arbeitsangebotId)
     }.map(personMapping(person)).list
   }
-
-  protected def getProjektQuery = {
-    withSQL {
-      select
-        .from(projektMapping as projekt)
-    }.map(projektMapping(projekt)).single
-  }
-
 }

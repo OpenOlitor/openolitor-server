@@ -32,10 +32,10 @@ import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponen
 import akka.actor.ActorRef
 
 object BuchhaltungEntityStoreView {
-  def props(mailService: ActorRef, dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultBuchhaltungEntityStoreView], mailService, dbEvolutionActor, sysConfig, system, airbrakeNotifier)
+  def props(dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultBuchhaltungEntityStoreView], dbEvolutionActor, sysConfig, system, airbrakeNotifier)
 }
 
-class DefaultBuchhaltungEntityStoreView(override val mailService: ActorRef, override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends BuchhaltungEntityStoreView
+class DefaultBuchhaltungEntityStoreView(override val dbEvolutionActor: ActorRef, implicit val sysConfig: SystemConfig, implicit val system: ActorSystem, val airbrakeNotifier: ActorRef) extends BuchhaltungEntityStoreView
   with DefaultBuchhaltungWriteRepositoryComponent
 
 /**
@@ -51,7 +51,7 @@ trait BuchhaltungEntityStoreView extends EntityStoreView
 /**
  * Instanzieren der jeweiligen Insert, Update und Delete Child Actors
  */
-trait BuchhaltungEntityStoreViewComponent extends EntityStoreViewComponent with MailServiceReference {
+trait BuchhaltungEntityStoreViewComponent extends EntityStoreViewComponent {
   val sysConfig: SystemConfig
   val system: ActorSystem
 
@@ -59,5 +59,5 @@ trait BuchhaltungEntityStoreViewComponent extends EntityStoreViewComponent with 
   override val updateService = BuchhaltungUpdateService(sysConfig, system)
   override val deleteService = BuchhaltungDeleteService(sysConfig, system)
 
-  override val aktionenService = BuchhaltungAktionenService(sysConfig, system, mailService)
+  override val aktionenService = BuchhaltungAktionenService(sysConfig, system)
 }

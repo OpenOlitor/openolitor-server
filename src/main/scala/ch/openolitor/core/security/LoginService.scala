@@ -1,17 +1,39 @@
+/*                                                                           *\
+*    ____                   ____  ___ __                                      *
+*   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
+*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
+* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+* \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
+*     /_/                                                                     *
+*                                                                             *
+* This program is free software: you can redistribute it and/or modify it     *
+* under the terms of the GNU General Public License as published by           *
+* the Free Software Foundation, either version 3 of the License,              *
+* or (at your option) any later version.                                      *
+*                                                                             *
+* This program is distributed in the hope that it will be useful, but         *
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *
+* or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for *
+* more details.                                                               *
+*                                                                             *
+* You should have received a copy of the GNU General Public License along     *
+* with this program. If not, see http://www.gnu.org/licenses/                 *
+*                                                                             *
+\*                                                                           */
 package ch.openolitor.core.security
 
-import akka.http.caching.scaladsl.{ Cache, CachingSettings }
+import akka.http.caching.scaladsl.{Cache, CachingSettings}
 import akka.http.caching.LfuCache
 import akka.pattern.ask
 import akka.util.Timeout
-import ch.openolitor.core.{ ActorReferences, ExecutionContextAware, SystemConfigReference }
+import ch.openolitor.core.{ActorReferences, ExecutionContextAware, SystemConfigReference}
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
 import ch.openolitor.core.mailservice.Mail
-import ch.openolitor.core.mailservice.MailService.{ SendMailCommand, SendMailEvent }
+import ch.openolitor.core.mailservice.MailService.{MailServiceState, SendMailCommand, SendMailEvent}
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.StammdatenCommandHandler.{ PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand }
+import ch.openolitor.stammdaten.StammdatenCommandHandler.{PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand}
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.util.ConfigUtil._
@@ -351,7 +373,7 @@ trait LoginService extends LazyLogging
     val mail = Mail(1, person.email.get, None, None, None, "OpenOlitor Second Factor",
       s"""Code: ${secondFactor.code}""", None)
     mailService ? SendMailCommand(SystemEvents.SystemPersonId, mail, Some(5 minutes)) map {
-      case _: SendMailEvent =>
+      case _: SendMailEvent | MailServiceState =>
         true.right
       case other =>
         logger.debug(s"Sending Mail failed resulting in $other")
