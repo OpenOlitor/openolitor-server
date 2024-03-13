@@ -108,7 +108,7 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
             "status" -> Erstellt,
             "referenzNummer" -> referenzNummer,
             "fileStoreId" -> None,
-            "anzahlMahnungen" -> 0.toInt,
+            "anzahlMahnungen" -> "0".toInt,
             "mahnungFileStoreIds" -> Set.empty[String],
             "esrNummer" -> esrNummer,
             "paymentType" -> kunde.paymentType,
