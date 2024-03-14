@@ -31,10 +31,10 @@ val specs2V = "4.20.5" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
-val scalalikeV = "4.2.1"
+val scalalikeV = "4.0.0"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.19.7"
+val testContainersVersion = "1.17.6"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -74,7 +74,7 @@ val buildSettings = Seq(
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
     "org.mockito"                  %% "mockito-scala"                      % "1.17.7"                                % "test",
-    "org.scalaz" 		               %% "scalaz-core"						             % "7.3.8", // ### Scala 3
+    "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.19.0",
@@ -82,7 +82,7 @@ val buildSettings = Seq(
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
-    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.4",
+    "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.+",
     "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
@@ -95,13 +95,13 @@ val buildSettings = Seq(
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
     "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.671",
-    "de.svenkubiak"                %  "jBCrypt"                            % "0.4.3",
+    "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.32.0", // ### Scala 3
     "com.github.blemale"           %% "scaffeine"                          % "5.2.1", // ### Scala 3
     "de.zalando"                   %% "beard"                              % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
     // transitive dependencies of legacy de.zalando.beard
-    "org.antlr"                    %  "antlr4"                             % "4.13.1",
+    "org.antlr"                    %  "antlr4"                             % "4.8-1",
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.2.0",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
