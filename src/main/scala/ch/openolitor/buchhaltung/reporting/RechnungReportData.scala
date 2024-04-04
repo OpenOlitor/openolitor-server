@@ -139,7 +139,7 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
               val message: String = listValidation.asScala.map { m =>
                 m.getMessageKey: String
               }.mkString("")
-              if (message.equals("account_is_ch_li_iban")) {
+              if (message.equals("account_iban_not_from_ch_or_li")) {
                 logger.warn(s"Bei der QR-Code-Validierung wurde festgestellt, dass die IBAN nicht aus der Schweiz oder Liechtenstein stammt")
                 s""
               } else {
