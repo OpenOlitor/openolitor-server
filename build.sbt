@@ -54,7 +54,7 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"       %% "scala-xml"                          % "2.2.0",
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.3.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
