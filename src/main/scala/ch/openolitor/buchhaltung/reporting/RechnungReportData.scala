@@ -43,6 +43,7 @@ import scala.jdk.CollectionConverters._
 
 trait RechnungReportData extends AsyncConnectionPoolContextAware with BuchhaltungJsonProtocol with LazyLogging with ExecutionContextAware {
   self: BuchhaltungReadRepositoryAsyncComponent with ActorReferences with StammdatenReadRepositoryAsyncComponent =>
+  val d = Duration(1, SECONDS)
 
   def rechungenById(rechnungIds: Seq[RechnungId]): Future[(Seq[ValidationError[RechnungId]], Seq[RechnungDetailReport])] = {
     stammdatenReadRepository.getProjekt flatMap { maybeProjekt =>
@@ -63,10 +64,11 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                       case Some(error) if error.startsWith("Error: ") => {
                         Left(ValidationError[RechnungId](rechnungId, error))
                       }
-                      case Some(_) => Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
+                      case Some(_) =>
+                        val maybeKundeKontoDaten: Option[KontoDaten] = Await.result(stammdatenReadRepository.getKontoDatenKunde(rechnung.kunde.id), d)
+                        Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten, "kundeKontoDaten" -> maybeKundeKontoDaten))
                     }
                 }
-
               }.getOrElse(Left(ValidationError[RechnungId](rechnungId, s"Rechnung konnte nicht gefunden werden"))))
             })
             results.map(_.partition(_.isLeft) match {

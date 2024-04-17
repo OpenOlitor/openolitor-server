@@ -250,6 +250,7 @@ case class RechnungDetailReport(
   ort: String,
   paymentType: Option[PaymentType],
   qrCode: Option[String],
+  kundeKontoDaten: Option[KontoDaten],
   // modification flags
   erstelldat: DateTime,
   ersteller: PersonId,
