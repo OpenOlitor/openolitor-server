@@ -133,6 +133,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnungsPosition.aboId, heimlieferungAbo.id)
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnungsPosition.aboId, postlieferungAbo.id)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(rechnungsPosition.aboId, zusatzAbo.id)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kontoDaten.kunde, rechnung.kundeId)
         .where.eq(rechnung.id, id)
         .orderBy(rechnung.rechnungsDatum)
     }.one(rechnungMapping(rechnung))
@@ -142,11 +143,13 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl, zusatzAbos) =>
+      .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl, zusatzAbos, kontoDaten) =>
         val kunde = kunden.head
         val abos = pl ++ hl ++ dl ++ zusatzAbos
+        val kundeKontoDaten = kontoDaten.head
         val rechnungsPositionenDetail = {
           for {
             rechnungsPosition <- rechnungsPositionen
@@ -156,7 +159,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
           }
         }.sortBy(_.sort.getOrElse(0))
 
-        copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "rechnungsPositionen" -> rechnungsPositionenDetail)
+        copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "rechnungsPositionen" -> rechnungsPositionenDetail, "kundeKontoDaten" -> kundeKontoDaten)
       }).single
   }
 

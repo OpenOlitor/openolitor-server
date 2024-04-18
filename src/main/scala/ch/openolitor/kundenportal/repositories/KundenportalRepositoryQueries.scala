@@ -335,6 +335,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnungsPosition.aboId, heimlieferungAbo.id)
         .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnungsPosition.aboId, postlieferungAbo.id)
         .leftJoin(zusatzAboMapping as zusatzAbo).on(rechnungsPosition.aboId, zusatzAbo.id)
+        .leftJoin(kontoDatenMapping as kontoDaten).on(kontoDaten.kunde, rechnung.kundeId)
         .where.eq(rechnung.id, id)
         .and.eq(rechnung.kundeId, owner.kundeId)
         .orderBy(rechnung.rechnungsDatum)
@@ -345,11 +346,13 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
         rs => postlieferungAboMapping.opt(postlieferungAbo)(rs),
         rs => heimlieferungAboMapping.opt(heimlieferungAbo)(rs),
         rs => depotlieferungAboMapping.opt(depotlieferungAbo)(rs),
-        rs => zusatzAboMapping.opt(zusatzAbo)(rs)
+        rs => zusatzAboMapping.opt(zusatzAbo)(rs),
+        rs => kontoDatenMapping.opt(kontoDaten)(rs)
       )
-      .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl, za) =>
+      .map({ (rechnung, kunden, rechnungsPositionen, pl, hl, dl, za, kontoDaten) =>
         val kunde = kunden.head
         val abos = pl ++ hl ++ dl ++ za
+        val kundeKontoDaten = kontoDaten.head
         val rechnungsPositionenDetail = {
           for {
             rechnungsPosition <- rechnungsPositionen
@@ -359,7 +362,7 @@ trait KundenportalRepositoryQueries extends LazyLogging with StammdatenDBMapping
           }
         }.sortBy(_.sort.getOrElse(0))
 
-        copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "rechnungsPositionen" -> rechnungsPositionenDetail)
+        copyTo[Rechnung, RechnungDetail](rechnung, "kunde" -> kunde, "rechnungsPositionen" -> rechnungsPositionenDetail, "kundeKontoDaten" -> kundeKontoDaten)
       }).single
   }
 
