@@ -63,10 +63,10 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
                       case Some(error) if error.startsWith("Error: ") => {
                         Left(ValidationError[RechnungId](rechnungId, error))
                       }
-                      case Some(_) =>
-                        Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
+                      case Some(_) => Right(copyTo[RechnungDetail, RechnungDetailReport](rechnung, "qrCode" -> qrCode, "projekt" -> projektReport, "kontoDaten" -> kontoDaten))
                     }
                 }
+
               }.getOrElse(Left(ValidationError[RechnungId](rechnungId, s"Rechnung konnte nicht gefunden werden"))))
             })
             results.map(_.partition(_.isLeft) match {
