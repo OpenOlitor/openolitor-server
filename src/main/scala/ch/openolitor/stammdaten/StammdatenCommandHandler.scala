@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import ch.openolitor.buchhaltung.models.{RechnungsPositionStatus, RechnungsPositionTyp}
+import ch.openolitor.buchhaltung.models.{ RechnungsPositionStatus, RechnungsPositionTyp }
 import ch.openolitor.core.domain._
 import ch.openolitor.core.models._
 import ch.openolitor.util.ConfigUtil._
@@ -33,7 +33,7 @@ import scalikejdbc.DB
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.exceptions._
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ ActorRef, ActorSystem }
 import akka.persistence.journal.EmptyEventSeq
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
@@ -42,7 +42,7 @@ import ch.openolitor.mailtemplates.engine.MailTemplateService
 import ch.openolitor.buchhaltung.models.RechnungsPositionCreate
 import ch.openolitor.buchhaltung.models.RechnungsPositionId
 import ch.openolitor.util.OtpUtil
-import org.joda.time.{DateTime, LocalDate, LocalTime}
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 
 import java.util.UUID
 import scalikejdbc.DBSession
@@ -98,20 +98,16 @@ object StammdatenCommandHandler {
 
   case class SendEmailToPersonenCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[PersonId]) extends UserCommand
 
-  case class SendEmailToAbosSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[AboId]) extends
-    UserCommand
+  case class SendEmailToAbosSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[AboId]) extends UserCommand
 
-  case class SendEmailToAbotypSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId]) extends
-    UserCommand
+  case class SendEmailToAbotypSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId]) extends UserCommand
 
   case class SendEmailToZusatzabotypSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId])
     extends UserCommand
 
-  case class SendEmailToTourSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[TourId]) extends
-    UserCommand
+  case class SendEmailToTourSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[TourId]) extends UserCommand
 
-  case class SendEmailToDepotSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[DepotId]) extends
-    UserCommand
+  case class SendEmailToDepotSubscribersCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[DepotId]) extends UserCommand
 
   case class LieferplanungAbschliessenEvent(meta: EventMetadata, id: LieferplanungId) extends PersistentEvent with JSONSerializable
 
@@ -126,8 +122,7 @@ object StammdatenCommandHandler {
 
   case class SammelbestellungVersendenEvent(meta: EventMetadata, id: SammelbestellungId) extends PersistentEvent with JSONSerializable
 
-  case class PasswortGewechseltEvent(meta: EventMetadata, personId: PersonId, passwort: Array[Char], einladungId: Option[EinladungId]) extends
-    PersistentEvent with JSONSerializable
+  case class PasswortGewechseltEvent(meta: EventMetadata, personId: PersonId, passwort: Array[Char], einladungId: Option[EinladungId]) extends PersistentEvent with JSONSerializable
 
   case class LoginDeaktiviertEvent(meta: EventMetadata, kundeId: KundeId, personId: PersonId) extends PersistentEvent with JSONSerializable
 
@@ -140,8 +135,7 @@ object StammdatenCommandHandler {
   @Deprecated
   case class BestellungAlsAbgerechnetMarkierenEvent(meta: EventMetadata, datum: DateTime, id: BestellungId) extends PersistentEvent with JSONSerializable
 
-  case class SammelbestellungAlsAbgerechnetMarkierenEvent(meta: EventMetadata, datum: DateTime, id: SammelbestellungId) extends PersistentEvent with
-    JSONSerializable
+  case class SammelbestellungAlsAbgerechnetMarkierenEvent(meta: EventMetadata, datum: DateTime, id: SammelbestellungId) extends PersistentEvent with JSONSerializable
 
   case class PasswortResetGesendetEvent(meta: EventMetadata, einladung: EinladungCreate) extends PersistentEvent with JSONSerializable
 
@@ -153,26 +147,21 @@ object StammdatenCommandHandler {
 
   case class AboDeaktiviertEvent(meta: EventMetadata, aboId: AboId) extends PersistentGeneratedEvent with JSONSerializable
 
-  case class SendEmailToPersonEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: PersonMailContext) extends
-    PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToPersonEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: PersonMailContext) extends PersistentGeneratedEvent with JSONSerializable
 
-  case class SendEmailToKundeEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: KundeMailContext) extends
-    PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToKundeEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: KundeMailContext) extends PersistentGeneratedEvent with JSONSerializable
 
-  case class SendEmailToAboSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: AboMailContext) extends
-    PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToAboSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: AboMailContext) extends PersistentGeneratedEvent with JSONSerializable
 
   case class SendEmailToAbotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: AbotypMailContext)
     extends PersistentGeneratedEvent with JSONSerializable
 
   case class SendEmailToZusatzabotypSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String],
-                                                    context: ZusatzabotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
+    context: ZusatzabotypMailContext) extends PersistentGeneratedEvent with JSONSerializable
 
-  case class SendEmailToTourSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: TourMailContext) extends
-    PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToTourSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: TourMailContext) extends PersistentGeneratedEvent with JSONSerializable
 
-  case class SendEmailToDepotSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: DepotMailContext) extends
-    PersistentGeneratedEvent with JSONSerializable
+  case class SendEmailToDepotSubscriberEvent(meta: EventMetadata, subject: String, body: String, replyTo: Option[String], context: DepotMailContext) extends PersistentGeneratedEvent with JSONSerializable
 
   case class UpdateKundeEvent(meta: EventMetadata, kundeId: KundeId, kunde: KundeModify) extends PersistentGeneratedEvent with JSONSerializable
 }
@@ -350,15 +339,15 @@ trait StammdatenCommandHandler extends CommandHandler
                 stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
                 stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
                 stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
-                stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
-                  val personEmailData = copyTo[Person, PersonEmailData](person)
-                  val mailContext = AboMailContext(personEmailData, abo)
+                  stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
+                    val personEmailData = copyTo[Person, PersonEmailData](person)
+                    val mailContext = AboMailContext(personEmailData, abo)
 
-                  mailCommandForwarder.sendEmail(meta, subject, body, replyTo, determineBcc, personEmailData, None, mailContext)
+                    mailCommandForwarder.sendEmail(meta, subject, body, replyTo, determineBcc, personEmailData, None, mailContext)
 
-                  DefaultResultingEvent(factory => SendEmailToAboSubscriberEvent(factory.newMetadata(), subject, body, replyTo, mailContext))
+                    DefaultResultingEvent(factory => SendEmailToAboSubscriberEvent(factory.newMetadata(), subject, body, replyTo, mailContext))
+                  }
                 }
-              }
             }
             Success(events.flatten)
           } else {
@@ -401,10 +390,9 @@ trait StammdatenCommandHandler extends CommandHandler
         DB readOnly { implicit session =>
           stammdatenReadRepository.getById(lieferplanungMapping, lieferplanungPositionenModify.id) map { lieferplanung =>
             lieferplanung.status match {
-              case _@Offen =>
-                Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify
-                (lieferplanungPositionenModify.id, Set.empty, lieferplanungPositionenModify.lieferungen))) :: Nil)
-              case _@Abgeschlossen =>
+              case _@ Offen =>
+                Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, Set.empty, lieferplanungPositionenModify.lieferungen))) :: Nil)
+              case _@ Abgeschlossen =>
                 val allLieferpositionen = lieferplanungPositionenModify.lieferungen flatMap { lieferungPositionenModify =>
                   lieferungPositionenModify.lieferpositionen.lieferpositionen
                 }
@@ -415,12 +403,11 @@ trait StammdatenCommandHandler extends CommandHandler
                   stammdatenReadRepository.getById(lieferungMapping, l._2.head.lieferungId) map { lieferung: Lieferung =>
                     stammdatenReadRepository.getSammelbestellungenByProduzent(l._1, lieferplanung.id) match {
                       case Nil => Some(SammelbestellungCreate(idFactory.newId(SammelbestellungId.apply), l._1, lieferplanung.id, lieferung.datum))
-                      case _ => None
+                      case _   => None
                     }
                   }
                 }
-                Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify
-                (lieferplanungPositionenModify.id, sammelBestellungToCreate.flatten.toSet, lieferplanungPositionenModify.lieferungen))) :: Nil)
+                Success(DefaultResultingEvent(factory => LieferplanungDataModifiedEvent(factory.newMetadata(), LieferplanungDataModify(lieferplanungPositionenModify.id, sammelBestellungToCreate.flatten.toSet, lieferplanungPositionenModify.lieferungen))) :: Nil)
               case _ =>
                 Failure(new InvalidStateException("Eine Lieferplanung kann nur im Status 'Offen' oder 'Abgeschlossen' aktualisiert werden"))
             }
@@ -471,21 +458,21 @@ trait StammdatenCommandHandler extends CommandHandler
             stammdatenReadRepository.getById(depotAuslieferungMapping, id) orElse
               stammdatenReadRepository.getById(tourAuslieferungMapping, id) orElse
               stammdatenReadRepository.getById(postAuslieferungMapping, id) map { auslieferung =>
-              auslieferung.status match {
-                case Erfasst =>
-                  val copy = auslieferung match {
-                    case d: DepotAuslieferung =>
-                      d.copy(status = Ausgeliefert)
-                    case t: TourAuslieferung =>
-                      t.copy(status = Ausgeliefert)
-                    case p: PostAuslieferung =>
-                      p.copy(status = Ausgeliefert)
-                  }
-                  Success(EntityUpdateEvent(id, copy))
-                case _ =>
-                  Failure(new InvalidStateException(s"Eine Auslieferung kann nur im Status 'Erfasst' als ausgeliefert markiert werden. Nr. $id"))
-              }
-            } getOrElse Failure(new InvalidStateException(s"Keine Auslieferung mit der Nr. $id gefunden"))
+                auslieferung.status match {
+                  case Erfasst =>
+                    val copy = auslieferung match {
+                      case d: DepotAuslieferung =>
+                        d.copy(status = Ausgeliefert)
+                      case t: TourAuslieferung =>
+                        t.copy(status = Ausgeliefert)
+                      case p: PostAuslieferung =>
+                        p.copy(status = Ausgeliefert)
+                    }
+                    Success(EntityUpdateEvent(id, copy))
+                  case _ =>
+                    Failure(new InvalidStateException(s"Eine Auslieferung kann nur im Status 'Erfasst' als ausgeliefert markiert werden. Nr. $id"))
+                }
+              } getOrElse Failure(new InvalidStateException(s"Keine Auslieferung mit der Nr. $id gefunden"))
           } partition (_.isSuccess)
 
           if (events.isEmpty) {
@@ -574,110 +561,110 @@ trait StammdatenCommandHandler extends CommandHandler
     /*
        * Insert command handling
        */
-    case e@InsertEntityCommand(_, entity: CustomKundentypCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: CustomKundentypCreate) => idFactory =>
       meta =>
         handleEntityInsert[CustomKundentypCreate, CustomKundentypId](idFactory, meta, entity, CustomKundentypId.apply)
-    case e@InsertEntityCommand(_, entity: LieferungenAbotypCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: LieferungenAbotypCreate) => idFactory =>
       meta =>
         val events = entity.daten.map { datum =>
           val lieferungCreate = copyTo[LieferungenAbotypCreate, LieferungAbotypCreate](entity, "datum" -> datum)
           insertEntityEvent[LieferungAbotypCreate, LieferungId](idFactory, meta, lieferungCreate, LieferungId.apply)
         }
         Success(events)
-    case e@InsertEntityCommand(_, entity: LieferungAbotypCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: LieferungAbotypCreate) => idFactory =>
       meta =>
         handleEntityInsert[LieferungAbotypCreate, LieferungId](idFactory, meta, entity, LieferungId.apply)
-    case e@InsertEntityCommand(_, entity: LieferplanungCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: LieferplanungCreate) => idFactory =>
       meta =>
         handleEntityInsert[LieferplanungCreate, LieferplanungId](idFactory, meta, entity, LieferplanungId.apply)
-    case e@InsertEntityCommand(_, entity: LieferungPlanungAdd) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: LieferungPlanungAdd) => idFactory =>
       meta =>
         handleEntityInsert[LieferungPlanungAdd, LieferungId](idFactory, meta, entity, LieferungId.apply)
-    case e@InsertEntityCommand(_, entity: LieferpositionenModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: LieferpositionenModify) => idFactory =>
       meta =>
         handleEntityInsert[LieferpositionenModify, LieferpositionId](idFactory, meta, entity, LieferpositionId.apply)
-    case e@InsertEntityCommand(_, entity: PendenzModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PendenzModify) => idFactory =>
       meta =>
         handleEntityInsert[PendenzModify, PendenzId](idFactory, meta, entity, PendenzId.apply)
-    case e@InsertEntityCommand(_, entity: PersonCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PersonCreate) => idFactory =>
       meta =>
         handleEntityInsert[PersonCreate, PersonId](idFactory, meta, entity, PersonId.apply)
-    case e@InsertEntityCommand(_, entity: PersonCategoryCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PersonCategoryCreate) => idFactory =>
       meta =>
         handleEntityInsert[PersonCategoryCreate, PersonCategoryId](idFactory, meta, entity, PersonCategoryId.apply)
-    case e@InsertEntityCommand(_, entity: ProduzentModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProduzentModify) => idFactory =>
       meta =>
         handleEntityInsert[ProduzentModify, ProduzentId](idFactory, meta, entity, ProduzentId.apply)
-    case e@InsertEntityCommand(_, entity: ProduktModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProduktModify) => idFactory =>
       meta =>
         handleEntityInsert[ProduktModify, ProduktId](idFactory, meta, entity, ProduktId.apply)
-    case e@InsertEntityCommand(_, entity: ProduktProduktekategorie) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProduktProduktekategorie) => idFactory =>
       meta =>
         handleEntityInsert[ProduktProduktekategorie, ProduktProduktekategorieId](idFactory, meta, entity, ProduktProduktekategorieId.apply)
-    case e@InsertEntityCommand(_, entity: ProduktProduzent) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProduktProduzent) => idFactory =>
       meta =>
         handleEntityInsert[ProduktProduzent, ProduktProduzentId](idFactory, meta, entity, ProduktProduzentId.apply)
-    case e@InsertEntityCommand(_, entity: ProduktekategorieModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProduktekategorieModify) => idFactory =>
       meta =>
         handleEntityInsert[ProduktekategorieModify, ProduktekategorieId](idFactory, meta, entity, ProduktekategorieId.apply)
-    case e@InsertEntityCommand(_, entity: ProjektModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProjektModify) => idFactory =>
       meta =>
         handleEntityInsert[ProjektModify, ProjektId](idFactory, meta, entity, ProjektId.apply)
-    case e@InsertEntityCommand(_, entity: TourCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: TourCreate) => idFactory =>
       meta =>
         handleEntityInsert[TourCreate, TourId](idFactory, meta, entity, TourId.apply)
-    case e@InsertEntityCommand(_, entity: AbwesenheitCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: AbwesenheitCreate) => idFactory =>
       meta =>
         handleEntityInsert[AbwesenheitCreate, AbwesenheitId](idFactory, meta, entity, AbwesenheitId.apply)
-    case e@InsertEntityCommand(_, entity: AbotypModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: AbotypModify) => idFactory =>
       meta =>
         handleEntityInsert[AbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
-    case e@InsertEntityCommand(_, entity: ZusatzAbotypModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ZusatzAbotypModify) => idFactory =>
       meta =>
         handleEntityInsert[ZusatzAbotypModify, AbotypId](idFactory, meta, entity, AbotypId.apply)
-    case e@InsertEntityCommand(_, entity: DepotModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: DepotModify) => idFactory =>
       meta =>
         handleEntityInsert[DepotModify, DepotId](idFactory, meta, entity, DepotId.apply)
-    case e@InsertEntityCommand(_, entity: DepotlieferungModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: DepotlieferungModify) => idFactory =>
       meta =>
         handleEntityInsert[DepotlieferungModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e@InsertEntityCommand(_, entity: HeimlieferungModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: HeimlieferungModify) => idFactory =>
       meta =>
         handleEntityInsert[HeimlieferungModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e@InsertEntityCommand(_, entity: PostlieferungModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PostlieferungModify) => idFactory =>
       meta =>
         handleEntityInsert[PostlieferungModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e@InsertEntityCommand(_, entity: DepotlieferungAbotypModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: DepotlieferungAbotypModify) => idFactory =>
       meta =>
         handleEntityInsert[DepotlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e@InsertEntityCommand(_, entity: HeimlieferungAbotypModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: HeimlieferungAbotypModify) => idFactory =>
       meta =>
         handleEntityInsert[HeimlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e@InsertEntityCommand(_, entity: PostlieferungAbotypModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PostlieferungAbotypModify) => idFactory =>
       meta =>
         handleEntityInsert[PostlieferungAbotypModify, VertriebsartId](idFactory, meta, entity, VertriebsartId.apply)
-    case e@InsertEntityCommand(_, entity: DepotlieferungAboCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: DepotlieferungAboCreate) => idFactory =>
       meta =>
         handleEntityInsert[DepotlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e@InsertEntityCommand(_, entity: HeimlieferungAboCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: HeimlieferungAboCreate) => idFactory =>
       meta =>
         handleEntityInsert[HeimlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e@InsertEntityCommand(_, entity: PostlieferungAboCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PostlieferungAboCreate) => idFactory =>
       meta =>
         handleEntityInsert[PostlieferungAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e@InsertEntityCommand(_, entity: ZusatzAboModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ZusatzAboModify) => idFactory =>
       meta =>
         handleEntityInsert[ZusatzAboModify, AboId](idFactory, meta, entity, AboId.apply)
-    case e@InsertEntityCommand(_, entity: ZusatzAboCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ZusatzAboCreate) => idFactory =>
       meta =>
         handleEntityInsert[ZusatzAboCreate, AboId](idFactory, meta, entity, AboId.apply)
-    case e@InsertEntityCommand(_, entity: PendenzCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: PendenzCreate) => idFactory =>
       meta =>
         handleEntityInsert[PendenzCreate, PendenzId](idFactory, meta, entity, PendenzId.apply)
-    case e@InsertEntityCommand(_, entity: VertriebModify) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: VertriebModify) => idFactory =>
       meta =>
         handleEntityInsert[VertriebModify, VertriebId](idFactory, meta, entity, VertriebId.apply)
-    case e@InsertEntityCommand(_, entity: ProjektVorlageCreate) => idFactory =>
+    case e @ InsertEntityCommand(_, entity: ProjektVorlageCreate) => idFactory =>
       meta =>
         handleEntityInsert[ProjektVorlageCreate, ProjektVorlageId](idFactory, meta, entity, ProjektVorlageId.apply)
 
@@ -731,9 +718,7 @@ trait StammdatenCommandHandler extends CommandHandler
         }
   }
 
-  def addKundenPendenz(idFactory: IdFactory, meta: EventTransactionMetadata, id: AboId, bemerkung: String, status: PendenzStatus)(implicit
-                                                                                                                                  session: DBSession)
-  : Option[ResultingEvent] = {
+  def addKundenPendenz(idFactory: IdFactory, meta: EventTransactionMetadata, id: AboId, bemerkung: String, status: PendenzStatus)(implicit session: DBSession): Option[ResultingEvent] = {
     // zusätzlich eine pendenz erstellen
     ((stammdatenReadRepository.getById(depotlieferungAboMapping, id) map { abo =>
       DepotlieferungAboModify
@@ -751,7 +736,7 @@ trait StammdatenCommandHandler extends CommandHandler
   }
 
   def createAboRechnungsPositionenAnzahlLieferungen(idFactory: IdFactory, meta: EventTransactionMetadata,
-                                                    aboRechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate) = {
+    aboRechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate) = {
     DB readOnly { implicit session =>
       // HauptAbos
       val abos: List[Abo] = stammdatenReadRepository.getByIds(depotlieferungAboMapping, aboRechnungCreate.ids) :::
@@ -784,7 +769,7 @@ trait StammdatenCommandHandler extends CommandHandler
 
               val repoType = abotyp match {
                 case a: ZusatzAbotyp => RechnungsPositionTyp.ZusatzAbo
-                case _ => RechnungsPositionTyp.Abo
+                case _               => RechnungsPositionTyp.Abo
               }
 
               val hauptRechnungPosition = createRechnungPositionEvent(abo, aboRechnungCreate.titel, anzahlLieferungen, hauptAboBetrag, aboRechnungCreate
@@ -836,8 +821,7 @@ trait StammdatenCommandHandler extends CommandHandler
   }
 
   private def createRechnungPositionEvent(abo: Abo, titel: String, anzahlLieferungen: Int, betrag: BigDecimal, waehrung: Waehrung,
-                                          parentRechnungsPositionId: Option[RechnungsPositionId] = None, rechnungsPositionTyp: RechnungsPositionTyp
-  .RechnungsPositionTyp = RechnungsPositionTyp.Abo): RechnungsPositionCreate = {
+    parentRechnungsPositionId: Option[RechnungsPositionId] = None, rechnungsPositionTyp: RechnungsPositionTyp.RechnungsPositionTyp = RechnungsPositionTyp.Abo): RechnungsPositionCreate = {
     RechnungsPositionCreate(
       abo.kundeId,
       Some(abo.id),
@@ -851,8 +835,7 @@ trait StammdatenCommandHandler extends CommandHandler
     )
   }
 
-  def createAboRechnungsPositionenBisGuthaben(idFactory: IdFactory, meta: EventTransactionMetadata, aboRechnungCreate: AboRechnungsPositionBisGuthabenCreate)
-  = {
+  def createAboRechnungsPositionenBisGuthaben(idFactory: IdFactory, meta: EventTransactionMetadata, aboRechnungCreate: AboRechnungsPositionBisGuthabenCreate) = {
     DB readOnly { implicit session =>
       val abos: List[Abo] = stammdatenReadRepository.getByIds(depotlieferungAboMapping, aboRechnungCreate.ids) :::
         stammdatenReadRepository.getByIds(postlieferungAboMapping, aboRechnungCreate.ids) :::
@@ -877,7 +860,7 @@ trait StammdatenCommandHandler extends CommandHandler
                 val hauptabo = stammdatenReadRepository.getHauptAbo(zusatzAbo.id)
                 hauptabo.get.guthaben
               case abo: HauptAbo => abo.guthaben
-              case abo => throw new InvalidStateException(s"Unexpected abo type found:$abo")
+              case abo           => throw new InvalidStateException(s"Unexpected abo type found:$abo")
             }
             val anzahlLieferungen = math.max((aboRechnungCreate.bisGuthaben - guthaben), 0)
 
@@ -1039,9 +1022,10 @@ trait StammdatenCommandHandler extends CommandHandler
     }
   }
 
-  private def getCreateAuslieferungHeimEvent(idFactory: IdFactory, meta: EventTransactionMetadata, lieferplanung: Lieferplanung)(implicit personId: PersonId,
-                                                                                                                                 session: DBSession)
-  : Seq[ResultingEvent] = {
+  private def getCreateAuslieferungHeimEvent(idFactory: IdFactory, meta: EventTransactionMetadata, lieferplanung: Lieferplanung)(implicit
+    personId: PersonId,
+    session: DBSession
+  ): Seq[ResultingEvent] = {
     val lieferungen = stammdatenReadRepository.getLieferungen(lieferplanung.id)
 
     //handle Tourenlieferungen: Group all entries with the same TourId on the same Date
@@ -1083,15 +1067,14 @@ trait StammdatenCommandHandler extends CommandHandler
     val hauptAboKoerbe = koerbe map { korb =>
       stammdatenReadRepository.getAbo(korb.aboId) match {
         case Some(abo: ZusatzAbo) => None
-        case None => None
-        case _ => Some(korb)
+        case None                 => None
+        case _                    => Some(korb)
       }
     }
     hauptAboKoerbe.flatten.size
   }
 
-  private def getCreateDepotAuslieferungAndPostAusliferungEvent(idFactory: IdFactory, meta: EventTransactionMetadata, lieferplanung: Lieferplanung)(implicit
-                                                                                                                                                    personId: PersonId, session: DBSession): Seq[ResultingEvent] = {
+  private def getCreateDepotAuslieferungAndPostAusliferungEvent(idFactory: IdFactory, meta: EventTransactionMetadata, lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): Seq[ResultingEvent] = {
     val lieferungen = stammdatenReadRepository.getLieferungen(lieferplanung.id)
 
     val updates1 = handleLieferplanungAbgeschlossen(idFactory, meta, lieferungen)
@@ -1102,17 +1085,16 @@ trait StammdatenCommandHandler extends CommandHandler
   }
 
   private def handleLieferplanungAbgeschlossen(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungen: List[Lieferung])(implicit
-                                                                                                                                   personId: PersonId,
-                                                                                                                                   session: DBSession)
-  : List[ResultingEvent] = {
+    personId: PersonId,
+    session: DBSession
+  ): List[ResultingEvent] = {
     //handle Depot- and Postlieferungen: Group all entries with the same VertriebId on the same Date
     val vertriebeDaten = lieferungen.map(l => (l.vertriebId, l.datum)).distinct
     getDepotAuslieferungEvents(idFactory, meta, getDepotAuslieferungAsAMapGrouped(vertriebeDaten)) :::
       getPostAuslieferungEvents(idFactory, meta, getPostAuslieferungAsAMapGrouped(vertriebeDaten))
   }
 
-  private def getDepotAuslieferungAsAMapGrouped(vertriebeDaten: List[(VertriebId, DateTime)])(implicit personId: PersonId, session: DBSession): Map[(DepotId,
-    DateTime), List[DepotlieferungDetail]] = {
+  private def getDepotAuslieferungAsAMapGrouped(vertriebeDaten: List[(VertriebId, DateTime)])(implicit personId: PersonId, session: DBSession): Map[(DepotId, DateTime), List[DepotlieferungDetail]] = {
     val depotAuslieferungMap = (vertriebeDaten map {
       case (vertriebId, lieferungDatum) => {
         logger.debug(s"handleLieferplanungAbgeschlossen Depot: ${vertriebId}:${lieferungDatum}.")
@@ -1128,8 +1110,7 @@ trait StammdatenCommandHandler extends CommandHandler
     }
   }
 
-  private def getDepotAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, depotAuslieferungGroupedMap: Map[(DepotId, DateTime),
-    List[DepotlieferungDetail]])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
+  private def getDepotAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, depotAuslieferungGroupedMap: Map[(DepotId, DateTime), List[DepotlieferungDetail]])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     val events = for {
       ((depotId, date), listDepotLieferungDetail) <- depotAuslieferungGroupedMap
     } yield {
@@ -1138,8 +1119,7 @@ trait StammdatenCommandHandler extends CommandHandler
     events.flatten.toList
   }
 
-  private def getPostAuslieferungAsAMapGrouped(vertriebeDaten: List[(VertriebId, DateTime)])(implicit personId: PersonId, session: DBSession): Map[DateTime,
-    List[PostlieferungDetail]] = {
+  private def getPostAuslieferungAsAMapGrouped(vertriebeDaten: List[(VertriebId, DateTime)])(implicit personId: PersonId, session: DBSession): Map[DateTime, List[PostlieferungDetail]] = {
     val postAuslieferungMap = (vertriebeDaten map {
       case (vertriebId, lieferungDatum) => {
         logger.debug(s"handleLieferplanungAbgeschlossen (Post): ${vertriebId}:${lieferungDatum}.")
@@ -1156,8 +1136,7 @@ trait StammdatenCommandHandler extends CommandHandler
     }
   }
 
-  private def getPostAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, postAuslieferungGroupedMap: Map[DateTime,
-    List[PostlieferungDetail]])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
+  private def getPostAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, postAuslieferungGroupedMap: Map[DateTime, List[PostlieferungDetail]])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     val events = for {
       (date, listPostLieferungDetail) <- postAuslieferungGroupedMap
     } yield {
@@ -1167,8 +1146,7 @@ trait StammdatenCommandHandler extends CommandHandler
   }
 
   private def getPostAndDepotAuslieferungEvents(idFactory: IdFactory, meta: EventTransactionMetadata, date: DateTime,
-                                                listVertriebsartDetail: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession)
-  : List[ResultingEvent] = {
+    listVertriebsartDetail: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     val koerbe = getAllKoerbeForDepotOrPost(date, listVertriebsartDetail)
     if (!koerbe.isEmpty) {
       val newAuslieferung = createAuslieferungDepotPost(idFactory, meta, date, listVertriebsartDetail.head, countHauptAbos(koerbe)).get
@@ -1181,16 +1159,14 @@ trait StammdatenCommandHandler extends CommandHandler
     }
   }
 
-  private def getAllKoerbeForDepotOrPost(date: DateTime, vertriebsartDetailList: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession)
-  : List[Korb] = {
+  private def getAllKoerbeForDepotOrPost(date: DateTime, vertriebsartDetailList: List[VertriebsartDetail])(implicit personId: PersonId, session: DBSession): List[Korb] = {
     val koerbe = vertriebsartDetailList map { vertriebsartDetail =>
       stammdatenReadRepository.getKoerbe(date, vertriebsartDetail.id, WirdGeliefert)
     }
     koerbe.flatten
   }
 
-  private def recalculateValuesForLieferplanungAbgeschlossen(lieferungen: List[Lieferung])(implicit personId: PersonId, session: DBSession)
-  : List[ResultingEvent] = {
+  private def recalculateValuesForLieferplanungAbgeschlossen(lieferungen: List[Lieferung])(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
     //calculate new values
     lieferungen flatMap { lieferung =>
       //calculate total of lieferung
@@ -1224,8 +1200,7 @@ trait StammdatenCommandHandler extends CommandHandler
     }
   }
 
-  private def updateSammelbestellungStatus(lieferungen: List[Lieferung], lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession)
-  : List[ResultingEvent] = {
+  private def updateSammelbestellungStatus(lieferungen: List[Lieferung], lieferplanung: Lieferplanung)(implicit personId: PersonId, session: DBSession): List[ResultingEvent] = {
 
     (stammdatenReadRepository.getSammelbestellungen(lieferplanung.id) map {
       sammelbestellung =>
@@ -1241,7 +1216,7 @@ trait StammdatenCommandHandler extends CommandHandler
   }
 
   private def createAuslieferungDepotPost(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungDatum: DateTime, vertriebsart: VertriebsartDetail,
-                                          anzahlKoerbe: Int)(implicit personId: PersonId): Option[Auslieferung] = {
+    anzahlKoerbe: Int)(implicit personId: PersonId): Option[Auslieferung] = {
     val auslieferungId = idFactory.newId(AuslieferungId.apply)
 
     vertriebsart match {
@@ -1294,7 +1269,7 @@ trait StammdatenCommandHandler extends CommandHandler
   }
 
   private def createTourAuslieferungHeim(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungDatum: DateTime, tourId: TourId, tourName: String,
-                                         anzahlKoerbe: Int)(implicit personId: PersonId): TourAuslieferung = {
+    anzahlKoerbe: Int)(implicit personId: PersonId): TourAuslieferung = {
     val auslieferungId = idFactory.newId(AuslieferungId.apply)
     TourAuslieferung(
       auslieferungId,
@@ -1323,15 +1298,15 @@ trait StammdatenCommandHandler extends CommandHandler
       stammdatenReadRepository.getById(depotlieferungAboMapping, aboId) orElse
         stammdatenReadRepository.getById(heimlieferungAboMapping, aboId) orElse
         stammdatenReadRepository.getById(postlieferungAboMapping, aboId) map { abo =>
-        stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
-          val personEmailData = copyTo[Person, PersonEmailData](person)
-          val mailContext = AboMailContext(personEmailData, abo)
-          generateMail(subject, body, mailContext) match {
-            case Success(mailPayload) => true
-            case Failure(e) => false
+          stammdatenReadRepository.getPersonen(abo.kundeId) map { person =>
+            val personEmailData = copyTo[Person, PersonEmailData](person)
+            val mailContext = AboMailContext(personEmailData, abo)
+            generateMail(subject, body, mailContext) match {
+              case Success(mailPayload) => true
+              case Failure(e)           => false
+            }
           }
         }
-      }
     }
     templateCorrect.flatten.forall(x => x == true)
   }
@@ -1345,7 +1320,7 @@ trait StammdatenCommandHandler extends CommandHandler
           val mailContext = KundeMailContext(personEmailData, kunde)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
-            case Failure(e) => false
+            case Failure(e)           => false
           }
         }
       }
@@ -1362,7 +1337,7 @@ trait StammdatenCommandHandler extends CommandHandler
           val mailContext = AbotypMailContext(personEmailData, abotyp)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
-            case Failure(e) => false
+            case Failure(e)           => false
           }
         }
       }
@@ -1379,7 +1354,7 @@ trait StammdatenCommandHandler extends CommandHandler
           val mailContext = AbotypMailContext(personEmailData, abotyp)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
-            case Failure(e) => false
+            case Failure(e)           => false
           }
         }
       }
@@ -1396,7 +1371,7 @@ trait StammdatenCommandHandler extends CommandHandler
           val mailContext = TourMailContext(personEmailData, tour)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
-            case Failure(e) => false
+            case Failure(e)           => false
           }
         }
       }
@@ -1413,7 +1388,7 @@ trait StammdatenCommandHandler extends CommandHandler
           val mailContext = DepotMailContext(personEmailData, depot)
           generateMail(subject, body, mailContext) match {
             case Success(mailPayload) => true
-            case Failure(e) => false
+            case Failure(e)           => false
           }
         }
       }
@@ -1428,7 +1403,7 @@ trait StammdatenCommandHandler extends CommandHandler
         val mailContext = PersonMailContext(personEmailData)
         generateMail(subject, body, mailContext) match {
           case Success(mailPayload) => true
-          case Failure(e) => false
+          case Failure(e)           => false
         }
       }
     }

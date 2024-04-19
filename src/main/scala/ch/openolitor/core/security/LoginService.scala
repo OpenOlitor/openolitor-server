@@ -22,18 +22,18 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.http.caching.scaladsl.{Cache, CachingSettings}
+import akka.http.caching.scaladsl.{ Cache, CachingSettings }
 import akka.http.caching.LfuCache
 import akka.pattern.ask
 import akka.util.Timeout
-import ch.openolitor.core.{ActorReferences, ExecutionContextAware, SystemConfigReference}
+import ch.openolitor.core.{ ActorReferences, ExecutionContextAware, SystemConfigReference }
 import ch.openolitor.core.Macros.copyTo
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.SystemEvents
 import ch.openolitor.core.mailservice.Mail
-import ch.openolitor.core.mailservice.MailService.{MailServiceState, SendMailCommand, SendMailEvent}
+import ch.openolitor.core.mailservice.MailService.{ MailServiceState, SendMailCommand, SendMailEvent }
 import ch.openolitor.core.models.PersonId
-import ch.openolitor.stammdaten.StammdatenCommandHandler.{PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand}
+import ch.openolitor.stammdaten.StammdatenCommandHandler.{ PasswortGewechseltEvent, PasswortResetCommand, PasswortResetGesendetEvent, PasswortWechselCommand }
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories.StammdatenReadRepositoryAsyncComponent
 import ch.openolitor.util.ConfigUtil._

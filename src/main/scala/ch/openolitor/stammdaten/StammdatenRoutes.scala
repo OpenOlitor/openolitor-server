@@ -44,7 +44,7 @@ import ch.openolitor.stammdaten.reporting._
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.filestore._
 import akka.actor._
-import akka.http.scaladsl.model.headers.{`Content-Disposition`, ContentDispositionTypes}
+import akka.http.scaladsl.model.headers.{ `Content-Disposition`, ContentDispositionTypes }
 import akka.http.scaladsl.server.Route
 import ch.openolitor.buchhaltung.repositories.BuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
@@ -52,8 +52,14 @@ import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.repositories._
-import ch.openolitor.util.parsing.{QueryFilter, GeschaeftsjahrFilter, FilterExpr, UriQueryParamFilterParser, UriQueryParamGeschaeftsjahrParser,
-  UriQueryFilterParser}
+import ch.openolitor.util.parsing.{
+  QueryFilter,
+  GeschaeftsjahrFilter,
+  FilterExpr,
+  UriQueryParamFilterParser,
+  UriQueryParamGeschaeftsjahrParser,
+  UriQueryFilterParser
+}
 
 import scala.concurrent.ExecutionContext
 
@@ -103,7 +109,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     } ~
       path("kontodaten" / kontoDatenIdPath) { id =>
         get(detail(stammdatenReadRepository.getKontoDatenProjekt)) ~
-          (put | post) (update[KontoDatenModify, KontoDatenId](id))
+          (put | post)(update[KontoDatenModify, KontoDatenId](id))
       }
 
   private def kundenRoute(implicit subject: Subject, filter: Option[FilterExpr], queryString: Option[QueryFilter]): Route =
@@ -125,7 +131,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("kunden" / kundeIdPath) { id =>
         get(detail(stammdatenReadRepository.getKundeDetail(id))) ~
-          (put | post) (
+          (put | post)(
             entity(as[KundeModify]) { kunde =>
               val allEmailAddresses = kunde.ansprechpersonen.map(_.email).flatten.filter(_.nonEmpty)
               if (allEmailAddresses.distinct.length == allEmailAddresses.length) {
@@ -171,13 +177,13 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
           delete(remove(aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "guthabenanpassen") { (kundeId, aboId) =>
-        (put | post) (update[AboGuthabenModify, AboId](aboId))
+        (put | post)(update[AboGuthabenModify, AboId](aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "vertriebsartanpassen") { (kundeId, aboId) =>
-        (put | post) (update[AboVertriebsartModify, AboId](aboId))
+        (put | post)(update[AboVertriebsartModify, AboId](aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "aktionen" / "priceanpassen") { (kundeId, aboId) =>
-        (put | post) (update[AboPriceModify, AboId](aboId))
+        (put | post)(update[AboPriceModify, AboId](aboId))
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "koerbe") { (_, aboId) =>
         get(list(stammdatenReadRepository.getKoerbe(aboId)))
@@ -200,7 +206,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "abos" / aboIdPath / "zusatzAbos" / aboIdPath) { (kundeId, hauptAboId, id) =>
         get(detail(stammdatenReadRepository.getZusatzAboDetail(id))) ~
-          (put | post) (update[ZusatzAboModify, AboId](id)) ~
+          (put | post)(update[ZusatzAboModify, AboId](id)) ~
           delete(remove(id))
       } ~
       path("kunden" / kundeIdPath / "pendenzen") { kundeId =>
@@ -215,7 +221,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("kunden" / kundeIdPath / "pendenzen" / pendenzIdPath) { (kundeId, pendenzId) =>
         get(detail(stammdatenReadRepository.getPendenzDetail(pendenzId))) ~
-          (put | post) (update[PendenzModify, PendenzId](pendenzId)) ~
+          (put | post)(update[PendenzModify, PendenzId](pendenzId)) ~
           delete(remove(pendenzId))
       } ~
       path("kunden" / kundeIdPath / "personen" / personIdPath) { (kundeId, personId) =>
@@ -258,7 +264,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         post(create[PersonCategoryCreate, PersonCategoryId](PersonCategoryId.apply _))
     } ~
       path("personCategories" / personCategoryIdPath) { (personCategoryId) =>
-        (put | post) (update[PersonCategoryModify, PersonCategoryId](personCategoryId)) ~
+        (put | post)(update[PersonCategoryModify, PersonCategoryId](personCategoryId)) ~
           delete(remove(personCategoryId))
       }
 
@@ -268,7 +274,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         post(create[CustomKundentypCreate, CustomKundentypId](CustomKundentypId.apply _))
     } ~
       path("kundentypen" / kundentypIdPath) { (kundentypId) =>
-        (put | post) (update[CustomKundentypModify, CustomKundentypId](kundentypId)) ~
+        (put | post)(update[CustomKundentypModify, CustomKundentypId](kundentypId)) ~
           delete(remove(kundentypId))
       }
 
@@ -290,7 +296,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("abotypen" / abotypIdPath) { id =>
         get(detail(stammdatenReadRepository.getAbotypDetail(id))) ~
-          (put | post) (update[AbotypModify, AbotypId](id)) ~
+          (put | post)(update[AbotypModify, AbotypId](id)) ~
           delete(remove(id))
       } ~
       path("abotypen" / abotypIdPath / "vertriebe") { abotypId =>
@@ -299,7 +305,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath) { (abotypId, vertriebId) =>
         get(detail(stammdatenReadRepository.getVertrieb(vertriebId))) ~
-          (put | post) (update[VertriebModify, VertriebId](vertriebId)) ~
+          (put | post)(update[VertriebModify, VertriebId](vertriebId)) ~
           delete(remove(vertriebId))
       } ~
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "vertriebsarten") { (abotypId, vertriebId) =>
@@ -364,7 +370,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("zusatzAbotypen" / zusatzAbotypIdPath) { id =>
         get(detail(stammdatenReadRepository.getZusatzAbotypDetail(id))) ~
-          (put | post) (update[ZusatzAbotypModify, AbotypId](id)) ~
+          (put | post)(update[ZusatzAbotypModify, AbotypId](id)) ~
           delete(remove(id))
       }
 
@@ -386,7 +392,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("depots" / depotIdPath) { id =>
         get(detail(stammdatenReadRepository.getDepotDetail(id))) ~
-          (put | post) (update[DepotModify, DepotId](id)) ~
+          (put | post)(update[DepotModify, DepotId](id)) ~
           delete(remove(id))
       }
 
@@ -414,8 +420,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         }
       }
 
-  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter])
-  : Route =
+  private def zusatzaboRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter], queryString: Option[QueryFilter]): Route =
     path("zusatzabos" ~ exportFormatPath.?) { exportFormat =>
       parameter("x".as[AbosComplexFlags].?) { xFlags: Option[AbosComplexFlags] =>
         get(list(stammdatenReadRepository.getZusatzAbos(xFlags), exportFormat))
@@ -434,7 +439,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       get(list(stammdatenReadRepository.getPendenzen, exportFormat))
     } ~
       path("pendenzen" / pendenzIdPath) { pendenzId =>
-        (put | post) (update[PendenzModify, PendenzId](pendenzId))
+        (put | post)(update[PendenzModify, PendenzId](pendenzId))
       }
 
   private def produkteRoute(implicit subject: Subject): Route =
@@ -443,7 +448,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         post(create[ProduktModify, ProduktId](ProduktId.apply _))
     } ~
       path("produkte" / produktIdPath) { id =>
-        (put | post) (update[ProduktModify, ProduktId](id)) ~
+        (put | post)(update[ProduktModify, ProduktId](id)) ~
           delete(remove(id))
       }
 
@@ -453,7 +458,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         post(create[ProduktekategorieModify, ProduktekategorieId](ProduktekategorieId.apply _))
     } ~
       path("produktekategorien" / produktekategorieIdPath) { id =>
-        (put | post) (update[ProduktekategorieModify, ProduktekategorieId](id)) ~
+        (put | post)(update[ProduktekategorieModify, ProduktekategorieId](id)) ~
           delete(remove(id))
       }
 
@@ -464,7 +469,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     } ~
       path("produzenten" / produzentIdPath) { id =>
         get(detail(stammdatenReadRepository.getProduzentDetail(id))) ~
-          (put | post) (update[ProduzentModify, ProduzentId](id)) ~
+          (put | post)(update[ProduzentModify, ProduzentId](id)) ~
           delete(remove(id))
       } ~
       path("produzenten" / "berichte" / "produzentenbrief") {
@@ -488,7 +493,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         parameter("aktiveOrPlanned".as[Boolean].?) { aktiveOrPlanned: Option[Boolean] =>
           get(detail(stammdatenReadRepository.getTourDetail(id, aktiveOrPlanned.getOrElse(false))))
         } ~
-          (put | post) (update[TourModify, TourId](id)) ~
+          (put | post)(update[TourModify, TourId](id)) ~
           delete(remove(id))
       }
 
@@ -499,24 +504,24 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     } ~
       path("projekt" / projektIdPath) { id =>
         get(detail(stammdatenReadRepository.getProjekt)) ~
-          (put | post) (update[ProjektModify, ProjektId](id))
+          (put | post)(update[ProjektModify, ProjektId](id))
       } ~
       path("projekt" / projektIdPath / "logo") { id =>
         get(download(ProjektStammdaten, "logo")) ~
-          (put | post) (uploadStored(ProjektStammdaten, Some("logo")) { (id, metadata) =>
+          (put | post)(uploadStored(ProjektStammdaten, Some("logo")) { (id, metadata) =>
             //TODO: update projekt stammdaten entity
             complete("Logo uploaded")
           })
       } ~
       path("projekt" / projektIdPath / "style-admin") { id =>
         get(download(ProjektStammdaten, "style-admin")) ~
-          (put | post) (uploadStored(ProjektStammdaten, Some("style-admin")) { (id, metadata) =>
+          (put | post)(uploadStored(ProjektStammdaten, Some("style-admin")) { (id, metadata) =>
             complete("Style 'style-admin' uploaded")
           })
       } ~
       path("projekt" / projektIdPath / "style-kundenportal") { id =>
         get(download(ProjektStammdaten, "style-kundenportal")) ~
-          (put | post) (uploadStored(ProjektStammdaten, Some("style-kundenportal")) { (id, metadata) =>
+          (put | post)(uploadStored(ProjektStammdaten, Some("style-kundenportal")) { (id, metadata) =>
             complete("Style 'style-kundenportal' uploaded")
           })
       } ~
@@ -531,7 +536,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     } ~
       path("lieferplanungen" / lieferplanungIdPath) { id =>
         get(detail(stammdatenReadRepository.getLieferplanung(id))) ~
-          (put | post) (update[LieferplanungModify, LieferplanungId](id)) ~
+          (put | post)(update[LieferplanungModify, LieferplanungId](id)) ~
           delete(remove(id))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen") { lieferplanungId =>
@@ -541,7 +546,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         get(list(stammdatenReadRepository.getVerfuegbareLieferungen(lieferplanungId)))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath) { (lieferplanungId, lieferungId) =>
-        (put | post) (create[LieferungPlanungAdd, LieferungId]((x: Long) => lieferungId)) ~
+        (put | post)(create[LieferungPlanungAdd, LieferungId]((x: Long) => lieferungId)) ~
           delete(lieferplanungRemoveLieferung(lieferungId))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / korbStatusPath / "aboIds") { (lieferplanungId, korbStatus) =>
@@ -551,15 +556,15 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         get(list(stammdatenReadRepository.getAuslieferungen(lieferplanungId)))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath / korbStatusPath / "aboIds") { (lieferplanungId, lieferungId,
-                                                                                                                     korbStatus) =>
+        korbStatus) =>
         get(list(stammdatenReadRepository.getAboIds(lieferungId, korbStatus)))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "lieferungen" / lieferungIdPath / korbStatusPath / "hauptaboIds") { (lieferplanungId, lieferungId,
-                                                                                                                          korbStatus) =>
+        korbStatus) =>
         get(list(stammdatenReadRepository.getZusatzaboIds(lieferungId, korbStatus)))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "aktionen" / "abschliessen") { id =>
-        (post) (lieferplanungAbschliessen(id))
+        (post)(lieferplanungAbschliessen(id))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "aktionen" / "modifizieren") { id =>
         post {
@@ -571,18 +576,20 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         }
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "aktionen" / "verrechnen") { id =>
-        (post) (lieferplanungVerrechnen(id))
+        (post)(lieferplanungVerrechnen(id))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "sammelbestellungen") { lieferplanungId =>
         get(list(stammdatenReadRepository.getSammelbestellungen(lieferplanungId)))
       } ~
       path("lieferplanungen" / lieferplanungIdPath / "sammelbestellungen" / sammelbestellungIdPath / "bestellungen" / bestellungIdPath / "positionen") {
         (lieferplanungId, sammelbestellungId, bestellungId) =>
-        get(list(stammdatenReadRepository.getBestellpositionen(bestellungId)))
+          get(list(stammdatenReadRepository.getBestellpositionen(bestellungId)))
       } ~
-      path("lieferplanungen" / lieferplanungIdPath / "sammelbestellungen" / sammelbestellungIdPath / "aktionen" / "erneutBestellen") { (lieferplanungId,
-                                                                                                                                        sammelbestellungId) =>
-        (post) (sammelbestellungErneutVersenden(sammelbestellungId))
+      path("lieferplanungen" / lieferplanungIdPath / "sammelbestellungen" / sammelbestellungIdPath / "aktionen" / "erneutBestellen") { (
+        lieferplanungId,
+        sammelbestellungId
+      ) =>
+        (post)(sammelbestellungErneutVersenden(sammelbestellungId))
       } ~
       path("lieferplanungen" / "berichte" / "lieferplanung") {
         implicit val personId = subject.personId
@@ -624,8 +631,10 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     }
   }
 
-  private def lieferplanungModifizieren(lieferplanungModify: LieferplanungPositionenModify)(implicit idPersister: Persister[LieferplanungId, _],
-                                                                                            subject: Subject): Route = {
+  private def lieferplanungModifizieren(lieferplanungModify: LieferplanungPositionenModify)(implicit
+    idPersister: Persister[LieferplanungId, _],
+    subject: Subject
+  ): Route = {
     implicit val timeout = Timeout(30.seconds)
     onSuccess(entityStore ? StammdatenCommandHandler.LieferplanungModifyCommand(subject.personId, lieferplanungModify)) {
       case UserCommandFailed =>
@@ -683,7 +692,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
   }
 
   private def lieferantenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter],
-                               queryString: Option[QueryFilter]): Route =
+    queryString: Option[QueryFilter]): Route =
     path("lieferanten" / "sammelbestellungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getSammelbestellungen, exportFormat))
     } ~
@@ -704,8 +713,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
         generateReport[SammelbestellungId](None, generateProduzentenabrechnungReports(VorlageProduzentenabrechnung) _)(SammelbestellungId.apply)
       }
 
-  private def sammelbestellungenAlsAbgerechnetMarkieren(datum: DateTime, ids: Seq[SammelbestellungId])(implicit idPersister: Persister[SammelbestellungId,
-    _], subject: Subject): Route = {
+  private def sammelbestellungenAlsAbgerechnetMarkieren(datum: DateTime, ids: Seq[SammelbestellungId])(implicit idPersister: Persister[SammelbestellungId, _], subject: Subject): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.SammelbestellungenAlsAbgerechnetMarkierenCommand(subject.personId, datum, ids)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die Bestellungen konnten nicht als abgerechnet markiert werden.")
@@ -715,7 +723,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
   }
 
   private def auslieferungenRoute(implicit subject: Subject, filter: Option[FilterExpr], gjFilter: Option[GeschaeftsjahrFilter],
-                                  queryString: Option[QueryFilter]): Route =
+    queryString: Option[QueryFilter]): Route =
     path("depotauslieferungen" ~ exportFormatPath.?) { exportFormat =>
       get(list(stammdatenReadRepository.getDepotAuslieferungen, exportFormat))
     } ~
@@ -727,7 +735,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       } ~
       path("tourauslieferungen" / auslieferungIdPath) { auslieferungId =>
         get(detail(stammdatenReadRepository.getTourAuslieferungDetail(auslieferungId))) ~
-          (put | post) (update[TourAuslieferungModify, AuslieferungId](auslieferungId))
+          (put | post)(update[TourAuslieferungModify, AuslieferungId](auslieferungId))
       } ~
       path("postauslieferungen" ~ exportFormatPath.?) { exportFormat =>
         get(list(stammdatenReadRepository.getPostAuslieferungen, exportFormat))
@@ -836,8 +844,9 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
   }
 
   private def createAnzahlLieferungenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisAnzahlLieferungenCreate)(implicit
-                                                                                                                         idPersister: Persister[AboId, _],
-                                                                                                                         subject: Subject): Route = {
+    idPersister: Persister[AboId, _],
+    subject: Subject
+  ): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.CreateAnzahlLieferungenRechnungsPositionenCommand(subject.personId, rechnungCreate)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen AboIds erstellt werden.")
@@ -846,8 +855,10 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     }
   }
 
-  private def createBisGuthabenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisGuthabenCreate)(implicit idPersister: Persister[AboId, _],
-                                                                                                          subject: Subject): Route = {
+  private def createBisGuthabenRechnungsPositionen(rechnungCreate: AboRechnungsPositionBisGuthabenCreate)(implicit
+    idPersister: Persister[AboId, _],
+    subject: Subject
+  ): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.CreateBisGuthabenRechnungsPositionenCommand(subject.personId, rechnungCreate)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Es konnten nicht alle Rechnungen für die gegebenen AboIds erstellt werden.")
@@ -924,13 +935,13 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
             }
           }
         }) ~
-          (put | post) (uploadStored(vorlageType, Some(defaultFileTypeId(vorlageType))) { (id, metadata) =>
+          (put | post)(uploadStored(vorlageType, Some(defaultFileTypeId(vorlageType))) { (id, metadata) =>
             complete("Standardvorlage gespeichert")
           })
       } ~
       //Projektvorlagen
       path("vorlagen" / projektVorlageIdPath) { id =>
-        (put | post) (update[ProjektVorlageModify, ProjektVorlageId](id)) ~
+        (put | post)(update[ProjektVorlageModify, ProjektVorlageId](id)) ~
           //TODO: remove from filestore as well
           delete(remove(id))
       } ~
@@ -1051,8 +1062,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     }
   }
 
-  private def sendEmailsToZuzatzabotypSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId])(implicit subject: Subject)
-  = {
+  private def sendEmailsToZuzatzabotypSubscribers(emailSubject: String, body: String, replyTo: Option[String], ids: Seq[AbotypId])(implicit subject: Subject) = {
     onSuccess((entityStore ? StammdatenCommandHandler.SendEmailToZusatzabotypSubscribersCommand(subject.personId, emailSubject, body, replyTo, ids))) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Something went wrong with the mail generation, please check the correctness of the template.")
@@ -1094,16 +1104,16 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
 }
 
 class DefaultStammdatenRoutes(
-                               override val dbEvolutionActor: ActorRef,
-                               override val entityStore: ActorRef,
-                               override val eventStore: ActorRef,
-                               override val mailService: ActorRef,
-                               override val reportSystem: ActorRef,
-                               override val sysConfig: SystemConfig,
-                               override val system: ActorSystem,
-                               override val airbrakeNotifier: ActorRef,
-                               override val jobQueueService: ActorRef
-                             ) extends StammdatenRoutes
+  override val dbEvolutionActor: ActorRef,
+  override val entityStore: ActorRef,
+  override val eventStore: ActorRef,
+  override val mailService: ActorRef,
+  override val reportSystem: ActorRef,
+  override val sysConfig: SystemConfig,
+  override val system: ActorSystem,
+  override val airbrakeNotifier: ActorRef,
+  override val jobQueueService: ActorRef
+) extends StammdatenRoutes
   with DefaultStammdatenReadRepositoryAsyncComponent
   with DefaultBuchhaltungReadRepositoryAsyncComponent
   with DefaultFileStoreComponent {

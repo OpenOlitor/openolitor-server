@@ -25,10 +25,10 @@ package ch.openolitor.core.mailservice
 import java.util.UUID
 import akka.actor._
 import akka.persistence.SnapshotMetadata
-import ch.openolitor.core.domain.{AggregateRoot, _}
+import ch.openolitor.core.domain.{ AggregateRoot, _ }
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import ch.openolitor.core.{JSONSerializable, SystemConfig}
+import ch.openolitor.core.{ JSONSerializable, SystemConfig }
 import ch.openolitor.core.filestore._
 import ch.openolitor.util.ConfigUtil._
 import courier._
@@ -41,7 +41,7 @@ import scala.collection.compat.immutable.ArraySeq
 import scala.collection.immutable.TreeSet
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 object MailService {
 
@@ -50,10 +50,7 @@ object MailService {
 
   case class MailServiceState(startTime: DateTime, mailQueue: TreeSet[MailEnqueued]) extends State
 
-  case class SendMailCommandWithCallback[M <: AnyRef](originator: PersonId, entity: Mail, retryDuration: Option[Duration], commandMeta: M)(implicit
-                                                                                                                                           p: Persister[M,
-                                                                                                                                             _]) extends
-    UserCommand
+  case class SendMailCommandWithCallback[M <: AnyRef](originator: PersonId, entity: Mail, retryDuration: Option[Duration], commandMeta: M)(implicit p: Persister[M, _]) extends UserCommand
 
   case class SendMailCommand(originator: PersonId, entity: Mail, retryDuration: Option[Duration]) extends UserCommand
 
@@ -61,13 +58,11 @@ object MailService {
   case class MailServiceInitialized(meta: EventMetadata) extends PersistentEvent
 
   // resulting send mail event
-  case class SendMailEvent(meta: EventMetadata, uid: String, mail: Mail, expires: DateTime, commandMeta: Option[AnyRef]) extends PersistentEvent with
-    JSONSerializable
+  case class SendMailEvent(meta: EventMetadata, uid: String, mail: Mail, expires: DateTime, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
 
   case class MailSentEvent(meta: EventMetadata, uid: String, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
 
-  case class SendMailFailedEvent(meta: EventMetadata, uid: String, numberOfRetries: Int, commandMeta: Option[AnyRef]) extends PersistentEvent with
-    JSONSerializable
+  case class SendMailFailedEvent(meta: EventMetadata, uid: String, numberOfRetries: Int, commandMeta: Option[AnyRef]) extends PersistentEvent with JSONSerializable
 
   def props(dbEvolutionActor: ActorRef, fileStore: FileStore)(implicit sysConfig: SystemConfig): Props = Props(classOf[DefaultMailService], sysConfig,
     dbEvolutionActor, fileStore)
@@ -198,7 +193,7 @@ trait MailService extends AggregateRoot
         val result = envelope match {
           case Right(e) => Await.ready(mailer(e), 20 seconds).value match {
             case Some(e) => Right(e)
-            case None => Left("Error sending the email")
+            case None    => Left("Error sending the email")
           }
           case Left(e) => Left(e)
         }
@@ -262,10 +257,10 @@ trait MailService extends AggregateRoot
   override def restoreFromSnapshot(metadata: SnapshotMetadata, state: State): Unit = {
     log.debug(s"restoreFromSnapshot:$state")
     state match {
-      case Removed => context become removed
-      case Created => context become uninitialized
+      case Removed             => context become removed
+      case Created             => context become uninitialized
       case s: MailServiceState => this.state = s
-      case other: Any => log.error(s"Received unsupported state:$other")
+      case other: Any          => log.error(s"Received unsupported state:$other")
     }
   }
 
