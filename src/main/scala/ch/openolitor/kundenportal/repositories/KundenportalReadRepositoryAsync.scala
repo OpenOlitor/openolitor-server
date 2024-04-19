@@ -55,7 +55,7 @@ trait KundenportalReadRepositoryAsync {
   def getRechnungen(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[Rechnung]]
   def getRechnungDetail(id: RechnungId)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[Option[RechnungDetail]]
 
-  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[ArbeitseinsatzDetail]]
+  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[ArbeitseinsatzDetail]]
   def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Arbeitsangebot]]
 }
 
@@ -136,8 +136,8 @@ class KundenportalReadRepositoryAsyncImpl extends KundenportalReadRepositoryAsyn
     getRechnungDetailQuery(id).future()
   }
 
-  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject): Future[List[ArbeitseinsatzDetail]] = {
-    getArbeitseinsaetzeQuery.future()
+  def getArbeitseinsaetze(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[ArbeitseinsatzDetail]] = {
+    getArbeitseinsaetzeQuery(gjFilter).future()
   }
 
   def getArbeitsangebote(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, owner: Subject, gjFilter: Option[GeschaeftsjahrFilter]): Future[List[Arbeitsangebot]] = {
