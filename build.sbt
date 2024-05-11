@@ -77,7 +77,7 @@ val buildSettings = Seq(
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
-    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.19.0",
+    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.20.0",
     "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
