@@ -94,6 +94,10 @@ trait ArbeitseinsatzRoutes extends BaseRouteService
               (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id)) ~
               delete(remove(id))
         } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath / "archive") {
+          id =>
+              (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id))
+        } ~
         path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "duplizieren") {
           id =>
             post {

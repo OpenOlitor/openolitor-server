@@ -147,8 +147,8 @@ class ArbeitseinsatzInsertService(override val sysConfig: SystemConfig) extends 
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       arbeitseinsatzWriteRepository.getById(arbeitsangebotMapping, arbeitsangebotDupl.arbeitsangebotId) map { arbeitsangebot =>
         val status = arbeitsangebot.status match {
-          case Archiviert | Abgesagt => InVorbereitung
-          case s                     => s
+          case Archiviert | Abgesagt | Beendet => InVorbereitung
+          case s                               => s
         }
         val duration = new Duration(arbeitsangebot.zeitVon, arbeitsangebot.zeitBis)
         val zeitBis = arbeitsangebotDupl.zeitVon.plus(duration)
