@@ -96,7 +96,7 @@ trait ArbeitseinsatzRoutes extends BaseRouteService
         } ~
         path("arbeitsangebote" / arbeitsangebotIdPath / "archive") {
           id =>
-              (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id))
+            (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id))
         } ~
         path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "duplizieren") {
           id =>
