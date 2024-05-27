@@ -42,6 +42,7 @@ import scala.util._
 
 object ArbeitseinsatzCommandHandler {
   case class ArbeitsangebotArchivedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
+  case class ArbeitsangebotCompletedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
 
   case class SendEmailToArbeitsangebotPersonenCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId]) extends UserCommand
 
@@ -66,8 +67,22 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
         DB readOnly { implicit session =>
           arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, id) map { arbeitsangebot =>
             arbeitsangebot.status match {
-              case (Bereit) =>
+              case (Beendet) =>
                 val copy = arbeitsangebot.copy(status = Archiviert)
+                Success(Seq(EntityUpdateEvent(id, copy)))
+              case _ =>
+                Failure(new InvalidStateException("Der Arbeitseinsatz muss 'Beendet' sein."))
+            }
+          } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
+        }
+
+    case ArbeitsangebotCompletedCommand(id, personId) => idFactory =>
+      meta =>
+        DB readOnly { implicit session =>
+          arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, id) map { arbeitsangebot =>
+            arbeitsangebot.status match {
+              case (Bereit) =>
+                val copy = arbeitsangebot.copy(status = Beendet)
                 Success(Seq(EntityUpdateEvent(id, copy)))
               case _ =>
                 Failure(new InvalidStateException("Der Arbeitseinsatz muss 'Bereit' sein."))

@@ -47,12 +47,12 @@ class ArbeitseinsatzStatusUpdater(override val sysConfig: SystemConfig, override
 
   override def process(): Unit = {
     DB autoCommit { implicit session =>
-      val archived = getArbeitsangebotArchivedQuery()
+      val completed = getArbeitsangebotCompletedQuery()
 
-      logger.debug(s"Found ${archived.size} archived Arbeitsangebote for ${sysConfig.mandantConfiguration.name}")
+      logger.debug(s"Found ${completed.size} completedArbeitsangebote for ${sysConfig.mandantConfiguration.name}")
 
-      archived foreach { arbeitsangebot =>
-        entityStore ! ArbeitseinsatzCommandHandler.ArbeitsangebotArchivedCommand(arbeitsangebot.id)
+      completed foreach { arbeitsangebot =>
+        entityStore ! ArbeitseinsatzCommandHandler.ArbeitsangebotCompletedCommand(arbeitsangebot.id)
       }
     }
   }
