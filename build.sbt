@@ -42,7 +42,7 @@ val buildSettings = Seq(
   scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
-  version := "2.6.35_RC1",
+  version := "2.6.36_RC1",
   scalaVersion := "2.13.13",
   crossScalaVersions := Seq("2.13.8", "2.13.13"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
