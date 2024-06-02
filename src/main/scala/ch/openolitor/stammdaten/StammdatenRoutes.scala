@@ -340,10 +340,8 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen") { (abotypId, vertriebId) =>
         get(list(stammdatenReadRepository.getUngeplanteLieferungen(abotypId, vertriebId))) ~
           post {
-            extractRequest { request =>
-              entity(as[LieferungAbotypCreate]) { entity =>
-                created(request)(entity)
-              }
+            entity(as[LieferungAbotypCreate]) { lieferungAbotypCreate =>
+              createLieferungAbotypCreate(lieferungAbotypCreate)
             }
           }
       } ~
@@ -648,6 +646,15 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
     onSuccess(entityStore ? StammdatenCommandHandler.CreateKundeCommand(subject.personId, kunde)) {
       case UserCommandFailed =>
         complete(StatusCodes.BadRequest, s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet.")
+      case response: EntityInsertedEvent[_, _] =>
+        complete(StatusCodes.Created, IdResponse(response.id.id).toJson.compactPrint)
+      case x =>
+        complete(StatusCodes.BadRequest, s"No id generated or CommandHandler not triggered:$x")
+    }
+  }
+
+  private def createLieferungAbotypCreate(lieferungAbotypCreate: LieferungAbotypCreate)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateLieferungAbotyp(subject.personId, lieferungAbotypCreate)) {
       case response: EntityInsertedEvent[_, _] =>
         complete(StatusCodes.Created, IdResponse(response.id.id).toJson.compactPrint)
       case x =>

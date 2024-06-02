@@ -85,6 +85,8 @@ object StammdatenCommandHandler {
 
   case class CreateKundeCommand(originator: PersonId, kunde: KundeModify) extends UserCommand
 
+  case class CreateLieferungAbotyp(originator: PersonId, lieferungAbotypCreate: LieferungAbotypCreate) extends UserCommand
+
   case class RemoveLieferungCommand(originator: PersonId, lieferungId: LieferungId) extends UserCommand
 
   // TODO person id for calculations
@@ -554,6 +556,10 @@ trait StammdatenCommandHandler extends CommandHandler
       meta =>
         createKunde(idFactory, meta, kunde)
 
+    case CreateLieferungAbotyp(_, lieferungAbotypCreate) => idFactory =>
+      meta =>
+        createLieferungAbotyp(idFactory, meta, lieferungAbotypCreate)
+
     case RemoveLieferungCommand(_, lieferungId) => idFactory =>
       meta =>
         removeLieferung(idFactory, meta, lieferungId)
@@ -984,6 +990,16 @@ trait StammdatenCommandHandler extends CommandHandler
         } else {
           Failure(new InvalidStateException(s"Die übermittelte E-Mail Adresse wird bereits von einer anderen Person verwendet."))
         }
+      }
+    }
+  }
+
+  def createLieferungAbotyp(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungAbotypCreate: LieferungAbotypCreate) = {
+    DB readOnly { implicit session =>
+      if (stammdatenReadRepository.getLieferungen(lieferungAbotypCreate.abotypId, lieferungAbotypCreate.vertriebId, lieferungAbotypCreate.datum).isEmpty) {
+        Success(Seq(EntityInsertEvent(idFactory.newId(LieferungId.apply), lieferungAbotypCreate)))
+      } else {
+        Failure(new InvalidStateException(s"There was already a lieferung for this date"))
       }
     }
   }
