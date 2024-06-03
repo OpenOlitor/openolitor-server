@@ -1559,13 +1559,14 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
   }
 
   protected def getLieferungenQuery(abotypId: AbotypId, vertriebId: VertriebId, datum: DateTime) = {
+    val datumLocalDate = datum.toLocalDate()
     withSQL {
       select
         .from(lieferungMapping as lieferung)
         .where.eq(lieferung.abotypId, abotypId)
         .and.eq(lieferung.vertriebId, vertriebId)
-        .and.eq(lieferung.datum, datum)
-    }.map(lieferungMapping(lieferung)).list
+        .and.eq(lieferung.datum, datumLocalDate)
+    }.map(lieferungMapping(lieferung)).single
   }
 
   protected def getLieferungenQuery(id: VertriebId) = {

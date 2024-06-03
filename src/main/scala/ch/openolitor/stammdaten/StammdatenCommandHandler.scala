@@ -85,7 +85,9 @@ object StammdatenCommandHandler {
 
   case class CreateKundeCommand(originator: PersonId, kunde: KundeModify) extends UserCommand
 
-  case class CreateLieferungAbotyp(originator: PersonId, lieferungAbotypCreate: LieferungAbotypCreate) extends UserCommand
+  case class CreateLieferungAbotypCommand(originator: PersonId, lieferungAbotypCreate: LieferungAbotypCreate) extends UserCommand
+
+  case class CreateLieferungenAbotypCommand(originator: PersonId, lieferungenAbotypCreate: LieferungenAbotypCreate) extends UserCommand
 
   case class RemoveLieferungCommand(originator: PersonId, lieferungId: LieferungId) extends UserCommand
 
@@ -556,9 +558,13 @@ trait StammdatenCommandHandler extends CommandHandler
       meta =>
         createKunde(idFactory, meta, kunde)
 
-    case CreateLieferungAbotyp(_, lieferungAbotypCreate) => idFactory =>
+    case CreateLieferungAbotypCommand(_, lieferungAbotypCreate) => idFactory =>
       meta =>
         createLieferungAbotyp(idFactory, meta, lieferungAbotypCreate)
+
+    case CreateLieferungenAbotypCommand(_, lieferungenAbotypCreate) => idFactory =>
+      meta =>
+        createLieferungenAbotyp(idFactory, meta, lieferungenAbotypCreate)
 
     case RemoveLieferungCommand(_, lieferungId) => idFactory =>
       meta =>
@@ -996,10 +1002,25 @@ trait StammdatenCommandHandler extends CommandHandler
 
   def createLieferungAbotyp(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungAbotypCreate: LieferungAbotypCreate) = {
     DB readOnly { implicit session =>
-      if (stammdatenReadRepository.getLieferungen(lieferungAbotypCreate.abotypId, lieferungAbotypCreate.vertriebId, lieferungAbotypCreate.datum).isEmpty) {
-        Success(Seq(EntityInsertEvent(idFactory.newId(LieferungId.apply), lieferungAbotypCreate)))
+      stammdatenReadRepository.getLieferungen(lieferungAbotypCreate.abotypId, lieferungAbotypCreate.vertriebId, lieferungAbotypCreate.datum) match {
+        case None => Success(Seq(EntityInsertEvent(idFactory.newId(LieferungId.apply), lieferungAbotypCreate)))
+        case _    => Failure(new InvalidStateException("This delivery date for this distribution already exists."))
+      }
+    }
+  }
+
+  def createLieferungenAbotyp(idFactory: IdFactory, meta: EventTransactionMetadata, lieferungenAbotypCreate: LieferungenAbotypCreate) = {
+    DB readOnly { implicit session =>
+      val events = lieferungenAbotypCreate.daten map { datum: DateTime =>
+        stammdatenReadRepository.getLieferungen(lieferungenAbotypCreate.abotypId, lieferungenAbotypCreate.vertriebId, datum) match {
+          case None    => Some(EntityInsertEvent(idFactory.newId(LieferungId.apply), LieferungAbotypCreate(lieferungenAbotypCreate.abotypId, lieferungenAbotypCreate.vertriebId, datum)))
+          case Some(_) => None
+        }
+      }
+      if (!events.flatten.isEmpty) {
+        Success(events.flatten)
       } else {
-        Failure(new InvalidStateException(s"There was already a lieferung for this date"))
+        Failure(new InvalidStateException("All delivery dates for this distribution already exist."))
       }
     }
   }

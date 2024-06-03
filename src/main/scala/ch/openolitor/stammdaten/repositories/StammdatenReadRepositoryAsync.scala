@@ -126,6 +126,7 @@ trait StammdatenReadRepositoryAsync extends ReportReadRepository {
   def getLieferplanung(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferplanung]]
   def getLatestLieferplanung(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferplanung]]
   def getLieferungenNext()(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[Lieferung]]
+  def getCountNrOfFreeDates(abotypId: AbotypId, vertriebId: VertriebId,datum: DateTime)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Int]
   def getLastGeplanteLieferung(abotypId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferung]]
   def getLieferungenDetails(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferungDetail]]
   def getVerfuegbareLieferungen(id: LieferplanungId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[List[LieferungDetail]]
@@ -606,6 +607,8 @@ class StammdatenReadRepositoryAsyncImpl extends BaseReadRepositoryAsync with Sta
     import scalikejdbc.async.makeSQLToListAsync
     getLieferungenNextQuery.future()
   }
+
+  def getCountNrOfFreeDates(abotypId: AbotypId, vertriebId: VertriebId,datum: DateTime)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Int]
 
   def getLastGeplanteLieferung(abotypId: AbotypId)(implicit context: ExecutionContext, asyncCpContext: MultipleAsyncConnectionPoolContext): Future[Option[Lieferung]] = {
     import scalikejdbc.async.makeSQLToOptionAsync

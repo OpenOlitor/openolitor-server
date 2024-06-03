@@ -99,7 +99,7 @@ trait StammdatenReadRepositorySync extends BaseReadRepositorySync with ProjektRe
   def getExistingZusatzaboLieferung(zusatzAbotypId: AbotypId, lieferplanungId: LieferplanungId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
   def getLieferungen(id: LieferplanungId)(implicit session: DBSession): List[Lieferung]
   def getLieferungen(id: VertriebId)(implicit session: DBSession): List[Lieferung]
-  def getLieferungen(abotypId: AbotypId, vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): List[Lieferung]
+  def getLieferungen(abotypId: AbotypId, vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
   def getLieferungenDetails(id: LieferplanungId)(implicit session: DBSession): List[LieferungDetail]
   def sumPreisTotalGeplanteLieferungenVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime, startGeschaeftsjahr: DateTime)(implicit session: DBSession): Option[BigDecimal]
   def getGeplanteLieferungVorher(vertriebId: VertriebId, abotypId: AbotypId, datum: DateTime)(implicit session: DBSession): Option[Lieferung]
@@ -490,7 +490,7 @@ trait StammdatenReadRepositorySyncImpl extends StammdatenReadRepositorySync with
     getLieferungenQuery(id).apply()
   }
 
-  def getLieferungen(abotypId: AbotypId, vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): List[Lieferung] = {
+  def getLieferungen(abotypId: AbotypId, vertriebId: VertriebId, datum: DateTime)(implicit session: DBSession): Option[Lieferung] = {
     getLieferungenQuery(abotypId, vertriebId, datum).apply()
   }
   def getLieferungen(id: VertriebId)(implicit session: DBSession): List[Lieferung] = {

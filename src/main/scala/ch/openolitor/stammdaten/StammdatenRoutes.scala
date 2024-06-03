@@ -345,11 +345,14 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
             }
           }
       } ~
+      path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / "countFreeDates") { (abotypId, vertriebId, datum) =>
+        get(list(stammdatenReadRepository.getCountNrOfFreeDates(abotypId, vertriebId,datum))) ~
+      } ~
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / "aktionen" / "generieren") { (abotypId, vertriebId) =>
         post {
           extractRequest { request =>
             entity(as[LieferungenAbotypCreate]) { entity =>
-              created(request)(entity)
+              createLieferungenAbotypCreate(entity)
             }
           }
         }
@@ -654,14 +657,22 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
   }
 
   private def createLieferungAbotypCreate(lieferungAbotypCreate: LieferungAbotypCreate)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
-    onSuccess(entityStore ? StammdatenCommandHandler.CreateLieferungAbotyp(subject.personId, lieferungAbotypCreate)) {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateLieferungAbotypCommand(subject.personId, lieferungAbotypCreate)) {
       case response: EntityInsertedEvent[_, _] =>
-        complete(StatusCodes.Created, IdResponse(response.id.id).toJson.compactPrint)
-      case x =>
-        complete(StatusCodes.BadRequest, s"No id generated or CommandHandler not triggered:$x")
+        complete("")
+      case _ =>
+        complete(StatusCodes.BadRequest, s"Something went wrong. Are you sure about the delivery dates you are trying to create")
     }
   }
 
+  private def createLieferungenAbotypCreate(lieferungenAbotypCreate: LieferungenAbotypCreate)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
+    onSuccess(entityStore ? StammdatenCommandHandler.CreateLieferungenAbotypCommand(subject.personId, lieferungenAbotypCreate)) {
+      case response: EntityInsertedEvent[_, _] =>
+        complete("")
+      case _ =>
+        complete(StatusCodes.BadRequest, s"Something went wrong. Are you sure about the delivery dates you are trying to create")
+    }
+  }
   private def updateKunde(id: KundeId, kunde: KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
     onSuccess(entityStore ? StammdatenCommandHandler.UpdateKundeCommand(subject.personId, id, kunde)) {
       case UserCommandFailed =>
