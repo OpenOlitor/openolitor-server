@@ -650,6 +650,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(lieferungMapping(lieferung)).list
   }
 
+  protected def getLieferungenQuery(abotypId: AbotypId, vertriebId: VertriebId) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, abotypId).and.eq(lieferung.vertriebId, vertriebId)
+        .orderBy(lieferung.datum)
+    }.map(lieferungMapping(lieferung)).list
+  }
+
   protected def getDepotsQuery = {
     withSQL {
       select
@@ -1485,6 +1494,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
 		       GROUP BY ${lieferung.abotypId}) groupedLieferung
 		    ON ${lieferung.abotypId} = groupedLieferung.abotypId
 		    AND ${lieferung.datum} = groupedLieferung.MinDateTime
+      """.map(lieferungMapping(lieferung)).list
+  }
+
+  protected def getLieferungenFreeDatesQuery(lieferungenAbotypCreate: LieferungenAbotypCreate) = {
+    sql"""
+        SELECT
+        FROM ${lieferungMapping as lieferung}
+        WHERE ${lieferung.vertriebId} = ${lieferungenAbotypCreate.vertriebId}
+        AND ${lieferung.abotypId} <> ${lieferungenAbotypCreate.abotypId}
+        AND ${lieferung.datum} NOT IN ${lieferungenAbotypCreate.daten}
       """.map(lieferungMapping(lieferung)).list
   }
 

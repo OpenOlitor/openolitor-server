@@ -345,8 +345,8 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
             }
           }
       } ~
-      path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / "countFreeDates") { (abotypId, vertriebId, datum) =>
-        get(list(stammdatenReadRepository.getCountNrOfFreeDates(abotypId, vertriebId,datum))) ~
+      path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "alleLieferungen") { (abotypId, vertriebId) =>
+        get(list(stammdatenReadRepository.getLieferungen(abotypId, vertriebId)))
       } ~
       path("abotypen" / abotypIdPath / "vertriebe" / vertriebIdPath / "lieferungen" / "aktionen" / "generieren") { (abotypId, vertriebId) =>
         post {
@@ -670,7 +670,7 @@ trait StammdatenRoutes extends BaseRouteService with ActorReferences
       case response: EntityInsertedEvent[_, _] =>
         complete("")
       case _ =>
-        complete(StatusCodes.BadRequest, s"Something went wrong. Are you sure about the delivery dates you are trying to create")
+        complete(StatusCodes.BadRequest, s"Etwas ist schief gelaufen. Sind Sie sicher, dass die Lieferdaten, die Sie zu erstellen versuchen, richtig sind?")
     }
   }
   private def updateKunde(id: KundeId, kunde: KundeModify)(implicit idPersister: Persister[KundeId, _], subject: Subject): Route = {
