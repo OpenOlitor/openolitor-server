@@ -235,7 +235,7 @@ trait StammdatenRouteServiceInteractions extends BaseRoutesWithDBSpec with SpecS
       val lieferungenAbotypCreate = LieferungenAbotypCreate(abotypId, vertriebId, (0 to 4).map(months => DateTime.now().withTimeAtStartOfDay().withDayOfWeek(4).plusMonths(months)))
 
       Post(s"/abotypen/${abotypId.id}/vertriebe/${vertriebId.id}/lieferungen/aktionen/generieren", lieferungenAbotypCreate) ~> stammdatenRouteService.stammdatenRoute ~> check {
-        status === StatusCodes.Created
+        status === StatusCodes.OK
 
         expectDBEvents(5) { (creations, _, _, _) =>
           dbEventProbe.expectNoMessage()
