@@ -31,10 +31,10 @@ val specs2V = "4.20.5" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
-val scalalikeV = "4.0.0"
+val scalalikeV = "4.3.0"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.17.6"
+val testContainersVersion = "1.19.8"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -54,7 +54,7 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"       %% "scala-xml"                          % "2.2.0",
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.3.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
@@ -77,7 +77,7 @@ val buildSettings = Seq(
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
-    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.19.0",
+    "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.20.0",
     "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
@@ -86,9 +86,9 @@ val buildSettings = Seq(
     "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.3",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.6",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.4",
-    "mysql"	                       %  "mysql-connector-java"               % "8.0.33",
+    "com.mysql"	                       %  "mysql-connector-j"               % "8.4.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
