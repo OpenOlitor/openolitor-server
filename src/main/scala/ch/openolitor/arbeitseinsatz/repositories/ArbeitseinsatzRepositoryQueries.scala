@@ -216,7 +216,7 @@ trait ArbeitseinsatzRepositoryQueries extends LazyLogging with ArbeitseinsatzDBM
       }.list
   }
 
-  protected def getArbeitsangebotArchivedQuery = {
+  protected def getArbeitsangebotCompletedQuery = {
     withSQL {
       select
         .from(arbeitsangebotMapping as arbeitsangebot)

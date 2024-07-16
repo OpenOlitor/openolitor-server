@@ -58,7 +58,7 @@
     </logger>
 
     <!-- TO SEE SQL QUERY LOG-OUTPUT SWITCH THIS LEVEL TO DEBUG-->
-    <logger name="scalikejdbc" level="DEBUG" additivity="false">
+    <logger name="scalikejdbc" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 

@@ -650,6 +650,15 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
     }.map(lieferungMapping(lieferung)).list
   }
 
+  protected def getLieferungenQuery(abotypId: AbotypId, vertriebId: VertriebId) = {
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, abotypId).and.eq(lieferung.vertriebId, vertriebId)
+        .orderBy(lieferung.datum)
+    }.map(lieferungMapping(lieferung)).list
+  }
+
   protected def getDepotsQuery = {
     withSQL {
       select
@@ -1488,6 +1497,16 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
       """.map(lieferungMapping(lieferung)).list
   }
 
+  protected def getLieferungenFreeDatesQuery(lieferungenAbotypCreate: LieferungenAbotypCreate) = {
+    sql"""
+        SELECT
+        FROM ${lieferungMapping as lieferung}
+        WHERE ${lieferung.vertriebId} = ${lieferungenAbotypCreate.vertriebId}
+        AND ${lieferung.abotypId} <> ${lieferungenAbotypCreate.abotypId}
+        AND ${lieferung.datum} NOT IN ${lieferungenAbotypCreate.daten}
+      """.map(lieferungMapping(lieferung)).list
+  }
+
   protected def getLastGeplanteLieferungQuery(abotypId: AbotypId) = {
     withSQL {
       select
@@ -1556,6 +1575,17 @@ trait StammdatenRepositoryQueries extends LazyLogging with StammdatenDBMappings 
         .where.eq(lieferung.lieferplanungId, id)
         .orderBy(lieferung.datum).desc
     }.map(lieferungMapping(lieferung)).list
+  }
+
+  protected def getLieferungenQuery(abotypId: AbotypId, vertriebId: VertriebId, datum: DateTime) = {
+    val datumLocalDate = datum.toLocalDate()
+    withSQL {
+      select
+        .from(lieferungMapping as lieferung)
+        .where.eq(lieferung.abotypId, abotypId)
+        .and.eq(lieferung.vertriebId, vertriebId)
+        .and.eq(lieferung.datum, datumLocalDate)
+    }.map(lieferungMapping(lieferung)).single
   }
 
   protected def getLieferungenQuery(id: VertriebId) = {
