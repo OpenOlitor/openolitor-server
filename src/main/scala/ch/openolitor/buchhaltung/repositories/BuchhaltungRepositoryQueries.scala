@@ -54,6 +54,7 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
           select
             .from(rechnungMapping as rechnung)
             .join(projektMapping as projekt)
+            .leftJoin(kundeMapping as kunde).on(rechnung.kundeId, kunde.id)
             .where.append(
               UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
             ).and(
@@ -65,12 +66,15 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
           select
             .from(rechnungMapping as rechnung)
             .join(projektMapping as projekt)
+            .leftJoin(kundeMapping as kunde).on(rechnung.kundeId, kunde.id)
             .where.append(
               UriQueryParamToSQLSyntaxBuilder.build[Rechnung](gjFilter, rechnung, "rechnungsDatum")
             ).and(
                 UriQueryParamToSQLSyntaxBuilder.build(filter, rechnung)
               ).and.append(
                   UriQueryParamToSQLSyntaxBuilder.build(queryString, "titel", rechnung)
+                    .append(sqls"""or""")
+                    .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
                     .append(sqls"""or""")
                     .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", rechnung))
                     .append(sqls"""or""")
@@ -89,6 +93,11 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         withSQL {
           select
             .from(rechnungsPositionMapping as rechnungsPosition)
+            .leftJoin(kundeMapping as kunde).on(rechnungsPosition.kundeId, kunde.id)
+            .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(rechnungsPosition.aboId, depotlieferungAbo.id)
+            .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnungsPosition.aboId, heimlieferungAbo.id)
+            .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnungsPosition.aboId, postlieferungAbo.id)
+            .leftJoin(zusatzAboMapping as zusatzAbo).on(rechnungsPosition.aboId, zusatzAbo.id)
             .where(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
             .orderBy(rechnungsPosition.id)
         }.map(rechnungsPositionMapping(rechnungsPosition)).list
@@ -96,9 +105,30 @@ trait BuchhaltungRepositoryQueries extends LazyLogging with BuchhaltungDBMapping
         withSQL {
           select
             .from(rechnungsPositionMapping as rechnungsPosition)
+            .leftJoin(kundeMapping as kunde).on(rechnungsPosition.kundeId, kunde.id)
+            .leftJoin(depotlieferungAboMapping as depotlieferungAbo).on(rechnungsPosition.aboId, depotlieferungAbo.id)
+            .leftJoin(heimlieferungAboMapping as heimlieferungAbo).on(rechnungsPosition.aboId, heimlieferungAbo.id)
+            .leftJoin(postlieferungAboMapping as postlieferungAbo).on(rechnungsPosition.aboId, postlieferungAbo.id)
+            .leftJoin(zusatzAboMapping as zusatzAbo).on(rechnungsPosition.aboId, zusatzAbo.id)
             .where.append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "beschrieb", rechnungsPosition))
             .append(sqls"""or""")
             .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", rechnungsPosition))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "abotypName", depotlieferungAbo))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "abotypName", heimlieferungAbo))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "abotypName", postlieferungAbo))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "abotypName", zusatzAbo))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "id", kunde))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "bezeichnung", kunde))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "aboId", rechnungsPosition))
+            .append(sqls"""or""")
+            .append(UriQueryParamToSQLSyntaxBuilder.build(queryString, "betrag", rechnungsPosition))
             .and(UriQueryParamToSQLSyntaxBuilder.build(filter, rechnungsPosition))
             .orderBy(rechnungsPosition.id)
         }.map(rechnungsPositionMapping(rechnungsPosition)).list
