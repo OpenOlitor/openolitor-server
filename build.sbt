@@ -105,13 +105,13 @@ val buildSettings = Seq(
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.2.0",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.30",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.30" pomOnly(),
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.32",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.32" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.17",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.17",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.30"
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.32"
   )
 },
   dependencyOverrides ++= Seq(
