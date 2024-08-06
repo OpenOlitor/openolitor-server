@@ -31,7 +31,7 @@ val specs2V = "4.20.8" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
-val scalalikeV = "4.3.0"
+val scalalikeV = "4.3.1"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
 val testContainersVersion = "1.19.8"
