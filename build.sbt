@@ -101,7 +101,7 @@ val buildSettings = Seq(
     "com.github.blemale"           %% "scaffeine"                          % "5.3.0", // ### Scala 3
     "de.zalando"                   %% "beard"                              % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
     // transitive dependencies of legacy de.zalando.beard
-    "org.antlr"                    %  "antlr4"                             % "4.8-1",
+    "org.antlr"                    %  "antlr4"                             % "4.13.2",
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.2.0",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
