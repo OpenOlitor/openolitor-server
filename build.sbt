@@ -31,10 +31,10 @@ val specs2V = "4.20.8" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
-val scalalikeV = "4.3.0"
+val scalalikeV = "4.3.1"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.19.8"
+val testContainersVersion = "1.20.1"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -83,35 +83,35 @@ val buildSettings = Seq(
     "org.scalikejdbc" 	           %% "scalikejdbc-syntax-support-macro"   % scalalikeV, // ### Scala 3
     "org.scalikejdbc" 	           %% "scalikejdbc-joda-time"              % scalalikeV, // ### Scala 3
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.+",
-    "com.h2database"               %  "h2"                                 % "2.2.224"                               % "test",
+    "com.h2database"               %  "h2"                                 % "2.3.230"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.6",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.4.1",
-    "com.mysql"	                       %  "mysql-connector-j"               % "8.4.0",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.4",
+    "com.mysql"	                       %  "mysql-connector-j"               % "9.0.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.748",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.765",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.32.0", // ### Scala 3
     "com.github.blemale"           %% "scaffeine"                          % "5.3.0", // ### Scala 3
     "de.zalando"                   %% "beard"                              % "0.3.3" exclude("ch.qos.logback", "logback-classic") from "https://github.com/OpenOlitor/beard/releases/download/0.3.3/beard_2.13-0.3.3.jar", // ### NO Scala 3, NO Scala 2.13
     // transitive dependencies of legacy de.zalando.beard
-    "org.antlr"                    %  "antlr4"                             % "4.8-1",
+    "org.antlr"                    %  "antlr4"                             % "4.13.2",
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.2.0",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.30",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.30" pomOnly(),
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.32",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.32" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.17",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.17",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.30"
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.32"
   )
 },
   dependencyOverrides ++= Seq(
