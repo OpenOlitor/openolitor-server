@@ -117,7 +117,7 @@ val buildSettings = Seq(
   dependencyOverrides ++= Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
     "xerces" % "xercesImpl" % "2.12.2",
-    "org.apache.commons" % "commons-compress" % "1.26.0",
+    "org.apache.commons" % "commons-compress" % "1.26.2",
     "io.netty" % "netty-handler" % "4.1.107.Final",
     "org.apache.jena" % "jena-core" % "4.6.1",
     "com.google.protobuf" % "protobuf-java" % "3.21.10",
