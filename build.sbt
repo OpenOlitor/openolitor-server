@@ -87,7 +87,7 @@ val buildSettings = Seq(
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.8",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.1.4",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.0",
     "com.mysql"	                       %  "mysql-connector-j"               % "9.0.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
