@@ -121,7 +121,7 @@ val buildSettings = Seq(
     "io.netty" % "netty-handler" % "4.1.107.Final",
     "org.apache.jena" % "jena-core" % "4.6.1",
     "com.google.protobuf" % "protobuf-java" % "3.21.10",
-    "com.google.guava" % "guava" % "33.0.0-jre"
+    "com.google.guava" % "guava" % "33.3.1-jre"
   )
 )
 
