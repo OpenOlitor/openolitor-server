@@ -34,7 +34,7 @@ val sprayV = "1.3.+"
 val scalalikeV = "4.3.2"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.20.3"
+val testContainersVersion = "1.20.4"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -87,14 +87,14 @@ val buildSettings = Seq(
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.12",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.0",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.1",
     "com.mysql"	                       %  "mysql-connector-j"               % "9.1.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.777",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.779",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.34.0", // ### Scala 3
@@ -118,7 +118,7 @@ val buildSettings = Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.26.2",
-    "io.netty" % "netty-handler" % "4.1.114.Final",
+    "io.netty" % "netty-handler" % "4.1.115.Final",
     "org.apache.jena" % "jena-core" % "5.2.0",
     "com.google.protobuf" % "protobuf-java" % "4.29.0",
     "com.google.guava" % "guava" % "33.0.0-jre"
