@@ -1,4 +1,4 @@
-scalaVersion := "2.13.15"
+scalaVersion := "2.13.16"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -27,14 +27,14 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 
-val specs2V = "4.20.9" // based on spray 1.3.x built in support
+val specs2V = "4.21.0" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
 val scalalikeV = "4.3.2"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.20.4"
+val testContainersVersion = "1.20.6"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -43,8 +43,8 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   version := "2.6.42",
-  scalaVersion := "2.13.15",
-  crossScalaVersions := Seq("2.13.8", "2.13.13"),
+  scalaVersion := "2.13.16",
+  crossScalaVersions := Seq("2.13.8", "2.13.16"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -86,8 +86,8 @@ val buildSettings = Seq(
     "com.h2database"               %  "h2"                                 % "2.3.232"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.12",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.1",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.18",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.3",
     "com.mysql"	                       %  "mysql-connector-j"               % "9.1.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
@@ -105,23 +105,23 @@ val buildSettings = Seq(
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
     "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.2.0",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.32",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.32" pomOnly(),
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.34",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.34" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.18",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.18",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.32"
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.34"
   )
 },
   dependencyOverrides ++= Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.26.2",
-    "io.netty" % "netty-handler" % "4.1.115.Final",
+    "io.netty" % "netty-handler" % "4.1.121.Final",
     "org.apache.jena" % "jena-core" % "5.4.0",
-    "com.google.protobuf" % "protobuf-java" % "4.29.0",
-    "com.google.guava" % "guava" % "33.0.0-jre"
+    "com.google.protobuf" % "protobuf-java" % "4.29.4",
+    "com.google.guava" % "guava" % "33.4.8-jre"
   )
 )
 
