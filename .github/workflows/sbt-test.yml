@@ -2,6 +2,10 @@ name: sbt test
 
 on: [push, pull_request]
 
+permissions:
+  pull-requests: write
+  contents: read
+  
 jobs:
   test:
     runs-on: ubuntu-22.04
