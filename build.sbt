@@ -54,7 +54,7 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"       %% "scala-xml"                          % "2.3.0",
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.4.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
@@ -73,7 +73,7 @@ val buildSettings = Seq(
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
-    "org.mockito"                  %% "mockito-scala"                      % "1.17.37"                                % "test",
+    "org.mockito"                  %% "mockito-scala"                      % "1.17.45"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
@@ -107,8 +107,8 @@ val buildSettings = Seq(
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
     "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.34",
     "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.34" pomOnly(),
-    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.18",
-    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.18",
+    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.19",
+    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.19",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
     "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.34"
@@ -118,9 +118,9 @@ val buildSettings = Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.26.2",
-    "io.netty" % "netty-handler" % "4.1.121.Final",
+    "io.netty" % "netty-handler" % "4.2.1.Final",
     "org.apache.jena" % "jena-core" % "5.4.0",
-    "com.google.protobuf" % "protobuf-java" % "4.29.5",
+    "com.google.protobuf" % "protobuf-java" % "4.31.1",
     "com.google.guava" % "guava" % "33.4.8-jre"
   )
 )
