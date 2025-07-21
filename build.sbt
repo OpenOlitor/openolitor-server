@@ -31,10 +31,10 @@ val specs2V = "4.21.0" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
-val scalalikeV = "4.3.2"
+val scalalikeV = "4.3.4"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.20.6"
+val testContainersVersion = "1.21.3"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -54,7 +54,7 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"       %% "scala-xml"                          % "2.3.0",
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.4.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
@@ -73,7 +73,7 @@ val buildSettings = Seq(
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
-    "org.mockito"                  %% "mockito-scala"                      % "1.17.37"                                % "test",
+    "org.mockito"                  %% "mockito-scala"                      % "1.17.45"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
@@ -87,14 +87,14 @@ val buildSettings = Seq(
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.18",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.3",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.4",
     "com.mysql"	                       %  "mysql-connector-j"               % "9.3.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.783",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.787",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.34.0", // ### Scala 3
@@ -107,8 +107,8 @@ val buildSettings = Seq(
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
     "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.34",
     "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.34" pomOnly(),
-    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.18",
-    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.18",
+    "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.19",
+    "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.19",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
     "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.34"
@@ -118,9 +118,9 @@ val buildSettings = Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.26.2",
-    "io.netty" % "netty-handler" % "4.1.121.Final",
+    "io.netty" % "netty-handler" % "4.1.123.Final",
     "org.apache.jena" % "jena-core" % "5.5.0",
-    "com.google.protobuf" % "protobuf-java" % "4.29.4",
+    "com.google.protobuf" % "protobuf-java" % "4.31.1",
     "com.google.guava" % "guava" % "33.4.8-jre"
   )
 )
