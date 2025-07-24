@@ -32,13 +32,14 @@ import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.domain.EntityStore._
 import akka.actor.ActorSystem
 import ch.openolitor.core.Macros._
-import ch.openolitor.stammdaten.models.{ Waehrung, CHF, EUR }
+import ch.openolitor.stammdaten.models.{CHF, EUR, Waehrung}
 import ch.openolitor.stammdaten.models.KontoDaten
 import ch.openolitor.util.ConfigUtil._
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungWriteRepositoryComponent
 import ch.openolitor.buchhaltung.repositories.BuchhaltungWriteRepositoryComponent
 import ch.openolitor.core.repositories.EventPublishingImplicits._
 import ch.openolitor.stammdaten.models.KundeId
+import net.codecrete.qrbill.generator.Payments
 
 object BuchhaltungInsertService {
   def apply(implicit sysConfig: SystemConfig, system: ActorSystem): BuchhaltungInsertService = new DefaultBuchhaltungInsertService(sysConfig, system)
@@ -130,10 +131,17 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
   def generateReferenzNummer(kontoDaten: KontoDaten, kundeId: KundeId, id: RechnungId): String = {
     val referenzNummerPrefix = kontoDaten.referenzNummerPrefix getOrElse ("")
 
-    val filled = s"${referenzNummerPrefix}%0${ReferenznummerLength - referenzNummerPrefix.size - RechnungIdLength}d%0${RechnungIdLength}d".format(kundeId.id, id.id)
-    val checksum = calculateChecksum(filled.toList map (_.asDigit))
+    if (Payments.isQRIBAN(kontoDaten.iban)) {
+      val filled = s"${referenzNummerPrefix}%0${ReferenznummerLength - referenzNummerPrefix.size - RechnungIdLength}d%0${RechnungIdLength}d".format(kundeId.id, id.id)
+      val checksum = calculateChecksum(filled.toList map (_.asDigit))
 
-    s"$filled$checksum"
+      s"$filled$checksum"
+    } else {
+      //TODO implement Refrenece Generation along this https://de.wikipedia.org/wiki/Strukturierte_Kreditorreferenz and https://www.mobilefish.com/services/creditor_reference/creditor_reference.php
+      val filled = s"${referenzNummerPrefix}dd".format(kundeId.id, id.id)
+      val checksum = calculateChecksum(filled.toList map (_.asDigit))
+      s"RF$checksum$filled"
+    }
   }
 
   def generateEsrNummer(kontoDaten: KontoDaten, betrag: BigDecimal, waehrung: Waehrung, referenzNummer: String): String = {
