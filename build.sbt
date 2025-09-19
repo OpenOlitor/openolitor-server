@@ -121,7 +121,7 @@ val buildSettings = Seq(
     "io.netty" % "netty-handler" % "4.1.123.Final",
     "org.apache.jena" % "jena-core" % "5.5.0",
     "com.google.protobuf" % "protobuf-java" % "4.31.1",
-    "com.google.guava" % "guava" % "33.4.8-jre",
+    "com.google.guava" % "guava" % "33.5.0-jre",
     "commons-beanutils" % "commons-beanutils" %  "1.11.0"
 )
 )
