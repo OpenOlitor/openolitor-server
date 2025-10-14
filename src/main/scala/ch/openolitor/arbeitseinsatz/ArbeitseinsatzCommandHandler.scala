@@ -90,19 +90,38 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
             }
           } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
         }
-
     case ArbeitsangebotCancelledCommand(arbeitangebotId, personId) => idFactory =>
       meta =>
         DB readOnly { implicit session =>
           arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitangebotId) match {
             case Some(arbeitsangebot) =>
-              val assignedEinsaetze = arbeitseinsatzReadRepository.getArbeitseinsatzDetailByArbeitsangebot(arbeitangebotId)
-              val deleteEvents = assignedEinsaetze.map(einsatz => EntityDeleteEvent(einsatz.id))
-              val updatedAngebot = arbeitsangebot.copy(status = Abgesagt)
-              // Transform to ArbeitsangebotModify
-              val updatedModify = copyTo[Arbeitsangebot, ArbeitsangebotModify](updatedAngebot)
-              val updateEvent = EntityUpdateEvent(arbeitangebotId, updatedModify)
-              Success(deleteEvents :+ updateEvent)
+              val assignedDetails = arbeitseinsatzReadRepository.getArbeitseinsatzDetailByArbeitsangebot(arbeitangebotId)
+
+              // create modify events for each assigned Einsatz
+              val einsatzUpdateEvents: Seq[ResultingEvent] = assignedDetails.flatMap { detail =>
+                arbeitseinsatzReadRepository.getById(arbeitseinsatzMapping, detail.id).map { einsatz =>
+                  val updatedBemerkungen = prependAbgesagt(
+                    // adjust if the field is not Option[String]
+                    einsatz.bemerkungen.asInstanceOf[Option[String]]
+                  )
+                  val einsatzModify = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](
+                    einsatz,
+                    "status" -> Abgesagt,
+                    "bemerkungen" -> updatedBemerkungen
+                  )
+                  EntityUpdateEvent(einsatz.id, einsatzModify)
+                }
+              }
+
+              // create modify event for the Arbeitsangebot
+              val angebotModify = copyTo[Arbeitsangebot, ArbeitsangebotModify](
+                arbeitsangebot,
+                "status" -> Abgesagt
+              )
+              val angebotUpdateEvent = EntityUpdateEvent(arbeitangebotId, angebotModify)
+
+              Success(einsatzUpdateEvents :+ angebotUpdateEvent)
+
             case None =>
               Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $arbeitangebotId gefunden"))
           }
@@ -162,6 +181,13 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
         }
         Success(events)
   }
+
+  private def prependAbgesagt(existing: Option[String]): Option[String] =
+    existing match {
+      case Some(txt) if txt.trim.startsWith("<span class=\"status-icon cancelled\" title=\"Cancelled\">&#10060;</span>") => Some(txt) // already prefixed
+      case Some(txt) => Some("<span class=\"status-icon cancelled\" title=\"Cancelled\">&#10060;</span> $txt")
+      case None => Some("<span class=\"status-icon cancelled\" title=\"Cancelled\">&#10060;</span>")
+    }
 
   private def checkTemplateArbeitsangebot(body: String, subject: String, ids: Seq[ArbeitsangebotId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
