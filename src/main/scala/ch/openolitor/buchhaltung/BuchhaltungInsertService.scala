@@ -137,7 +137,7 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
 
       s"$filled$checksum"
     } else {
-      //TODO implement Refrenece Generation along this https://de.wikipedia.org/wiki/Strukturierte_Kreditorreferenz and https://www.mobilefish.com/services/creditor_reference/creditor_reference.php
+      //TODO implement Reference Generation along this https://de.wikipedia.org/wiki/Strukturierte_Kreditorreferenz and https://www.mobilefish.com/services/creditor_reference/creditor_reference.php
       val filled = s"${referenzNummerPrefix}%d%d".format(kundeId.id, id.id)
       val checksum = calculateChecksum(filled.toList map (_.asDigit))
       s"RF$checksum$filled"
