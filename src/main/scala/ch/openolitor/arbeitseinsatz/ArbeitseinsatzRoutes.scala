@@ -105,7 +105,7 @@ trait ArbeitseinsatzRoutes extends BaseRouteService
               case UserCommandFailed =>
                 complete(StatusCodes.BadRequest, s"Could not cancel the Arbeitsangebot, please check the input data.")
               case _ =>
-                complete(StatusCodes.OK, "Arbeitsangebot cancelled and related einsätze removed.")
+                complete(StatusCodes.OK, "Arbeitsangebot cancelled and related einsätze marked as cancelled")
             }
           }
         } ~

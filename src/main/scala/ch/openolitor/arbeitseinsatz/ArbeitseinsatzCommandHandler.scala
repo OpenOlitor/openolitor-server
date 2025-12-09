@@ -100,10 +100,7 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
               // create modify events for each assigned Einsatz
               val einsatzUpdateEvents: Seq[ResultingEvent] = assignedDetails.flatMap { detail =>
                 arbeitseinsatzReadRepository.getById(arbeitseinsatzMapping, detail.id).map { einsatz =>
-                  val updatedBemerkungen = prependAbgesagt(
-                    // adjust if the field is not Option[String]
-                    einsatz.bemerkungen.asInstanceOf[Option[String]]
-                  )
+                  val updatedBemerkungen = einsatz.bemerkungen.asInstanceOf[Option[String]]
                   val einsatzModify = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](
                     einsatz,
                     "status" -> Abgesagt,
@@ -181,13 +178,6 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
         }
         Success(events)
   }
-
-  private def prependAbgesagt(existing: Option[String]): Option[String] =
-    existing match {
-      case Some(txt) if txt.trim.startsWith("<span class=\"status-icon cancelled\" title=\"Cancelled\">&#10060;</span>") => Some(txt) // already prefixed
-      case Some(txt) => Some("<span class=\"status-icon cancelled\" title=\"Cancelled\">&#10060;</span> $txt")
-      case None => Some("<span class=\"status-icon cancelled\" title=\"Cancelled\">&#10060;</span>")
-    }
 
   private def checkTemplateArbeitsangebot(body: String, subject: String, ids: Seq[ArbeitsangebotId])(implicit session: DBSession): Boolean = {
     val templateCorrect = ids flatMap { arbeitsangebotId: ArbeitsangebotId =>
