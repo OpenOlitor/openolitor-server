@@ -100,11 +100,9 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
               // create modify events for each assigned Einsatz
               val einsatzUpdateEvents: Seq[ResultingEvent] = assignedDetails.flatMap { detail =>
                 arbeitseinsatzReadRepository.getById(arbeitseinsatzMapping, detail.id).map { einsatz =>
-                  val updatedBemerkungen = einsatz.bemerkungen.asInstanceOf[Option[String]]
                   val einsatzModify = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](
                     einsatz,
                     "status" -> Abgesagt,
-                    "bemerkungen" -> updatedBemerkungen
                   )
                   EntityUpdateEvent(einsatz.id, einsatzModify)
                 }
