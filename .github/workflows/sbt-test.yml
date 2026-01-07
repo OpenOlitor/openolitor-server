@@ -37,6 +37,7 @@ jobs:
           hide_complexity: true
           output: "both"
       - name: Coverage Report Pull Request Comment
+        if: github.actor != 'scala-steward'
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
         with:
