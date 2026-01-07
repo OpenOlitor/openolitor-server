@@ -28,6 +28,7 @@ import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload
 import ch.openolitor.core.reporting.ReportSystem._
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 
@@ -63,7 +64,8 @@ class PDFReportResultCollector(reportSystem: ActorRef, override val jobQueueServ
       notifyProgress(stats)
     case SingleReportResult(id: RechnungId, stats, Right(result: ReportResultWithDocument)) =>
       log.debug(s"Add Pdf Entry:${result.name}")
-      pdfFiles = pdfFiles :+ (id, PDDocument.load(result.document))
+      val loadedFile = Loader.loadPDF(result.document);
+      pdfFiles = pdfFiles :+ (id, loadedFile)
       notifyProgress(stats)
     case result: GenerateReportsStats if result.numberOfReportsInProgress == 0 =>
       pdfFiles.sortBy(_._1) foreach { file =>

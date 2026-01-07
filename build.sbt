@@ -42,7 +42,7 @@ val buildSettings = Seq(
   scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
-  version := "2.6.42",
+  version := "2.6.43",
   scalaVersion := "2.13.16",
   crossScalaVersions := Seq("2.13.8", "2.13.16"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
@@ -73,7 +73,7 @@ val buildSettings = Seq(
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-scalacheck"                  % specs2V                                 % "test",
-    "org.mockito"                  %% "mockito-scala"                      % "1.17.45"                                % "test",
+    "org.mockito"                  %% "mockito-scala"                      % "2.0.0"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
     "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
@@ -103,7 +103,7 @@ val buildSettings = Seq(
     // transitive dependencies of legacy de.zalando.beard
     "org.antlr"                    %  "antlr4"                             % "4.8-1",
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
-    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.2.0",
+    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.3.1",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
     "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.34",
     "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.34" pomOnly(),
@@ -118,11 +118,12 @@ val buildSettings = Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.28.0",
-    "io.netty" % "netty-handler" % "4.1.123.Final",
+    "io.netty" % "netty-handler" % "4.2.3.Final",
     "org.apache.jena" % "jena-core" % "5.5.0",
     "com.google.protobuf" % "protobuf-java" % "4.31.1",
-    "com.google.guava" % "guava" % "33.4.8-jre"
-  )
+    "com.google.guava" % "guava" % "33.4.8-jre",
+    "commons-beanutils" % "commons-beanutils" %  "1.11.0"
+)
 )
 
 lazy val scalaxbSettings = Seq(
