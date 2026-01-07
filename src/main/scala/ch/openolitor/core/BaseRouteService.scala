@@ -47,6 +47,7 @@ import ch.openolitor.stammdaten.models.ProjektVorlageId
 import ch.openolitor.util.ZipBuilderWithFile
 import com.tegonal.CFEnvConfigLoader.ConfigLoader
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.odftoolkit.simple.SpreadsheetDocument
@@ -320,7 +321,8 @@ trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with 
         case Right(file) =>
           val name = if (file.metaData.name.isEmpty) ref.id.id else file.metaData.name
           logger.debug(s"merge pdf file:${ref.id.id} => $name")
-          PDFmerged.appendDocument(mergedFile, PDDocument.load(file.file))
+          val loadedFile = Loader.loadPDF(file.file.readAllBytes());
+          PDFmerged.appendDocument(mergedFile, loadedFile)
       }
     })) {
       case Success(result) =>
