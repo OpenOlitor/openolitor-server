@@ -98,6 +98,17 @@ trait ArbeitseinsatzRoutes extends BaseRouteService
           id =>
             (put | post)(update[ArbeitsangebotModify, ArbeitsangebotId](id))
         } ~
+        path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "absagen") { id =>
+          post {
+            implicit val personId = subject.personId
+            onSuccess(entityStore ? ArbeitseinsatzCommandHandler.ArbeitsangebotCancelledCommand(id, personId)) {
+              case UserCommandFailed =>
+                complete(StatusCodes.BadRequest, s"Could not cancel the Arbeitsangebot, please check the input data.")
+              case _ =>
+                complete(StatusCodes.OK, "Arbeitsangebot cancelled and related einsätze marked as cancelled")
+            }
+          }
+        } ~
         path("arbeitsangebote" / arbeitsangebotIdPath / "aktionen" / "duplizieren") {
           id =>
             post {
