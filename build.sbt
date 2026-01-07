@@ -76,7 +76,7 @@ val buildSettings = Seq(
     "org.mockito"                  %% "mockito-scala"                      % "2.0.0"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
-    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
+    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.6", // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.20.0",
     "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
