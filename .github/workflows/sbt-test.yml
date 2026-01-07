@@ -38,7 +38,7 @@ jobs:
           output: "both"
       - name: Coverage Report Pull Request Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.actor != 'scala-steward'
         with:
           recreate: true
           path: code-coverage-results.md
