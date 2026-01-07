@@ -43,6 +43,7 @@ import scala.util._
 object ArbeitseinsatzCommandHandler {
   case class ArbeitsangebotArchivedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
   case class ArbeitsangebotCompletedCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
+  case class ArbeitsangebotCancelledCommand(id: ArbeitsangebotId, originator: PersonId = PersonId(100)) extends UserCommand
 
   case class SendEmailToArbeitsangebotPersonenCommand(originator: PersonId, subject: String, body: String, replyTo: Option[String], ids: Seq[ArbeitsangebotId]) extends UserCommand
 
@@ -88,6 +89,37 @@ trait ArbeitseinsatzCommandHandler extends CommandHandler with ArbeitseinsatzDBM
                 Failure(new InvalidStateException("Der Arbeitseinsatz muss 'Bereit' sein."))
             }
           } getOrElse Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $id gefunden"))
+        }
+    case ArbeitsangebotCancelledCommand(arbeitangebotId, personId) => idFactory =>
+      meta =>
+        DB readOnly { implicit session =>
+          arbeitseinsatzReadRepository.getById(arbeitsangebotMapping, arbeitangebotId) match {
+            case Some(arbeitsangebot) =>
+              val assignedDetails = arbeitseinsatzReadRepository.getArbeitseinsatzDetailByArbeitsangebot(arbeitangebotId)
+
+              // create modify events for each assigned Einsatz
+              val einsatzUpdateEvents: Seq[ResultingEvent] = assignedDetails.flatMap { detail =>
+                arbeitseinsatzReadRepository.getById(arbeitseinsatzMapping, detail.id).map { einsatz =>
+                  val einsatzModify = copyTo[Arbeitseinsatz, ArbeitseinsatzModify](
+                    einsatz,
+                    "status" -> Abgesagt,
+                  )
+                  EntityUpdateEvent(einsatz.id, einsatzModify)
+                }
+              }
+
+              // create modify event for the Arbeitsangebot
+              val angebotModify = copyTo[Arbeitsangebot, ArbeitsangebotModify](
+                arbeitsangebot,
+                "status" -> Abgesagt
+              )
+              val angebotUpdateEvent = EntityUpdateEvent(arbeitangebotId, angebotModify)
+
+              Success(einsatzUpdateEvents :+ angebotUpdateEvent)
+
+            case None =>
+              Failure(new InvalidStateException(s"Keine Arbeitseinsatz zu Id $arbeitangebotId gefunden"))
+          }
         }
 
     case SendEmailToArbeitsangebotPersonenCommand(personId, subject, body, replyTo, ids) => idFactory =>
