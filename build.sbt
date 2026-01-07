@@ -27,14 +27,14 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 
-val specs2V = "4.21.0" // based on spray 1.3.x built in support
+val specs2V = "4.23.0" // based on spray 1.3.x built in support
 val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
 val scalalikeV = "4.3.5"
 val akkaHttpVersion = "10.5.3"
 val akkaVersion = "2.8.5"
-val testContainersVersion = "1.21.3"
+val testContainersVersion = "1.21.4"
 
 resolvers += Resolver.typesafeRepo("releases")
 
@@ -76,7 +76,7 @@ val buildSettings = Seq(
     "org.mockito"                  %% "mockito-scala"                      % "2.0.0"                                % "test",
     "org.scalaz" 		               %% "scalaz-core"						             % "7.3.6", // ### Scala 3
     //use scala logging to log outside of the actor system
-    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.5", // ### Scala 3
+    "com.typesafe.scala-logging"   %% "scala-logging"				               % "3.9.6", // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-async"                  % "0.20.0",
     "org.scalikejdbc" 	           %% "scalikejdbc-config"				         % scalalikeV, // ### Scala 3
     "org.scalikejdbc"              %% "scalikejdbc-test"                   % scalalikeV                              % "test", // ### Scala 3
@@ -87,14 +87,14 @@ val buildSettings = Seq(
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.24",
-    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.4",
-    "com.mysql"	                       %  "mysql-connector-j"               % "9.3.0",
+    "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.7",
+    "com.mysql"	                   %  "mysql-connector-j"                  % "9.5.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.787",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.795",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.34.0", // ### Scala 3
@@ -103,25 +103,25 @@ val buildSettings = Seq(
     // transitive dependencies of legacy de.zalando.beard
     "org.antlr"                    %  "antlr4"                             % "4.8-1",
     "io.monix"                     %% "monix"                              % "3.4.1", // ### Scala 3
-    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.3.1",
+    "net.codecrete.qrbill"         %  "qrbill-generator"                   % "3.3.2",
     "io.nayuki"                    %  "qrcodegen"                          % "1.8.0",
-    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.34",
-    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.34" pomOnly(),
+    "org.apache.pdfbox"            %  "pdfbox"                             % "2.0.35",
+    "org.apache.pdfbox"            %  "pdfbox-parent"                      % "2.0.35" pomOnly(),
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.19",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.19",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
     "com.eatthepath"               %  "java-otp"                           % "0.4.0",
-    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.34"
+    "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.35"
   )
 },
   dependencyOverrides ++= Seq(
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.28.0",
-    "io.netty" % "netty-handler" % "4.2.3.Final",
-    "org.apache.jena" % "jena-core" % "5.5.0",
-    "com.google.protobuf" % "protobuf-java" % "4.31.1",
-    "com.google.guava" % "guava" % "33.4.8-jre",
+    "io.netty" % "netty-handler" % "4.2.7.Final",
+    "org.apache.jena" % "jena-core" % "5.6.0",
+    "com.google.protobuf" % "protobuf-java" % "4.33.2",
+    "com.google.guava" % "guava" % "33.5.0-jre",
     "commons-beanutils" % "commons-beanutils" %  "1.11.0"
 )
 )
