@@ -88,7 +88,7 @@ val buildSettings = Seq(
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.24",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.7",
-    "com.mysql"	                   %  "mysql-connector-j"                  % "9.5.0",
+    "com.mysql"	                   %  "mysql-connector-j"                  % "9.6.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
