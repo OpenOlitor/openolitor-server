@@ -119,7 +119,7 @@ val buildSettings = Seq(
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.28.0",
     "io.netty" % "netty-handler" % "4.2.9.Final",
-    "org.apache.jena" % "jena-core" % "5.6.0",
+    "org.apache.jena" % "jena-core" % "6.0.0",
     "com.google.protobuf" % "protobuf-java" % "4.33.2",
     "com.google.guava" % "guava" % "33.5.0-jre",
     "commons-beanutils" % "commons-beanutils" %  "1.11.0"
