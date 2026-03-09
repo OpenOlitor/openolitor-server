@@ -32,11 +32,15 @@ class Camt054Parser {
   def parse(is: InputStream): Try[ZahlungsImportResult] = {
     Try(XML.load(is)) flatMap { node =>
       // try available versions for the given xml document
-      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
-        (new Camt054v06ToZahlungsImportTransformer).transform
+      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_08.Document](node)) flatMap {
+        (new Camt054v08ToZahlungsImportTransformer).transform
       } orElse {
-        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
-          (new Camt054v04ToZahlungsImportTransformer).transform
+        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
+          (new Camt054v06ToZahlungsImportTransformer).transform
+        } orElse {
+          Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
+            (new Camt054v04ToZahlungsImportTransformer).transform
+          }
         }
       }
     }
