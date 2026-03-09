@@ -130,6 +130,7 @@ lazy val scalaxbSettings = Seq(
    Compile / scalaxb / scalaxbXsdSource := baseDirectory.value / "src" / "main" / "resources" / "xsd",
    Compile / scalaxb / scalaxbPackageName := "ch.openolitor.generated.xsd",
    Compile / scalaxb / scalaxbPackageNames  := Map(uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.06") -> "ch.openolitor.generated.xsd.camt054_001_06",
+                                                    uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.08") -> "ch.openolitor.generated.xsd.camt054_001_08",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:camt.054.001.04") -> "ch.openolitor.generated.xsd.camt054_001_04",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.07") -> "ch.openolitor.generated.xsd.pain008_001_07",
                                                     uri("urn:iso:std:iso:20022:tech:xsd:pain.008.001.02") -> "ch.openolitor.generated.xsd.pain008_001_02")
