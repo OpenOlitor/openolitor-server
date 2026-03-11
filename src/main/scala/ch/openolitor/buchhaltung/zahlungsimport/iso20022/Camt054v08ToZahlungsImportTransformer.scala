@@ -28,7 +28,6 @@ import ch.openolitor.buchhaltung.zahlungsimport.{ Gutschrift, Transaktionsart, Z
 import ch.openolitor.generated.xsd.camt054_001_08.{ BankToCustomerDebitCreditNotificationV08, Document }
 import ch.openolitor.stammdaten.models.Waehrung
 
-import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
 
 import javax.xml.datatype.XMLGregorianCalendar
@@ -59,37 +58,17 @@ class Camt054v08ToZahlungsImportTransformer {
         entry.NtryDtls flatMap { entryDetail => // Level D.1
           entryDetail.TxDtls map { transactionDetail => // Level D.2
 
-            // Defensive extraction of debtor name: try common alternatives and fall back to None
-            val debtorName: Option[String] = try {
-              transactionDetail.RltdPties.flatMap(_.Dbtr).flatMap { dbtr =>
-                // party40choiceoption may wrap different types; try common ones
-                Option(dbtr.party40choiceoption).flatMap { p40 =>
-                  // try PartyIdentification135 then fallback to .toString
-                  try {
-                    p40.asInstanceOf[ch.openolitor.generated.xsd.camt054_001_08.PartyIdentification135].Nm
-                  } catch {
-                    case _: Throwable =>
-                      // last resort: try string conversion or None
-                      try { Some(p40.toString) } catch { case _: Throwable => None }
-                  }
-                }
+            val debtorName: Option[String] = transactionDetail.RltdPties.flatMap(_.Dbtr).flatMap { dbtr =>
+              Option(dbtr.party40choiceoption) match {
+                case Some(p: ch.openolitor.generated.xsd.camt054_001_08.PartyIdentification135) => p.Nm
+                case _ => None
               }
-            } catch {
-              case _: Throwable => None
             }
 
-            // Defensive extraction of creditor reference(s)
-            val refString: String = try {
-              // toSeq makes Option behave like Seq; flatMap tolerates Nil/None
-              transactionDetail.RmtInf.toSeq
-                .flatMap(_.Strd.toSeq)
-                .flatMap(_.CdtrRefInf.toSeq)
-                .flatMap(_.Ref.toSeq)
-                .map(_.toString)
-                .mkString(",")
-            } catch {
-              case _: Throwable => ""
-            }
+            val refString: String = transactionDetail.RmtInf map (_.Strd match {
+              case Nil        => ""
+              case structures => structures.flatMap(_.CdtrRefInf.flatMap(_.Ref)).mkString(",")
+            }) getOrElse ""
 
             // Amount extraction: prefer AmtDtls.TxAmt.Amt.value, fallback to direct Amt.value in v08 files
             val amountOpt: Option[BigDecimal] = {
@@ -104,16 +83,11 @@ class Camt054v08ToZahlungsImportTransformer {
               fromAmtDtls.orElse(fromAmt)
             }
 
-            // Debug: print extracted amount and source shapes to help diagnose type mismatch
-            try {
-              println(s"DEBUG Camt054: amountOpt=$amountOpt, amountOpt.type=${amountOpt.map(a => a.getClass.getName)}, Amt present=${Try(transactionDetail.Amt.isDefined).toOption.getOrElse(false)}, AmtDtls present=${Try(transactionDetail.AmtDtls.isDefined).toOption.getOrElse(false)}")
-            } catch { case _: Throwable => () }
-
             Camt054Record(
               entry.NtryRef,
               Some(notification.Acct.Id.accountidentification4choiceoption.as[String]),
               debtorName,
-              refString, // Referenznummer (defensive)
+              refString, // Referenznummer (non-defensive)
               amountOpt.getOrElse(throw new ZahlungsImportParseException("Missing Betrag")),
               waehrungOpt.getOrElse(throw new ZahlungsImportParseException("Missing Waehrung")),
               Camt054v08Transaktionsart(transactionDetail.CdtDbtInd.getOrElse(throw new ZahlungsImportParseException("Missing credit/debit indicator")).toString),
