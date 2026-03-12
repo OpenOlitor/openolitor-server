@@ -1,8 +1,7 @@
 /*                                                                           *\
 *    ____                   ____  ___ __                                      *
 *   / __ \____  ___  ____  / __ \/ (_) /_____  _____                          *
-*  / / / / __ \/ _ \/ __ \/ / / / / / __/ __ \/ ___/   OpenOlitor             *
-* / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
+*  / /_/ / /_/ /  __/ / / / /_/ / / / /_/ /_/ / /       contributed by tegonal *
 * \____/ .___/\___/_/ /_/\____/_/_/\__/\____/_/        http://openolitor.ch   *
 *     /_/                                                                     *
 *                                                                             *
@@ -24,6 +23,10 @@ package ch.openolitor.buchhaltung.zahlungsimport
 
 import org.specs2.mutable._
 import java.nio.file.{ Files, Paths }
+
+import ch.openolitor.buchhaltung.zahlungsimport.iso20022.Camt054Record
+import ch.openolitor.stammdaten.models.CHF
+import org.joda.time.format.ISODateTimeFormat
 
 class ZahlungsImportParserSpec extends Specification {
   "ZahlungsImportParser" should {
@@ -48,7 +51,7 @@ class ZahlungsImportParserSpec extends Specification {
       result.get.records.size === 5
     }
 
-    "parse example camt.054 file" in {
+    "parse example camt.054 file (generic existing)" in {
       val bytes = Files.readAllBytes(Paths.get(getClass.getResource("/camt_054_Beispiel_ZA1_ESR_ZE.xml").toURI()))
 
       val result = ZahlungsImportParser.parse(bytes)
@@ -57,5 +60,64 @@ class ZahlungsImportParserSpec extends Specification {
 
       result.get.records.size === 1
     }
+
+    // New: test camt.054 v06 sample
+    "parse camt.054.001.06 sample" in {
+      val bytes = Files.readAllBytes(Paths.get(getClass.getResource("/camt_054_001_06_example.xml").toURI()))
+
+      val result = ZahlungsImportParser.parse(bytes)
+
+      beSuccessfulTry(result)
+
+      result.get.records.size === 1
+
+      val expected = Camt054Record(
+        Some("010391391"),
+        Some("CH160077401231234567"),
+        Some("Pia Rutschmann"),
+        "210000000003139471430009017",
+        3949.75,
+        CHF,
+        Gutschrift,
+        "",
+        ISODateTimeFormat.dateOptionalTimeParser.parseDateTime("2015-01-15T09:30:47Z"),
+        ISODateTimeFormat.dateOptionalTimeParser.parseDateTime("2015-01-07"),
+        ISODateTimeFormat.dateOptionalTimeParser.parseDateTime("2015-01-07"),
+        "",
+        0.0
+      )
+
+      result.get.records.head mustEqual expected
+    }
+
+    // New: test camt.054 v08 sample
+    "parse camt.054.001.08 sample" in {
+      val bytes = Files.readAllBytes(Paths.get(getClass.getResource("/camt_054_001_80_example.xml").toURI()))
+
+      val result = ZahlungsImportParser.parse(bytes)
+
+      beSuccessfulTry(result)
+
+      result.get.records.size === 1
+
+      val expected = Camt054Record(
+        Some("010391391"),
+        Some("CH160077401231234567"),
+        Some("Pia Rutschmann"),
+        "210000000003139471430009017",
+        3949.75,
+        CHF,
+        Gutschrift,
+        "",
+        ISODateTimeFormat.dateOptionalTimeParser.parseDateTime("2015-01-15T09:30:47Z"),
+        ISODateTimeFormat.dateOptionalTimeParser.parseDateTime("2015-01-07"),
+        ISODateTimeFormat.dateOptionalTimeParser.parseDateTime("2015-01-07"),
+        "",
+        0.0
+      )
+
+      result.get.records.head mustEqual expected
+    }
+
   }
 }

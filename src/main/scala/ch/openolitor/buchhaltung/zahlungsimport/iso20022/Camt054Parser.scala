@@ -31,15 +31,28 @@ import java.io.InputStream
 class Camt054Parser {
   def parse(is: InputStream): Try[ZahlungsImportResult] = {
     Try(XML.load(is)) flatMap { node =>
-      // try available versions for the given xml document
-      Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_08.Document](node)) flatMap {
-        (new Camt054v08ToZahlungsImportTransformer).transform
-      } orElse {
-        Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)) flatMap {
-          (new Camt054v06ToZahlungsImportTransformer).transform
-        } orElse {
-          Try(scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)) flatMap {
-            (new Camt054v04ToZahlungsImportTransformer).transform
+      // try v08
+      val tryV08 = Try {
+        scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_08.Document](node)
+      }
+      tryV08 match {
+        case scala.util.Success(doc08) => (new Camt054v08ToZahlungsImportTransformer).transform(doc08)
+        case scala.util.Failure(err08) => {
+          // try v06
+          val tryV06 = Try {
+            scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_06.Document](node)
+          }
+          tryV06 match {
+            case scala.util.Success(doc06) => (new Camt054v06ToZahlungsImportTransformer).transform(doc06)
+            case scala.util.Failure(err06) => {
+              val tryV04 = Try {
+                scalaxb.fromXML[ch.openolitor.generated.xsd.camt054_001_04.Document](node)
+              }
+              tryV04 match {
+                case scala.util.Success(doc04) => (new Camt054v04ToZahlungsImportTransformer).transform(doc04)
+                case scala.util.Failure(err04) => Failure(new Exception(s"v08 error: ${err08.getMessage}\n v06 error: ${err06.getMessage}\n v04 error: ${err04.getMessage}"))
+              }
+            }
           }
         }
       }

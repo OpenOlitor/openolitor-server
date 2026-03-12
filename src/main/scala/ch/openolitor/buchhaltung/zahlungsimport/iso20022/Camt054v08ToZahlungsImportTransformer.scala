@@ -59,9 +59,11 @@ class Camt054v08ToZahlungsImportTransformer {
           entryDetail.TxDtls map { transactionDetail => // Level D.2
 
             val debtorName: Option[String] = transactionDetail.RltdPties.flatMap(_.Dbtr).flatMap { dbtr =>
-              Option(dbtr.party40choiceoption) match {
-                case Some(p: ch.openolitor.generated.xsd.camt054_001_08.PartyIdentification135) => p.Nm
-                case _ => None
+              Option(dbtr.party40choiceoption).flatMap { dr =>
+                // DataRecord may wrap different concrete party types; try extracting common ones
+                val tryPartyNm = scala.util.Try(dr.as[ch.openolitor.generated.xsd.camt054_001_08.PartyIdentification135].Nm).toOption.flatten
+                val tryBranchNm = scala.util.Try(dr.as[ch.openolitor.generated.xsd.camt054_001_08.BranchAndFinancialInstitutionIdentification6].FinInstnId.Nm).toOption.flatten
+                tryPartyNm.orElse(tryBranchNm).orElse(scala.util.Try(Some(dr.asInstanceOf[Any].toString)).toOption.flatten)
               }
             }
 

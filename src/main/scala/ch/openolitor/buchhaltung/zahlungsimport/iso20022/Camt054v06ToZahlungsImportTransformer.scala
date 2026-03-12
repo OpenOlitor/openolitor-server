@@ -28,6 +28,7 @@ import ch.openolitor.buchhaltung.zahlungsimport.{ Gutschrift, Transaktionsart, Z
 import ch.openolitor.generated.xsd.camt054_001_06.{ BankToCustomerDebitCreditNotificationV06, Document }
 import ch.openolitor.stammdaten.models.Waehrung
 
+import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 import javax.xml.datatype.XMLGregorianCalendar
@@ -40,6 +41,11 @@ object Camt054v06Transaktionsart {
 }
 
 class Camt054v06ToZahlungsImportTransformer {
+  // Helper: convert XMLGregorianCalendar to Joda DateTime safely
+  private def xmlGcToDateTime(opt: javax.xml.datatype.XMLGregorianCalendar): DateTime = {
+    if (opt == null) throw new ZahlungsImportParseException("Missing date")
+    new DateTime(opt.toGregorianCalendar.getTime)
+  }
   def transform(input: Document): Try[ZahlungsImportResult] = {
     transform(input.BkToCstmrDbtCdtNtfctn)
   }
@@ -63,9 +69,10 @@ class Camt054v06ToZahlungsImportTransformer {
               (transactionDetail.AmtDtls flatMap (_.TxAmt map (txAmt => Waehrung.applyUnsafe(txAmt.Amt.Ccy)))).getOrElse(throw new ZahlungsImportParseException("Missing Waehrung")),
               Camt054v06Transaktionsart(transactionDetail.CdtDbtInd.toString),
               "",
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(groupHeader.CreDtTm.toGregorianCalendar.toString),
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.BookgDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar].toGregorianCalendar.toString),
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.ValDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar].toGregorianCalendar.toString),
+              // convert XMLGregorianCalendar to Joda DateTime
+              xmlGcToDateTime(groupHeader.CreDtTm),
+              xmlGcToDateTime(entry.BookgDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar]),
+              xmlGcToDateTime(entry.ValDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar]),
               "",
               0.0
             )

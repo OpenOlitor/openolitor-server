@@ -28,6 +28,7 @@ import ch.openolitor.buchhaltung.zahlungsimport.{ Gutschrift, Transaktionsart, Z
 import ch.openolitor.generated.xsd.camt054_001_04.{ BankToCustomerDebitCreditNotificationV04, Document }
 import ch.openolitor.stammdaten.models.Waehrung
 
+import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 import javax.xml.datatype.XMLGregorianCalendar
@@ -40,6 +41,11 @@ object Camt054v04Transaktionsart {
 }
 
 class Camt054v04ToZahlungsImportTransformer {
+  // Helper: convert XMLGregorianCalendar to Joda DateTime safely
+  private def xmlGcToDateTime(opt: javax.xml.datatype.XMLGregorianCalendar): DateTime = {
+    if (opt == null) throw new ZahlungsImportParseException("Missing date")
+    new DateTime(opt.toGregorianCalendar.getTime)
+  }
   def transform(input: Document): Try[ZahlungsImportResult] = {
     transform(input.BkToCstmrDbtCdtNtfctn)
   }
@@ -63,9 +69,9 @@ class Camt054v04ToZahlungsImportTransformer {
               (Waehrung.applyUnsafe(transactionDetail.Amt.Ccy)),
               Camt054v04Transaktionsart(transactionDetail.CdtDbtInd.toString),
               "",
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(groupHeader.CreDtTm.toString),
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.BookgDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar].toString),
-              ISODateTimeFormat.dateOptionalTimeParser.parseDateTime(entry.ValDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar].toString),
+              xmlGcToDateTime(groupHeader.CreDtTm),
+              xmlGcToDateTime(entry.BookgDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar]),
+              xmlGcToDateTime(entry.ValDt.get.dateanddatetimechoiceoption.as[XMLGregorianCalendar]),
               "",
               0.0
             )
