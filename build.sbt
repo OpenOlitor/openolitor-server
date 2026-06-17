@@ -91,7 +91,10 @@ val buildSettings = Seq(
     "com.mysql"	                   %  "mysql-connector-j"                  % "9.5.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
-    "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
+    // stamina-json replaced with stamino (Pekko-compatible fork)
+    // Note: stamino not yet published to Maven Central, keeping stamina-json for now
+    // "io.github.tmreau"               %% "stamino-json"                       % "0.1.0", // Pekko-compatible alternative (not published yet)
+    "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3, kept until stamino is published
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
     "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.795",
@@ -123,7 +126,19 @@ val buildSettings = Seq(
     "com.google.protobuf" % "protobuf-java" % "3.21.+",
     "com.google.guava" % "guava" % "33.5.0-jre",
     "commons-beanutils" % "commons-beanutils" %  "1.11.0",
-    "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
+    "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
+    // Force consistent Pekko versions to avoid binary incompatibility
+    "org.apache.pekko" %% "pekko-actor" % "1.1.0",
+    "org.apache.pekko" %% "pekko-stream" % "1.1.0",
+    "org.apache.pekko" %% "pekko-persistence" % "1.1.0",
+    "org.apache.pekko" %% "pekko-persistence-query" % "1.1.0",
+    "org.apache.pekko" %% "pekko-slf4j" % "1.1.0",
+    "org.apache.pekko" %% "pekko-testkit" % "1.1.0",
+    "org.apache.pekko" %% "pekko-stream-testkit" % "1.1.0",
+    "org.apache.pekko" %% "pekko-http" % "1.1.0",
+    "org.apache.pekko" %% "pekko-http-spray-json" % "1.1.0",
+    "org.apache.pekko" %% "pekko-http-caching" % "1.1.0",
+    "org.apache.pekko" %% "pekko-http-testkit" % "1.1.0"
 )
 )
 
