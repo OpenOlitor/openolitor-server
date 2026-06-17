@@ -33,7 +33,7 @@ import ch.openolitor.core.eventsourcing.events._
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import ch.openolitor.reports.eventsourcing.ReportsEventStoreSerializer
 
-class EventStoreSerializer extends StaminaAkkaSerializer(EventStoreSerializer.eventStorePersisters)
+class EventStoreSerializer extends StaminaPekkoSerializer(EventStoreSerializer.allPersisters)
   with LazyLogging {
 
   override def toBinary(obj: AnyRef): Array[Byte] = {
