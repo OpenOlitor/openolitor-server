@@ -22,6 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.eventsourcing
 
+import com.typesafe.scalalogging.LazyLogging
 import stamina._
 import stamina.json._
 import org.apache.pekko.serialization.Serializer
@@ -30,7 +31,7 @@ import org.apache.pekko.serialization.Serializer
  * Base serializer for stamina-based serialization using Pekko.
  * This is a Pekko-compatible version of StaminaAkkaSerializer.
  */
-abstract class StaminaPekkoSerializer(persisters: Persisters) extends Serializer {
+abstract class StaminaPekkoSerializer(persisters: Persisters) extends Serializer with LazyLogging {
 
   override def identifier: Int = 1001 // Custom identifier for stamina serializer
 
@@ -39,6 +40,7 @@ abstract class StaminaPekkoSerializer(persisters: Persisters) extends Serializer
   override def toBinary(obj: AnyRef): Array[Byte] = {
     if (persisters.canPersist(obj)) {
       val persisted = persisters.persist(obj)
+      logger.debug(s"StaminaPekkoSerializer: toBinary: $obj")
       persisted.bytes.toArray
     } else {
       throw new IllegalArgumentException(s"Cannot persist object of type: ${obj.getClass.getName}")
@@ -48,6 +50,8 @@ abstract class StaminaPekkoSerializer(persisters: Persisters) extends Serializer
   override def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef = {
     val manifestStr = manifest.map(_.getName).getOrElse("")
     val persisted = stamina.Persisted(manifestStr, 0, bytes)
-    persisters.unpersist(persisted)
+    val result = persisters.unpersist(persisted)
+    logger.debug(s"StaminaPekkoSerializer: fromBinary: $result")
+    result
   }
 }

@@ -1,4 +1,4 @@
-scalaVersion := "2.13.16"
+scalaVersion := "2.13.18"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -29,10 +29,9 @@ import java.util.Calendar
 
 val specs2V = "4.23.0" // based on spray 1.3.x built in support
 
-val sprayV = "1.3.+"
 val scalalikeV = "4.3.5"
-val pekkoHttpVersion = "1.1.0"
-val pekkoVersion = "1.1.0"
+// all pekko components need to stick to the same version, therefore we take the latest common version here
+val pekkoVersion = "1.2.0"
 val testContainersVersion = "1.21.4"
 
 resolvers += Resolver.typesafeRepo("releases")
@@ -42,8 +41,8 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   version := "2.6.46",
-  scalaVersion := "2.13.16",
-  crossScalaVersions := Seq("2.13.8", "2.13.16"),
+  scalaVersion := "2.13.18",
+  crossScalaVersions := Seq("2.13.18", "2.13.16"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -55,20 +54,19 @@ val buildSettings = Seq(
   Seq(
     "org.scala-lang.modules"       %% "scala-xml"                          % "2.4.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
-    "org.apache.pekko"            %% "pekko-http"                          % pekkoHttpVersion,
-    "org.apache.pekko"            %% "pekko-http-caching"                  % pekkoHttpVersion,
-    "org.apache.pekko"            %% "pekko-http-spray-json"               % pekkoHttpVersion, // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-http"                          % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-http-caching"                  % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-http-spray-json"               % pekkoVersion, // ### NO Scala 3
     "org.apache.pekko"            %% "pekko-actor"                         % pekkoVersion,
     "org.apache.pekko"            %% "pekko-persistence"                   % pekkoVersion,
     "org.apache.pekko"            %% "pekko-persistence-query"             % pekkoVersion,
     "org.apache.pekko"            %% "pekko-slf4j"    					           % pekkoVersion,
     "org.apache.pekko"            %% "pekko-stream"    					           % pekkoVersion,
     "org.apache.pekko"            %% "pekko-testkit"  			    	         % pekkoVersion                             % "test",
-    "org.apache.pekko"            %% "pekko-http-testkit"  			    	     % pekkoHttpVersion                         % "test",
+    "org.apache.pekko"            %% "pekko-http-testkit"  			    	     % pekkoVersion                         % "test",
     "org.apache.pekko"            %% "pekko-stream-testkit"  			    	   % pekkoVersion                             % "test",
-    "org.apache.pekko"           %% "pekko-persistence-jdbc"    					 % "1.1.0",
-    // Note: akka-persistence-inmemory has no Pekko equivalent yet - keeping for now or consider alternatives
-    // "com.github.dnvriend"          %% "akka-persistence-inmemory" 		     % "2.5.15.2"                              % "test",
+    "org.apache.pekko"           %% "pekko-persistence-jdbc"    					 % pekkoVersion,
+    "io.github.alstanchev"          %% "pekko-persistence-inmemory" 		     % "1.3.0"                              % "test",
     "org.specs2"                   %% "specs2-core"   					           % specs2V                                 % "test", // ### Scala 3
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
@@ -85,7 +83,7 @@ val buildSettings = Seq(
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.+",
     "com.h2database"               %  "h2"                                 % "2.3.232"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
-    "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
+    "io.github.marko-asplund"                   %% "s3mock"                             % "0.6.0"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.24",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.7",
     "com.mysql"	                   %  "mysql-connector-j"                  % "9.5.0",
@@ -126,19 +124,7 @@ val buildSettings = Seq(
     "com.google.protobuf" % "protobuf-java" % "3.21.+",
     "com.google.guava" % "guava" % "33.5.0-jre",
     "commons-beanutils" % "commons-beanutils" %  "1.11.0",
-    "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
-    // Force consistent Pekko versions to avoid binary incompatibility
-    "org.apache.pekko" %% "pekko-actor" % "1.1.0",
-    "org.apache.pekko" %% "pekko-stream" % "1.1.0",
-    "org.apache.pekko" %% "pekko-persistence" % "1.1.0",
-    "org.apache.pekko" %% "pekko-persistence-query" % "1.1.0",
-    "org.apache.pekko" %% "pekko-slf4j" % "1.1.0",
-    "org.apache.pekko" %% "pekko-testkit" % "1.1.0",
-    "org.apache.pekko" %% "pekko-stream-testkit" % "1.1.0",
-    "org.apache.pekko" %% "pekko-http" % "1.1.0",
-    "org.apache.pekko" %% "pekko-http-spray-json" % "1.1.0",
-    "org.apache.pekko" %% "pekko-http-caching" % "1.1.0",
-    "org.apache.pekko" %% "pekko-http-testkit" % "1.1.0"
+    "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 )
 )
 
