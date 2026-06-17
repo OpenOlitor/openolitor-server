@@ -22,13 +22,13 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
-import akka.actor._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.pattern.ask
-import akka.stream.Materializer
-import akka.util.Timeout
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.Timeout
 import ch.openolitor.core.{ ActorReferences, BaseRouteService, AkkaHttpDeserializers, SystemConfig }
 import ch.openolitor.core.data.DataImportService
 import ch.openolitor.core.data.DataImportService.{ ImportData, ImportResult }

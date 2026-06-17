@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-import akka.actor._
+import org.apache.pekko.actor._
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 import java.io.InputStream

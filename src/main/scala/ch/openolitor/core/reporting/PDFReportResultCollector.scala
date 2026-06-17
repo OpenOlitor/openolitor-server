@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.reporting
 
-import akka.actor._
-import akka.http.scaladsl.model.MediaTypes
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.MediaTypes
 import ch.openolitor.buchhaltung.models.RechnungId
 import ch.openolitor.core.DateFormats
 import ch.openolitor.core.jobs.JobQueueService.FileResultPayload

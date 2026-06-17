@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core.batch
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import ch.openolitor.stammdaten.batch.StammdatenBatchJobs
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import ch.openolitor.core.filestore.FileStore
 import ch.openolitor.core.filestore.batch.FileStoreBatchJobs
 import ch.openolitor.arbeitseinsatz.batch.ArbeitseinsatzBatchJobs

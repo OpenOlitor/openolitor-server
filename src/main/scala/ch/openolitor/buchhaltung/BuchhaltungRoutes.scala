@@ -22,22 +22,22 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Directives.{ parameters => httpParameters }
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Directives.{ parameters => httpParameters }
 import ch.openolitor.core._
 import ch.openolitor.core.domain._
 import ch.openolitor.core.db._
 
 import scala.util._
-import akka.pattern.ask
+import org.apache.pekko.pattern.ask
 import ch.openolitor.buchhaltung.eventsourcing.BuchhaltungEventStoreSerializer
 import stamina.Persister
 import ch.openolitor.buchhaltung.models._
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.core.filestore._
-import akka.actor._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportParser
 import ch.openolitor.buchhaltung.zahlungsimport.ZahlungsImportRecordResult
 import ch.openolitor.core.security.Subject

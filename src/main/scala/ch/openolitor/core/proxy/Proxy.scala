@@ -22,13 +22,13 @@
 \*                                                                           */
 package ch.openolitor.core.proxy
 
-import akka.actor._
-import akka.http.scaladsl.model.{ HttpHeader, HttpRequest, HttpResponse }
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{ RequestContext, Route }
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ws.WebSocketRequest
-import akka.stream.scaladsl.{ Flow, Sink, Source }
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.{ HttpHeader, HttpRequest, HttpResponse }
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{ RequestContext, Route }
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.ws.WebSocketRequest
+import org.apache.pekko.stream.scaladsl.{ Flow, Sink, Source }
 import ch.openolitor.core.Boot.MandantSystem
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.http.HttpHeaders

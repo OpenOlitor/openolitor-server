@@ -22,18 +22,18 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.directives.MarshallingDirectives.{ as, entity }
-import akka.http.scaladsl.server.{ RequestContext, Route, RouteResult }
-import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import akka.pattern.ask
-import akka.stream.Materializer
-import akka.stream.scaladsl.{ Sink, Source, StreamConverters }
-import akka.util.{ ByteString, Timeout }
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import org.apache.pekko.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.directives.MarshallingDirectives.{ as, entity }
+import org.apache.pekko.http.scaladsl.server.{ RequestContext, Route, RouteResult }
+import org.apache.pekko.http.scaladsl.unmarshalling.FromRequestUnmarshaller
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.{ Sink, Source, StreamConverters }
+import org.apache.pekko.util.{ ByteString, Timeout }
 import ch.openolitor.core.BaseJsonProtocol.IdResponse
 import ch.openolitor.core.domain.EntityStore
 import ch.openolitor.core.domain.EntityStore.EntityInsertedEvent
@@ -67,7 +67,7 @@ import scala.util.{ Either, Failure, Left, Right, Success, Try }
 trait BaseRouteService extends ExecutionContextAware with SprayJsonSupport with AkkaHttpDeserializers with BaseJsonProtocol with EntityStoreReference with FileStoreReference with LazyLogging {
 
   implicit val timeout = Timeout(5 seconds)
-  lazy val DefaultChunkSize = ConfigLoader.loadConfig.getBytes("akka.http.parsing.max-chunk-size").toInt
+  lazy val DefaultChunkSize = ConfigLoader.loadConfig.getBytes("pekko.http.parsing.max-chunk-size").toInt
 
   implicit val exportFormatPath = enumPathMatcher(path =>
     path.head match {

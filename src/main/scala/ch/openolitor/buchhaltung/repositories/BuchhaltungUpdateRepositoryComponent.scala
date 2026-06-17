@@ -25,7 +25,7 @@ package ch.openolitor.buchhaltung.repositories
 import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
 import ch.openolitor.core.repositories.BaseUpdateRepositoryComponent
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 trait BuchhaltungUpdateRepositoryComponent extends BaseUpdateRepositoryComponent {
   val buchhaltungUpdateRepository: BuchhaltungUpdateRepository

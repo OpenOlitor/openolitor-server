@@ -26,8 +26,8 @@ import ch.openolitor.core.models._
 import ch.openolitor.stammdaten.models._
 import org.odftoolkit.simple._
 import org.odftoolkit.simple.table._
-import akka.actor._
-import akka.event.LoggingAdapter
+import org.apache.pekko.actor._
+import org.apache.pekko.event.LoggingAdapter
 
 import java.io.InputStream
 import scala.util._

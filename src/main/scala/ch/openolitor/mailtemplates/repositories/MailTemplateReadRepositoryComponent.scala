@@ -23,7 +23,7 @@
 package ch.openolitor.mailtemplates.repositories
 
 import ch.openolitor.core.DefaultActorSystemReference
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 trait MailTemplateReadRepositoryComponent {
   val mailTemplateReadRepositoryAsync: MailTemplateReadRepositoryAsync

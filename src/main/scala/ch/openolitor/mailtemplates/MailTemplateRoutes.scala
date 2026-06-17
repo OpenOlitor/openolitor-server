@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.mailtemplates
 
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.core._
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent }

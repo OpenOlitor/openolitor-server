@@ -24,7 +24,7 @@ package ch.openolitor.core.db.evolution.scripts
 
 import ch.openolitor.core.db.evolution.scripts.v1._
 import ch.openolitor.core.db.evolution.scripts.v2._
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 object Scripts {
   def current(system: ActorSystem) =

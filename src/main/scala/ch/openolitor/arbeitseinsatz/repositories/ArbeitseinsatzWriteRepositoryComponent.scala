@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz.repositories
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.repositories.BaseWriteRepositoryComponent
 import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
 

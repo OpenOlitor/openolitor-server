@@ -32,7 +32,7 @@ import ch.openolitor.core.domain._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models.{ Person, PersonContactPermissionModify, PersonEmailData }
 import ch.openolitor.mailtemplates.engine.MailTemplateService
-import akka.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
 import ch.openolitor.core.security.Subject
 import ch.openolitor.stammdaten.{ DefaultMailCommandForwarderComponent, MailCommandForwarderComponent, ProjektHelper }
 import scalikejdbc._

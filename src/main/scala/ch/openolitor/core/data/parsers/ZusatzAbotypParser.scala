@@ -28,7 +28,7 @@ import ch.openolitor.stammdaten.models._
 
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import akka.event.LoggingAdapter
+import org.apache.pekko.event.LoggingAdapter
 
 object ZusatzAbotypParser extends EntityParser {
   import EntityParser._

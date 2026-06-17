@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.reports
 
-import akka.actor._
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.core._
 import ch.openolitor.core.db._
 import ch.openolitor.core.filestore._

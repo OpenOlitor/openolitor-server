@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.mailservice
 
-import akka.actor._
+import org.apache.pekko.actor._
 import MailService.SendMailEvent
 import MailService.SendMailCommand
 import org.joda.time.DateTime

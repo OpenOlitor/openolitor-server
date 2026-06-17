@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.http.scaladsl.server.{ Directive1, Rejection, RequestContext }
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{ Directive1, Rejection, RequestContext }
+import org.apache.pekko.http.scaladsl.server.Directives._
 import ch.openolitor.core.ExecutionContextAware
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.{ DateTime, DateTimeZone }

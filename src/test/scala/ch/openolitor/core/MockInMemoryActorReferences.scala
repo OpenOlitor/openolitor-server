@@ -1,6 +1,6 @@
 package ch.openolitor.core
 
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import ch.openolitor.core.MockInMemoryActorReferences.MockStartedServices
 import ch.openolitor.core.batch.BatchJobs.InitializeBatchJob
 import ch.openolitor.core.domain.SystemEvents.SystemStarted

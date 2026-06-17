@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.reporting.pdf
 
-import akka.actor._
+import org.apache.pekko.actor._
 import scala.concurrent.blocking
 import scala.util._
 import ch.openolitor.core.SystemConfig

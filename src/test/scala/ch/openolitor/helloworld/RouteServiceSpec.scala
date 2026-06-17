@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.helloworld
 
-import akka.actor.ActorRef
-import akka.http.scaladsl.model.StatusCodes.{ MethodNotAllowed, NotFound }
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.testkit.Specs2RouteTest
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.http.scaladsl.model.StatusCodes.{ MethodNotAllowed, NotFound }
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.testkit.Specs2RouteTest
 import ch.openolitor.core.filestore.FileStore
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification

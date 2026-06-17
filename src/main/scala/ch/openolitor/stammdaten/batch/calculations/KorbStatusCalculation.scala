@@ -23,8 +23,8 @@
 package ch.openolitor.stammdaten.batch.calculations
 
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.core.batch.BaseBatchJob
 import ch.openolitor.stammdaten.StammdatenDBMappings
 import scalikejdbc._

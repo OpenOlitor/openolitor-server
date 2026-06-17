@@ -31,14 +31,14 @@ import scala.util.{ Failure, Success, Try }
 import spray.json.JsValue
 import com.typesafe.scalalogging.LazyLogging
 import ch.openolitor.core.repositories.DBMappings
-import akka.util.ByteString
-import akka.util.ByteStringBuilder
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.util.ByteStringBuilder
 
 import java.io.InputStream
 import scala.annotation.tailrec
-import akka.serialization.SerializationExtension
-import akka.serialization.Serialization
-import akka.persistence.PersistentRepr
+import org.apache.pekko.serialization.SerializationExtension
+import org.apache.pekko.serialization.Serialization
+import org.apache.pekko.persistence.PersistentRepr
 import ch.openolitor.core.ActorSystemReference
 import spray.json._
 import ch.openolitor.core.domain.PersistentEvent

@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.buchhaltung
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.models._
 import spray.json._
 import ch.openolitor.buchhaltung.models._

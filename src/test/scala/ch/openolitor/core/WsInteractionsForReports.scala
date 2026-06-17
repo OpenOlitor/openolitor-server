@@ -1,7 +1,7 @@
 package ch.openolitor.core
 
-import akka.http.scaladsl.testkit.WSProbe
-import akka.testkit.TestProbe
+import org.apache.pekko.http.scaladsl.testkit.WSProbe
+import org.apache.pekko.testkit.TestProbe
 import ch.openolitor.core.jobs.JobQueueService.{ FetchJobResult, FileResultPayload, JobResult }
 import ch.openolitor.core.reporting.AsyncReportServiceResult
 import ch.openolitor.core.ws.MockClientMessagesRouteService

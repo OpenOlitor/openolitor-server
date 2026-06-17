@@ -1,7 +1,7 @@
 package ch.openolitor.core
 
-import akka.actor.ActorRef
-import akka.testkit.TestProbe
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.testkit.TestProbe
 
 trait MockActorReferences extends ActorReferences with SystemConfigReference with ActorSystemReference {
   private lazy val mailServiceProbe = TestProbe()(system)

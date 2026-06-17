@@ -1,6 +1,6 @@
 package ch.openolitor.core.filestore
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.config.ModifyingSystemConfigReference
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import io.findify.s3mock.S3Mock

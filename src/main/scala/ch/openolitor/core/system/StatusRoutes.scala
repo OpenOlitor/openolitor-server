@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.core._
 
 import scala.util.Properties

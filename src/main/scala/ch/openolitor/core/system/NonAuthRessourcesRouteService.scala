@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.core.system
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.core.{ ActorReferences, BaseRouteService, AkkaHttpDeserializers, SystemConfig }
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.filestore.{ DefaultFileStoreComponent, FileStoreComponent, ProjektStammdaten }
@@ -38,11 +38,11 @@ trait NonAuthRessourcesRouteService extends BaseRouteService with ActorReference
   override implicit protected val executionContext: ExecutionContext = system.dispatcher
 
   // NonAuth-Calls shall not interact with any of the following actor-systems
-  override val entityStore: akka.actor.ActorRef = null
-  override val eventStore: akka.actor.ActorRef = null
-  override val mailService: akka.actor.ActorRef = null
-  override val reportSystem: akka.actor.ActorRef = null
-  override val dbEvolutionActor: akka.actor.ActorRef = null
+  override val entityStore: org.apache.pekko.actor.ActorRef = null
+  override val eventStore: org.apache.pekko.actor.ActorRef = null
+  override val mailService: org.apache.pekko.actor.ActorRef = null
+  override val reportSystem: org.apache.pekko.actor.ActorRef = null
+  override val dbEvolutionActor: org.apache.pekko.actor.ActorRef = null
 
   def ressourcesRoutes: Route = pathPrefix("ressource") {
     staticFileRoute
@@ -66,8 +66,8 @@ trait NonAuthRessourcesRouteService extends BaseRouteService with ActorReference
 class DefaultNonAuthRessourcesRouteService(
   override val sysConfig: SystemConfig,
   override val system: ActorSystem,
-  override val airbrakeNotifier: akka.actor.ActorRef,
-  override val jobQueueService: akka.actor.ActorRef
+  override val airbrakeNotifier: org.apache.pekko.actor.ActorRef,
+  override val jobQueueService: org.apache.pekko.actor.ActorRef
 ) extends NonAuthRessourcesRouteService
   with DefaultFileStoreComponent {
   override implicit protected val executionContext = system.dispatcher

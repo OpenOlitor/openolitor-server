@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.actor._
+import org.apache.pekko.actor._
 import spray.json._
 import ch.openolitor.core.models._
 import ch.openolitor.core.ws._

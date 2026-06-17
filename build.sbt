@@ -28,12 +28,11 @@ import java.util.Calendar
 
 
 val specs2V = "4.23.0" // based on spray 1.3.x built in support
-val akkaV = "2.7.+"
 
 val sprayV = "1.3.+"
 val scalalikeV = "4.3.5"
-val akkaHttpVersion = "10.5.3"
-val akkaVersion = "2.8.5"
+val pekkoHttpVersion = "1.1.0"
+val pekkoVersion = "1.1.0"
 val testContainersVersion = "1.21.4"
 
 resolvers += Resolver.typesafeRepo("releases")
@@ -56,19 +55,20 @@ val buildSettings = Seq(
   Seq(
     "org.scala-lang.modules"       %% "scala-xml"                          % "2.4.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
-    "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
-    "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
-    "com.typesafe.akka"            %% "akka-http-spray-json"               % akkaHttpVersion, // ### NO Scala 3
-    "com.typesafe.akka"            %% "akka-actor"                         % akkaVersion,
-    "com.typesafe.akka"            %% "akka-persistence"                   % akkaVersion,
-    "com.typesafe.akka"            %% "akka-persistence-query"             % akkaVersion,
-    "com.typesafe.akka"            %% "akka-slf4j"    					           % akkaVersion,
-    "com.typesafe.akka"            %% "akka-stream"    					           % akkaVersion,
-    "com.typesafe.akka"            %% "akka-testkit"  			    	         % akkaVersion                             % "test",
-    "com.typesafe.akka"            %% "akka-http-testkit"  			    	     % akkaHttpVersion                         % "test",
-    "com.typesafe.akka"            %% "akka-stream-testkit"  			    	   % akkaVersion                             % "test",
-    "com.lightbend.akka"           %% "akka-persistence-jdbc"    					 % "5.0.4",
-    "com.github.dnvriend"          %% "akka-persistence-inmemory" 		     % "2.5.15.2"                              % "test", // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-http"                          % pekkoHttpVersion,
+    "org.apache.pekko"            %% "pekko-http-caching"                  % pekkoHttpVersion,
+    "org.apache.pekko"            %% "pekko-http-spray-json"               % pekkoHttpVersion, // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-actor"                         % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-persistence"                   % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-persistence-query"             % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-slf4j"    					           % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-stream"    					           % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-testkit"  			    	         % pekkoVersion                             % "test",
+    "org.apache.pekko"            %% "pekko-http-testkit"  			    	     % pekkoHttpVersion                         % "test",
+    "org.apache.pekko"            %% "pekko-stream-testkit"  			    	   % pekkoVersion                             % "test",
+    "org.apache.pekko"           %% "pekko-persistence-jdbc"    					 % "1.1.0",
+    // Note: akka-persistence-inmemory has no Pekko equivalent yet - keeping for now or consider alternatives
+    // "com.github.dnvriend"          %% "akka-persistence-inmemory" 		     % "2.5.15.2"                              % "test",
     "org.specs2"                   %% "specs2-core"   					           % specs2V                                 % "test", // ### Scala 3
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
@@ -120,9 +120,10 @@ val buildSettings = Seq(
     "org.apache.commons" % "commons-compress" % "1.28.0",
     "io.netty" % "netty-handler" % "4.2.9.Final",
     "org.apache.jena" % "jena-core" % "5.6.0",
-    "com.google.protobuf" % "protobuf-java" % "4.33.2",
+    "com.google.protobuf" % "protobuf-java" % "3.21.+",
     "com.google.guava" % "guava" % "33.5.0-jre",
-    "commons-beanutils" % "commons-beanutils" %  "1.11.0"
+    "commons-beanutils" % "commons-beanutils" %  "1.11.0",
+    "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 )
 )
 

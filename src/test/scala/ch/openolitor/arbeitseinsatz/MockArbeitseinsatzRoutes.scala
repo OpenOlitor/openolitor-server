@@ -1,6 +1,6 @@
 package ch.openolitor.arbeitseinsatz
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.repositories.DefaultArbeitseinsatzReadRepositoryAsyncComponent
 import ch.openolitor.core.{ MockInMemoryActorReferences, SystemConfig }
 import ch.openolitor.core.db.MockDBComponent
