@@ -3,17 +3,17 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
         <encoder>
-            <pattern>%X{akkaTimestamp} %-5level %logger{36} %X{sourceThread} - %msg%n</pattern>
+            <pattern>%X{pekkoTimestamp} %-5level %logger{36} %X{sourceThread} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>./akka.log</file>
+        <file>./pekko.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>./akka.log.%d{yyyy-MM-dd-HH}</fileNamePattern>
+            <fileNamePattern>./pekko.log.%d{yyyy-MM-dd-HH}</fileNamePattern>
         </rollingPolicy>
         <encoder>
-            <pattern>%X{akkaTimestamp} %-5level %logger{36} %X{sourceThread} - %msg%n</pattern>
+            <pattern>%X{pekkoTimestamp} %-5level %logger{36} %X{sourceThread} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -21,7 +21,7 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <logger name="akka.actor" level="INFO" additivity="false">
+    <logger name="pekko.actor" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
     
