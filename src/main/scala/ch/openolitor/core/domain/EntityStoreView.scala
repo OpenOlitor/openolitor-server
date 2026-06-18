@@ -91,9 +91,9 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
     implicit val materializer = Materializer.matFromSystem(context.system)
     journalSource(fromSequenceNr).runForeach {
       case event: EventEnvelope =>
-        log.error(s"handle envelope from journal event: ${event.event}")
+        log.debug(s"handle envelope from journal event: ${event.event}")
         context.self ! event.event
-      case e => log.error(s"Unknown envelope from journal: $e")
+      case e => log.warning(s"Unknown envelope from journal: $e")
     }
   }
 

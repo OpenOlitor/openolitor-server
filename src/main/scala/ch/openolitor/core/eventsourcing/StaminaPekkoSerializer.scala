@@ -30,7 +30,7 @@ import org.apache.pekko.serialization.Serializer
  * Base serializer for stamina-based serialization using Pekko.
  * This is a Pekko-compatible version of StaminaAkkaSerializer.
  */
-abstract class StaminaPekkoSerializer private(persisters: Persisters, codec: PersistedCodec) extends Serializer with LazyLogging {
+abstract class StaminaPekkoSerializer private (persisters: Persisters, codec: PersistedCodec) extends Serializer with LazyLogging {
   def this(persisters: List[Persister[_, _]], codec: PersistedCodec = DefaultPersistedCodec) = this(Persisters(persisters), codec)
   def this(persister: Persister[_, _], persisters: Persister[_, _]*) = this(Persisters(persister :: persisters.toList), DefaultPersistedCodec)
 
