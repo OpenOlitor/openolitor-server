@@ -86,7 +86,7 @@ val buildSettings = Seq(
     "com.h2database"               %  "h2"                                 % "2.3.232"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
     "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
-    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.24",
+    "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.25",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.7",
     "com.mysql"	                   %  "mysql-connector-j"                  % "9.5.0",
     // Libreoffice document API
@@ -94,7 +94,7 @@ val buildSettings = Seq(
     "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
-    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.795",
+    "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.797",
     "de.svenkubiak"                %  "jBCrypt"                            % "0.4.1",
     "com.github.daddykotex"        %% "courier"                            % "3.2.0", // ### Scala 3
     "com.github.nscala-time"       %% "nscala-time"                        % "2.34.0", // ### Scala 3
@@ -120,7 +120,7 @@ val buildSettings = Seq(
     "org.apache.commons" % "commons-compress" % "1.28.0",
     "io.netty" % "netty-handler" % "4.2.9.Final",
     "org.apache.jena" % "jena-core" % "5.6.0",
-    "com.google.protobuf" % "protobuf-java" % "4.33.2",
+    "com.google.protobuf" % "protobuf-java" % "4.33.6",
     "com.google.guava" % "guava" % "33.6.0-jre",
     "commons-beanutils" % "commons-beanutils" %  "1.11.0"
 )
