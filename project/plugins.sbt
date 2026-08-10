@@ -1,4 +1,4 @@
-addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.4")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.7")
 
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.3")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
