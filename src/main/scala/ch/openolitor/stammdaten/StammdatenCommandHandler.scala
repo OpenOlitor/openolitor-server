@@ -33,8 +33,8 @@ import scalikejdbc.DB
 import ch.openolitor.stammdaten.models._
 import ch.openolitor.stammdaten.repositories._
 import ch.openolitor.core.exceptions._
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.persistence.journal.EmptyEventSeq
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.persistence.journal.EmptyEventSeq
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
 import ch.openolitor.core.Macros._

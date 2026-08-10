@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.http.scaladsl.server.{ PathMatcher1, PathMatchers }
-import akka.http.scaladsl.unmarshalling.{ FromStringUnmarshaller, Unmarshaller }
-import akka.http.scaladsl.util.FastFuture
-import akka.stream.Materializer
+import org.apache.pekko.http.scaladsl.server.{ PathMatcher1, PathMatchers }
+import org.apache.pekko.http.scaladsl.unmarshalling.{ FromStringUnmarshaller, Unmarshaller }
+import org.apache.pekko.http.scaladsl.util.FastFuture
+import org.apache.pekko.stream.Materializer
 import ch.openolitor.core.models.BaseId
 
 import scala.concurrent.{ ExecutionContext, Future }

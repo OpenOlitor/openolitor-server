@@ -22,11 +22,11 @@
 \*                                                                           */
 package ch.openolitor.core
 
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.model.HttpResponse
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.model.HttpMethods._
+import org.apache.pekko.http.scaladsl.server._
+import org.apache.pekko.http.scaladsl.server.Directives._
 import ch.openolitor.util.ConfigUtil._
 import com.typesafe.scalalogging.LazyLogging
 

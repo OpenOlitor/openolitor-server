@@ -23,9 +23,9 @@
 package ch.openolitor.core.domain
 
 import org.joda.time.DateTime
-import akka.persistence._
+import org.apache.pekko.persistence._
 import ch.openolitor.core.SystemConfig
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.domain.DefaultMessages.Startup
 
 object SystemEventStore {

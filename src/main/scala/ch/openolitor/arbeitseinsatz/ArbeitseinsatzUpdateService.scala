@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.arbeitseinsatz
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.arbeitseinsatz.models._
 import ch.openolitor.arbeitseinsatz.repositories._
 import ch.openolitor.core.Macros._

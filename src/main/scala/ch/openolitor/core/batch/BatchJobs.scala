@@ -24,10 +24,10 @@ package ch.openolitor.core.batch
 
 import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration._
-import akka.actor.Actor
+import org.apache.pekko.actor.Actor
 import org.joda.time.DateTime
-import akka.actor.Cancellable
-import akka.actor.ActorRef
+import org.apache.pekko.actor.Cancellable
+import org.apache.pekko.actor.ActorRef
 import scala.language.postfixOps
 
 object BatchJobs {

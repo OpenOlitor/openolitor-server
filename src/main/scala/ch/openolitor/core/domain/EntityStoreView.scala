@@ -23,16 +23,16 @@
 package ch.openolitor.core.domain
 
 import java.util.concurrent.TimeUnit
-import akka.actor.SupervisorStrategy.Restart
+import org.apache.pekko.actor.SupervisorStrategy.Restart
 import DefaultMessages._
 
 import scala.concurrent.duration._
-import akka.actor._
-import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
-import akka.persistence.query.{ EventEnvelope, PersistenceQuery }
-import akka.NotUsed
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
+import org.apache.pekko.actor._
+import org.apache.pekko.persistence.jdbc.query.scaladsl.JdbcReadJournal
+import org.apache.pekko.persistence.query.{ EventEnvelope, PersistenceQuery }
+import org.apache.pekko.NotUsed
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
 
 import scala.util._
 import com.typesafe.scalalogging.LazyLogging
@@ -90,7 +90,10 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
     log.debug(s"replayJournalSource: $fromSequenceNr")
     implicit val materializer = Materializer.matFromSystem(context.system)
     journalSource(fromSequenceNr).runForeach {
-      case event: EventEnvelope => context.self ! event.event
+      case event: EventEnvelope =>
+        log.debug(s"handle envelope from journal event: ${event.event}")
+        context.self ! event.event
+      case e => log.warning(s"Unknown envelope from journal: $e")
     }
   }
 
@@ -127,12 +130,15 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
       log.debug("The Terminate was called")
       System.exit('R')
     case e: PersistentEvent if e.meta.transactionNr < lastProcessedTransactionNr =>
+      log.debug(s"ignore already processed event ${e.meta.transactionNr} < $lastProcessedTransactionNr")
     // ignore already processed event
 
     case e: PersistentEvent if e.meta.transactionNr == lastProcessedTransactionNr && e.meta.seqNr <= lastProcessedSequenceNr =>
+      log.debug(s"EntityStoreView: ignore already processed event ${e.meta.transactionNr} == $lastProcessedTransactionNr && ${e.meta.seqNr} <= $lastProcessedSequenceNr")
     // ignore already processed event
 
     case e: PersistentEvent =>
+      log.debug(s"EntityStoreView: process persisted event $e")
       processNewEvents(e)
   }
 
@@ -144,6 +150,7 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
     case _: EntityStoreInitialized =>
       log.debug(s"Received EntityStoreInitialized")
     case e: EntityInsertedEvent[_, _] =>
+      log.debug(s"Received EntityInsertedEvent $e")
       runSafe(insertService.handle, e)
     case e: EntityUpdatedEvent[_, _] =>
       runSafe(updateService.handle, e)
@@ -151,6 +158,7 @@ trait EntityStoreView extends Actor with DBEvolutionReference with LazyLogging w
       runSafe(deleteService.handle, e)
     case e: PersistentEvent =>
       // handle custom events
+      log.debug(s"Received PersistentEvent $e")
       runSafe(aktionenService.handle, e)
   }
 

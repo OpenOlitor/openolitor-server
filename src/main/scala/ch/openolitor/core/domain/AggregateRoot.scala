@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.domain
 
-import akka.persistence._
-import akka.actor._
+import org.apache.pekko.persistence._
+import org.apache.pekko.actor._
 import ch.openolitor.core.models.PersonId
 
 trait State

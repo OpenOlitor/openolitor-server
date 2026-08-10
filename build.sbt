@@ -1,4 +1,4 @@
-scalaVersion := "2.13.16"
+scalaVersion := "2.13.18"
 
 enablePlugins(JavaServerAppPackaging)
 enablePlugins(DockerPlugin)
@@ -28,12 +28,10 @@ import java.util.Calendar
 
 
 val specs2V = "4.23.0" // based on spray 1.3.x built in support
-val akkaV = "2.7.+"
 
-val sprayV = "1.3.+"
 val scalalikeV = "4.3.5"
-val akkaHttpVersion = "10.5.3"
-val akkaVersion = "2.8.5"
+// all pekko components need to stick to the same version, therefore we take the latest common version here
+val pekkoVersion = "1.2.0"
 val testContainersVersion = "1.21.4"
 
 resolvers += Resolver.typesafeRepo("releases")
@@ -43,8 +41,8 @@ val buildSettings = Seq(
   .setPreference(DanglingCloseParenthesis, Force)
   .setPreference(AlignSingleLineCaseStatements, true),
   version := "2.6.46",
-  scalaVersion := "2.13.16",
-  crossScalaVersions := Seq("2.13.8", "2.13.16"),
+  scalaVersion := "2.13.18",
+  crossScalaVersions := Seq("2.13.18", "2.13.16"),
   resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers ++= Resolver.sonatypeOssRepos("releases"),
   resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
@@ -56,19 +54,19 @@ val buildSettings = Seq(
   Seq(
     "org.scala-lang.modules"       %% "scala-xml"                          % "2.4.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
-    "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
-    "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
-    "com.typesafe.akka"            %% "akka-http-spray-json"               % akkaHttpVersion, // ### NO Scala 3
-    "com.typesafe.akka"            %% "akka-actor"                         % akkaVersion,
-    "com.typesafe.akka"            %% "akka-persistence"                   % akkaVersion,
-    "com.typesafe.akka"            %% "akka-persistence-query"             % akkaVersion,
-    "com.typesafe.akka"            %% "akka-slf4j"    					           % akkaVersion,
-    "com.typesafe.akka"            %% "akka-stream"    					           % akkaVersion,
-    "com.typesafe.akka"            %% "akka-testkit"  			    	         % akkaVersion                             % "test",
-    "com.typesafe.akka"            %% "akka-http-testkit"  			    	     % akkaHttpVersion                         % "test",
-    "com.typesafe.akka"            %% "akka-stream-testkit"  			    	   % akkaVersion                             % "test",
-    "com.lightbend.akka"           %% "akka-persistence-jdbc"    					 % "5.0.4",
-    "com.github.dnvriend"          %% "akka-persistence-inmemory" 		     % "2.5.15.2"                              % "test", // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-http"                          % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-http-caching"                  % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-http-spray-json"               % pekkoVersion, // ### NO Scala 3
+    "org.apache.pekko"            %% "pekko-actor"                         % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-persistence"                   % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-persistence-query"             % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-slf4j"    					           % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-stream"    					           % pekkoVersion,
+    "org.apache.pekko"            %% "pekko-testkit"  			    	         % pekkoVersion                             % "test",
+    "org.apache.pekko"            %% "pekko-http-testkit"  			    	     % pekkoVersion                         % "test",
+    "org.apache.pekko"            %% "pekko-stream-testkit"  			    	   % pekkoVersion                             % "test",
+    "org.apache.pekko"           %% "pekko-persistence-jdbc"    					 % pekkoVersion,
+    "io.github.alstanchev"          %% "pekko-persistence-inmemory" 		     % "1.3.0"                              % "test",
     "org.specs2"                   %% "specs2-core"   					           % specs2V                                 % "test", // ### Scala 3
     "org.specs2"                   %% "specs2-mock"                        % specs2V                                 % "test",
     "org.specs2"                   %% "specs2-junit"                       % specs2V                                 % "test",
@@ -85,13 +83,16 @@ val buildSettings = Seq(
     "com.github.jasync-sql"        %  "jasync-mysql"                       % "2.2.+",
     "com.h2database"               %  "h2"                                 % "2.3.232"                               % "test",
     "org.testcontainers"           %  "mariadb"                            % testContainersVersion                   % "test",
-    "io.findify"                   %% "s3mock"                             % "0.2.6"                                 % "test",
+    "io.github.marko-asplund"                   %% "s3mock"                             % "0.6.0"                                 % "test",
     "ch.qos.logback"  	           %  "logback-classic"    		  		       % "1.5.24",
     "org.mariadb.jdbc"	           %  "mariadb-java-client"                % "3.5.7",
     "com.mysql"	                   %  "mysql-connector-j"                  % "9.5.0",
     // Libreoffice document API
     "org.odftoolkit"               %  "simple-odf"					               % "0.9.0" withSources(),
-    "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3
+    // stamina-json replaced with stamino (Pekko-compatible fork)
+    // Note: stamino not yet published to Maven Central, keeping stamina-json for now
+    // "io.github.tmreau"               %% "stamino-json"                       % "0.1.0", // Pekko-compatible alternative (not published yet)
+    "com.scalapenos"               %% "stamina-json"                       % "0.1.6", // ### NO Scala 3, kept until stamino is published
     "net.virtual-void"             %% "json-lenses"                        % "0.6.2",
     // s3
     "com.amazonaws"                %  "aws-java-sdk-s3"                    % "1.12.797",
@@ -122,7 +123,8 @@ val buildSettings = Seq(
     "org.apache.jena" % "jena-core" % "5.6.0",
     "com.google.protobuf" % "protobuf-java" % "4.33.2",
     "com.google.guava" % "guava" % "33.5.0-jre",
-    "commons-beanutils" % "commons-beanutils" %  "1.11.0"
+    "commons-beanutils" % "commons-beanutils" %  "1.11.0",
+    "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 )
 )
 

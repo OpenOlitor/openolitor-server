@@ -20,22 +20,29 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.buchhaltung.repositories
+package ch.openolitor.core.eventsourcing
 
-import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
-import ch.openolitor.core.repositories.BaseUpdateRepositoryComponent
+import com.typesafe.scalalogging.LazyLogging
+import stamina._
+import org.apache.pekko.serialization.Serializer
 
-import org.apache.pekko.actor.ActorSystem
+/**
+ * Base serializer for stamina-based serialization using Pekko.
+ * This is a Pekko-compatible version of StaminaAkkaSerializer.
+ */
+abstract class StaminaPekkoSerializer private (persisters: Persisters, codec: PersistedCodec) extends Serializer with LazyLogging {
+  def this(persisters: List[Persister[_, _]], codec: PersistedCodec = DefaultPersistedCodec) = this(Persisters(persisters), codec)
+  def this(persister: Persister[_, _], persisters: Persister[_, _]*) = this(Persisters(persister :: persisters.toList), DefaultPersistedCodec)
 
-trait BuchhaltungUpdateRepositoryComponent extends BaseUpdateRepositoryComponent {
-  val buchhaltungUpdateRepository: BuchhaltungUpdateRepository
+  private val akkaSerializer = new StaminaAkkaSerializer(persisters.persisters, codec) {}
+  val includeManifest: Boolean = akkaSerializer.includeManifest
+  val identifier: Int = akkaSerializer.identifier
 
-  // implicitly expose the eventStream
-  implicit def buchhaltungUpdateRepositoryImplicit = buchhaltungUpdateRepository
-}
+  override def toBinary(obj: AnyRef): Array[Byte] = {
+    akkaSerializer.toBinary(obj)
+  }
 
-trait DefaultBuchhaltungUpdateRepositoryComponent extends BuchhaltungUpdateRepositoryComponent {
-  val system: ActorSystem
-
-  override val buchhaltungUpdateRepository: BuchhaltungUpdateRepository = new DefaultActorSystemReference(system) with BuchhaltungUpdateRepositoryImpl with AkkaEventStream
+  override def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef = {
+    akkaSerializer.fromBinary(bytes, manifest)
+  }
 }

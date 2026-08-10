@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.actor._
-import akka.http.scaladsl.model.{ ContentType, MediaTypes }
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.{ ContentType, MediaTypes }
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import ch.openolitor.buchhaltung.repositories.{ BuchhaltungReadRepositoryAsyncComponent, DefaultBuchhaltungReadRepositoryAsyncComponent }
 import ch.openolitor.buchhaltung.BuchhaltungJsonProtocol
 import ch.openolitor.core._

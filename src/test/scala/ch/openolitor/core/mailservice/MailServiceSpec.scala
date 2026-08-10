@@ -23,10 +23,10 @@
 package ch.openolitor.core.mailservice
 
 import org.specs2.mutable.Specification
-import akka.testkit.TestKit
-import akka.actor.ActorSystem
+import org.apache.pekko.testkit.TestKit
+import org.apache.pekko.actor.ActorSystem
 import org.specs2.specification.Scope
-import akka.testkit.TestProbe
+import org.apache.pekko.testkit.TestProbe
 import ch.openolitor.core.SystemConfig
 import ch.openolitor.core.MandantConfiguration
 import com.tegonal.CFEnvConfigLoader.ConfigLoader

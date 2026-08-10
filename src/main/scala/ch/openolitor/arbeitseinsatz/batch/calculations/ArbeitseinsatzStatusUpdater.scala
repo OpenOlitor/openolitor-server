@@ -23,8 +23,8 @@
 package ch.openolitor.arbeitseinsatz.batch.calculations
 
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.core.batch.BaseBatchJob
 import scala.concurrent.duration._
 import ch.openolitor.core.batch.BatchJobs._
@@ -33,7 +33,7 @@ import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.arbeitseinsatz.repositories.DefaultArbeitseinsatzWriteRepositoryComponent
 import scalikejdbc._
 import ch.openolitor.arbeitseinsatz.repositories.ArbeitseinsatzRepositoryQueries
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import scala.language.postfixOps
 
 object ArbeitseinsatzStatusUpdater {

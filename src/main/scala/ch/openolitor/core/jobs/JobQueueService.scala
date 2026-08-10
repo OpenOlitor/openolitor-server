@@ -22,8 +22,8 @@
 \*                                                                           */
 package ch.openolitor.core.jobs
 
-import akka.actor._
-import akka.http.scaladsl.model.MediaType
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.MediaType
 import ch.openolitor.core.models._
 import ch.openolitor.core.JSONSerializable
 
@@ -65,7 +65,7 @@ object JobQueueService {
 class JobQueueService(mandantConfiguration: MandantConfiguration) extends Actor with ActorLogging {
 
   /**
-   * Implicit convertion from personid object model to string based representation used in akka system
+   * Implicit convertion from personid object model to string based representation used in pekko system
    */
   implicit def userId2String(id: PersonId): String = id.id.toString
 

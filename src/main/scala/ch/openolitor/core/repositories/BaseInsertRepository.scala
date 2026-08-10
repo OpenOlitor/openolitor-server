@@ -40,6 +40,7 @@ trait BaseInsertRepository extends BaseReadRepositorySync with InsertRepository 
         logger.debug(s"Ignore insert event, entity already exists:${entity.id}")
         None
       case None =>
+        logger.debug(s"BaseInsertRepository: insert entity:${entity}")
         withSQL(insertInto(syntaxSupport).values(params: _*)).update.apply()
 
         //publish event to stream

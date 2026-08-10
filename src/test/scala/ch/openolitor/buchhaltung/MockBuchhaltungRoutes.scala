@@ -1,6 +1,6 @@
 package ch.openolitor.buchhaltung
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.buchhaltung.repositories.DefaultBuchhaltungReadRepositoryAsyncComponent
 import ch.openolitor.core.{ MockInMemoryActorReferences, SystemConfig }
 import ch.openolitor.core.db.MockDBComponent

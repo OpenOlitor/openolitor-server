@@ -25,7 +25,7 @@ package ch.openolitor.kundenportal.repositories
 import ch.openolitor.core.{ AkkaEventStream, DefaultActorSystemReference }
 import ch.openolitor.core.repositories.BaseUpdateRepositoryComponent
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 trait KundenportalUpdateRepositoryComponent extends BaseUpdateRepositoryComponent {
   val kundenportalUpdateRepository: KundenportalUpdateRepository

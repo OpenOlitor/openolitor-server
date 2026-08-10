@@ -22,14 +22,14 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.actor.ActorSystem
-import akka.http.caching.LfuCache
-import akka.http.caching.scaladsl.Cache
-import akka.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes }
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.testkit.Specs2RouteTest
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.caching.LfuCache
+import org.apache.pekko.http.caching.scaladsl.Cache
+import org.apache.pekko.http.scaladsl.model.{ HttpMethod, HttpMethods, StatusCodes }
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.server._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.testkit.Specs2RouteTest
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.stammdaten.models.KundeId
 import org.joda.time.DateTime

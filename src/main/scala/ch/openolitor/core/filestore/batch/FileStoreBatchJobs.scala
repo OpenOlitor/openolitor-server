@@ -23,8 +23,8 @@
 package ch.openolitor.core.filestore.batch
 
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.core.batch.BaseBatchJobsSupervisor
 import ch.openolitor.core.filestore.batch.housekeeping.TemporaryDataBucketCleanupBatchJob
 import ch.openolitor.core.filestore.FileStore

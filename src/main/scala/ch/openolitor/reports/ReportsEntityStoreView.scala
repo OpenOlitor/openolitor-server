@@ -25,11 +25,11 @@ package ch.openolitor.reports
 import ch.openolitor.core.domain._
 import ch.openolitor.core._
 import ch.openolitor.core.db.ConnectionPoolContextAware
-import akka.actor.Props
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.Props
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.reports.repositories.DefaultReportsWriteRepositoryComponent
 import ch.openolitor.reports.repositories.ReportsWriteRepositoryComponent
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 
 object ReportsEntityStoreView {
   def props(dbEvolutionActor: ActorRef, airbrakeNotifier: ActorRef)(implicit sysConfig: SystemConfig, system: ActorSystem): Props = Props(classOf[DefaultReportsEntityStoreView], dbEvolutionActor, sysConfig, system, airbrakeNotifier)

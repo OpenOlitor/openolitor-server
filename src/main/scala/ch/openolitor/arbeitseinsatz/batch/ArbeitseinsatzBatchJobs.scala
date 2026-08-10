@@ -23,11 +23,11 @@
 package ch.openolitor.arbeitseinsatz.batch
 
 import ch.openolitor.core.SystemConfig
-import akka.actor.ActorSystem
-import akka.actor.Props
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Props
 import ch.openolitor.arbeitseinsatz.repositories.DefaultArbeitseinsatzWriteRepositoryComponent
 import ch.openolitor.core.batch.BaseBatchJobsSupervisor
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import ch.openolitor.arbeitseinsatz.batch.calculations.ArbeitseinsatzStatusUpdater
 
 object ArbeitseinsatzBatchJobs {

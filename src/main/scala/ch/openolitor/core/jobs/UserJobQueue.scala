@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.jobs
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.ws.ClientReceiver
 import ch.openolitor.core.AkkaEventStream

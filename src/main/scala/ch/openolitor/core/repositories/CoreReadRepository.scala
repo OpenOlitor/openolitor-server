@@ -28,7 +28,7 @@ import ch.openolitor.core.db.OOAsyncDB._
 import ch.openolitor.util.parsing.FilterExpr
 import scala.concurrent.Future
 import ch.openolitor.core.models.PersistenceJournalView
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 trait CoreReadRepository {
   def queryPersistenceJournal(limit: Int)(implicit asyncCpContext: MultipleAsyncConnectionPoolContext, filter: Option[FilterExpr]): Future[List[PersistenceJournalView]]

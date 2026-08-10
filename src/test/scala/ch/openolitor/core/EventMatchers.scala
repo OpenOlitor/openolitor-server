@@ -1,6 +1,6 @@
 package ch.openolitor.core
 
-import akka.testkit.TestProbe
+import org.apache.pekko.testkit.TestProbe
 import ch.openolitor.core.models._
 import com.typesafe.scalalogging.LazyLogging
 import org.specs2.matcher.MatchResult

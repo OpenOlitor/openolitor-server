@@ -22,9 +22,9 @@
 \*                                                                           */
 package ch.openolitor.stammdaten
 
-import akka.actor.ActorRef
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import ch.openolitor.core.db.AsyncConnectionPoolContextAware
 import ch.openolitor.core.domain.EventTransactionMetadata
 import ch.openolitor.core.eventsourcing.CoreEventStoreSerializer

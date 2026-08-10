@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core.reporting.pdf
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.Http
-import akka.stream.scaladsl.FileIO
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.stream.scaladsl.FileIO
 import ch.openolitor.core.SystemConfig
 import com.tegonal.CFEnvConfigLoader.ConfigLoader
 
@@ -37,7 +37,7 @@ import scala.util.Try
 
 trait PDFGeneratorService {
   def sysConfig: SystemConfig
-  lazy val DefaultChunkSize: Int = ConfigLoader.loadConfig.getBytes("akka.http.parsing.max-chunk-size").toInt
+  lazy val DefaultChunkSize: Int = ConfigLoader.loadConfig.getBytes("pekko.http.parsing.max-chunk-size").toInt
 
   lazy val endpointUri: String = sysConfig.mandantConfiguration.config.getString("converttopdf.endpoint")
 

@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.core.filestore
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import ch.openolitor.core.models.BaseStringId
 import ch.openolitor.core.{ JSONSerializable, MandantConfiguration }
 import com.amazonaws.auth.{ AWSStaticCredentialsProvider, BasicAWSCredentials }

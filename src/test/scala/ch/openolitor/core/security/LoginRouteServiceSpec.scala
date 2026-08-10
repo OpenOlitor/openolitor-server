@@ -22,10 +22,10 @@
 \*                                                                           */
 package ch.openolitor.core.security
 
-import akka.actor.{ ActorRef, ActorSystem }
-import akka.http.caching.scaladsl.Cache
-import akka.http.caching.LfuCache
-import akka.testkit.{ TestActorRef, TestProbe }
+import org.apache.pekko.actor.{ ActorRef, ActorSystem }
+import org.apache.pekko.http.caching.scaladsl.Cache
+import org.apache.pekko.http.caching.LfuCache
+import org.apache.pekko.testkit.{ TestActorRef, TestProbe }
 import ch.openolitor.core.{ SpecSubjects, SystemConfig }
 import ch.openolitor.core.db.MultipleAsyncConnectionPoolContext
 import ch.openolitor.core.domain.SystemEvents.PersonChangedOtpSecret

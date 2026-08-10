@@ -22,7 +22,7 @@
 \*                                                                           */
 package ch.openolitor.util
 
-import akka.actor._
+import org.apache.pekko.actor._
 import ch.openolitor.core.data._
 import ch.openolitor.core.data.DataImportParser._
 import java.io.File

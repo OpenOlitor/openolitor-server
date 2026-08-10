@@ -23,8 +23,8 @@
 package ch.openolitor.core.mailservice
 
 import java.util.UUID
-import akka.actor._
-import akka.persistence.SnapshotMetadata
+import org.apache.pekko.actor._
+import org.apache.pekko.persistence.SnapshotMetadata
 import ch.openolitor.core.domain.{ AggregateRoot, _ }
 import ch.openolitor.core.models.PersonId
 import ch.openolitor.core.db.ConnectionPoolContextAware

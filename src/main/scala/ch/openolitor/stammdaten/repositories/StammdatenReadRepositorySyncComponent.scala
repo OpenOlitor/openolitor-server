@@ -24,7 +24,7 @@ package ch.openolitor.stammdaten.repositories
 
 import ch.openolitor.core.DefaultActorSystemReference
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 trait StammdatenReadRepositorySyncComponent {
   val stammdatenReadRepository: StammdatenReadRepositorySync
