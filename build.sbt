@@ -110,7 +110,7 @@ val buildSettings = Seq(
     "org.apache.xmlgraphics"       %  "batik-transcoder"                   % "1.19",
     "org.apache.xmlgraphics"       %  "batik-codec"                        % "1.19",
     "com.tegonal"                  %% "cf-env-config-loader"               % "1.1.2", // ### NO Scala 3, NO Scala 2.13
-    "com.eatthepath"               %  "java-otp"                           % "0.4.0",
+    "com.eatthepath"               %  "java-otp"                           % "1.0.0",
     "org.apache.pdfbox"            %  "pdfbox-tools"                       % "2.0.35"
   )
 },
