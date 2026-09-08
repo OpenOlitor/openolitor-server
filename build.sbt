@@ -54,7 +54,7 @@ val buildSettings = Seq(
 
   libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"       %% "scala-xml"                          % "2.4.0",
+    "org.scala-lang.modules"       %% "scala-xml"                          % "2.5.0",
     "javax.xml.bind"               %  "jaxb-api"                           % "2.3.1",
     "com.typesafe.akka"            %% "akka-http"                          % akkaHttpVersion,
     "com.typesafe.akka"            %% "akka-http-caching"                  % akkaHttpVersion,
@@ -115,7 +115,7 @@ val buildSettings = Seq(
   )
 },
   dependencyOverrides ++= Seq(
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.5.0",
     "xerces" % "xercesImpl" % "2.12.2",
     "org.apache.commons" % "commons-compress" % "1.28.0",
     "io.netty" % "netty-handler" % "4.2.17.Final",
