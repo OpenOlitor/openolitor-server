@@ -100,26 +100,30 @@ class BuchhaltungInsertService(override val sysConfig: SystemConfig) extends Eve
       buchhaltungWriteRepository.getKontoDatenProjekt flatMap { kontoDaten =>
         val referenzNummer = generateReferenzNummer(kontoDaten, entity.kundeId, id)
         val esrNummer = generateEsrNummer(kontoDaten, entity.betrag, entity.waehrung, referenzNummer)
-        val ret = buchhaltungWriteRepository.getById(kundeMapping, entity.kundeId) map { kunde =>
-          val typ = copyTo[RechnungCreateFromRechnungsPositionen, Rechnung](
-            entity,
-            "id" -> id,
-            "einbezahlterBetrag" -> None,
-            "status" -> Erstellt,
-            "referenzNummer" -> referenzNummer,
-            "fileStoreId" -> None,
-            "anzahlMahnungen" -> "0".toInt,
-            "mahnungFileStoreIds" -> Set.empty[String],
-            "esrNummer" -> esrNummer,
-            "paymentType" -> kunde.paymentType,
-            "erstelldat" -> meta.timestamp,
-            "ersteller" -> meta.originator,
-            "modifidat" -> meta.timestamp,
-            "modifikator" -> meta.originator
-          )
-          buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
+        // The Kunde might have been deleted in the meantime (e.g. when the event gets replayed). In that case
+        // fall back to the paymentType stored in the event instead of failing, which would block the event processing.
+        val kunde = buchhaltungWriteRepository.getById(kundeMapping, entity.kundeId)
+        if (kunde.isEmpty) {
+          logger.warn(s"Kunde ${entity.kundeId} not found while creating Rechnung $id, using paymentType from event")
         }
-        ret.get
+        val paymentType = kunde.map(_.paymentType).getOrElse(entity.paymentType)
+        val typ = copyTo[RechnungCreateFromRechnungsPositionen, Rechnung](
+          entity,
+          "id" -> id,
+          "einbezahlterBetrag" -> None,
+          "status" -> Erstellt,
+          "referenzNummer" -> referenzNummer,
+          "fileStoreId" -> None,
+          "anzahlMahnungen" -> "0".toInt,
+          "mahnungFileStoreIds" -> Set.empty[String],
+          "esrNummer" -> esrNummer,
+          "paymentType" -> paymentType,
+          "erstelldat" -> meta.timestamp,
+          "ersteller" -> meta.originator,
+          "modifidat" -> meta.timestamp,
+          "modifikator" -> meta.originator
+        )
+        buchhaltungWriteRepository.insertEntity[Rechnung, RechnungId](typ)
       }
     }
   }
