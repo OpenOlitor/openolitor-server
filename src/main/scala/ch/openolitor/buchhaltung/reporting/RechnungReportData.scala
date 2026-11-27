@@ -115,7 +115,11 @@ trait RechnungReportData extends AsyncConnectionPoolContextAware with Buchhaltun
           // more bill data
           bill.setUnstructuredMessage(rechnung.titel)
           bill.setReference(rechnung.referenzNummer)
-          bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF)
+          if (Payments.isQRIBAN(iban)) {
+            bill.setReferenceType(Bill.REFERENCE_TYPE_QR_REF)
+          } else {
+            bill.setReferenceType(Bill.REFERENCE_TYPE_CRED_REF)
+          }
 
           // Set debtor
           val debtor = new Address()
