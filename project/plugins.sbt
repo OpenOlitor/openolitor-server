@@ -10,4 +10,4 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.4.1")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
 
-dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.4.0"
+dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.5.0"
